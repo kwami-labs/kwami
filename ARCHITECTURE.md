@@ -3,19 +3,19 @@
 ## 🏗️ System Overview
 
 ```
-┌─────────────────────────────────────────────────────────────┐
-│                         KWAMI                                │
-│  (Main orchestration class)                                  │
-│                                                              │
-│  ┌──────────────┐  ┌──────────────┐  ┌──────────────┐      │
-│  │    BODY      │  │    MIND      │  │    SOUL      │      │
-│  │  (Visual)    │  │  (AI Config) │  │ (Personality)│      │
-│  └──────────────┘  └──────────────┘  └──────────────┘      │
-│         │                  │                  │              │
-└─────────┼──────────────────┼──────────────────┼──────────────┘
+┌─────────────────────────────────────────────────────────┐
+│                         KWAMI                           │
+│  (Main orchestration class)                             │
+│                                                         │
+│  ┌──────────────┐  ┌──────────────┐  ┌──────────────┐   │
+│  │    BODY      │  │    MIND      │  │    SOUL      │   │
+│  │  (Visual)    │  │  (AI/Voice)  │  │ (Personality)│   │
+│  └──────────────┘  └──────────────┘  └──────────────┘   │
+│         │                  │                  │         │
+└─────────┼──────────────────┼──────────────────┼─────────┘
           │                  │                  │
           ▼                  ▼                  ▼
-    [IMPLEMENTED]       [TODO]             [TODO]
+    [IMPLEMENTED]      [IMPLEMENTED]      [IMPLEMENTED]
 ```
 
 ## 📦 Component Structure
@@ -23,124 +23,166 @@
 ### 1. Core Layer (`src/core/`)
 
 ```
-┌──────────────────────────────────────────────┐
-│              Core Classes                     │
-├──────────────────────────────────────────────┤
-│                                              │
+┌─────────────────────────────────────────────┐
+│              Core Classes                   │
+├─────────────────────────────────────────────┤
+│                                             │
 │  ┌────────────────────────────────────┐     │
 │  │          Kwami.ts                  │     │
 │  │  Main orchestration class          │     │
 │  │  - Manages Body, Mind, Soul        │     │
 │  │  - State management                │     │
 │  │  - High-level API                  │     │
-│  └───────────┬────────────────────────┘     │
-│              │                               │
-│     ┌────────┴────────┐                     │
-│     │                 │                     │
-│  ┌──▼──────────┐  ┌──▼──────────┐          │
-│  │  Body.ts    │  │  Audio.ts   │          │
-│  │  - 3D Scene │  │  - Playback │          │
-│  │  - Renderer │  │  - Analysis │          │
-│  │  - Camera   │  │  - Freq Data│          │
-│  │  - Blob Mgmt│  │  - Volume   │          │
-│  └─────────────┘  └─────────────┘          │
-│                                              │
-└──────────────────────────────────────────────┘
+│  └────────┬───────────────────────────┘     │
+│           │                                 │
+│     ┌─────┴──────┬──────────┐               │
+│     │            │          │               │
+│  ┌──▼─────┐  ┌──▼────┐  ┌──▼────┐          │
+│  │Body.ts │  │Mind.ts│  │Soul.ts│          │
+│  │-3D Scene│  │-TTS   │  │-Person│          │
+│  │-Renderer│  │-Voice │  │-Traits│          │
+│  │-Camera  │  │-Model │  │-Prompt│          │
+│  │-Blob    │  │-Config│  │-Style │          │
+│  └──┬─────┘  └───────┘  └───────┘          │
+│     │                                       │
+│  ┌──▼────────┐                              │
+│  │ Audio.ts  │                              │
+│  │ -Playback │                              │
+│  │ -Analysis │                              │
+│  │ -Freq Data│                              │
+│  │ -Volume   │                              │
+│  │ -Stream   │                              │
+│  └───────────┘                              │
+│                                             │
+└─────────────────────────────────────────────┘
 ```
 
 ### 2. Blob Layer (`src/blob/`)
 
 ```
-┌──────────────────────────────────────────────┐
-│              Blob System                      │
-├──────────────────────────────────────────────┤
-│                                              │
-│  ┌────────────────────────────────────┐     │
-│  │          Blob.ts                   │     │
-│  │  Main blob implementation          │     │
-│  │  - Mesh management                 │     │
-│  │  - Animation control               │     │
-│  │  - Skin switching                  │     │
-│  │  - Customization API               │     │
-│  └───────┬──────────────┬─────────────┘     │
-│          │              │                   │
+┌───────────────────────────────────────────┐
+│              Blob System                  │
+├───────────────────────────────────────────┤
+│                                           │
+│  ┌────────────────────────────────────┐   │
+│  │          Blob.ts                   │   │
+│  │  Main blob implementation          │   │
+│  │  - Mesh management                 │   │
+│  │  - Animation control               │   │
+│  │  - Skin switching                  │   │
+│  │  - Customization API               │   │
+│  └───────┬──────────────┬─────────────┘   │
+│          │              │                 │
 │     ┌────▼────┐    ┌────▼────┐            │
 │     │geometry │    │animation│            │
 │     │.ts      │    │.ts      │            │
 │     └─────────┘    └─────────┘            │
-│          │              │                   │
-│     ┌────▼────────────────────┐            │
-│     │      skins/              │            │
-│     │  ┌──────────┐            │            │
-│     │  │tricolor/ │            │            │
-│     │  │- vertex  │            │            │
-│     │  │- fragment│            │            │
-│     │  │- index   │            │            │
-│     │  └──────────┘            │            │
-│     │  ┌──────────┐            │            │
-│     │  │ zebra/   │            │            │
-│     │  │- vertex  │            │            │
-│     │  │- fragment│            │            │
-│     │  │- index   │            │            │
-│     │  └──────────┘            │            │
-│     └─────────────────────────┘            │
-│                                              │
-└──────────────────────────────────────────────┘
+│          │              │                 │
+│     ┌────▼──────────────▼─────┐           │
+│     │      skins/             │           │
+│     │  ┌──────────┐           │           │
+│     │  │tricolor/ │           │           │
+│     │  │- vertex  │           │           │
+│     │  │- fragment│           │           │
+│     │  │- index   │           │           │
+│     │  └──────────┘           │           │
+│     │  ┌──────────┐           │           │
+│     │  │ zebra/   │           │           │
+│     │  │- vertex  │           │           │
+│     │  │- fragment│           │           │
+│     │  │- index   │           │           │
+│     │  └──────────┘           │           │
+│     └─────────────────────────┘           │
+│                                           │
+└───────────────────────────────────────────┘
 ```
 
 ### 3. Scene Layer (`src/scene/`)
 
 ```
-┌──────────────────────────────────────────────┐
-│           Scene Management                    │
-├──────────────────────────────────────────────┤
-│                                              │
-│  ┌────────────────────────────────────┐     │
-│  │        setup.ts                    │     │
-│  │  - Renderer creation               │     │
-│  │  - Camera setup                    │     │
-│  │  - Lighting configuration          │     │
-│  │  - OrbitControls (optional)        │     │
-│  └────────────────────────────────────┘     │
-│                                              │
-└──────────────────────────────────────────────┘
+┌───────────────────────────────────────────┐
+│           Scene Management                │
+├───────────────────────────────────────────┤
+│                                           │
+│  ┌────────────────────────────────────┐   │
+│  │        setup.ts                    │   │
+│  │  - Renderer creation               │   │
+│  │  - Camera setup                    │   │
+│  │  - Lighting configuration          │   │
+│  │  - OrbitControls (optional)        │   │
+│  └────────────────────────────────────┘   │
+│                                           │
+└───────────────────────────────────────────┘
 ```
 
-### 4. Types Layer (`src/types/`)
+### 4. Mind & Soul Layer (`src/core/`)
+
+```
+┌───────────────────────────────────────────┐
+│           AI Components                   │
+├───────────────────────────────────────────┤
+│                                           │
+│  ┌────────────────────────────────────┐   │
+│  │          Mind.ts                   │   │
+│  │  ElevenLabs voice synthesis        │   │
+│  │  - Text-to-Speech                  │   │
+│  │  - Voice configuration             │   │
+│  │  - Model selection                 │   │
+│  │  - Audio streaming                 │   │
+│  │  - Microphone access               │   │
+│  └────────────────────────────────────┘   │
+│                                           │
+│  ┌────────────────────────────────────┐   │
+│  │          Soul.ts                   │   │
+│  │  Personality management            │   │
+│  │  - Traits definition               │   │
+│  │  - System prompt generation        │   │
+│  │  - Personality templates           │   │
+│  │  - Emotional tone control          │   │
+│  │  - Conversation style              │   │
+│  └────────────────────────────────────┘   │
+│                                           │
+└───────────────────────────────────────────┘
+```
+
+### 5. Types Layer (`src/types/`)
 
 ```
 ┌──────────────────────────────────────────────┐
-│         TypeScript Definitions                │
+│         TypeScript Definitions               │
 ├──────────────────────────────────────────────┤
 │                                              │
 │  - KwamiConfig                               │
 │  - KwamiState                                │
 │  - BodyConfig                                │
+│  - MindConfig                                │
+│  - SoulConfig                                │
+│  - VoiceSettings                             │
 │  - AudioConfig                               │
 │  - SceneConfig                               │
 │  - BlobConfig                                │
 │  - BlobSkinType                              │
-│  - SkinConfigs (Tricolor, Zebra)            │
+│  - SkinConfigs (Tricolor, Zebra)             │
 │  - Event types                               │
 │                                              │
 └──────────────────────────────────────────────┘
 ```
 
-### 5. Utils Layer (`src/utils/`)
+### 6. Utils Layer (`src/utils/`)
 
 ```
 ┌──────────────────────────────────────────────┐
-│           Utility Functions                   │
+│           Utility Functions                  │
 ├──────────────────────────────────────────────┤
 │                                              │
-│  ┌────────────┐  ┌────────────┐            │
-│  │ randoms.ts │  │recorder.ts │            │
-│  │- UUID      │  │- Speech    │            │
-│  │- Numbers   │  │  synthesis │            │
-│  │- Colors    │  │- Recording │            │
-│  │- Boolean   │  │            │            │
-│  │- DNA       │  │            │            │
-│  └────────────┘  └────────────┘            │
+│  ┌────────────┐  ┌────────────┐              │
+│  │ randoms.ts │  │recorder.ts │              │
+│  │- UUID      │  │- Speech    │              │
+│  │- Numbers   │  │  synthesis │              │
+│  │- Colors    │  │- Recording │              │
+│  │- Boolean   │  │            │              │
+│  │- DNA       │  │            │              │
+│  └────────────┘  └────────────┘              │
 │                                              │
 └──────────────────────────────────────────────┘
 ```
@@ -203,8 +245,15 @@
        │       ├── Create materials (skins)
        │       └── Start animation loop
        │
-       ├── 3. Initialize Mind (TODO)
-       └── 4. Initialize Soul (TODO)
+       ├── 3. Initialize KwamiMind
+       │   ├── Set ElevenLabs API key
+       │   ├── Configure voice settings
+       │   └── Setup audio streaming
+       │
+       └── 4. Initialize KwamiSoul
+           ├── Load personality config
+           ├── Set traits and tone
+           └── Generate system prompt
 ```
 
 ### Animation Loop
@@ -249,13 +298,18 @@
 ## 🎯 Design Principles
 
 ### 1. Single Responsibility
+
 Each class has one clear purpose:
-- `Kwami`: Orchestration
-- `KwamiBody`: Visual management
-- `KwamiAudio`: Audio management
-- `Blob`: 3D mesh representation
+
+- `Kwami`: Orchestration and state management
+- `KwamiBody`: Visual management and 3D rendering
+- `KwamiMind`: AI voice synthesis and interaction
+- `KwamiSoul`: Personality and behavior definition
+- `KwamiAudio`: Audio playback, analysis, and streaming
+- `Blob`: 3D mesh representation and animation
 
 ### 2. Separation of Concerns
+
 ```
 Presentation Layer  → Kwami (API)
 Business Logic      → Body, Audio, Blob
@@ -264,6 +318,7 @@ Utilities           → Utils
 ```
 
 ### 3. Dependency Injection
+
 ```typescript
 // Dependencies injected through constructor
 const blob = new Blob({
@@ -276,13 +331,14 @@ const blob = new Blob({
 ```
 
 ### 4. Composition over Inheritance
+
 ```
 Kwami
  ├─ has-a Body
  │   ├─ has-a Audio
  │   └─ has-a Blob
- ├─ has-a Mind (TODO)
- └─ has-a Soul (TODO)
+ ├─ has-a Mind
+ └─ has-a Soul
 ```
 
 ## 🔌 Extension Points
@@ -294,12 +350,12 @@ Kwami
 3. Update `src/blob/skins/index.ts`
 4. Add type to `BlobSkinType`
 
-### Adding AI Features
+### Extending AI Capabilities
 
-1. Implement Mind in `src/core/Mind.ts`
-2. Implement Soul in `src/core/Soul.ts`
-3. Update Kwami class to integrate
-4. Add configuration types
+1. Add new methods to `src/core/Mind.ts`
+2. Extend personality templates in `assets/personalities/`
+3. Add new voice models or settings
+4. Create custom conversation flows
 
 ### Adding New Animations
 
@@ -319,6 +375,9 @@ index.ts
   │     │     │     ├─→ blob/animation.ts
   │     │     │     └─→ blob/skins/
   │     │     └─→ scene/setup.ts
+  │     ├─→ core/Mind.ts
+  │     │     └─→ @elevenlabs/elevenlabs-js
+  │     ├─→ core/Soul.ts
   │     └─→ types/
   ├─→ utils/randoms.ts
   └─→ utils/recorder.ts
@@ -328,26 +387,23 @@ index.ts
 
 ```
 ┌──────────────────────────────────────┐
-│           User Code                   │
+│           User Code                  │
 └───────────────┬──────────────────────┘
                 │
 ┌───────────────▼──────────────────────┐
-│         @kwami/core API               │
+│         @kwami/core API              │
 │  (Kwami, KwamiBody, KwamiAudio)      │
 └───────────────┬──────────────────────┘
                 │
 ┌───────────────▼──────────────────────┐
-│      Internal Components              │
+│      Internal Components             │
 │  (Blob, Scene Setup, Skins)          │
 └───────────────┬──────────────────────┘
                 │
 ┌───────────────▼──────────────────────┐
-│      THREE.js & Web APIs              │
+│      THREE.js & Web APIs             │
 │  (WebGL, Web Audio API)              │
-└───────────────────────────────────────┘
+└──────────────────────────────────────┘
 ```
 
 ---
-
-This architecture provides a solid foundation for a maintainable, extensible, and professional library! 🚀
-

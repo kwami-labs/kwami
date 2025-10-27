@@ -371,10 +371,12 @@ Built with:
 
 ## 🔮 Roadmap
 
-- [ ] AI Mind integration (LLM support)
-- [ ] AI Soul (personality system)
+- [x] AI Mind integration (ElevenLabs TTS)
+- [x] AI Soul (personality system)
+- [x] Text-to-Speech integration
+- [x] MediaStream audio support
 - [ ] Speech-to-Text integration
-- [ ] Text-to-Speech integration
+- [ ] Conversational AI (full voice agent)
 - [ ] More built-in skins
 - [ ] Animation presets
 - [ ] WebXR support
