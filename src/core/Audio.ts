@@ -11,6 +11,7 @@ export class KwamiAudio {
   private frequencyData: Uint8Array;
   private analyser: AnalyserNode | null = null;
   private audioContext: AudioContext | null = null;
+  private streamSource: MediaStreamAudioSourceNode | null = null;
 
   constructor(audioFiles: string[] = [], config?: AudioConfig) {
     this.files = audioFiles;
@@ -164,7 +165,7 @@ export class KwamiAudio {
    */
   getFrequencyData(): Uint8Array {
     if (this.analyser) {
-      this.analyser.getByteFrequencyData(this.frequencyData);
+      this.analyser.getByteFrequencyData(this.frequencyData as Uint8Array<ArrayBuffer>);
     }
     return this.frequencyData;
   }
@@ -207,10 +208,71 @@ export class KwamiAudio {
   }
 
   /**
+   * Connect a MediaStream (e.g., from ElevenLabs) to the audio analyzer
+   * This allows real-time audio visualization from streamed sources
+   * 
+   * @param stream - MediaStream to connect
+   * @returns Promise that resolves when stream is connected
+   */
+  async connectMediaStream(stream: MediaStream): Promise<void> {
+    if (!this.audioContext) {
+      const AudioContext = (window as any).AudioContext || (window as any).webkitAudioContext;
+      this.audioContext = new AudioContext();
+    }
+
+    // Resume audio context if suspended
+    if (this.audioContext && this.audioContext.state === 'suspended') {
+      await this.audioContext.resume();
+    }
+
+    // Disconnect previous stream source if exists
+    if (this.streamSource) {
+      this.streamSource.disconnect();
+    }
+
+    // Create analyzer if not exists
+    if (!this.analyser && this.audioContext) {
+      this.analyser = this.audioContext.createAnalyser();
+      this.analyser.fftSize = 2048;
+      this.analyser.smoothingTimeConstant = 0.7;
+      this.analyser.minDecibels = -90;
+      this.analyser.maxDecibels = -10;
+      this.analyser.connect(this.audioContext.destination);
+      this.frequencyData = new Uint8Array(this.analyser.frequencyBinCount);
+    }
+
+    // Create source from media stream and connect to analyzer
+    if (this.audioContext && this.analyser) {
+      this.streamSource = this.audioContext.createMediaStreamSource(stream);
+      this.streamSource.connect(this.analyser);
+    }
+  }
+
+  /**
+   * Disconnect the current MediaStream
+   */
+  disconnectMediaStream(): void {
+    if (this.streamSource) {
+      this.streamSource.disconnect();
+      this.streamSource = null;
+    }
+  }
+
+  /**
+   * Check if a MediaStream is currently connected
+   * 
+   * @returns True if a stream is connected
+   */
+  isStreamConnected(): boolean {
+    return this.streamSource !== null;
+  }
+
+  /**
    * Cleanup and dispose resources
    */
   dispose(): void {
     this.pause();
+    this.disconnectMediaStream();
     if (this.audioContext) {
       this.audioContext.close().catch(() => {
         // Ignore errors during cleanup

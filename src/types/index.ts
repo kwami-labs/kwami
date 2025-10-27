@@ -62,9 +62,33 @@ export interface BodyConfig {
 }
 
 /**
- * AI Mind configuration
+ * ElevenLabs Voice Settings Configuration
+ */
+export interface VoiceSettings {
+  stability?: number; // 0-1
+  similarity_boost?: number; // 0-1
+  style?: number; // 0-1
+  use_speaker_boost?: boolean;
+}
+
+/**
+ * AI Mind configuration for ElevenLabs Voice Agent
  */
 export interface MindConfig {
+  apiKey?: string; // ElevenLabs API key (or from env)
+  agentId?: string; // ElevenLabs agent ID
+  
+  // Voice configuration
+  voice?: {
+    voiceId?: string; // Specific voice ID from ElevenLabs
+    model?: string; // e.g., 'eleven_multilingual_v2', 'eleven_turbo_v2'
+    settings?: VoiceSettings;
+  };
+  
+  // Language and behavior
+  language?: string; // e.g., 'en', 'es', 'fr'
+  
+  // Legacy/additional AI configuration
   llm?: {
     model: string;
     provider: string;
@@ -88,11 +112,14 @@ export interface MindConfig {
  * AI Soul (personality) configuration
  */
 export interface SoulConfig {
-  name?: string;
-  personality?: string;
-  systemPrompt?: string;
-  traits?: string[];
-  language?: string;
+  name?: string; // Kwami's identifier/name
+  personality?: string; // Overall personality description
+  systemPrompt?: string; // Base AI instructions for behavior
+  traits?: string[]; // Array of personality characteristics
+  language?: string; // Preferred communication language
+  conversationStyle?: string; // Tone and style guidelines (e.g., 'friendly', 'professional')
+  responseLength?: 'short' | 'medium' | 'long'; // Preferred response verbosity
+  emotionalTone?: 'neutral' | 'warm' | 'enthusiastic' | 'calm'; // Emotional expression level
 }
 
 /**

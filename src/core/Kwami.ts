@@ -1,4 +1,6 @@
 import { KwamiBody } from './Body';
+import { KwamiMind } from './Mind';
+import { KwamiSoul } from './Soul';
 import type { KwamiConfig, KwamiState } from '../types/index';
 
 /**
@@ -26,10 +28,8 @@ import type { KwamiConfig, KwamiState } from '../types/index';
  */
 export class Kwami {
   public body: KwamiBody;
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  public mind: any; // TODO: Implement AI configuration
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  public soul: any; // TODO: Implement AI personality
+  public mind: KwamiMind;
+  public soul: KwamiSoul;
 
   private state: KwamiState = 'idle';
 
@@ -37,11 +37,11 @@ export class Kwami {
     // Initialize the body (visual representation)
     this.body = new KwamiBody(canvas, config?.body);
 
-    // TODO: Initialize mind (AI capabilities)
-    this.mind = config?.mind || null;
+    // Initialize soul (AI personality)
+    this.soul = new KwamiSoul(config?.soul);
 
-    // TODO: Initialize soul (AI personality)
-    this.soul = config?.soul || null;
+    // Initialize mind (AI capabilities) with reference to audio for visualization
+    this.mind = new KwamiMind(this.body.audio, config?.mind);
   }
 
   /**
@@ -56,7 +56,31 @@ export class Kwami {
    */
   setState(state: KwamiState): void {
     this.state = state;
-    // TODO: Update blob animation based on state
+    // Update blob animation based on state
+    // Different states could trigger different animation patterns
+    switch (state) {
+      case 'listening':
+        // More responsive, higher spike values
+        this.body.blob.setSpikes(0.4, 0.4, 0.4);
+        this.body.blob.setTime(1.5, 1.5, 1.5);
+        break;
+      case 'thinking':
+        // Slower, more contemplative movement
+        this.body.blob.setSpikes(0.15, 0.15, 0.15);
+        this.body.blob.setTime(0.5, 0.5, 0.5);
+        break;
+      case 'speaking':
+        // Active, dynamic movement
+        this.body.blob.setSpikes(0.3, 0.3, 0.3);
+        this.body.blob.setTime(1.2, 1.2, 1.2);
+        break;
+      case 'idle':
+      default:
+        // Default, calm movement
+        this.body.blob.setSpikes(0.2, 0.2, 0.2);
+        this.body.blob.setTime(1, 1, 1);
+        break;
+    }
   }
 
   /**
@@ -64,7 +88,13 @@ export class Kwami {
    */
   async listen(): Promise<void> {
     this.setState('listening');
-    // TODO: Implement speech-to-text
+    try {
+      await this.mind.listen();
+    } catch (error) {
+      console.error('Error starting to listen:', error);
+      this.setState('idle');
+      throw error;
+    }
   }
 
   /**
@@ -72,17 +102,55 @@ export class Kwami {
    */
   think(): void {
     this.setState('thinking');
-    // TODO: Implement visual thinking animation
+    // Visual animation is handled by setState
   }
 
   /**
-   * Kwami speaks (audio output)
+   * Kwami speaks (audio output using ElevenLabs TTS)
+   * The blob will automatically animate to the speech audio
    */
-  async speak(_text: string): Promise<void> {
+  async speak(text: string): Promise<void> {
     this.setState('speaking');
-    // TODO: Implement text-to-speech
-    // For now, just play audio
-    await this.body.audio.play();
+    try {
+      // Generate speech using Mind (ElevenLabs) with Soul's personality
+      const systemPrompt = this.soul.getSystemPrompt();
+      await this.mind.speak(text, systemPrompt);
+      
+      // Return to idle when speech is done
+      // Note: This happens immediately after starting playback
+      // You may want to listen to audio events to detect when speech actually ends
+      this.body.audio.getAudioElement().addEventListener('ended', () => {
+        this.setState('idle');
+      }, { once: true });
+    } catch (error) {
+      console.error('Error speaking:', error);
+      this.setState('idle');
+      throw error;
+    }
+  }
+
+  /**
+   * Start a conversation with Kwami using ElevenLabs Conversational AI
+   * This enables real-time voice interactions
+   */
+  async startConversation(): Promise<void> {
+    try {
+      await this.mind.initialize();
+      const systemPrompt = this.soul.getSystemPrompt();
+      await this.mind.startConversation(systemPrompt);
+      this.setState('listening');
+    } catch (error) {
+      console.error('Error starting conversation:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * Stop the current conversation
+   */
+  async stopConversation(): Promise<void> {
+    await this.mind.stopConversation();
+    this.setState('idle');
   }
 
   /**

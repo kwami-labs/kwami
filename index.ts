@@ -28,6 +28,8 @@
 export { Kwami } from './src/core/Kwami';
 export { KwamiBody } from './src/core/Body';
 export { KwamiAudio } from './src/core/Audio';
+export { KwamiMind } from './src/core/Mind';
+export { KwamiSoul } from './src/core/Soul';
 export { Blob } from './src/blob/Blob';
 
 // Utilities
@@ -55,6 +57,7 @@ export type {
   BlobOptions,
   MindConfig,
   SoulConfig,
+  VoiceSettings,
   TricolorSkinConfig,
   ZebraSkinConfig,
   EventHandler,

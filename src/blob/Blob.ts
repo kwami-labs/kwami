@@ -74,7 +74,7 @@ export class Blob {
     const animate = () => {
       const analyser = this.options.audio.getAnalyser();
       if (analyser) {
-        const frequencyData = this.options.audio.getFrequencyData();
+        const frequencyData = this.options.audio.getFrequencyData() as Uint8Array<ArrayBuffer>;
         animateBlob(
           this.mesh,
           frequencyData,
@@ -282,11 +282,11 @@ export class Blob {
     exporter.parse(
       this.options.scene,
       (result) => {
-        const blob = new Blob([result as ArrayBuffer], {
+        const blobData = new globalThis.Blob([result as ArrayBuffer], {
           type: 'model/gltf-binary',
         });
         const link = document.createElement('a');
-        link.href = URL.createObjectURL(blob);
+        link.href = URL.createObjectURL(blobData);
         link.download = 'kwami-blob.glb';
         link.click();
       },

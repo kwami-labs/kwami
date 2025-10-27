@@ -29,6 +29,7 @@
     "dev": "tsc --watch"
   },
   "dependencies": {
+    "@elevenlabs/elevenlabs-js": "^2.20.1",
     "@metaplex-foundation/js": "^0.20.1",
     "three": "^0.160.0",
     "simplex-noise": "^4.0.1"
