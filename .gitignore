@@ -27,3 +27,9 @@ yarn-error.log*
 .env
 .env.local
 
+
+# Environment variables
+.env
+
+# Playground build artifacts
+playground/dist

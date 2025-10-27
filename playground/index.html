@@ -1,0 +1,414 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Kwami Playground</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      min-height: 100vh;
+      overflow: hidden;
+    }
+
+    #app {
+      display: flex;
+      height: 100vh;
+    }
+
+    #canvas-container {
+      flex: 1;
+      position: relative;
+    }
+
+    canvas {
+      width: 100%;
+      height: 100%;
+      display: block;
+    }
+
+    #controls {
+      width: 350px;
+      background: rgba(255, 255, 255, 0.95);
+      backdrop-filter: blur(10px);
+      padding: 30px;
+      overflow-y: auto;
+      box-shadow: -5px 0 20px rgba(0, 0, 0, 0.1);
+    }
+
+    h1 {
+      font-size: 28px;
+      margin-bottom: 10px;
+      color: #667eea;
+    }
+
+    .subtitle {
+      font-size: 14px;
+      color: #666;
+      margin-bottom: 25px;
+    }
+
+    .section {
+      margin-bottom: 30px;
+    }
+
+    .section-title {
+      font-size: 14px;
+      font-weight: 600;
+      color: #333;
+      margin-bottom: 15px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    .input-group {
+      margin-bottom: 15px;
+    }
+
+    label {
+      display: block;
+      font-size: 12px;
+      color: #666;
+      margin-bottom: 5px;
+      font-weight: 500;
+    }
+
+    input[type="text"],
+    textarea,
+    select {
+      width: 100%;
+      padding: 10px;
+      border: 2px solid #e0e0e0;
+      border-radius: 8px;
+      font-size: 14px;
+      transition: border-color 0.3s;
+    }
+
+    input[type="text"]:focus,
+    textarea:focus,
+    select:focus {
+      outline: none;
+      border-color: #667eea;
+    }
+
+    textarea {
+      resize: vertical;
+      min-height: 80px;
+      font-family: inherit;
+    }
+
+    button {
+      width: 100%;
+      padding: 12px;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+      border: none;
+      border-radius: 8px;
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: transform 0.2s, box-shadow 0.2s;
+      margin-bottom: 10px;
+    }
+
+    button:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+    }
+
+    button:active {
+      transform: translateY(0);
+    }
+
+    button:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+      transform: none;
+    }
+
+    .button-secondary {
+      background: #f0f0f0;
+      color: #333;
+    }
+
+    .button-secondary:hover {
+      box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+    }
+
+    .state-indicator {
+      display: inline-block;
+      padding: 4px 12px;
+      border-radius: 12px;
+      font-size: 12px;
+      font-weight: 600;
+      margin-bottom: 15px;
+    }
+
+    .state-idle { background: #e0e0e0; color: #666; }
+    .state-listening { background: #4caf50; color: white; }
+    .state-thinking { background: #ff9800; color: white; }
+    .state-speaking { background: #2196f3; color: white; }
+
+    .personality-buttons {
+      display: grid;
+      grid-template-columns: 1fr 1fr 1fr;
+      gap: 8px;
+      margin-bottom: 15px;
+    }
+
+    .personality-buttons button {
+      padding: 8px;
+      font-size: 12px;
+      margin-bottom: 0;
+    }
+
+    .error {
+      background: #ffebee;
+      color: #c62828;
+      padding: 10px;
+      border-radius: 8px;
+      font-size: 12px;
+      margin-top: 10px;
+      display: none;
+    }
+
+    .error.show {
+      display: block;
+    }
+
+    .info {
+      background: #e3f2fd;
+      color: #1565c0;
+      padding: 10px;
+      border-radius: 8px;
+      font-size: 12px;
+      margin-bottom: 15px;
+    }
+
+    #status {
+      font-size: 12px;
+      color: #666;
+      margin-top: 10px;
+      padding: 8px;
+      background: #f5f5f5;
+      border-radius: 6px;
+      max-height: 100px;
+      overflow-y: auto;
+    }
+  </style>
+</head>
+<body>
+  <div id="app">
+    <div id="canvas-container">
+      <canvas id="kwami-canvas"></canvas>
+    </div>
+    
+    <div id="controls">
+      <h1>🎭 Kwami</h1>
+      <p class="subtitle">AI Companion Playground</p>
+      
+      <div class="state-indicator" id="state-indicator">
+        <span id="state-text">IDLE</span>
+      </div>
+
+      <div class="section">
+        <div class="section-title">🗣️ Voice Settings</div>
+        
+        <div class="input-group">
+          <label>API Key</label>
+          <input type="text" id="api-key" placeholder="Enter ElevenLabs API Key">
+        </div>
+
+        <div class="input-group">
+          <label>Voice ID</label>
+          <input type="text" id="voice-id" value="pNInz6obpgDQGcFmaJgB" placeholder="Voice ID">
+        </div>
+
+        <button onclick="initializeMind()" id="init-btn">Initialize Mind</button>
+      </div>
+
+      <div class="section">
+        <div class="section-title">🎭 Personality</div>
+        
+        <div class="personality-buttons">
+          <button class="button-secondary" onclick="loadPersonality('friendly')">😊 Kaya</button>
+          <button class="button-secondary" onclick="loadPersonality('professional')">💼 Nexus</button>
+          <button class="button-secondary" onclick="loadPersonality('playful')">✨ Spark</button>
+        </div>
+
+        <div class="input-group">
+          <label>Current Name: <span id="personality-name">Kwami</span></label>
+        </div>
+      </div>
+
+      <div class="section">
+        <div class="section-title">💬 Speak</div>
+        
+        <div class="input-group">
+          <label>Text to Speak</label>
+          <textarea id="speak-text" placeholder="Enter text for Kwami to speak...">Hello! I am Kwami, your AI companion. Watch as I animate while I speak!</textarea>
+        </div>
+
+        <button onclick="speak()" id="speak-btn" disabled>🎤 Speak</button>
+      </div>
+
+      <div class="section">
+        <div class="section-title">🎨 Visual Controls</div>
+        
+        <button class="button-secondary" onclick="randomizeBlob()">🎲 Randomize Blob</button>
+        <button class="button-secondary" onclick="changeSkin()">👕 Change Skin</button>
+      </div>
+
+      <div id="error" class="error"></div>
+      <div id="status"></div>
+    </div>
+  </div>
+
+  <script type="module">
+    import { Kwami } from '../index.ts';
+
+    window.kwami = null;
+    let currentSkin = 'tricolor';
+
+    // Initialize Kwami
+    const canvas = document.getElementById('kwami-canvas');
+    
+    try {
+      window.kwami = new Kwami(canvas, {
+        body: {
+          initialSkin: 'tricolor',
+          blob: {
+            resolution: 180,
+            colors: {
+              x: '#ff0066',
+              y: '#00ff66',
+              z: '#6600ff'
+            }
+          }
+        }
+      });
+
+      updateStatus('✅ Kwami initialized successfully!');
+      updateStateIndicator(window.kwami.getState());
+    } catch (error) {
+      showError('Failed to initialize Kwami: ' + error.message);
+    }
+
+    // Initialize Mind
+    window.initializeMind = async function() {
+      const apiKey = document.getElementById('api-key').value.trim();
+      const voiceId = document.getElementById('voice-id').value.trim();
+
+      if (!apiKey) {
+        showError('Please enter your ElevenLabs API Key');
+        return;
+      }
+
+      try {
+        updateStatus('🔄 Initializing Mind...');
+        
+        // Update Mind configuration
+        window.kwami.mind.setVoiceId(voiceId);
+        window.kwami.mind.config.apiKey = apiKey;
+        
+        await window.kwami.mind.initialize();
+        
+        document.getElementById('speak-btn').disabled = false;
+        document.getElementById('init-btn').textContent = '✅ Mind Ready';
+        document.getElementById('init-btn').disabled = true;
+        
+        updateStatus('✅ Mind initialized! Ready to speak.');
+      } catch (error) {
+        showError('Failed to initialize Mind: ' + error.message);
+      }
+    };
+
+    // Load Personality
+    window.loadPersonality = async function(type) {
+      try {
+        updateStatus(`🔄 Loading ${type} personality...`);
+        
+        await window.kwami.soul.loadPersonality(`/assets/personalities/${type}.json`);
+        
+        const name = window.kwami.soul.getName();
+        document.getElementById('personality-name').textContent = name;
+        
+        updateStatus(`✅ Loaded ${name} personality!`);
+      } catch (error) {
+        showError('Failed to load personality: ' + error.message);
+      }
+    };
+
+    // Speak
+    window.speak = async function() {
+      const text = document.getElementById('speak-text').value.trim();
+      
+      if (!text) {
+        showError('Please enter text to speak');
+        return;
+      }
+
+      try {
+        updateStatus('🗣️ Speaking...');
+        document.getElementById('speak-btn').disabled = true;
+        
+        await window.kwami.speak(text);
+        
+        updateStatus('✅ Speech complete!');
+        document.getElementById('speak-btn').disabled = false;
+      } catch (error) {
+        showError('Failed to speak: ' + error.message);
+        document.getElementById('speak-btn').disabled = false;
+      }
+    };
+
+    // Randomize Blob
+    window.randomizeBlob = function() {
+      window.kwami.body.blob.setRandomBlob();
+      updateStatus('🎲 Blob randomized!');
+    };
+
+    // Change Skin
+    window.changeSkin = function() {
+      currentSkin = currentSkin === 'tricolor' ? 'zebra' : 'tricolor';
+      window.kwami.body.setSkin(currentSkin);
+      updateStatus(`👕 Changed to ${currentSkin} skin`);
+    };
+
+    // Helper functions
+    function updateStatus(message) {
+      const status = document.getElementById('status');
+      status.textContent = message;
+    }
+
+    function showError(message) {
+      const error = document.getElementById('error');
+      error.textContent = message;
+      error.classList.add('show');
+      setTimeout(() => error.classList.remove('show'), 5000);
+    }
+
+    function updateStateIndicator(state) {
+      const indicator = document.getElementById('state-indicator');
+      const stateText = document.getElementById('state-text');
+      
+      indicator.className = 'state-indicator state-' + state;
+      stateText.textContent = state.toUpperCase();
+    }
+
+    // Monitor state changes
+    setInterval(() => {
+      if (window.kwami) {
+        updateStateIndicator(window.kwami.getState());
+      }
+    }, 100);
+  </script>
+</body>
+</html>
