@@ -297,9 +297,13 @@ function initializeBodyControls() {
   if (scaleSlider) {
     scaleSlider.addEventListener('input', (e) => {
       const value = parseFloat(e.target.value);
+      console.log('Setting scale to:', value);
       blob.setScale(value);
+      console.log('Scale is now:', blob.getScale());
       updateValueDisplay('scale-value', value, 1);
     });
+  } else {
+    console.error('Scale slider not found!');
   }
   
   // Resolution slider

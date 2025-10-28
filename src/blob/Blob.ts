@@ -231,7 +231,10 @@ export class Blob {
    * Set scale (uniform scaling on all axes)
    */
   setScale(scale: number): void {
+    console.log('Blob.setScale called with:', scale);
+    console.log('Current mesh scale before:', this.mesh.scale.x, this.mesh.scale.y, this.mesh.scale.z);
     this.mesh.scale.set(scale, scale, scale);
+    console.log('Current mesh scale after:', this.mesh.scale.x, this.mesh.scale.y, this.mesh.scale.z);
   }
 
   /**
