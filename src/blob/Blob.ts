@@ -63,6 +63,9 @@ export class Blob {
     const tricolorConfig = this.config.skins.tricolor;
     this.skins.set('tricolor', createSkin('tricolor', tricolorConfig));
 
+    // Tricolor2 (Donut) skin
+    this.skins.set('tricolor2', createSkin('tricolor2', tricolorConfig));
+
     // Zebra skin
     const zebraConfig = this.config.skins.zebra;
     this.skins.set('zebra', createSkin('zebra', zebraConfig));

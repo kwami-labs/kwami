@@ -1,5 +1,6 @@
 import type { ShaderMaterial } from 'three';
 import { createTricolorSkin } from './tricolor';
+import { createTricolor2Skin } from './tricolor2';
 import { createZebraSkin } from './zebra';
 import type { BlobSkinType, TricolorSkinConfig, ZebraSkinConfig } from '../../types';
 
@@ -13,6 +14,8 @@ export function createSkin(
   switch (type) {
     case 'tricolor':
       return createTricolorSkin(config as TricolorSkinConfig);
+    case 'tricolor2':
+      return createTricolor2Skin(config as TricolorSkinConfig);
     case 'zebra':
       return createZebraSkin(config as ZebraSkinConfig);
     default:
@@ -20,4 +23,4 @@ export function createSkin(
   }
 }
 
-export { createTricolorSkin, createZebraSkin };
+export { createTricolorSkin, createTricolor2Skin, createZebraSkin };

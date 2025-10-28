@@ -9,7 +9,7 @@ export type KwamiState = 'idle' | 'listening' | 'thinking' | 'speaking';
 /**
  * Available skin types for the blob
  */
-export type BlobSkinType = 'tricolor' | 'zebra';
+export type BlobSkinType = 'tricolor' | 'tricolor2' | 'zebra';
 
 /**
  * Audio configuration options
