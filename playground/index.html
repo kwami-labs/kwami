@@ -8,22 +8,13 @@
 </head>
 <body>
   <div id="app">
-    <!-- Left Sidebar -->
+    <!-- Left Sidebar: ElevenLabs AI Agent Config -->
     <div id="left-sidebar">
-      <h1>🎭 Kwami</h1>
-      <p class="subtitle">AI Companion Playground</p>
+      <h1>🤖 AI Agent</h1>
+      <p class="subtitle">ElevenLabs Configuration</p>
       
       <div class="state-indicator" id="state-indicator">
         <span id="state-text">IDLE</span>
-      </div>
-
-      <!-- About -->
-      <div class="section">
-        <div class="section-title">ℹ️ About</div>
-        <p class="about-text">
-          Kwami is an AI companion with a reactive 3D blob body that visualizes audio and emotions. 
-          Customize its voice, personality, appearance, and environment!
-        </p>
       </div>
 
       <!-- Voice Settings -->
@@ -40,7 +31,7 @@
           <input type="text" id="voice-id" value="pNInz6obpgDQGcFmaJgB" placeholder="Voice ID">
         </div>
 
-        <button onclick="initializeMind()" id="init-btn">Initialize Mind</button>
+        <button onclick="initializeMind()" id="init-btn">Initialize AI Agent</button>
       </div>
 
       <!-- Personality -->
@@ -58,48 +49,16 @@
         </div>
       </div>
 
-      <!-- Background -->
+      <!-- Speech Test -->
       <div class="section">
-        <div class="section-title">🌈 Background</div>
+        <div class="section-title">💬 Test Speech</div>
         
-        <div class="parameter-group">
-          <div class="parameter-group-title">Gradient Colors</div>
-          <div class="color-control">
-            <label>Color 1</label>
-            <input type="color" id="bg-color-1" value="#667eea">
-          </div>
-          <div class="color-control">
-            <label>Color 2</label>
-            <input type="color" id="bg-color-2" value="#764ba2">
-          </div>
-          <div class="color-control">
-            <label>Color 3</label>
-            <input type="color" id="bg-color-3" value="#f093fb">
-          </div>
+        <div class="input-group">
+          <label>Text to Speak</label>
+          <textarea id="speak-text" placeholder="Enter text for Kwami to speak...">Hello! I am Kwami, your AI companion. Watch as I animate while I speak!</textarea>
         </div>
 
-        <div class="parameter-group">
-          <div class="parameter-group-title">Gradient Settings</div>
-          <div class="slider-control">
-            <label>Angle <span class="value-display" id="bg-angle-value">135</span>°</label>
-            <input type="range" id="bg-angle" min="0" max="360" step="1" value="135">
-          </div>
-          <div class="slider-control">
-            <label>Stop 1 <span class="value-display" id="bg-stop-1-value">0</span>%</label>
-            <input type="range" id="bg-stop-1" min="0" max="100" step="1" value="0">
-          </div>
-          <div class="slider-control">
-            <label>Stop 2 <span class="value-display" id="bg-stop-2-value">50</span>%</label>
-            <input type="range" id="bg-stop-2" min="0" max="100" step="1" value="50">
-          </div>
-          <div class="slider-control">
-            <label>Stop 3 <span class="value-display" id="bg-stop-3-value">100</span>%</label>
-            <input type="range" id="bg-stop-3" min="0" max="100" step="1" value="100">
-          </div>
-        </div>
-
-        <button class="button-secondary" onclick="randomizeBackground()">🎲 Randomize Background</button>
-        <button class="button-secondary" onclick="resetBackground()">🔄 Reset Background</button>
+        <button onclick="speak()" id="speak-btn" disabled>🎤 Speak</button>
       </div>
 
       <div id="error" class="error"></div>
@@ -110,19 +69,70 @@
       <canvas id="kwami-canvas"></canvas>
     </div>
     
-    <!-- Right Sidebar -->
+    <!-- Right Sidebar: Kwami Configuration -->
     <div id="right-sidebar">
+      <h2>🎭 Kwami</h2>
+      <p class="subtitle">Visual Configuration</p>
+
+      <!-- Background -->
       <div class="section">
-        <div class="section-title">💬 Speak</div>
+        <div class="section-title">🌈 Background</div>
         
         <div class="input-group">
-          <label>Text to Speak</label>
-          <textarea id="speak-text" placeholder="Enter text for Kwami to speak...">Hello! I am Kwami, your AI companion. Watch as I animate while I speak!</textarea>
+          <label>Type</label>
+          <select id="bg-type">
+            <option value="gradient">Gradient</option>
+            <option value="solid">Solid Color</option>
+            <option value="transparent">Transparent</option>
+          </select>
         </div>
 
-        <button onclick="speak()" id="speak-btn" disabled>🎤 Speak</button>
+        <div id="opacity-control">
+          <div class="slider-control">
+            <label>Opacity <span class="value-display" id="bg-opacity-value">1.0</span></label>
+            <input type="range" id="bg-opacity" min="0" max="1" step="0.01" value="1">
+          </div>
+        </div>
+
+        <div id="gradient-controls">
+          <div class="parameter-group">
+            <div class="parameter-group-title">Gradient Colors</div>
+            <div class="color-control">
+              <label>Color 1</label>
+              <input type="color" id="bg-color-1" value="#667eea">
+            </div>
+            <div class="color-control">
+              <label>Color 2</label>
+              <input type="color" id="bg-color-2" value="#764ba2">
+            </div>
+            <div class="color-control">
+              <label>Color 3</label>
+              <input type="color" id="bg-color-3" value="#f093fb">
+            </div>
+          </div>
+
+          <div class="input-group">
+            <label>Direction</label>
+            <select id="bg-direction">
+              <option value="vertical">Vertical</option>
+              <option value="horizontal">Horizontal</option>
+              <option value="radial">Radial</option>
+            </select>
+          </div>
+        </div>
+
+        <div id="solid-controls" style="display: none;">
+          <div class="color-control">
+            <label>Background Color</label>
+            <input type="color" id="bg-solid-color" value="#667eea">
+          </div>
+        </div>
+
+        <button class="button-secondary" onclick="randomizeBackground()">🎲 Randomize Background</button>
+        <button class="button-secondary" onclick="resetBackground()">🔄 Reset Background</button>
       </div>
 
+      <!-- Body Configuration -->
       <div class="section">
         <div class="section-title">🎨 Body</div>
         
@@ -198,8 +208,8 @@
         <div class="parameter-group">
           <div class="parameter-group-title">Appearance</div>
           <div class="slider-control">
-            <label>Scale <span class="value-display" id="scale-value">1.0</span></label>
-            <input type="range" id="scale" min="0.1" max="3" step="0.1" value="1">
+            <label>Scale <span class="value-display" id="scale-value">2.5</span></label>
+            <input type="range" id="scale" min="2.5" max="5" step="0.1" value="2.5">
           </div>
           <div class="slider-control">
             <label>Resolution <span class="value-display" id="resolution-value">180</span></label>
@@ -207,7 +217,7 @@
           </div>
           <div class="slider-control">
             <label>Shininess <span class="value-display" id="shininess-value">100</span></label>
-            <input type="range" id="shininess" min="0" max="100000" step="100" value="100">
+            <input type="range" id="shininess" min="0" max="10000" step="100" value="100">
           </div>
           <div class="input-group">
             <label>
