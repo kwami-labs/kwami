@@ -5,6 +5,8 @@ import {
   DirectionalLight,
   AmbientLight,
   PCFSoftShadowMap,
+  Color,
+  CanvasTexture,
 } from 'three';
 import { OrbitControls } from 'three/addons/controls/OrbitControls';
 import type { SceneConfig } from '../types';
@@ -17,6 +19,9 @@ export function setupScene(canvas: HTMLCanvasElement, config?: SceneConfig) {
   const camera = createCamera(canvas, config);
   const scene = new Scene();
   const lights = createLights(config);
+
+  // Configure scene background
+  applySceneBackground(scene, config);
 
   // Add lights to scene
   scene.add(lights.top);
@@ -132,4 +137,68 @@ function createControls(
   controls.target.set(0, 0, 0);
   controls.update();
   return controls;
+}
+
+/**
+ * Apply background configuration to the scene
+ */
+function applySceneBackground(scene: Scene, config?: SceneConfig) {
+  const bgConfig = config?.background;
+  
+  if (!bgConfig || bgConfig.type === 'transparent') {
+    // Transparent background (default)
+    scene.background = null;
+    return;
+  }
+  
+  if (bgConfig.type === 'solid' && bgConfig.color) {
+    // Solid color background
+    scene.background = new Color(bgConfig.color);
+    return;
+  }
+  
+  if (bgConfig.type === 'gradient' && bgConfig.gradient) {
+    // Gradient background using canvas texture
+    const gradientTexture = createGradientTexture(
+      bgConfig.gradient.colors,
+      bgConfig.gradient.direction || 'vertical'
+    );
+    scene.background = gradientTexture;
+    return;
+  }
+}
+
+/**
+ * Create a gradient texture for scene background
+ */
+function createGradientTexture(
+  colors: string[],
+  direction: 'vertical' | 'horizontal' | 'radial'
+): CanvasTexture {
+  const canvas = document.createElement('canvas');
+  canvas.width = 512;
+  canvas.height = 512;
+  const ctx = canvas.getContext('2d')!;
+  
+  let gradient: CanvasGradient;
+  
+  if (direction === 'radial') {
+    gradient = ctx.createRadialGradient(256, 256, 0, 256, 256, 512);
+  } else if (direction === 'horizontal') {
+    gradient = ctx.createLinearGradient(0, 0, 512, 0);
+  } else {
+    // vertical (default)
+    gradient = ctx.createLinearGradient(0, 0, 0, 512);
+  }
+  
+  // Add color stops evenly distributed
+  colors.forEach((color, index) => {
+    const stop = index / (colors.length - 1);
+    gradient.addColorStop(stop, color);
+  });
+  
+  ctx.fillStyle = gradient;
+  ctx.fillRect(0, 0, 512, 512);
+  
+  return new CanvasTexture(canvas);
 }

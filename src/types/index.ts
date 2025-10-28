@@ -21,6 +21,18 @@ export interface AudioConfig {
 }
 
 /**
+ * Scene background configuration
+ */
+export interface SceneBackgroundConfig {
+  type?: 'transparent' | 'solid' | 'gradient';
+  color?: string; // For solid background
+  gradient?: {
+    colors: string[]; // Array of hex colors
+    direction?: 'vertical' | 'horizontal' | 'radial';
+  };
+}
+
+/**
  * Scene configuration options
  */
 export interface SceneConfig {
@@ -35,6 +47,7 @@ export interface SceneConfig {
   };
   enableShadows?: boolean;
   enableControls?: boolean;
+  background?: SceneBackgroundConfig;
 }
 
 /**
