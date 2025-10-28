@@ -37,12 +37,28 @@ body {
 #canvas-container {
   flex: 1;
   position: relative;
+  background: #1a1a1a;
+}
+
+#background-image {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+  z-index: 0;
+  transition: background-image 0.3s ease;
 }
 
 canvas {
   width: 100%;
   height: 100%;
   display: block;
+  position: relative;
+  z-index: 1;
 }
 
 h1 {
