@@ -297,9 +297,9 @@ export class Blob {
 
     // Random time
     this.time = {
-      x: getRandomBetween(0, 5, 1),
-      y: getRandomBetween(0, 5, 1),
-      z: getRandomBetween(0, 5, 1),
+      x: getRandomBetween(0.5, 10, 1),
+      y: getRandomBetween(0.5, 10, 1),
+      z: getRandomBetween(0.5, 10, 1),
     };
 
     // Random rotation
@@ -328,7 +328,7 @@ export class Blob {
     );
 
     // Random scale
-    this.setScale(getRandomBetween(2.5, 5, 1));
+    this.setScale(getRandomBetween(3.5, 8, 1));
 
     // Random shininess
     this.setShininess(getRandomBetween(0, 100000, 1));

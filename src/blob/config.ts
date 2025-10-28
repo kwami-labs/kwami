@@ -10,8 +10,8 @@ export const defaultBlobConfig: BlobOptionsConfig = {
     max: 20,
     step: 0.1,
     digits: 2,
-    rMin: 0.02,
-    rMax: 0.35,
+    rMin: 0.15,
+    rMax: 2.5,
     default: 0.2,
   },
   speed: {
