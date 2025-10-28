@@ -28,6 +28,7 @@ export class Blob {
   public time = { x: 1, y: 1, z: 1 };
   public rotation = { x: 0, y: 0, z: 0 };
   public colors = { x: '#ff0000', y: '#00ff00', z: '#0000ff' };
+  public baseScale = 1.0; // User-defined base scale
   public dna = '';
 
   constructor(private options: BlobOptions) {
@@ -85,6 +86,7 @@ export class Blob {
           this.time.x,
           this.time.y,
           this.time.z,
+          this.baseScale,
         );
       }
 
@@ -224,7 +226,7 @@ export class Blob {
    * Get scale value
    */
   getScale(): number {
-    return this.mesh.scale.x; // Assuming uniform scale
+    return this.baseScale;
   }
 
   /**
@@ -232,9 +234,8 @@ export class Blob {
    */
   setScale(scale: number): void {
     console.log('Blob.setScale called with:', scale);
-    console.log('Current mesh scale before:', this.mesh.scale.x, this.mesh.scale.y, this.mesh.scale.z);
-    this.mesh.scale.set(scale, scale, scale);
-    console.log('Current mesh scale after:', this.mesh.scale.x, this.mesh.scale.y, this.mesh.scale.z);
+    this.baseScale = scale;
+    console.log('Base scale set to:', this.baseScale);
   }
 
   /**

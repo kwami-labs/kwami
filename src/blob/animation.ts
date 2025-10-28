@@ -53,6 +53,7 @@ export function animateBlob(
   timeX: number,
   timeY: number,
   timeZ: number,
+  baseScale: number = 1.0,
 ): void {
   // Time calculation - faster for more responsive animation
   const reduction = 0.00003;
@@ -75,7 +76,9 @@ export function animateBlob(
   // Very subtle overall scale based only on low frequencies (bass)
   // This creates a "breathing" effect without dominating the animation
   const breathScale = 1 + (bands.low * 0.08);
-  mesh.scale.set(breathScale, breathScale, breathScale);
+  // Apply user's base scale as a multiplier
+  const finalScale = baseScale * breathScale;
+  mesh.scale.set(finalScale, finalScale, finalScale);
 
   // Calculate noise frequencies for smooth, organic movement
   const baseFreqX = Math.max(0.025, spikeX);
