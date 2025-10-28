@@ -34,7 +34,7 @@ export const defaultBlobConfig: BlobOptionsConfig = {
     tricolor: {
       wireframe: getRandomBoolean(0.1),
       lightPosition: { x: 1000, y: 2500, z: 200 },
-      shininess: 100,
+      shininess: 50,
       color1: getRandomHexColor(),
       color2: getRandomHexColor(),
       color3: getRandomHexColor(),
@@ -42,7 +42,7 @@ export const defaultBlobConfig: BlobOptionsConfig = {
     zebra: {
       wireframe: false,
       lightPosition: { x: 0, y: 500, z: 200 },
-      shininess: 1000,
+      shininess: 50,
     },
   },
 };
