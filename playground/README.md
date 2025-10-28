@@ -45,9 +45,36 @@ This will start a local dev server at `http://localhost:3000`
 - Blob automatically animates to speech frequencies
 - Real-time state indicator (IDLE, SPEAKING, etc.)
 
-### Visual Controls
-- **Randomize Blob**: Generate random appearance
-- **Change Skin**: Toggle between tricolor and zebra skins
+### Body Controls
+
+Fine-tune the Kwami blob's visual appearance and behavior in real-time:
+
+#### Spikes (Noise Frequency)
+- **X, Y, Z sliders** (0-20): Control the noise frequency on each axis
+- Higher values create more dramatic deformations
+
+#### Time (Animation Speed)
+- **X, Y, Z sliders** (0-5): Control animation speed on each axis
+- Affects how fast the blob morphs and moves
+
+#### Rotation Speed
+- **X, Y, Z sliders** (0-0.01): Control rotation speed on each axis
+- Creates spinning effects on different axes
+
+#### Colors (Tricolor Skin)
+- **Color X, Y, Z pickers**: Choose three colors for the tricolor skin
+- Colors blend based on the blob's geometry
+
+#### Appearance
+- **Scale** (0.1-3.0): Size of the blob
+- **Resolution** (120-220): Mesh detail level (higher = smoother)
+- **Shininess** (0-100000): Specular highlight intensity
+- **Wireframe Mode**: Toggle wireframe rendering
+- **Skin Type**: Switch between tricolor and zebra skins
+
+#### Quick Actions
+- **🎲 Randomize Blob**: Generate random appearance with all parameters
+- **🔄 Reset to Defaults**: Restore all parameters to default values
 
 ## 📝 Tips
 

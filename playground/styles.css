@@ -195,3 +195,131 @@ button:disabled {
   max-height: 100px;
   overflow-y: auto;
 }
+
+/* Body Controls Styles */
+.parameter-group {
+  margin-bottom: 20px;
+  padding: 12px;
+  background: #f9f9f9;
+  border-radius: 8px;
+  border: 1px solid #e8e8e8;
+}
+
+.parameter-group-title {
+  font-size: 11px;
+  font-weight: 600;
+  color: #667eea;
+  margin-bottom: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.slider-control {
+  margin-bottom: 12px;
+}
+
+.slider-control:last-child {
+  margin-bottom: 0;
+}
+
+.slider-control label {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 4px;
+}
+
+.value-display {
+  font-family: 'Courier New', monospace;
+  font-size: 11px;
+  color: #667eea;
+  font-weight: 600;
+  background: white;
+  padding: 2px 6px;
+  border-radius: 4px;
+  min-width: 35px;
+  text-align: right;
+}
+
+input[type="range"] {
+  width: 100%;
+  height: 6px;
+  border-radius: 3px;
+  background: #e0e0e0;
+  outline: none;
+  -webkit-appearance: none;
+  cursor: pointer;
+}
+
+input[type="range"]::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background: #667eea;
+  cursor: pointer;
+  transition: background 0.2s, transform 0.2s;
+}
+
+input[type="range"]::-webkit-slider-thumb:hover {
+  background: #764ba2;
+  transform: scale(1.1);
+}
+
+input[type="range"]::-moz-range-thumb {
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background: #667eea;
+  cursor: pointer;
+  border: none;
+  transition: background 0.2s, transform 0.2s;
+}
+
+input[type="range"]::-moz-range-thumb:hover {
+  background: #764ba2;
+  transform: scale(1.1);
+}
+
+.color-control {
+  margin-bottom: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.color-control:last-child {
+  margin-bottom: 0;
+}
+
+.color-control label {
+  flex: 1;
+  margin-bottom: 0;
+}
+
+input[type="color"] {
+  width: 60px;
+  height: 32px;
+  border: 2px solid #e0e0e0;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: border-color 0.3s;
+}
+
+input[type="color"]:hover {
+  border-color: #667eea;
+}
+
+input[type="checkbox"] {
+  width: 18px;
+  height: 18px;
+  cursor: pointer;
+  margin-right: 8px;
+  accent-color: #667eea;
+}
+
+.input-group label {
+  display: flex;
+  align-items: center;
+}

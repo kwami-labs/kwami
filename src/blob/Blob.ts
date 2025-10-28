@@ -138,10 +138,24 @@ export class Blob {
   }
 
   /**
+   * Get spike values
+   */
+  getSpikes(): { x: number; y: number; z: number } {
+    return { ...this.spikes };
+  }
+
+  /**
    * Set spike values for noise frequency
    */
   setSpikes(x: number, y: number, z: number): void {
     this.spikes = { x, y, z };
+  }
+
+  /**
+   * Get time values
+   */
+  getTime(): { x: number; y: number; z: number } {
+    return { ...this.time };
   }
 
   /**
@@ -152,10 +166,24 @@ export class Blob {
   }
 
   /**
+   * Get rotation values
+   */
+  getRotation(): { x: number; y: number; z: number } {
+    return { ...this.rotation };
+  }
+
+  /**
    * Set rotation speed
    */
   setRotation(x: number, y: number, z: number): void {
     this.rotation = { x, y, z };
+  }
+
+  /**
+   * Get colors
+   */
+  getColors(): { x: string; y: string; z: string } {
+    return { ...this.colors };
   }
 
   /**
@@ -193,10 +221,39 @@ export class Blob {
   }
 
   /**
+   * Get scale value
+   */
+  getScale(): number {
+    return this.mesh.scale.x; // Assuming uniform scale
+  }
+
+  /**
+   * Set scale (uniform scaling on all axes)
+   */
+  setScale(scale: number): void {
+    this.mesh.scale.set(scale, scale, scale);
+  }
+
+  /**
+   * Get wireframe mode
+   */
+  getWireframe(): boolean {
+    return (this.mesh.material as ShaderMaterial).wireframe;
+  }
+
+  /**
    * Set wireframe mode
    */
   setWireframe(wireframe: boolean): void {
     (this.mesh.material as ShaderMaterial).wireframe = wireframe;
+  }
+
+  /**
+   * Get shininess value
+   */
+  getShininess(): number {
+    const material = this.mesh.material as ShaderMaterial;
+    return material.uniforms.shininess?.value || 0;
   }
 
   /**
@@ -265,6 +322,9 @@ export class Blob {
       getRandomHexColor(),
       getRandomHexColor(),
     );
+
+    // Random scale
+    this.setScale(getRandomBetween(0.5, 2.5, 1));
 
     // Random shininess
     this.setShininess(getRandomBetween(0, 100000, 1));

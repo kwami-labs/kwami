@@ -62,10 +62,109 @@
       </div>
 
       <div class="section">
-        <div class="section-title">🎨 Visual Controls</div>
+        <div class="section-title">🎨 Body</div>
         
+        <!-- Spikes -->
+        <div class="parameter-group">
+          <div class="parameter-group-title">Spikes (Noise Frequency)</div>
+          <div class="slider-control">
+            <label>X <span class="value-display" id="spike-x-value">0.2</span></label>
+            <input type="range" id="spike-x" min="0" max="20" step="0.1" value="0.2">
+          </div>
+          <div class="slider-control">
+            <label>Y <span class="value-display" id="spike-y-value">0.2</span></label>
+            <input type="range" id="spike-y" min="0" max="20" step="0.1" value="0.2">
+          </div>
+          <div class="slider-control">
+            <label>Z <span class="value-display" id="spike-z-value">0.2</span></label>
+            <input type="range" id="spike-z" min="0" max="20" step="0.1" value="0.2">
+          </div>
+        </div>
+
+        <!-- Time/Speed -->
+        <div class="parameter-group">
+          <div class="parameter-group-title">Time (Animation Speed)</div>
+          <div class="slider-control">
+            <label>X <span class="value-display" id="time-x-value">1.0</span></label>
+            <input type="range" id="time-x" min="0" max="5" step="0.1" value="1">
+          </div>
+          <div class="slider-control">
+            <label>Y <span class="value-display" id="time-y-value">1.0</span></label>
+            <input type="range" id="time-y" min="0" max="5" step="0.1" value="1">
+          </div>
+          <div class="slider-control">
+            <label>Z <span class="value-display" id="time-z-value">1.0</span></label>
+            <input type="range" id="time-z" min="0" max="5" step="0.1" value="1">
+          </div>
+        </div>
+
+        <!-- Rotation -->
+        <div class="parameter-group">
+          <div class="parameter-group-title">Rotation Speed</div>
+          <div class="slider-control">
+            <label>X <span class="value-display" id="rotation-x-value">0.000</span></label>
+            <input type="range" id="rotation-x" min="0" max="0.01" step="0.001" value="0">
+          </div>
+          <div class="slider-control">
+            <label>Y <span class="value-display" id="rotation-y-value">0.000</span></label>
+            <input type="range" id="rotation-y" min="0" max="0.01" step="0.001" value="0">
+          </div>
+          <div class="slider-control">
+            <label>Z <span class="value-display" id="rotation-z-value">0.000</span></label>
+            <input type="range" id="rotation-z" min="0" max="0.01" step="0.001" value="0">
+          </div>
+        </div>
+
+        <!-- Colors -->
+        <div class="parameter-group">
+          <div class="parameter-group-title">Colors (Tricolor Skin)</div>
+          <div class="color-control">
+            <label>Color X</label>
+            <input type="color" id="color-x" value="#ff0066">
+          </div>
+          <div class="color-control">
+            <label>Color Y</label>
+            <input type="color" id="color-y" value="#00ff66">
+          </div>
+          <div class="color-control">
+            <label>Color Z</label>
+            <input type="color" id="color-z" value="#6600ff">
+          </div>
+        </div>
+
+        <!-- Appearance -->
+        <div class="parameter-group">
+          <div class="parameter-group-title">Appearance</div>
+          <div class="slider-control">
+            <label>Scale <span class="value-display" id="scale-value">1.0</span></label>
+            <input type="range" id="scale" min="0.1" max="3" step="0.1" value="1">
+          </div>
+          <div class="slider-control">
+            <label>Resolution <span class="value-display" id="resolution-value">180</span></label>
+            <input type="range" id="resolution" min="120" max="220" step="1" value="180">
+          </div>
+          <div class="slider-control">
+            <label>Shininess <span class="value-display" id="shininess-value">100</span></label>
+            <input type="range" id="shininess" min="0" max="100000" step="100" value="100">
+          </div>
+          <div class="input-group">
+            <label>
+              <input type="checkbox" id="wireframe">
+              Wireframe Mode
+            </label>
+          </div>
+          <div class="input-group">
+            <label>Skin Type</label>
+            <select id="skin-type">
+              <option value="tricolor">Tricolor</option>
+              <option value="zebra">Zebra</option>
+            </select>
+          </div>
+        </div>
+
+        <!-- Action Buttons -->
         <button class="button-secondary" onclick="randomizeBlob()">🎲 Randomize Blob</button>
-        <button class="button-secondary" onclick="changeSkin()">👕 Change Skin</button>
+        <button class="button-secondary" onclick="resetToDefaults()">🔄 Reset to Defaults</button>
       </div>
 
       <div id="error" class="error"></div>
