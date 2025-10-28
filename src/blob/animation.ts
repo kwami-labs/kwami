@@ -100,45 +100,52 @@ export function animateBlob(
     const angleFactor = Math.atan2(direction.z, direction.x) / Math.PI;
 
     // Map frequency bands to different parts of the blob for liquid effect
-    // Low frequencies (bass) - affect bottom/center more
-    const lowInfluence = (1 - heightFactor * 0.7) * bands.low;
+    // Low frequencies (bass) - affect bottom/center more (smoother)
+    const lowInfluence = (1 - heightFactor * 0.5) * bands.low;
 
-    // Mid frequencies - affect middle regions and create "speaking" motion
+    // Mid frequencies - affect middle regions and create "speaking" motion (less angular)
     const midInfluence
-      = (0.5 + Math.sin(angleFactor * 6 + tY * 2) * 0.5) * bands.mid;
+      = (0.5 + Math.sin(angleFactor * 4 + tY * 1.5) * 0.5) * bands.mid;
 
-    // High frequencies - affect top and create detail/texture
-    const highInfluence = (heightFactor * 0.8 + 0.2) * bands.high;
+    // High frequencies - affect top and create detail/texture (gentler)
+    const highInfluence = (heightFactor * 0.6 + 0.4) * bands.high;
 
-    // Ultra high - create surface ripples
-    const ultraInfluence = bands.ultra * radialFactor;
+    // Ultra high - create surface ripples (subtler)
+    const ultraInfluence = bands.ultra * radialFactor * 0.5;
 
-    // Combine all influences for natural, varied amplitude
-    const combinedAmplitude = 0.12
-      + lowInfluence * 0.25
-      + midInfluence * 0.35
-      + highInfluence * 0.25
-      + ultraInfluence * 0.15;
+    // Combine all influences for natural, varied amplitude (deeper but smooth)
+    const combinedAmplitude = 0.15
+      + lowInfluence * 0.35
+      + midInfluence * 0.45
+      + highInfluence * 0.30
+      + ultraInfluence * 0.18;
 
     // Add frequency-modulated time offset for more dynamic movement
     const timeOffset = bands.mid * 2 + bands.high * 3;
 
-    // Generate multi-layered noise for liquid texture
+    // Generate multi-layered noise for liquid texture (smoother)
     const noise1 = noise3D(
-      direction.x * baseFreqX + tX + timeOffset,
-      direction.y * baseFreqY + tY + timeOffset * 0.5,
-      direction.z * baseFreqZ + tZ + timeOffset * 0.3,
+      direction.x * baseFreqX * 0.5 + tX + timeOffset,
+      direction.y * baseFreqY * 0.5 + tY + timeOffset * 0.5,
+      direction.z * baseFreqZ * 0.5 + tZ + timeOffset * 0.3,
     );
 
-    // Second noise layer for detail (faster, smaller)
+    // Second noise layer for detail (slower, gentler)
     const noise2 = noise3D(
-      direction.x * baseFreqX * 2.5 + tX * 1.5 + bands.high * 5,
-      direction.y * baseFreqY * 2.5 + tY * 1.5 + bands.mid * 4,
-      direction.z * baseFreqZ * 2.5 + tZ * 1.5 + bands.ultra * 6,
+      direction.x * baseFreqX * 1.2 + tX * 1.2 + bands.high * 3,
+      direction.y * baseFreqY * 1.2 + tY * 1.2 + bands.mid * 2,
+      direction.z * baseFreqZ * 1.2 + tZ * 1.2 + bands.ultra * 3,
     );
 
-    // Combine noises with frequency weighting
-    const finalNoise = noise1 * 0.7 + noise2 * 0.3;
+    // Third noise layer for even smoother transitions
+    const noise3 = noise3D(
+      direction.x * baseFreqX * 0.3 + tX * 0.8,
+      direction.y * baseFreqY * 0.3 + tY * 0.8,
+      direction.z * baseFreqZ * 0.3 + tZ * 0.8,
+    );
+
+    // Combine noises with frequency weighting (more layers for smoothness)
+    const finalNoise = noise1 * 0.5 + noise2 * 0.3 + noise3 * 0.2;
 
     // Apply displacement with natural liquid motion
     const displacement = 1 + combinedAmplitude * finalNoise;

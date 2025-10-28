@@ -328,7 +328,7 @@ export class Blob {
     );
 
     // Random scale
-    this.setScale(getRandomBetween(0.5, 2.5, 1));
+    this.setScale(getRandomBetween(2.5, 5, 1));
 
     // Random shininess
     this.setShininess(getRandomBetween(0, 100000, 1));
