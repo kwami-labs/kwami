@@ -30,17 +30,36 @@ This will start a local dev server at `http://localhost:3000`
 
 ## 🎨 Features
 
-### Voice Settings
+The playground features a **dual sidebar layout**:
+- **Left Sidebar**: Configuration, personality, and environment controls
+- **Right Sidebar**: Speech and body appearance controls
+- **Center Canvas**: Real-time 3D blob visualization
+
+### Left Sidebar
+
+#### About
+Learn about Kwami and what makes it unique.
+
+#### Voice Settings (ElevenLabs)
 - Configure ElevenLabs API key
 - Select voice ID (default: Adam voice)
 - Initialize the Mind system
 
-### Personality Selection
+#### Personality Selection
 - **Kaya (😊)**: Warm, empathetic companion
 - **Nexus (💼)**: Professional, knowledgeable assistant
 - **Spark (✨)**: Playful, energetic companion
 
-### Speech Synthesis
+#### Background Controls
+- **3 Color Gradient**: Customize background with three colors
+- **Angle** (0-360°): Control gradient direction
+- **Color Stops**: Adjust position of each color (0-100%)
+- **🎲 Randomize**: Generate random gradient combinations
+- **🔄 Reset**: Restore default background
+
+### Right Sidebar
+
+#### Speech Synthesis
 - Enter custom text for Kwami to speak
 - Blob automatically animates to speech frequencies
 - Real-time state indicator (IDLE, SPEAKING, etc.)

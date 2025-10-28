@@ -8,11 +8,8 @@
 </head>
 <body>
   <div id="app">
-    <div id="canvas-container">
-      <canvas id="kwami-canvas"></canvas>
-    </div>
-    
-    <div id="controls">
+    <!-- Left Sidebar -->
+    <div id="left-sidebar">
       <h1>🎭 Kwami</h1>
       <p class="subtitle">AI Companion Playground</p>
       
@@ -20,6 +17,16 @@
         <span id="state-text">IDLE</span>
       </div>
 
+      <!-- About -->
+      <div class="section">
+        <div class="section-title">ℹ️ About</div>
+        <p class="about-text">
+          Kwami is an AI companion with a reactive 3D blob body that visualizes audio and emotions. 
+          Customize its voice, personality, appearance, and environment!
+        </p>
+      </div>
+
+      <!-- Voice Settings -->
       <div class="section">
         <div class="section-title">🗣️ Voice Settings</div>
         
@@ -36,6 +43,7 @@
         <button onclick="initializeMind()" id="init-btn">Initialize Mind</button>
       </div>
 
+      <!-- Personality -->
       <div class="section">
         <div class="section-title">🎭 Personality</div>
         
@@ -50,6 +58,60 @@
         </div>
       </div>
 
+      <!-- Background -->
+      <div class="section">
+        <div class="section-title">🌈 Background</div>
+        
+        <div class="parameter-group">
+          <div class="parameter-group-title">Gradient Colors</div>
+          <div class="color-control">
+            <label>Color 1</label>
+            <input type="color" id="bg-color-1" value="#667eea">
+          </div>
+          <div class="color-control">
+            <label>Color 2</label>
+            <input type="color" id="bg-color-2" value="#764ba2">
+          </div>
+          <div class="color-control">
+            <label>Color 3</label>
+            <input type="color" id="bg-color-3" value="#f093fb">
+          </div>
+        </div>
+
+        <div class="parameter-group">
+          <div class="parameter-group-title">Gradient Settings</div>
+          <div class="slider-control">
+            <label>Angle <span class="value-display" id="bg-angle-value">135</span>°</label>
+            <input type="range" id="bg-angle" min="0" max="360" step="1" value="135">
+          </div>
+          <div class="slider-control">
+            <label>Stop 1 <span class="value-display" id="bg-stop-1-value">0</span>%</label>
+            <input type="range" id="bg-stop-1" min="0" max="100" step="1" value="0">
+          </div>
+          <div class="slider-control">
+            <label>Stop 2 <span class="value-display" id="bg-stop-2-value">50</span>%</label>
+            <input type="range" id="bg-stop-2" min="0" max="100" step="1" value="50">
+          </div>
+          <div class="slider-control">
+            <label>Stop 3 <span class="value-display" id="bg-stop-3-value">100</span>%</label>
+            <input type="range" id="bg-stop-3" min="0" max="100" step="1" value="100">
+          </div>
+        </div>
+
+        <button class="button-secondary" onclick="randomizeBackground()">🎲 Randomize Background</button>
+        <button class="button-secondary" onclick="resetBackground()">🔄 Reset Background</button>
+      </div>
+
+      <div id="error" class="error"></div>
+    </div>
+
+    <!-- Canvas Container -->
+    <div id="canvas-container">
+      <canvas id="kwami-canvas"></canvas>
+    </div>
+    
+    <!-- Right Sidebar -->
+    <div id="right-sidebar">
       <div class="section">
         <div class="section-title">💬 Speak</div>
         
@@ -167,7 +229,6 @@
         <button class="button-secondary" onclick="resetToDefaults()">🔄 Reset to Defaults</button>
       </div>
 
-      <div id="error" class="error"></div>
       <div id="status"></div>
     </div>
   </div>

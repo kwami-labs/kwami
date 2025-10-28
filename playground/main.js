@@ -15,6 +15,13 @@ const DEFAULT_VALUES = {
   skin: 'tricolor'
 };
 
+// Default background gradient settings
+const DEFAULT_BACKGROUND = {
+  colors: ['#667eea', '#764ba2', '#f093fb'],
+  angle: 135,
+  stops: [0, 50, 100]
+};
+
 // Initialize Kwami
 const canvas = document.getElementById('kwami-canvas');
 
@@ -35,6 +42,9 @@ try {
 
   // Initialize body controls event listeners
   initializeBodyControls();
+  
+  // Initialize background controls
+  initializeBackgroundControls();
 
   updateStatus('✅ Kwami initialized successfully!');
   updateStateIndicator(window.kwami.getState());
@@ -363,6 +373,96 @@ function updateStateIndicator(state) {
   
   indicator.className = 'state-indicator state-' + state;
   stateText.textContent = state.toUpperCase();
+}
+
+// Background gradient functions
+function updateBackground() {
+  const color1 = document.getElementById('bg-color-1').value;
+  const color2 = document.getElementById('bg-color-2').value;
+  const color3 = document.getElementById('bg-color-3').value;
+  const angle = document.getElementById('bg-angle').value;
+  const stop1 = document.getElementById('bg-stop-1').value;
+  const stop2 = document.getElementById('bg-stop-2').value;
+  const stop3 = document.getElementById('bg-stop-3').value;
+  
+  const gradient = `linear-gradient(${angle}deg, ${color1} ${stop1}%, ${color2} ${stop2}%, ${color3} ${stop3}%)`;
+  document.body.style.background = gradient;
+}
+
+window.randomizeBackground = function() {
+  // Random colors
+  const randomColor = () => '#' + Math.floor(Math.random()*16777215).toString(16).padStart(6, '0');
+  document.getElementById('bg-color-1').value = randomColor();
+  document.getElementById('bg-color-2').value = randomColor();
+  document.getElementById('bg-color-3').value = randomColor();
+  
+  // Random angle
+  const randomAngle = Math.floor(Math.random() * 360);
+  document.getElementById('bg-angle').value = randomAngle;
+  updateValueDisplay('bg-angle-value', randomAngle, 0);
+  
+  // Random stops (sorted)
+  const stops = [0, Math.floor(Math.random() * 100), 100].sort((a, b) => a - b);
+  document.getElementById('bg-stop-1').value = stops[0];
+  document.getElementById('bg-stop-2').value = stops[1];
+  document.getElementById('bg-stop-3').value = stops[2];
+  updateValueDisplay('bg-stop-1-value', stops[0], 0);
+  updateValueDisplay('bg-stop-2-value', stops[1], 0);
+  updateValueDisplay('bg-stop-3-value', stops[2], 0);
+  
+  updateBackground();
+  updateStatus('🎲 Background randomized!');
+};
+
+window.resetBackground = function() {
+  document.getElementById('bg-color-1').value = DEFAULT_BACKGROUND.colors[0];
+  document.getElementById('bg-color-2').value = DEFAULT_BACKGROUND.colors[1];
+  document.getElementById('bg-color-3').value = DEFAULT_BACKGROUND.colors[2];
+  document.getElementById('bg-angle').value = DEFAULT_BACKGROUND.angle;
+  document.getElementById('bg-stop-1').value = DEFAULT_BACKGROUND.stops[0];
+  document.getElementById('bg-stop-2').value = DEFAULT_BACKGROUND.stops[1];
+  document.getElementById('bg-stop-3').value = DEFAULT_BACKGROUND.stops[2];
+  
+  updateValueDisplay('bg-angle-value', DEFAULT_BACKGROUND.angle, 0);
+  updateValueDisplay('bg-stop-1-value', DEFAULT_BACKGROUND.stops[0], 0);
+  updateValueDisplay('bg-stop-2-value', DEFAULT_BACKGROUND.stops[1], 0);
+  updateValueDisplay('bg-stop-3-value', DEFAULT_BACKGROUND.stops[2], 0);
+  
+  updateBackground();
+  updateStatus('🔄 Background reset to defaults!');
+};
+
+function initializeBackgroundControls() {
+  // Color pickers
+  ['1', '2', '3'].forEach(num => {
+    const colorPicker = document.getElementById(`bg-color-${num}`);
+    if (colorPicker) {
+      colorPicker.addEventListener('input', updateBackground);
+    }
+  });
+  
+  // Angle slider
+  const angleSlider = document.getElementById('bg-angle');
+  if (angleSlider) {
+    angleSlider.addEventListener('input', (e) => {
+      updateValueDisplay('bg-angle-value', e.target.value, 0);
+      updateBackground();
+    });
+  }
+  
+  // Stop sliders
+  ['1', '2', '3'].forEach(num => {
+    const stopSlider = document.getElementById(`bg-stop-${num}`);
+    if (stopSlider) {
+      stopSlider.addEventListener('input', (e) => {
+        updateValueDisplay(`bg-stop-${num}-value`, e.target.value, 0);
+        updateBackground();
+      });
+    }
+  });
+  
+  // Apply initial background
+  updateBackground();
 }
 
 // Monitor state changes

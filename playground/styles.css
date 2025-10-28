@@ -9,11 +9,29 @@ body {
   background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
   min-height: 100vh;
   overflow: hidden;
+  transition: background 0.8s ease;
 }
 
 #app {
   display: flex;
   height: 100vh;
+}
+
+#left-sidebar,
+#right-sidebar {
+  width: 350px;
+  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(10px);
+  padding: 30px;
+  overflow-y: auto;
+}
+
+#left-sidebar {
+  box-shadow: 5px 0 20px rgba(0, 0, 0, 0.1);
+}
+
+#right-sidebar {
+  box-shadow: -5px 0 20px rgba(0, 0, 0, 0.1);
 }
 
 #canvas-container {
@@ -27,15 +45,6 @@ canvas {
   display: block;
 }
 
-#controls {
-  width: 350px;
-  background: rgba(255, 255, 255, 0.95);
-  backdrop-filter: blur(10px);
-  padding: 30px;
-  overflow-y: auto;
-  box-shadow: -5px 0 20px rgba(0, 0, 0, 0.1);
-}
-
 h1 {
   font-size: 28px;
   margin-bottom: 10px;
@@ -46,6 +55,13 @@ h1 {
   font-size: 14px;
   color: #666;
   margin-bottom: 25px;
+}
+
+.about-text {
+  font-size: 13px;
+  line-height: 1.6;
+  color: #555;
+  margin: 0;
 }
 
 .section {
