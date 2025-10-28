@@ -21,8 +21,9 @@ body {
   width: 350px;
   background: rgba(255, 255, 255, 0.95);
   backdrop-filter: blur(10px);
-  padding: 30px;
+  padding: 50px 30px 30px;
   overflow-y: auto;
+  position: relative;
 }
 
 #left-sidebar {
@@ -343,4 +344,50 @@ input[type="checkbox"] {
 .input-group label {
   display: flex;
   align-items: center;
+}
+
+/* Swap button styles */
+.swap-button {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  padding: 8px 16px;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  border: none;
+  border-radius: 20px;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: transform 0.2s, box-shadow 0.2s;
+  z-index: 100;
+}
+
+.swap-button:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+}
+
+.swap-button:active {
+  transform: translateY(0);
+}
+
+#left-sidebar .swap-button {
+  left: 10px;
+  right: auto;
+}
+
+.sidebar-content {
+  animation: fadeIn 0.3s ease-in;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }

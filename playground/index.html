@@ -8,10 +8,35 @@
 </head>
 <body>
   <div id="app">
-    <!-- Left Sidebar: ElevenLabs AI Agent Config -->
+    <!-- Left Sidebar -->
     <div id="left-sidebar">
-      <h1>🤖 AI Agent</h1>
-      <p class="subtitle">ElevenLabs Configuration</p>
+      <button class="swap-button" id="left-swap-btn" onclick="swapLeftSidebar()">
+        <span id="left-swap-text">→ Soul</span>
+      </button>
+      <div id="left-content"></div>
+      <div id="error" class="error"></div>
+    </div>
+
+    <!-- Canvas Container -->
+    <div id="canvas-container">
+      <canvas id="kwami-canvas"></canvas>
+    </div>
+    
+    <!-- Right Sidebar -->
+    <div id="right-sidebar">
+      <button class="swap-button" id="right-swap-btn" onclick="swapRightSidebar()">
+        <span id="right-swap-text">Soul ←</span>
+      </button>
+      <div id="right-content"></div>
+      <div id="status"></div>
+    </div>
+  </div>
+
+  <!-- Mind Section (AI Agent Configuration) -->
+  <template id="mind-template">
+    <div class="sidebar-content">
+      <h1>🤖 Mind</h1>
+      <p class="subtitle">AI Agent Configuration</p>
       
       <div class="state-indicator" id="state-indicator">
         <span id="state-text">IDLE</span>
@@ -34,21 +59,6 @@
         <button onclick="initializeMind()" id="init-btn">Initialize AI Agent</button>
       </div>
 
-      <!-- Personality -->
-      <div class="section">
-        <div class="section-title">🎭 Personality</div>
-        
-        <div class="personality-buttons">
-          <button class="button-secondary" onclick="loadPersonality('friendly')">😊 Kaya</button>
-          <button class="button-secondary" onclick="loadPersonality('professional')">💼 Nexus</button>
-          <button class="button-secondary" onclick="loadPersonality('playful')">✨ Spark</button>
-        </div>
-
-        <div class="input-group">
-          <label>Current Name: <span id="personality-name">Kwami</span></label>
-        </div>
-      </div>
-
       <!-- Speech Test -->
       <div class="section">
         <div class="section-title">💬 Test Speech</div>
@@ -60,18 +70,13 @@
 
         <button onclick="speak()" id="speak-btn" disabled>🎤 Speak</button>
       </div>
-
-      <div id="error" class="error"></div>
     </div>
+  </template>
 
-    <!-- Canvas Container -->
-    <div id="canvas-container">
-      <canvas id="kwami-canvas"></canvas>
-    </div>
-    
-    <!-- Right Sidebar: Kwami Configuration -->
-    <div id="right-sidebar">
-      <h2>🎭 Kwami</h2>
+  <!-- Body Section (Visual Configuration) -->
+  <template id="body-template">
+    <div class="sidebar-content">
+      <h2>🎨 Body</h2>
       <p class="subtitle">Visual Configuration</p>
 
       <!-- Background -->
@@ -234,7 +239,7 @@
           </div>
           <div class="slider-control">
             <label>Shininess <span class="value-display" id="shininess-value">100</span></label>
-            <input type="range" id="shininess" min="0" max="10000" step="100" value="100">
+            <input type="range" id="shininess" min="0" max="100000" step="100" value="100">
           </div>
           <div class="input-group">
             <label>
@@ -255,10 +260,71 @@
         <button class="button-secondary" onclick="randomizeBlob()">🎲 Randomize Blob</button>
         <button class="button-secondary" onclick="resetToDefaults()">🔄 Reset to Defaults</button>
       </div>
-
-      <div id="status"></div>
     </div>
-  </div>
+  </template>
+
+  <!-- Soul Section (Personality Configuration) -->
+  <template id="soul-template">
+    <div class="sidebar-content">
+      <h2>✨ Soul</h2>
+      <p class="subtitle">Personality Configuration</p>
+
+      <div class="section">
+        <div class="section-title">🎭 Personality</div>
+        <p class="about-text">Define who Kwami is - their character, traits, and communication style.</p>
+        
+        <div class="input-group">
+          <label>Name</label>
+          <input type="text" id="soul-name" value="Kwami" placeholder="Kwami's name">
+        </div>
+
+        <div class="input-group">
+          <label>Personality Description</label>
+          <textarea id="soul-personality" placeholder="Describe Kwami's personality...">Friendly, helpful, and curious AI companion with a playful spirit.</textarea>
+        </div>
+
+        <div class="input-group">
+          <label>System Prompt</label>
+          <textarea id="soul-system-prompt" placeholder="Base instructions for AI behavior..." style="min-height: 120px;">You are Kwami, a friendly AI companion. You are helpful, curious, and enjoy engaging conversations. Keep responses natural and concise.</textarea>
+        </div>
+
+        <div class="input-group">
+          <label>Response Length</label>
+          <select id="soul-response-length">
+            <option value="short">Short</option>
+            <option value="medium" selected>Medium</option>
+            <option value="long">Long</option>
+          </select>
+        </div>
+
+        <div class="input-group">
+          <label>Emotional Tone</label>
+          <select id="soul-emotional-tone">
+            <option value="neutral">Neutral</option>
+            <option value="warm" selected>Warm</option>
+            <option value="enthusiastic">Enthusiastic</option>
+            <option value="calm">Calm</option>
+          </select>
+        </div>
+
+        <button class="button-secondary" onclick="applySoulConfig()">✅ Apply Soul Config</button>
+      </div>
+
+      <div class="section">
+        <div class="section-title">🎨 Preset Personalities</div>
+        
+        <div class="personality-buttons">
+          <button class="button-secondary" onclick="loadPersonality('friendly')">😊 Kaya</button>
+          <button class="button-secondary" onclick="loadPersonality('professional')">💼 Nexus</button>
+          <button class="button-secondary" onclick="loadPersonality('playful')">✨ Spark</button>
+        </div>
+
+        <div class="input-group">
+          <label>Current Name: <span id="personality-name">Kwami</span></label>
+        </div>
+      </div>
+    </div>
+  </template>
 
   <script type="module" src="main.js"></script>
 </body>

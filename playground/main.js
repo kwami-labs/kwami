@@ -2,6 +2,171 @@ import { Kwami } from '../index.ts';
 
 window.kwami = null;
 
+// Sidebar management: Mind, Body, Soul rotating system
+const sidebarState = {
+  left: 'mind',  // Initially Mind is on the left
+  right: 'body', // Initially Body is on the right
+  hidden: 'soul' // Initially Soul is hidden
+};
+
+const sectionLabels = {
+  mind: '🤖 Mind',
+  body: '🎨 Body',
+  soul: '✨ Soul'
+};
+
+// Initialize sidebars
+function initializeSidebars() {
+  renderSidebar('left', sidebarState.left);
+  renderSidebar('right', sidebarState.right);
+  updateSwapButtons();
+}
+
+// Render a section into a sidebar
+function renderSidebar(side, section) {
+  const template = document.getElementById(`${section}-template`);
+  const content = template.content.cloneNode(true);
+  const container = document.getElementById(`${side}-content`);
+  
+  // Clear existing content
+  container.innerHTML = '';
+  
+  // Append new content
+  container.appendChild(content);
+  
+  // Re-initialize event listeners for the new content if needed
+  if (side === 'left' && section === 'mind') {
+    // Mind section specific initialization will happen after Kwami is created
+  }
+  if (side === 'right' && section === 'body') {
+    // Body section specific initialization will happen after Kwami is created
+  }
+}
+
+// Swap left sidebar
+window.swapLeftSidebar = function() {
+  // Current: left shows X, right shows Y, hidden is Z
+  // After: left shows Z (hidden), right shows Y (same), hidden is X (was left)
+  const newLeft = sidebarState.hidden;
+  const newHidden = sidebarState.left;
+  
+  sidebarState.left = newLeft;
+  sidebarState.hidden = newHidden;
+  
+  renderSidebar('left', sidebarState.left);
+  updateSwapButtons();
+  
+  // Re-initialize controls if needed
+  setTimeout(() => {
+    if (window.kwami) {
+      if (sidebarState.left === 'body') {
+        initializeBodyControls();
+        initializeBackgroundControls();
+        initializeCameraControls();
+      } else if (sidebarState.left === 'soul') {
+        initializeSoulControls();
+      }
+    }
+  }, 100);
+};
+
+// Swap right sidebar
+window.swapRightSidebar = function() {
+  // Current: left shows X, right shows Y, hidden is Z
+  // After: left shows X (same), right shows Z (hidden), hidden is Y (was right)
+  const newRight = sidebarState.hidden;
+  const newHidden = sidebarState.right;
+  
+  sidebarState.right = newRight;
+  sidebarState.hidden = newHidden;
+  
+  renderSidebar('right', sidebarState.right);
+  updateSwapButtons();
+  
+  // Re-initialize controls if needed
+  setTimeout(() => {
+    if (window.kwami) {
+      if (sidebarState.right === 'body') {
+        initializeBodyControls();
+        initializeBackgroundControls();
+        initializeCameraControls();
+      } else if (sidebarState.right === 'soul') {
+        initializeSoulControls();
+      }
+    }
+  }, 100);
+};
+
+// Update swap button labels
+function updateSwapButtons() {
+  const leftBtn = document.getElementById('left-swap-text');
+  const rightBtn = document.getElementById('right-swap-text');
+  
+  if (leftBtn) {
+    leftBtn.textContent = `→ ${sectionLabels[sidebarState.hidden]}`;
+  }
+  if (rightBtn) {
+    rightBtn.textContent = `${sectionLabels[sidebarState.hidden]} ←`;
+  }
+}
+
+// Initialize Soul controls with current values
+function initializeSoulControls() {
+  if (!window.kwami || !window.kwami.soul) return;
+  
+  const nameInput = document.getElementById('soul-name');
+  const personalityInput = document.getElementById('soul-personality');
+  const systemPromptInput = document.getElementById('soul-system-prompt');
+  const responseLengthInput = document.getElementById('soul-response-length');
+  const emotionalToneInput = document.getElementById('soul-emotional-tone');
+  const nameDisplay = document.getElementById('personality-name');
+  
+  // Populate with current values
+  if (nameInput && window.kwami.soul.config.name) {
+    nameInput.value = window.kwami.soul.config.name;
+  }
+  if (personalityInput && window.kwami.soul.config.personality) {
+    personalityInput.value = window.kwami.soul.config.personality;
+  }
+  if (systemPromptInput && window.kwami.soul.config.systemPrompt) {
+    systemPromptInput.value = window.kwami.soul.config.systemPrompt;
+  }
+  if (responseLengthInput && window.kwami.soul.config.responseLength) {
+    responseLengthInput.value = window.kwami.soul.config.responseLength;
+  }
+  if (emotionalToneInput && window.kwami.soul.config.emotionalTone) {
+    emotionalToneInput.value = window.kwami.soul.config.emotionalTone;
+  }
+  if (nameDisplay && window.kwami.soul.config.name) {
+    nameDisplay.textContent = window.kwami.soul.config.name;
+  }
+}
+
+// Soul configuration function
+window.applySoulConfig = function() {
+  const name = document.getElementById('soul-name')?.value || 'Kwami';
+  const personality = document.getElementById('soul-personality')?.value || '';
+  const systemPrompt = document.getElementById('soul-system-prompt')?.value || '';
+  const responseLength = document.getElementById('soul-response-length')?.value || 'medium';
+  const emotionalTone = document.getElementById('soul-emotional-tone')?.value || 'warm';
+  
+  if (window.kwami && window.kwami.soul) {
+    window.kwami.soul.config.name = name;
+    window.kwami.soul.config.personality = personality;
+    window.kwami.soul.config.systemPrompt = systemPrompt;
+    window.kwami.soul.config.responseLength = responseLength;
+    window.kwami.soul.config.emotionalTone = emotionalTone;
+    
+    // Update personality name display if it exists
+    const nameDisplay = document.getElementById('personality-name');
+    if (nameDisplay) {
+      nameDisplay.textContent = name;
+    }
+    
+    updateStatus(`✅ Soul configuration applied for ${name}!`);
+  }
+};
+
 // Default values for body parameters
 const DEFAULT_VALUES = {
   spikes: { x: 0.2, y: 0.2, z: 0.2 },
@@ -29,6 +194,9 @@ const DEFAULT_CAMERA_POSITION = {
   y: 0,
   z: 12
 };
+
+// Initialize sidebars first
+initializeSidebars();
 
 // Initialize Kwami
 const canvas = document.getElementById('kwami-canvas');
@@ -221,6 +389,49 @@ window.resetToDefaults = function() {
   // Update UI
   updateAllControlsFromBlob();
   updateStatus('🔄 Reset to defaults!');
+};
+
+// Export Scene as GLB
+window.exportScene = async function() {
+  try {
+    updateStatus('📦 Preparing export...');
+    
+    // Import GLTFExporter dynamically from esm.sh (properly resolves dependencies)
+    const { GLTFExporter } = await import('https://esm.sh/three@0.160.0/examples/jsm/exporters/GLTFExporter.js');
+    
+    const exporter = new GLTFExporter();
+    const scene = window.kwami.body.getScene();
+    
+    // Parse the entire scene with animations
+    exporter.parse(
+      scene,
+      (result) => {
+        // Create blob and download
+        const blob = new Blob([result], { type: 'model/gltf-binary' });
+        const link = document.createElement('a');
+        link.href = URL.createObjectURL(blob);
+        link.download = `kwami-scene-${Date.now()}.glb`;
+        link.click();
+        
+        // Cleanup
+        setTimeout(() => URL.revokeObjectURL(link.href), 100);
+        
+        updateStatus('✅ Scene exported as GLB!');
+      },
+      (error) => {
+        console.error('Export error:', error);
+        updateStatus('❌ Export failed: ' + error.message);
+      },
+      {
+        binary: true,
+        animations: [], // Include animations if any
+        includeCustomExtensions: true,
+      }
+    );
+  } catch (error) {
+    console.error('Failed to export scene:', error);
+    updateStatus('❌ Export failed: ' + error.message);
+  }
 };
 
 // Helper function to format value display
