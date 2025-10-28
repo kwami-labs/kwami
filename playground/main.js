@@ -23,6 +23,13 @@ const DEFAULT_BACKGROUND = {
   opacity: 1.0
 };
 
+// Default camera position
+const DEFAULT_CAMERA_POSITION = {
+  x: 0,
+  y: 0,
+  z: 8
+};
+
 // Initialize Kwami
 const canvas = document.getElementById('kwami-canvas');
 
@@ -52,6 +59,9 @@ try {
   
   // Initialize background controls
   initializeBackgroundControls();
+
+  // Initialize camera position controls
+  initializeCameraControls();
 
   // Apply initial background
   applyBackground();
@@ -159,6 +169,25 @@ window.speak = async function() {
 // Randomize Blob
 window.randomizeBlob = function() {
   window.kwami.body.blob.setRandomBlob();
+  
+  // Also randomize camera position for a different view angle
+  const camera = window.kwami.body.getCamera();
+  const randomCameraPos = {
+    x: (Math.random() - 0.5) * 20, // -10 to 10
+    y: (Math.random() - 0.5) * 20, // -10 to 10
+    z: Math.random() * 15 + 5 // 5 to 20
+  };
+  camera.position.set(randomCameraPos.x, randomCameraPos.y, randomCameraPos.z);
+  camera.lookAt(0, 0, 0); // Always look at the blob center
+  
+  // Update camera UI
+  document.getElementById('camera-x').value = randomCameraPos.x;
+  document.getElementById('camera-y').value = randomCameraPos.y;
+  document.getElementById('camera-z').value = randomCameraPos.z;
+  updateValueDisplay('camera-x-value', randomCameraPos.x, 1);
+  updateValueDisplay('camera-y-value', randomCameraPos.y, 1);
+  updateValueDisplay('camera-z-value', randomCameraPos.z, 1);
+  
   updateAllControlsFromBlob();
   updateStatus('🎲 Blob randomized!');
 };
@@ -177,6 +206,17 @@ window.resetToDefaults = function() {
   blob.setShininess(DEFAULT_VALUES.shininess);
   blob.setWireframe(DEFAULT_VALUES.wireframe);
   blob.setSkin(DEFAULT_VALUES.skin);
+  
+  // Reset camera position
+  const camera = window.kwami.body.getCamera();
+  camera.position.set(DEFAULT_CAMERA_POSITION.x, DEFAULT_CAMERA_POSITION.y, DEFAULT_CAMERA_POSITION.z);
+  camera.lookAt(0, 0, 0);
+  document.getElementById('camera-x').value = DEFAULT_CAMERA_POSITION.x;
+  document.getElementById('camera-y').value = DEFAULT_CAMERA_POSITION.y;
+  document.getElementById('camera-z').value = DEFAULT_CAMERA_POSITION.z;
+  updateValueDisplay('camera-x-value', DEFAULT_CAMERA_POSITION.x, 1);
+  updateValueDisplay('camera-y-value', DEFAULT_CAMERA_POSITION.y, 1);
+  updateValueDisplay('camera-z-value', DEFAULT_CAMERA_POSITION.z, 1);
   
   // Update UI
   updateAllControlsFromBlob();
@@ -553,6 +593,50 @@ function initializeBackgroundControls() {
   document.getElementById('bg-type').value = DEFAULT_BACKGROUND.type;
   document.getElementById('bg-opacity').value = DEFAULT_BACKGROUND.opacity;
 }
+
+// Kwami rotation control functions
+function initializeKwamiRotationControls() {
+  const mesh = window.kwami.body.blob.getMesh();
+  
+  // Helper function to convert radians to degrees for display
+  const radToDeg = (rad) => Math.round(rad * 180 / Math.PI);
+  
+  // Kwami X rotation
+  const kwamiRotXSlider = document.getElementById('kwami-rot-x');
+  if (kwamiRotXSlider) {
+    kwamiRotXSlider.addEventListener('input', (e) => {
+      const value = parseFloat(e.target.value);
+      mesh.rotation.x = value;
+      updateValueDisplay('kwami-rot-x-value', radToDeg(value), 0);
+    });
+  }
+  
+  // Kwami Y rotation
+  const kwamiRotYSlider = document.getElementById('kwami-rot-y');
+  if (kwamiRotYSlider) {
+    kwamiRotYSlider.addEventListener('input', (e) => {
+      const value = parseFloat(e.target.value);
+      mesh.rotation.y = value;
+      updateValueDisplay('kwami-rot-y-value', radToDeg(value), 0);
+    });
+  }
+  
+  // Kwami Z rotation
+  const kwamiRotZSlider = document.getElementById('kwami-rot-z');
+  if (kwamiRotZSlider) {
+    kwamiRotZSlider.addEventListener('input', (e) => {
+      const value = parseFloat(e.target.value);
+      mesh.rotation.z = value;
+      updateValueDisplay('kwami-rot-z-value', radToDeg(value), 0);
+    });
+  }
+  
+  // Set initial values
+  document.getElementById('kwami-rot-x').value = DEFAULT_KWAMI_ROTATION.x;
+  document.getElementById('kwami-rot-y').value = DEFAULT_KWAMI_ROTATION.y;
+  document.getElementById('kwami-rot-z').value = DEFAULT_KWAMI_ROTATION.z;
+}
+
 
 // Monitor state changes
 setInterval(() => {
