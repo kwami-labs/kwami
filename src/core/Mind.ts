@@ -52,6 +52,11 @@ export class KwamiMind {
       return;
     }
 
+    // Create client if it doesn't exist and we have an API key
+    if (!this.client && this.config.apiKey) {
+      this.client = new ElevenLabsClient({ apiKey: this.config.apiKey });
+    }
+
     if (!this.client) {
       throw new Error('ElevenLabs API key not provided. Set it in MindConfig or ELEVEN_LABS_KEY environment variable.');
     }
