@@ -180,13 +180,26 @@ const DEFAULT_VALUES = {
   skin: 'tricolor'
 };
 
-// Default background gradient settings
+// Default background settings
 const DEFAULT_BACKGROUND = {
   type: 'gradient',
   colors: ['#667eea', '#764ba2', '#f093fb'],
   direction: 'vertical',
   opacity: 1.0
 };
+
+const BACKGROUND_IMAGES = [
+  'black-hole.jpg',
+  'galaxy.jpg',
+  'galaxy2.jpg',
+  'gargantua.jpg',
+  'interstellar.png',
+  'skynet.png',
+  'universe.jpg'
+];
+
+// Counter for background randomization clicks
+let backgroundRandomizeClickCount = 0;
 
 // Default camera position
 const DEFAULT_CAMERA_POSITION = {
@@ -231,10 +244,43 @@ try {
   // Initialize camera position controls
   initializeCameraControls();
 
-  // Apply initial background
-  applyBackground();
+  // Randomize blob on page load (but keep scale at 4)
+  window.kwami.body.blob.setRandomBlob();
+  window.kwami.body.blob.setScale(4.0);
+  
+  // Randomize camera position
+  const camera = window.kwami.body.getCamera();
+  const randomCameraPos = {
+    x: (Math.random() - 0.5) * 20,
+    y: (Math.random() - 0.5) * 20,
+    z: Math.random() * 15 + 5
+  };
+  camera.position.set(randomCameraPos.x, randomCameraPos.y, randomCameraPos.z);
+  camera.lookAt(0, 0, 0);
+  
+  // Update camera UI
+  document.getElementById('camera-x').value = randomCameraPos.x;
+  document.getElementById('camera-y').value = randomCameraPos.y;
+  document.getElementById('camera-z').value = randomCameraPos.z;
+  updateValueDisplay('camera-x-value', randomCameraPos.x, 1);
+  updateValueDisplay('camera-y-value', randomCameraPos.y, 1);
+  updateValueDisplay('camera-z-value', randomCameraPos.z, 1);
+  
+  // Randomize gradient background (colors, direction, opacity)
+  window.randomizeBackground();
+  
+  // Set random background image
+  const randomImage = BACKGROUND_IMAGES[Math.floor(Math.random() * BACKGROUND_IMAGES.length)];
+  const bgImageSelect = document.getElementById('bg-image');
+  if (bgImageSelect) {
+    bgImageSelect.value = randomImage;
+  }
+  setBackgroundImage(randomImage);
+  
+  // Update all UI controls to reflect random blob state
+  updateAllControlsFromBlob();
 
-  updateStatus('✅ Kwami initialized successfully!');
+  updateStatus('✅ Kwami initialized with random appearance!');
   updateStateIndicator(window.kwami.getState());
 } catch (error) {
   showError('Failed to initialize Kwami: ' + error.message);
@@ -336,14 +382,28 @@ window.speak = async function() {
 
 // Randomize Blob
 window.randomizeBlob = function() {
+  // Save current skin and scale
+  const currentSkin = window.kwami.body.blob.currentSkin;
+  const currentScale = 4.0;
+  
+  // Get current camera Z to preserve it
+  const camera = window.kwami.body.getCamera();
+  const currentCameraZ = camera.position.z;
+  
+  // Randomize the blob
   window.kwami.body.blob.setRandomBlob();
   
-  // Also randomize camera position for a different view angle
-  const camera = window.kwami.body.getCamera();
+  // Restore scale to 4
+  window.kwami.body.blob.setScale(currentScale);
+  
+  // Restore the skin
+  window.kwami.body.blob.setSkin(currentSkin);
+  
+  // Randomize camera X and Y position only (keep Z)
   const randomCameraPos = {
     x: (Math.random() - 0.5) * 20, // -10 to 10
     y: (Math.random() - 0.5) * 20, // -10 to 10
-    z: Math.random() * 15 + 5 // 5 to 20
+    z: currentCameraZ // Keep current Z
   };
   camera.position.set(randomCameraPos.x, randomCameraPos.y, randomCameraPos.z);
   camera.lookAt(0, 0, 0); // Always look at the blob center
@@ -351,10 +411,8 @@ window.randomizeBlob = function() {
   // Update camera UI
   document.getElementById('camera-x').value = randomCameraPos.x;
   document.getElementById('camera-y').value = randomCameraPos.y;
-  document.getElementById('camera-z').value = randomCameraPos.z;
   updateValueDisplay('camera-x-value', randomCameraPos.x, 1);
   updateValueDisplay('camera-y-value', randomCameraPos.y, 1);
-  updateValueDisplay('camera-z-value', randomCameraPos.z, 1);
   
   updateAllControlsFromBlob();
   updateStatus('🎲 Blob randomized!');
@@ -683,25 +741,71 @@ function applyBackground() {
 }
 
 window.randomizeBackground = function() {
-  const type = document.getElementById('bg-type').value;
-  
   // Random color generator
   const randomColor = () => '#' + Math.floor(Math.random()*16777215).toString(16).padStart(6, '0');
   
-  if (type === 'solid') {
-    document.getElementById('bg-solid-color').value = randomColor();
-  } else if (type === 'gradient') {
-    document.getElementById('bg-color-1').value = randomColor();
-    document.getElementById('bg-color-2').value = randomColor();
-    document.getElementById('bg-color-3').value = randomColor();
-    
-    // Random direction
-    const directions = ['vertical', 'horizontal', 'radial'];
-    document.getElementById('bg-direction').value = directions[Math.floor(Math.random() * directions.length)];
+  // Increment click counter
+  backgroundRandomizeClickCount++;
+  
+  // Always use gradient
+  document.getElementById('bg-type').value = 'gradient';
+  
+  // Show gradient controls
+  document.getElementById('gradient-controls').style.display = 'block';
+  document.getElementById('solid-controls').style.display = 'none';
+  document.getElementById('opacity-control').style.display = 'block';
+  
+  // Randomize gradient colors
+  document.getElementById('bg-color-1').value = randomColor();
+  document.getElementById('bg-color-2').value = randomColor();
+  document.getElementById('bg-color-3').value = randomColor();
+  
+  // Random direction
+  const directions = ['vertical', 'horizontal', 'radial'];
+  document.getElementById('bg-direction').value = directions[Math.floor(Math.random() * directions.length)];
+  
+  // Opacity pattern: 1, 1, <1, 1, 1, <1, ...
+  let opacity;
+  if (backgroundRandomizeClickCount % 3 === 0) {
+    // Every third click: random opacity less than 1.0 (between 0.3 and 0.9)
+    opacity = (Math.random() * 0.6 + 0.3).toFixed(2);
+  } else {
+    // First and second clicks: full opacity
+    opacity = '1.00';
   }
+  
+  document.getElementById('bg-opacity').value = opacity;
+  updateValueDisplay('bg-opacity-value', opacity, 2);
   
   applyBackground();
   updateStatus('🎲 Background randomized!');
+};
+
+// Set background image
+function setBackgroundImage(imageName) {
+  const bgImageElement = document.getElementById('background-image');
+  if (!bgImageElement) return;
+  
+  if (imageName && imageName !== '') {
+    bgImageElement.style.backgroundImage = `url('assets/${imageName}')`;
+    updateStatus(`🖼️ Background image set to ${imageName}`);
+  } else {
+    bgImageElement.style.backgroundImage = 'none';
+    updateStatus('Background image removed');
+  }
+}
+
+// Randomize background image
+window.randomizeBackgroundImage = function() {
+  const randomImage = BACKGROUND_IMAGES[Math.floor(Math.random() * BACKGROUND_IMAGES.length)];
+  
+  // Set the select dropdown value
+  const bgImageSelect = document.getElementById('bg-image');
+  if (bgImageSelect) {
+    bgImageSelect.value = randomImage;
+  }
+  
+  setBackgroundImage(randomImage);
 };
 
 window.resetBackground = function() {
@@ -733,6 +837,13 @@ window.resetBackground = function() {
     opacityControl.style.display = 'none';
   }
   
+  // Reset background image
+  const bgImageSelect = document.getElementById('bg-image');
+  if (bgImageSelect) {
+    bgImageSelect.value = '';
+  }
+  setBackgroundImage('');
+  
   applyBackground();
   updateStatus('🔄 Background reset to defaults!');
 };
@@ -757,10 +868,16 @@ function initializeBackgroundControls() {
         gradientControls.style.display = 'none';
         solidControls.style.display = 'block';
         opacityControl.style.display = 'block';
-      } else {
+      } else if (type === 'transparent') {
         gradientControls.style.display = 'none';
         solidControls.style.display = 'none';
         opacityControl.style.display = 'none';
+        
+        // Auto-select a random background image if none is selected
+        const bgImageSelect = document.getElementById('bg-image');
+        if (bgImageSelect && (!bgImageSelect.value || bgImageSelect.value === '')) {
+          window.randomizeBackgroundImage();
+        }
       }
       
       applyBackground();
@@ -794,6 +911,14 @@ function initializeBackgroundControls() {
   const solidColorPicker = document.getElementById('bg-solid-color');
   if (solidColorPicker) {
     solidColorPicker.addEventListener('input', applyBackground);
+  }
+  
+  // Background image selector
+  const bgImageSelect = document.getElementById('bg-image');
+  if (bgImageSelect) {
+    bgImageSelect.addEventListener('change', (e) => {
+      setBackgroundImage(e.target.value);
+    });
   }
   
   // Set initial values
