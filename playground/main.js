@@ -175,7 +175,7 @@ const DEFAULT_VALUES = {
   colors: { x: '#ff0066', y: '#00ff66', z: '#6600ff' },
   scale: 4.0,
   resolution: 180,
-  shininess: 100,
+  shininess: 50,
   wireframe: false,
   skin: 'tricolor'
 };
@@ -189,13 +189,21 @@ const DEFAULT_BACKGROUND = {
 };
 
 const BACKGROUND_IMAGES = [
+  'binary-reality.jpg',
+  'black-candle.jpg',
   'black-hole.jpg',
+  'black-sea.jpg',
+  'black-windows.jpg',
+  'black.jpg',
   'galaxy.jpg',
   'galaxy2.jpg',
   'gargantua.jpg',
   'interstellar.png',
+  'sahara.jpeg',
+  'skinet.png',
   'skynet.png',
-  'universe.jpg'
+  'universe.jpg',
+  'white-tree.jpg'
 ];
 
 // Counter for background randomization clicks
@@ -203,9 +211,9 @@ let backgroundRandomizeClickCount = 0;
 
 // Default camera position
 const DEFAULT_CAMERA_POSITION = {
-  x: 0,
-  y: 0,
-  z: 12
+  x: -0.9,
+  y: 7.3,
+  z: -1.8
 };
 
 // Initialize sidebars first
@@ -227,7 +235,7 @@ try {
         }
       },
       scene: {
-        cameraPosition: { x: 0, y: 0, z: 12 }
+        cameraPosition: { x: -0.9, y: 7.3, z: -1.8 }
       }
     }
   });
@@ -248,23 +256,18 @@ try {
   window.kwami.body.blob.setRandomBlob();
   window.kwami.body.blob.setScale(4.0);
   
-  // Randomize camera position
+  // Set camera to default position (don't randomize)
   const camera = window.kwami.body.getCamera();
-  const randomCameraPos = {
-    x: (Math.random() - 0.5) * 20,
-    y: (Math.random() - 0.5) * 20,
-    z: Math.random() * 15 + 5
-  };
-  camera.position.set(randomCameraPos.x, randomCameraPos.y, randomCameraPos.z);
+  camera.position.set(DEFAULT_CAMERA_POSITION.x, DEFAULT_CAMERA_POSITION.y, DEFAULT_CAMERA_POSITION.z);
   camera.lookAt(0, 0, 0);
   
   // Update camera UI
-  document.getElementById('camera-x').value = randomCameraPos.x;
-  document.getElementById('camera-y').value = randomCameraPos.y;
-  document.getElementById('camera-z').value = randomCameraPos.z;
-  updateValueDisplay('camera-x-value', randomCameraPos.x, 1);
-  updateValueDisplay('camera-y-value', randomCameraPos.y, 1);
-  updateValueDisplay('camera-z-value', randomCameraPos.z, 1);
+  document.getElementById('camera-x').value = DEFAULT_CAMERA_POSITION.x;
+  document.getElementById('camera-y').value = DEFAULT_CAMERA_POSITION.y;
+  document.getElementById('camera-z').value = DEFAULT_CAMERA_POSITION.z;
+  updateValueDisplay('camera-x-value', DEFAULT_CAMERA_POSITION.x, 1);
+  updateValueDisplay('camera-y-value', DEFAULT_CAMERA_POSITION.y, 1);
+  updateValueDisplay('camera-z-value', DEFAULT_CAMERA_POSITION.z, 1);
   
   // Randomize gradient background (colors, direction, opacity)
   window.randomizeBackground();
@@ -380,15 +383,21 @@ window.speak = async function() {
   }
 };
 
+// Export GLB
+window.exportGLB = function() {
+  if (window.kwami && window.kwami.body && window.kwami.body.blob) {
+    window.kwami.body.blob.exportGLTF();
+    updateStatus('💾 Downloading GLB file...');
+  } else {
+    showError('Kwami not initialized yet!');
+  }
+};
+
 // Randomize Blob
 window.randomizeBlob = function() {
   // Save current skin and scale
   const currentSkin = window.kwami.body.blob.currentSkin;
   const currentScale = 4.0;
-  
-  // Get current camera Z to preserve it
-  const camera = window.kwami.body.getCamera();
-  const currentCameraZ = camera.position.z;
   
   // Randomize the blob
   window.kwami.body.blob.setRandomBlob();
@@ -399,20 +408,8 @@ window.randomizeBlob = function() {
   // Restore the skin
   window.kwami.body.blob.setSkin(currentSkin);
   
-  // Randomize camera X and Y position only (keep Z)
-  const randomCameraPos = {
-    x: (Math.random() - 0.5) * 20, // -10 to 10
-    y: (Math.random() - 0.5) * 20, // -10 to 10
-    z: currentCameraZ // Keep current Z
-  };
-  camera.position.set(randomCameraPos.x, randomCameraPos.y, randomCameraPos.z);
-  camera.lookAt(0, 0, 0); // Always look at the blob center
-  
-  // Update camera UI
-  document.getElementById('camera-x').value = randomCameraPos.x;
-  document.getElementById('camera-y').value = randomCameraPos.y;
-  updateValueDisplay('camera-x-value', randomCameraPos.x, 1);
-  updateValueDisplay('camera-y-value', randomCameraPos.y, 1);
+  // Don't randomize camera - keep it at current position
+  // User can manually adjust camera with sliders or mouse controls
   
   updateAllControlsFromBlob();
   updateStatus('🎲 Blob randomized!');
