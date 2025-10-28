@@ -8,7 +8,7 @@ const DEFAULT_VALUES = {
   time: { x: 1, y: 1, z: 1 },
   rotation: { x: 0, y: 0, z: 0 },
   colors: { x: '#ff0066', y: '#00ff66', z: '#6600ff' },
-  scale: 2.5,
+  scale: 4.0,
   resolution: 180,
   shininess: 100,
   wireframe: false,
@@ -27,7 +27,7 @@ const DEFAULT_BACKGROUND = {
 const DEFAULT_CAMERA_POSITION = {
   x: 0,
   y: 0,
-  z: 8
+  z: 12
 };
 
 // Initialize Kwami
@@ -46,7 +46,7 @@ try {
         }
       },
       scene: {
-        cameraPosition: { x: 0, y: 0, z: 8 }
+        cameraPosition: { x: 0, y: 0, z: 12 }
       }
     }
   });
@@ -594,53 +594,73 @@ function initializeBackgroundControls() {
   document.getElementById('bg-opacity').value = DEFAULT_BACKGROUND.opacity;
 }
 
-// Kwami rotation control functions
-function initializeKwamiRotationControls() {
-  const mesh = window.kwami.body.blob.getMesh();
+// Camera position control functions
+function initializeCameraControls() {
+  const camera = window.kwami.body.getCamera();
   
-  // Helper function to convert radians to degrees for display
-  const radToDeg = (rad) => Math.round(rad * 180 / Math.PI);
-  
-  // Kwami X rotation
-  const kwamiRotXSlider = document.getElementById('kwami-rot-x');
-  if (kwamiRotXSlider) {
-    kwamiRotXSlider.addEventListener('input', (e) => {
+  // Camera X position
+  const cameraXSlider = document.getElementById('camera-x');
+  if (cameraXSlider) {
+    cameraXSlider.addEventListener('input', (e) => {
       const value = parseFloat(e.target.value);
-      mesh.rotation.x = value;
-      updateValueDisplay('kwami-rot-x-value', radToDeg(value), 0);
+      camera.position.x = value;
+      camera.lookAt(0, 0, 0); // Always look at the blob center
+      updateValueDisplay('camera-x-value', value, 1);
     });
   }
   
-  // Kwami Y rotation
-  const kwamiRotYSlider = document.getElementById('kwami-rot-y');
-  if (kwamiRotYSlider) {
-    kwamiRotYSlider.addEventListener('input', (e) => {
+  // Camera Y position
+  const cameraYSlider = document.getElementById('camera-y');
+  if (cameraYSlider) {
+    cameraYSlider.addEventListener('input', (e) => {
       const value = parseFloat(e.target.value);
-      mesh.rotation.y = value;
-      updateValueDisplay('kwami-rot-y-value', radToDeg(value), 0);
+      camera.position.y = value;
+      camera.lookAt(0, 0, 0); // Always look at the blob center
+      updateValueDisplay('camera-y-value', value, 1);
     });
   }
   
-  // Kwami Z rotation
-  const kwamiRotZSlider = document.getElementById('kwami-rot-z');
-  if (kwamiRotZSlider) {
-    kwamiRotZSlider.addEventListener('input', (e) => {
+  // Camera Z position
+  const cameraZSlider = document.getElementById('camera-z');
+  if (cameraZSlider) {
+    cameraZSlider.addEventListener('input', (e) => {
       const value = parseFloat(e.target.value);
-      mesh.rotation.z = value;
-      updateValueDisplay('kwami-rot-z-value', radToDeg(value), 0);
+      camera.position.z = value;
+      camera.lookAt(0, 0, 0); // Always look at the blob center
+      updateValueDisplay('camera-z-value', value, 1);
     });
   }
   
   // Set initial values
-  document.getElementById('kwami-rot-x').value = DEFAULT_KWAMI_ROTATION.x;
-  document.getElementById('kwami-rot-y').value = DEFAULT_KWAMI_ROTATION.y;
-  document.getElementById('kwami-rot-z').value = DEFAULT_KWAMI_ROTATION.z;
+  document.getElementById('camera-x').value = DEFAULT_CAMERA_POSITION.x;
+  document.getElementById('camera-y').value = DEFAULT_CAMERA_POSITION.y;
+  document.getElementById('camera-z').value = DEFAULT_CAMERA_POSITION.z;
 }
 
 
-// Monitor state changes
+// Monitor state changes and camera position
 setInterval(() => {
   if (window.kwami) {
     updateStateIndicator(window.kwami.getState());
+    
+    // Update camera position display
+    const camera = window.kwami.body.getCamera();
+    const currentX = parseFloat(document.getElementById('camera-x').value);
+    const currentY = parseFloat(document.getElementById('camera-y').value);
+    const currentZ = parseFloat(document.getElementById('camera-z').value);
+    
+    // Only update if values have changed (to avoid slider jumping while user is dragging)
+    if (Math.abs(camera.position.x - currentX) > 0.1) {
+      document.getElementById('camera-x').value = camera.position.x;
+      updateValueDisplay('camera-x-value', camera.position.x, 1);
+    }
+    if (Math.abs(camera.position.y - currentY) > 0.1) {
+      document.getElementById('camera-y').value = camera.position.y;
+      updateValueDisplay('camera-y-value', camera.position.y, 1);
+    }
+    if (Math.abs(camera.position.z - currentZ) > 0.1) {
+      document.getElementById('camera-z').value = camera.position.z;
+      updateValueDisplay('camera-z-value', camera.position.z, 1);
+    }
   }
 }, 100);
