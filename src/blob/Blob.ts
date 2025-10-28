@@ -232,10 +232,18 @@ export class Blob {
   setColor(axis: 'x' | 'y' | 'z', color: string): void {
     this.colors[axis] = color;
     const tricolorMaterial = this.skins.get('tricolor') as ShaderMaterial;
+    const tricolor2Material = this.skins.get('tricolor2') as ShaderMaterial;
     if (tricolorMaterial) {
       const uniformMap = { x: '_color1', y: '_color2', z: '_color3' };
       tricolorMaterial.uniforms[uniformMap[axis]].value = new Color(color);
     }
+    if (tricolor2Material) {
+      const uniformMap = { x: '_color1', y: '_color2', z: '_color3' };
+      tricolor2Material.uniforms[uniformMap[axis]].value = new Color(color);
+    }
+    
+    // Update light colors if lights are active
+    this.updateLightColors();
   }
 
   /**
@@ -292,6 +300,66 @@ export class Blob {
     const material = this.mesh.material as ShaderMaterial;
     if (material.uniforms.shininess) {
       material.uniforms.shininess.value = value;
+    }
+  }
+
+  /**
+   * Set light intensity (0 = off)
+   */
+  setLightIntensity(intensity: number): void {
+    this.lightIntensity = intensity;
+    
+    if (intensity > 0) {
+      // Create lights if they don't exist
+      if (!this.lights) {
+        this.initializeLights();
+      }
+      // Update light intensities
+      if (this.lights) {
+        this.lights.x.intensity = intensity;
+        this.lights.y.intensity = intensity;
+        this.lights.z.intensity = intensity;
+      }
+    } else {
+      // Turn off lights by setting intensity to 0
+      if (this.lights) {
+        this.lights.x.intensity = 0;
+        this.lights.y.intensity = 0;
+        this.lights.z.intensity = 0;
+      }
+    }
+  }
+
+  /**
+   * Initialize tricolor lights
+   */
+  private initializeLights(): void {
+    // Create three point lights with the blob's colors
+    const lightX = new PointLight(new Color(this.colors.x).getHex(), this.lightIntensity, 10);
+    const lightY = new PointLight(new Color(this.colors.y).getHex(), this.lightIntensity, 10);
+    const lightZ = new PointLight(new Color(this.colors.z).getHex(), this.lightIntensity, 10);
+    
+    // Position lights around the blob
+    lightX.position.set(3, 0, 0);
+    lightY.position.set(0, 3, 0);
+    lightZ.position.set(0, 0, 3);
+    
+    // Add lights to the scene
+    this.options.scene.add(lightX);
+    this.options.scene.add(lightY);
+    this.options.scene.add(lightZ);
+    
+    this.lights = { x: lightX, y: lightY, z: lightZ };
+  }
+
+  /**
+   * Update light colors when blob colors change
+   */
+  private updateLightColors(): void {
+    if (this.lights) {
+      this.lights.x.color.setHex(new Color(this.colors.x).getHex());
+      this.lights.y.color.setHex(new Color(this.colors.y).getHex());
+      this.lights.z.color.setHex(new Color(this.colors.z).getHex());
     }
   }
 
@@ -396,5 +464,13 @@ export class Blob {
     // Dispose all skin materials
     this.skins.forEach(material => material.dispose());
     this.skins.clear();
+    
+    // Remove lights from scene
+    if (this.lights) {
+      this.options.scene.remove(this.lights.x);
+      this.options.scene.remove(this.lights.y);
+      this.options.scene.remove(this.lights.z);
+      this.lights = null;
+    }
   }
 }

@@ -678,6 +678,16 @@ function initializeBodyControls() {
     });
   }
   
+  // Light intensity slider
+  const lightIntensitySlider = document.getElementById('light-intensity');
+  if (lightIntensitySlider) {
+    lightIntensitySlider.addEventListener('input', (e) => {
+      const value = parseFloat(e.target.value);
+      blob.setLightIntensity(value);
+      updateValueDisplay('light-intensity-value', value, 1);
+    });
+  }
+  
   // Wireframe checkbox
   const wireframeCheckbox = document.getElementById('wireframe');
   if (wireframeCheckbox) {
