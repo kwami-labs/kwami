@@ -406,4 +406,109 @@ index.ts
 └──────────────────────────────────────┘
 ```
 
+## 🎮 Playground Architecture
+
+The interactive playground (`/playground`) demonstrates Kwami's capabilities with a sophisticated UI system:
+
+### Rotating Sidebar System
+
+The playground implements a **3-section, 2-sidebar rotating interface** that allows access to all configuration areas without cluttering the UI:
+
+```
+┌─────────────────────────────────────────────┐
+│  Sidebar State Management                   │
+├─────────────────────────────────────────────┤
+│  • Three Sections: Mind, Body, Soul         │
+│  • Two Visible Sidebars: Left & Right       │
+│  • One Hidden Section (rotates)             │
+│  • Swap Buttons: Toggle sections            │
+└─────────────────────────────────────────────┘
+```
+
+**Component Structure:**
+
+```
+playground/
+├── index.html
+│   ├── <template id="mind-template">    # Mind configuration UI
+│   ├── <template id="body-template">    # Body configuration UI
+│   └── <template id="soul-template">    # Soul configuration UI
+│
+├── main.js
+│   ├── sidebarState                     # Tracks current layout
+│   ├── initializeSidebars()            # Initial render
+│   ├── renderSidebar(side, section)    # Dynamic content injection
+│   ├── swapLeftSidebar()               # Rotate left sidebar
+│   ├── swapRightSidebar()              # Rotate right sidebar
+│   └── updateSwapButtons()             # Update button labels
+│
+└── styles.css
+    ├── .swap-button                     # Button styling
+    └── .sidebar-content                 # Fade-in animations
+```
+
+**State Flow:**
+
+```
+Initial:  Mind (L) | Body (R) | Soul (H)
+          ↓ Click Left Swap Button
+Step 1:   Soul (L) | Body (R) | Mind (H)
+          ↓ Click Right Swap Button
+Step 2:   Soul (L) | Mind (R) | Body (H)
+          ↓ Click Left Swap Button
+Step 3:   Body (L) | Mind (R) | Soul (H)
+```
+
+### Section Responsibilities
+
+#### 🤖 Mind Section
+
+- **Purpose**: AI Agent configuration
+- **Components**:
+  - ElevenLabs API integration
+  - Voice settings and initialization
+  - Test speech interface
+  - State indicator (IDLE, SPEAKING, etc.)
+- **Data Flow**: `Mind.ts` ← → ElevenLabs API
+
+#### 🎨 Body Section
+
+- **Purpose**: Visual configuration
+- **Components**:
+  - Background controls (gradient/solid/transparent)
+  - Blob parameters (spikes, time, rotation)
+  - Camera position controls
+  - Appearance settings (scale, colors, skins)
+  - Quick actions (randomize, reset)
+- **Data Flow**: UI Controls → `Body.ts` → `Blob.ts` → Three.js Scene
+
+#### ✨ Soul Section
+
+- **Purpose**: Personality configuration
+- **Components**:
+  - Name and identity settings
+  - Personality description
+  - System prompt customization
+  - Response preferences (length, tone)
+  - Preset personality loader
+- **Data Flow**: UI Inputs → `Soul.ts` Config → AI Behavior
+
+### Dynamic Content Management
+
+The playground uses HTML `<template>` elements for efficient section management:
+
+1. **Templates**: Each section is defined once in a `<template>` tag
+2. **Cloning**: When needed, template content is cloned (not moved)
+3. **Injection**: Cloned content is injected into sidebar containers
+4. **Re-initialization**: Event listeners are re-bound after injection
+5. **State Preservation**: Kwami state persists across sidebar swaps
+
+**Benefits:**
+
+- **Memory Efficient**: Content is cloned, not duplicated
+- **No State Loss**: Kwami instance remains intact during swaps
+- **Smooth UX**: Animated transitions between sections
+- **Maintainable**: Each section's HTML is defined once
+- **Extensible**: Easy to add new sections
+
 ---

@@ -23,7 +23,7 @@ An **independent, reusable** 3D Interactive AI Companion Library for creating en
 This library supports multiple JavaScript runtimes:
 
 - **Bun** (recommended - default used by alexcolls) - Fast all-in-one JavaScript runtime
-- **Deno** - Secure TypeScript/JavaScript runtime  
+- **Deno** - Secure TypeScript/JavaScript runtime
 - **Node.js** - Traditional JavaScript runtime
 
 Choose your preferred package manager:
@@ -46,28 +46,25 @@ npm i @kwami/core three simplex-noise
 ## 🚀 Quick Start
 
 ```typescript
-import { Kwami } from '@kwami/core';
+import { Kwami } from "@kwami/core";
 
 // Get your canvas element
-const canvas = document.querySelector('canvas') as HTMLCanvasElement;
+const canvas = document.querySelector("canvas") as HTMLCanvasElement;
 
 // Create a Kwami instance
 const kwami = new Kwami(canvas, {
   body: {
-    audioFiles: [
-      '/audio/track1.mp3',
-      '/audio/track2.mp3'
-    ],
-    initialSkin: 'tricolor',
+    audioFiles: ["/audio/track1.mp3", "/audio/track2.mp3"],
+    initialSkin: "tricolor",
     blob: {
       resolution: 180,
       colors: {
-        x: '#ff0066',
-        y: '#00ff66',
-        z: '#6600ff'
-      }
-    }
-  }
+        x: "#ff0066",
+        y: "#00ff66",
+        z: "#6600ff",
+      },
+    },
+  },
 });
 
 // Play audio
@@ -95,18 +92,18 @@ The body manages the 3D scene, renderer, camera, and the blob mesh.
 const kwami = new Kwami(canvas, {
   body: {
     // Audio files for the playlist
-    audioFiles: ['/audio/track1.mp3'],
-    
+    audioFiles: ["/audio/track1.mp3"],
+
     // Initial skin type
-    initialSkin: 'tricolor', // or 'zebra'
-    
+    initialSkin: "tricolor", // or 'zebra'
+
     // Audio configuration
     audio: {
-      preload: 'auto',
+      preload: "auto",
       autoInitialize: true,
-      volume: 0.8
+      volume: 0.8,
     },
-    
+
     // Scene configuration
     scene: {
       fov: 100,
@@ -114,9 +111,9 @@ const kwami = new Kwami(canvas, {
       far: 1000,
       cameraPosition: { x: 0, y: 6, z: 0 },
       enableShadows: true,
-      enableControls: true
+      enableControls: true,
     },
-    
+
     // Blob configuration
     blob: {
       resolution: 180,
@@ -124,14 +121,14 @@ const kwami = new Kwami(canvas, {
       time: { x: 1, y: 1, z: 1 },
       rotation: { x: 0.01, y: 0.01, z: 0 },
       colors: {
-        x: '#ff0066',
-        y: '#00ff66',
-        z: '#6600ff'
+        x: "#ff0066",
+        y: "#00ff66",
+        z: "#6600ff",
       },
       shininess: 100,
-      wireframe: false
-    }
-  }
+      wireframe: false,
+    },
+  },
 });
 ```
 
@@ -161,13 +158,13 @@ const frequencyData = kwami.body.audio.getFrequencyData();
 
 ```typescript
 // Change skin
-kwami.body.blob.setSkin('zebra');
+kwami.body.blob.setSkin("zebra");
 
 // Set custom colors (tricolor skin)
-kwami.body.blob.setColors('#ff0000', '#00ff00', '#0000ff');
+kwami.body.blob.setColors("#ff0000", "#00ff00", "#0000ff");
 
 // Set single color
-kwami.body.blob.setColor('x', '#ff00ff');
+kwami.body.blob.setColor("x", "#ff00ff");
 
 // Randomize appearance
 kwami.body.blob.setRandomBlob();
@@ -197,12 +194,12 @@ Kwami can have different states that affect its behavior:
 const state = kwami.getState(); // 'idle' | 'listening' | 'thinking' | 'speaking'
 
 // Set state
-kwami.setState('listening');
+kwami.setState("listening");
 
 // State-specific methods
-await kwami.listen();  // Start listening (STT)
-kwami.think();         // Thinking state
-await kwami.speak('Hello!'); // Speak (TTS)
+await kwami.listen(); // Start listening (STT)
+kwami.think(); // Thinking state
+await kwami.speak("Hello!"); // Speak (TTS)
 ```
 
 ### Creating Custom Skins
@@ -210,14 +207,14 @@ await kwami.speak('Hello!'); // Speak (TTS)
 You can create custom shader materials for the blob:
 
 ```typescript
-import { ShaderMaterial, Color } from 'three';
+import { ShaderMaterial, Color } from "three";
 
 const customSkin = new ShaderMaterial({
   vertexShader: yourVertexShader,
   fragmentShader: yourFragmentShader,
   uniforms: {
     // Your custom uniforms
-  }
+  },
 });
 
 // Apply to blob
@@ -231,36 +228,43 @@ kwami.body.blob.getMesh().material = customSkin;
 ```html
 <!DOCTYPE html>
 <html>
-<head>
-  <style>
-    body { margin: 0; overflow: hidden; }
-    canvas { width: 100vw; height: 100vh; display: block; }
-  </style>
-</head>
-<body>
-  <canvas id="kwami-canvas"></canvas>
-  <script type="module">
-    import { Kwami } from '@kwami/core';
-    
-    const canvas = document.getElementById('kwami-canvas');
-    const kwami = new Kwami(canvas, {
-      body: {
-        audioFiles: ['/audio/music.mp3'],
-        initialSkin: 'tricolor'
+  <head>
+    <style>
+      body {
+        margin: 0;
+        overflow: hidden;
       }
-    });
-    
-    // Play on user interaction
-    canvas.addEventListener('click', () => {
-      kwami.body.audio.play();
-    });
-    
-    // Randomize on double click
-    canvas.addEventListener('dblclick', () => {
-      kwami.body.blob.setRandomBlob();
-    });
-  </script>
-</body>
+      canvas {
+        width: 100vw;
+        height: 100vh;
+        display: block;
+      }
+    </style>
+  </head>
+  <body>
+    <canvas id="kwami-canvas"></canvas>
+    <script type="module">
+      import { Kwami } from "@kwami/core";
+
+      const canvas = document.getElementById("kwami-canvas");
+      const kwami = new Kwami(canvas, {
+        body: {
+          audioFiles: ["/audio/music.mp3"],
+          initialSkin: "tricolor",
+        },
+      });
+
+      // Play on user interaction
+      canvas.addEventListener("click", () => {
+        kwami.body.audio.play();
+      });
+
+      // Randomize on double click
+      canvas.addEventListener("dblclick", () => {
+        kwami.body.blob.setRandomBlob();
+      });
+    </script>
+  </body>
 </html>
 ```
 
@@ -268,38 +272,38 @@ kwami.body.blob.getMesh().material = customSkin;
 
 ```typescript
 // Change skin with buttons
-document.getElementById('tricolor-btn')?.addEventListener('click', () => {
-  kwami.body.blob.setSkin('tricolor');
+document.getElementById("tricolor-btn")?.addEventListener("click", () => {
+  kwami.body.blob.setSkin("tricolor");
 });
 
-document.getElementById('zebra-btn')?.addEventListener('click', () => {
-  kwami.body.blob.setSkin('zebra');
+document.getElementById("zebra-btn")?.addEventListener("click", () => {
+  kwami.body.blob.setSkin("zebra");
 });
 
 // Random blob button
-document.getElementById('random-btn')?.addEventListener('click', () => {
+document.getElementById("random-btn")?.addEventListener("click", () => {
   kwami.body.blob.setRandomBlob();
 });
 
 // Color picker
-document.getElementById('color-x')?.addEventListener('change', (e) => {
-  kwami.body.blob.setColor('x', e.target.value);
+document.getElementById("color-x")?.addEventListener("change", (e) => {
+  kwami.body.blob.setColor("x", e.target.value);
 });
 ```
 
 ### Audio Reactive Visualization
 
 ```typescript
-import { Kwami } from '@kwami/core';
+import { Kwami } from "@kwami/core";
 
 const kwami = new Kwami(canvas, {
   body: {
-    audioFiles: ['/audio/music.mp3'],
+    audioFiles: ["/audio/music.mp3"],
     blob: {
       // Higher spike values = more reactive
-      spikes: { x: 0.5, y: 0.5, z: 0.5 }
-    }
-  }
+      spikes: { x: 0.5, y: 0.5, z: 0.5 },
+    },
+  },
 });
 
 // The blob automatically reacts to audio!
@@ -337,15 +341,19 @@ We welcome contributions! Please feel free to submit a Pull Request.
 **Dual License** - This library is available under two licenses:
 
 ### Non-Commercial / Personal Use
+
 For personal, educational, and non-commercial use, this software is licensed under the **Apache License 2.0**.
 
 You are free to:
+
 - Use, copy, and modify the software
 - Distribute the software
 - Use it for personal projects and learning
 
 ### Commercial / Business Use
+
 For commercial use, including:
+
 - Use in commercial products or services
 - Use by for-profit organizations
 - Use that generates revenue or commercial advantage
@@ -353,9 +361,11 @@ For commercial use, including:
 You **MUST obtain a separate commercial license**.
 
 **To obtain a commercial license, contact:**
+
 - Alex Colls: [github.com/alexcolls](https://github.com/alexcolls)
 
 ### Disclaimer
+
 THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED. See the [LICENSE](./LICENSE) file for full terms.
 
 ---
@@ -365,9 +375,30 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 ## 🙏 Credits
 
 Built with:
+
 - [THREE.js](https://threejs.org/) - 3D graphics
 - [simplex-noise](https://github.com/jwagner/simplex-noise.js/) - Smooth noise generation
 - TypeScript - Type safety
+
+## 🎮 Interactive Playground
+
+Kwami includes a fully-featured interactive playground for testing and experimentation:
+
+```bash
+npm run playground
+```
+
+The playground features:
+
+- **🎨 Rotating Sidebar System**: Seamlessly switch between Mind, Body, and Soul configurations
+- **🤖 AI Agent Testing**: ElevenLabs TTS integration with voice customization
+- **✨ Personality Editor**: Create and customize AI personalities in real-time
+- **🎨 Visual Controls**: Fine-tune every aspect of the 3D blob appearance
+- **📹 Camera Controls**: Orbit and position camera for perfect viewing angles
+- **🌈 Background Manager**: Gradients, solid colors, or transparent with opacity control
+- **🎲 Randomization**: Generate creative variations instantly
+
+See the [Playground README](./playground/README.md) for detailed documentation.
 
 ## 🔮 Roadmap
 
@@ -375,6 +406,8 @@ Built with:
 - [x] AI Soul (personality system)
 - [x] Text-to-Speech integration
 - [x] MediaStream audio support
+- [x] Interactive playground with UI controls
+- [x] Background management system
 - [ ] Speech-to-Text integration
 - [ ] Conversational AI (full voice agent)
 - [ ] More built-in skins

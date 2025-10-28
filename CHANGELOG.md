@@ -5,6 +5,43 @@ All notable changes to the @kwami/core library will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+### ✨ Added
+
+#### Playground UI Enhancement
+
+- **Rotating Sidebar System** - Innovative 3-section, 2-sidebar interface for accessing Mind, Body, and Soul configurations
+- **Swap Buttons** - Easily toggle between configuration sections without UI clutter
+- **Soul Configuration UI** - Dedicated interface for personality customization:
+  - Name and personality description
+  - System prompt editor
+  - Response length and emotional tone settings
+  - Preset personality quick-access buttons
+- **Template-based Architecture** - Efficient HTML template system for dynamic content management
+- **Smooth Transitions** - Fade-in animations when switching between sections
+- **State Preservation** - Kwami state persists correctly across sidebar swaps
+- **Camera Position Controls** - X, Y, Z sliders for orbiting around the blob
+- **Background Opacity** - Transparency control for canvas backgrounds
+- **Enhanced Body Controls** - Updated scale ranges (3-8) and spike parameters (0-20)
+- **Real-time Camera Tracking** - UI reflects both manual slider changes and OrbitControls interactions
+
+#### Documentation
+
+- Updated **playground README** with comprehensive rotating sidebar documentation
+- Added **Playground Architecture** section to main ARCHITECTURE.md
+- Enhanced main **README** with playground features showcase
+- Updated tips section with new UI interaction guidance
+
+### 🔄 Changed
+
+#### Playground Layout
+
+- **Before**: Static dual-sidebar layout (Left: AI Agent, Right: Body)
+- **After**: Dynamic rotating system (Mind, Body, Soul across two sidebars)
+- Reorganized controls to align with Kwami's core concepts (Mind/Body/Soul)
+- Improved visual hierarchy with section-specific icons and colors
+
 ## [2.0.0] - 2025-10-20
 
 ### 🎉 Major Refactoring
@@ -14,6 +51,7 @@ This version represents a complete architectural refactoring of the @kwami libra
 ### ✨ Added
 
 #### Core Architecture
+
 - **New modular architecture** with clear separation of concerns
 - **KwamiAudio class** - Dedicated audio management with frequency analysis
 - **KwamiBody class** - Manages 3D scene, renderer, and blob
@@ -22,6 +60,7 @@ This version represents a complete architectural refactoring of the @kwami libra
 - **Proper exports structure** - Clean API with multiple export paths
 
 #### Features
+
 - **Automatic resize handling** using ResizeObserver
 - **Animation loop management** with proper cleanup
 - **Resource disposal methods** for memory management
@@ -34,6 +73,7 @@ This version represents a complete architectural refactoring of the @kwami libra
 - **Random blob generation** with configurable parameters
 
 #### Developer Experience
+
 - Professional README with examples and documentation
 - Comprehensive inline code documentation
 - Clear folder structure for better maintainability
@@ -42,21 +82,25 @@ This version represents a complete architectural refactoring of the @kwami libra
 ### 🔄 Changed
 
 #### File Organization
+
 - **Before**: Nested structure with `core/body/lib/Blob/`
 - **After**: Flat, intuitive structure with `src/core/`, `src/blob/`, `src/scene/`
 
 #### Skin Management
+
 - **Before**: Deep nesting in `lib/Blob/skins/Tricolor/`
 - **After**: Clean structure in `src/blob/skins/tricolor/`
 - Renamed shader files: `shader.glsl` → `fragment.glsl` for clarity
 
 #### Audio System
+
 - **Before**: Basic audio playback tied to body
 - **After**: Dedicated `KwamiAudio` class with full feature set
 - Added proper Web Audio API initialization
 - Improved error handling for audio playback
 
 #### Blob Implementation
+
 - **Before**: Monolithic class with mixed concerns
 - **After**: Modular design with separate geometry, animation, and skins
 - Better state management
@@ -72,17 +116,20 @@ This version represents a complete architectural refactoring of the @kwami libra
 ### 🔧 Technical Improvements
 
 #### Performance
+
 - Optimized animation loop with proper frame management
 - Better geometry disposal to prevent memory leaks
 - Efficient material management with Map-based skin storage
 
 #### Code Quality
+
 - Consistent naming conventions (PascalCase for classes)
 - Proper encapsulation with private/public members
 - Better error handling throughout
 - Removed console.log statements (replaced with proper error handling)
 
 #### Type Safety
+
 - Created comprehensive type definitions
 - All public APIs are fully typed
 - Better IntelliSense support for developers
@@ -115,15 +162,17 @@ This version represents a complete architectural refactoring of the @kwami libra
 ### 🔄 Migration Guide from 1.x to 2.0
 
 #### Import Changes
+
 ```typescript
 // Before
-import Kwami from './kwami/core/body';
+import Kwami from "./kwami/core/body";
 
 // After
-import { Kwami } from '@kwami/core';
+import { Kwami } from "@kwami/core";
 ```
 
 #### Instantiation Changes
+
 ```typescript
 // Before
 const kwami = new Kwami(canvas);
@@ -139,10 +188,11 @@ const kwami = new Kwami(canvas, {
 ```
 
 #### API Changes
+
 ```typescript
 // Before
 kwami.body.audio.playAudio();
-kwami.body.blob.vector('x', 0.5);
+kwami.body.blob.vector("x", 0.5);
 
 // After
 await kwami.body.audio.play();
@@ -173,6 +223,7 @@ kwami.body.blob.setSpikes(0.5, 0.5, 0.5);
 ## [1.0.0] - Previous Version
 
 Initial release with basic functionality:
+
 - Basic blob visualization
 - Audio playback
 - Multiple body types (Blob, Metamask)
@@ -182,4 +233,3 @@ Initial release with basic functionality:
 ---
 
 **Note**: Version 2.0.0 is a complete rewrite focused on making @kwami a professional, reusable library. While there are breaking changes, the new architecture provides a much better foundation for future development and third-party integration.
-
