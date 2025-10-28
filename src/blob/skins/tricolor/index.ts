@@ -12,6 +12,7 @@ export function createTricolorSkin(config: TricolorSkinConfig): ShaderMaterial {
     vertexShader,
     fragmentShader,
     wireframe: config.wireframe,
+    lights: false,
     uniforms: {
       lightPosition: {
         value: new Vector3(

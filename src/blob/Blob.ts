@@ -70,9 +70,8 @@ export class Blob {
     // Tricolor2 (Donut) skin
     this.skins.set('tricolor2', createSkin('tricolor2', tricolorConfig));
 
-    // Zebra skin
-    const zebraConfig = this.config.skins.zebra;
-    this.skins.set('zebra', createSkin('zebra', zebraConfig));
+    // Zebra skin (uses tricolor config for colors)
+    this.skins.set('zebra', createSkin('zebra', tricolorConfig));
   }
 
   /**
@@ -231,15 +230,21 @@ export class Blob {
    */
   setColor(axis: 'x' | 'y' | 'z', color: string): void {
     this.colors[axis] = color;
+    const uniformMap = { x: '_color1', y: '_color2', z: '_color3' };
+    
+    // Update all skins that use colors
     const tricolorMaterial = this.skins.get('tricolor') as ShaderMaterial;
     const tricolor2Material = this.skins.get('tricolor2') as ShaderMaterial;
-    if (tricolorMaterial) {
-      const uniformMap = { x: '_color1', y: '_color2', z: '_color3' };
+    const zebraMaterial = this.skins.get('zebra') as ShaderMaterial;
+    
+    if (tricolorMaterial && tricolorMaterial.uniforms[uniformMap[axis]]) {
       tricolorMaterial.uniforms[uniformMap[axis]].value = new Color(color);
     }
-    if (tricolor2Material) {
-      const uniformMap = { x: '_color1', y: '_color2', z: '_color3' };
+    if (tricolor2Material && tricolor2Material.uniforms[uniformMap[axis]]) {
       tricolor2Material.uniforms[uniformMap[axis]].value = new Color(color);
+    }
+    if (zebraMaterial && zebraMaterial.uniforms[uniformMap[axis]]) {
+      zebraMaterial.uniforms[uniformMap[axis]].value = new Color(color);
     }
     
     // Update light colors if lights are active
