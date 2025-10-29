@@ -3,6 +3,16 @@ import { type Mesh, Vector3 } from 'three';
 
 const noise3D = createNoise3D();
 
+// Store previous per-vertex displacements to create viscous smoothing
+const previousDisplacementMap = new WeakMap<Mesh, Float32Array>();
+
+// Audio smoothing state to keep responses fluid
+const audioSmoothing = {
+  low: 0,
+  mid: 0,
+  high: 0,
+};
+
 /**
  * Extract frequency bands from the full frequency data
  */
@@ -73,14 +83,14 @@ export function animateBlob(
     enabled: boolean;
     timeEnabled: boolean;
   } = {
-    bassSpike: 0.3,
-    midSpike: 0.4,
-    highSpike: 0.2,
+    bassSpike: 0.35,
+    midSpike: 0.30,
+    highSpike: 0.25,
     midTime: 0.2,
     highTime: 0.3,
     ultraTime: 0.15,
     enabled: true,
-    timeEnabled: true
+    timeEnabled: false
   },
 ): void {
   const positions = mesh.geometry.attributes.position;
@@ -88,11 +98,31 @@ export function animateBlob(
 
   const vertex = new Vector3();
 
+  // Previous displacement buffer for viscous smoothing
+  let previousDisplacements = previousDisplacementMap.get(mesh);
+  if (!previousDisplacements || previousDisplacements.length !== positions.count) {
+    previousDisplacements = new Float32Array(positions.count);
+    previousDisplacements.fill(1);
+    previousDisplacementMap.set(mesh, previousDisplacements);
+  }
+
   // Get frequency data
   analyser.getByteFrequencyData(frequencyData);
 
   // Extract frequency bands for natural sound reaction
   const bands = getFrequencyBands(frequencyData);
+
+  // Smooth frequency bands for viscous response
+  const audioSmoothFactor = 0.15;
+  audioSmoothing.low += (bands.low - audioSmoothing.low) * audioSmoothFactor;
+  audioSmoothing.mid += (bands.mid - audioSmoothing.mid) * audioSmoothFactor;
+  audioSmoothing.high += (bands.high - audioSmoothing.high) * audioSmoothFactor;
+
+  const smoothBands = {
+    low: audioSmoothing.low,
+    mid: audioSmoothing.mid,
+    high: audioSmoothing.high,
+  };
   
   // Time calculation - smooth animation
   const reduction = 0.00003;
@@ -100,15 +130,21 @@ export function animateBlob(
   
   // Optionally modulate time with audio (can create chaotic effects if too strong)
   const audioTimeMod = (audioEffects.enabled && audioEffects.timeEnabled)
-    ? 1 + (bands.mid * audioEffects.midTime + bands.high * audioEffects.highTime + bands.ultra * audioEffects.ultraTime)
+    ? 1 + (
+        smoothBands.mid * audioEffects.midTime
+        + smoothBands.high * audioEffects.highTime
+        + bands.ultra * audioEffects.ultraTime
+      )
     : 1;
   
   const tX = perf * timeX * audioTimeMod;
   const tY = perf * timeY * audioTimeMod;
   const tZ = perf * timeZ * audioTimeMod;
 
-  // No overall scale change from audio - keep mesh size constant
-  mesh.scale.set(baseScale, baseScale, baseScale);
+  // Gentle breathing based on bass frequencies
+  const breathScale = 1 + smoothBands.low * 0.05;
+  const finalScale = baseScale * breathScale;
+  mesh.scale.set(finalScale, finalScale, finalScale);
 
   // Calculate noise frequencies for smooth, organic movement
   const baseFreqX = Math.max(0.025, spikeX);
@@ -133,12 +169,13 @@ export function animateBlob(
     // This creates a more organic, liquid response to sound
     
     // Calculate audio-reactive amplitude multiplier (smooth and natural)
+    const weightedAudioEnergy
+      = smoothBands.low * audioEffects.bassSpike
+      + smoothBands.mid * audioEffects.midSpike
+      + smoothBands.high * audioEffects.highSpike;
+
     const audioIntensity = audioEffects.enabled
-      ? 1 + (
-          bands.low * audioEffects.bassSpike * 0.8 +      // Bass creates overall energy
-          bands.mid * audioEffects.midSpike * 0.6 +       // Mids add movement
-          bands.high * audioEffects.highSpike * 0.4       // Highs add detail
-        )
+      ? 1 + Math.min(2.5, weightedAudioEnergy * 2.2)
       : 1;
 
     // Generate multi-layered noise for liquid texture (smoother)
@@ -166,15 +203,65 @@ export function animateBlob(
     const finalNoise = noise1 * 0.5 + noise2 * 0.3 + noise3 * 0.2;
 
     // Base amplitude enhanced by audio (creates natural, liquid response)
-    const baseAmplitude = 0.15;
-    const amplitude = baseAmplitude * audioIntensity;
+    const baseAmplitude = 0.18;
+
+    // Touch interactions modulate amplitude (not direct displacement)
+    let touchModulation = 0;
+    if (touchPoints.length > 0) {
+      const currentTime = Date.now();
+      for (const touch of touchPoints) {
+        const elapsed = currentTime - touch.startTime;
+        const progress = elapsed / touch.duration;
+
+        let easeFactor;
+        if (progress < 0.25) {
+          const t = progress / 0.25;
+          easeFactor = t * t;
+        } else {
+          const t = (progress - 0.25) / 0.75;
+          easeFactor = 1 - Math.pow(t, 3);
+        }
+
+        if (easeFactor > 0.01) {
+          const dist = vertex.distanceTo(touch.position);
+          const influenceRadius = 2.2;
+          if (dist > influenceRadius) continue;
+
+          const influence = Math.max(0, 1 - (dist / influenceRadius));
+          const smoothInfluence = Math.pow(influence, 3);
+
+          // Touch pulls blob inward slightly (viscous sink)
+          const inwardPull = -touch.strength * 0.18 * smoothInfluence * easeFactor;
+
+          // Gentle ripples emanating from touch point
+          const wave = Math.sin(dist * 3.2 - progress * 6) * 0.10 * smoothInfluence * easeFactor;
+
+          touchModulation += inwardPull + wave;
+        }
+      }
+
+      // Clamp modulation to maintain stability
+      touchModulation = Math.max(-0.35, Math.min(0.25, touchModulation));
+    }
+
+    const amplitudeFactor = Math.max(0.65, 1 + touchModulation);
+    const amplitude = baseAmplitude * audioIntensity * amplitudeFactor;
+
+    // High-frequency detail shimmer driven by treble content
+    const detailNoise = audioEffects.enabled
+      ? noise3D(
+          direction.x * baseFreqX * 2.2 + tX * 2.4,
+          direction.y * baseFreqY * 2.2 + tY * 2.4,
+          direction.z * baseFreqZ * 2.2 + tZ * 2.4,
+        ) * smoothBands.high * audioEffects.highSpike * 0.35
+      : 0;
     
     // Calculate displacement for each state separately
     // Normal/Speaking mode displacement (outward spikes, enhanced by audio)
-    const speakingDisplacement = amplitude * finalNoise;
+    const speakingDisplacement = amplitude * finalNoise + detailNoise;
     
     // Listening mode displacement (inward spikes, enhanced by audio)
-    const listeningDisplacement = -amplitude * finalNoise;
+    const listeningDisplacement = -amplitude * finalNoise + detailNoise * 0.6;
     
     // Thinking mode displacement (fluid, flowing movements)
     let thinkingDisplacement = 0;
@@ -223,72 +310,19 @@ export function animateBlob(
     
     // Start with base displacement of 1.0 (normalized sphere)
     let displacement = 1 + audioDisplacement;
-
-    // Apply touch/click effects
-    if (touchPoints.length > 0) {
-      const currentTime = Date.now();
-      let totalTouchEffect = 0;
-      
-      for (const touch of touchPoints) {
-        // Calculate elapsed time since touch started
-        const elapsed = currentTime - touch.startTime;
-        const progress = elapsed / touch.duration;
-        
-        // Fast ease-in-out curve for quicker recovery
-        let easeFactor;
-        if (progress < 0.25) {
-          // Quick ease-in (first 25%)
-          const t = progress / 0.25;
-          easeFactor = t * t; // Quadratic ease-in
-        } else {
-          // Fast ease-out (last 75%)
-          const t = (progress - 0.25) / 0.75;
-          // Cubic ease-out for faster return to normal
-          easeFactor = 1 - Math.pow(t, 3);
-        }
-        
-        if (easeFactor > 0.01) { // Skip very small values
-          // Calculate distance from touch point to current vertex
-          const dist = vertex.distanceTo(touch.position);
-          
-          // Larger influence radius for gentler gradients
-          const influenceRadius = 2.2;
-          
-          // Skip vertices too far away
-          if (dist > influenceRadius) continue;
-          
-          const influence = Math.max(0, 1 - (dist / influenceRadius));
-          
-          // Smooth gaussian falloff
-          const smoothInfluence = Math.pow(influence, 3);
-          
-          // Very gentle inward push (must work safely with audio effects)
-          const touchEffect = -touch.strength * 0.25 * smoothInfluence * easeFactor;
-          
-          // Subtle liquid wave with spike-like ripples
-          const waveFreq = 4; // Higher frequency for more defined waves
-          const wave = Math.cos(dist * waveFreq - progress * 5) * 0.5 + 0.5;
-          const subtleWave = -wave * 0.08 * smoothInfluence * easeFactor;
-          
-          // Accumulate touch effects
-          totalTouchEffect += touchEffect + subtleWave;
-        }
-      }
-      
-      // Clamp total touch effect to prevent over-collapse
-      // Maximum inward displacement is -0.15 (15% of radius) - safe with audio effects
-      totalTouchEffect = Math.max(totalTouchEffect, -0.15);
-      
-      // Apply touch effect to displacement
-      displacement += totalTouchEffect;
-    }
     
-    // Final safety clamp: ensure displacement never causes collapse or extreme spikes
-    // Strict minimum prevents black lines, reasonable maximum allows liquid movement
-    displacement = Math.max(0.75, Math.min(1.45, displacement));
+    // Final safety clamp and viscous smoothing
+    const minDisplacement = 0.75;
+    const maxDisplacement = 1.45;
+    const targetDisplacement = Math.max(minDisplacement, Math.min(maxDisplacement, displacement));
+
+    const previous = previousDisplacements[i];
+    const smoothingStrength = Math.min(0.35, 0.18 + smoothBands.mid * 0.12 + smoothBands.low * 0.08);
+    const smoothedDisplacement = previous + (targetDisplacement - previous) * smoothingStrength;
+    previousDisplacements[i] = smoothedDisplacement;
 
     // Set final position: direction * displacement
-    vertex.normalize().multiplyScalar(displacement);
+    vertex.normalize().multiplyScalar(smoothedDisplacement);
     positions.setXYZ(i, vertex.x, vertex.y, vertex.z);
   }
 

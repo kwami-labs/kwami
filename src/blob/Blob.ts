@@ -62,14 +62,14 @@ export class Blob {
   
   // Audio effect parameters (configurable from playground)
   public audioEffects = {
-    bassSpike: 0.3,
-    midSpike: 0.4,
-    highSpike: 0.2,
+    bassSpike: 0.35,
+    midSpike: 0.30,
+    highSpike: 0.25,
     midTime: 0.2,
     highTime: 0.3,
     ultraTime: 0.15,
     enabled: true,
-    timeEnabled: true
+    timeEnabled: false  // Disabled by default to prevent chaotic movement
   };
   public colors = { x: '#ff0000', y: '#00ff00', z: '#0000ff' };
   public baseScale = 1.0; // User-defined base scale
