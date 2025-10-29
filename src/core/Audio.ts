@@ -268,11 +268,42 @@ export class KwamiAudio {
   }
 
   /**
+   * Start listening to microphone input
+   * @returns Promise that resolves when microphone is active
+   */
+  async startMicrophoneListening(): Promise<void> {
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({ 
+        audio: {
+          echoCancellation: true,
+          noiseSuppression: true,
+          autoGainControl: true
+        } 
+      });
+      await this.connectMediaStream(stream);
+    } catch (error) {
+      console.error('Failed to access microphone:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * Stop listening to microphone input
+   */
+  stopMicrophoneListening(): void {
+    if (this.streamSource && this.streamSource.mediaStream) {
+      // Stop all tracks in the media stream
+      this.streamSource.mediaStream.getTracks().forEach(track => track.stop());
+    }
+    this.disconnectMediaStream();
+  }
+
+  /**
    * Cleanup and dispose resources
    */
   dispose(): void {
     this.pause();
-    this.disconnectMediaStream();
+    this.stopMicrophoneListening();
     if (this.audioContext) {
       this.audioContext.close().catch(() => {
         // Ignore errors during cleanup
