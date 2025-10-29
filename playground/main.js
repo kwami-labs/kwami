@@ -1094,6 +1094,9 @@ function initializeAudioEffects() {
     audioBassSpike.addEventListener('input', (e) => {
       window.audioEffects.bassSpike = parseFloat(e.target.value);
       updateValueDisplay('audio-bass-spike-value', e.target.value, 2);
+      if (window.kwami && window.kwami.body.blob) {
+        window.kwami.body.blob.audioEffects.bassSpike = window.audioEffects.bassSpike;
+      }
     });
   }
   
@@ -1103,6 +1106,9 @@ function initializeAudioEffects() {
     audioMidSpike.addEventListener('input', (e) => {
       window.audioEffects.midSpike = parseFloat(e.target.value);
       updateValueDisplay('audio-mid-spike-value', e.target.value, 2);
+      if (window.kwami && window.kwami.body.blob) {
+        window.kwami.body.blob.audioEffects.midSpike = window.audioEffects.midSpike;
+      }
     });
   }
   
@@ -1112,6 +1118,9 @@ function initializeAudioEffects() {
     audioHighSpike.addEventListener('input', (e) => {
       window.audioEffects.highSpike = parseFloat(e.target.value);
       updateValueDisplay('audio-high-spike-value', e.target.value, 2);
+      if (window.kwami && window.kwami.body.blob) {
+        window.kwami.body.blob.audioEffects.highSpike = window.audioEffects.highSpike;
+      }
     });
   }
   
@@ -1121,6 +1130,9 @@ function initializeAudioEffects() {
     audioMidTime.addEventListener('input', (e) => {
       window.audioEffects.midTime = parseFloat(e.target.value);
       updateValueDisplay('audio-mid-time-value', e.target.value, 1);
+      if (window.kwami && window.kwami.body.blob) {
+        window.kwami.body.blob.audioEffects.midTime = window.audioEffects.midTime;
+      }
     });
   }
   
@@ -1130,6 +1142,9 @@ function initializeAudioEffects() {
     audioHighTime.addEventListener('input', (e) => {
       window.audioEffects.highTime = parseFloat(e.target.value);
       updateValueDisplay('audio-high-time-value', e.target.value, 1);
+      if (window.kwami && window.kwami.body.blob) {
+        window.kwami.body.blob.audioEffects.highTime = window.audioEffects.highTime;
+      }
     });
   }
   
@@ -1139,6 +1154,9 @@ function initializeAudioEffects() {
     audioUltraTime.addEventListener('input', (e) => {
       window.audioEffects.ultraTime = parseFloat(e.target.value);
       updateValueDisplay('audio-ultra-time-value', e.target.value, 1);
+      if (window.kwami && window.kwami.body.blob) {
+        window.kwami.body.blob.audioEffects.ultraTime = window.audioEffects.ultraTime;
+      }
     });
   }
   
@@ -1176,6 +1194,9 @@ function initializeAudioEffects() {
   if (audioReactiveToggle) {
     audioReactiveToggle.addEventListener('change', (e) => {
       window.audioEffects.enabled = e.target.checked;
+      if (window.kwami && window.kwami.body.blob) {
+        window.kwami.body.blob.audioEffects.enabled = window.audioEffects.enabled;
+      }
       updateStatus(e.target.checked ? '🎵 Audio reactivity enabled' : '🔇 Audio reactivity disabled');
     });
   }
