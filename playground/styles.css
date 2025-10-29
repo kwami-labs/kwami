@@ -401,7 +401,6 @@ button:disabled {
   font-size: 13px;
   font-weight: 700;
   letter-spacing: 1.2px;
-  background: rgba(255, 255, 255, 0.95);
   backdrop-filter: blur(10px);
   box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
   transition: all 0.3s ease;
@@ -409,6 +408,7 @@ button:disabled {
   opacity: 0;
   max-height: 0;
   overflow: hidden;
+  text-transform: uppercase;
 }
 
 /* Show state indicator when not idle */
@@ -425,23 +425,23 @@ button:disabled {
   padding: 0;
 }
 
-.state-listening { 
-  background: #2e7d32;
-  color: #ffffff;
+#canvas-container .state-indicator.state-listening { 
+  background: #2e7d32 !important;
+  color: #ffffff !important;
   animation: pulse-listening 2s infinite;
   box-shadow: 0 4px 20px rgba(46, 125, 50, 0.4);
 }
 
-.state-thinking { 
-  background: #7b1fa2;
-  color: #ffffff;
+#canvas-container .state-indicator.state-thinking { 
+  background: #7b1fa2 !important;
+  color: #ffffff !important;
   animation: pulse-thinking 1.5s infinite;
   box-shadow: 0 4px 20px rgba(123, 31, 162, 0.4);
 }
 
-.state-speaking { 
-  background: #1565c0;
-  color: #ffffff;
+#canvas-container .state-indicator.state-speaking { 
+  background: #1565c0 !important;
+  color: #ffffff !important;
   animation: pulse-speaking 1s infinite;
   box-shadow: 0 4px 20px rgba(21, 101, 192, 0.4);
 }
