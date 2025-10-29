@@ -130,14 +130,24 @@ kwami.body.setSkin('zebra');
 
 ### State-Based Interactions
 ```javascript
-kwami.setState('listening');  // Visual feedback
-await kwami.listen();         // Start microphone
+// Enable interactive touch effects
+kwami.body.enableBlobInteraction();
 
-kwami.setState('thinking');   // Contemplative animation
-// ... process input ...
+// Listening state with microphone
+kwami.body.startListening();  // Inward audio-reactive spikes
+// ... or double-click the blob ...
 
-kwami.setState('speaking');   // Active animation
-await kwami.speak('Here is my response!');
+// Thinking animation
+kwami.body.startThinking();   // Chaotic contemplative movement
+// ... process input (default 10 seconds) ...
+
+// Speaking with smooth transition
+await kwami.speak('Here is my response!'); // Outward audio-reactive spikes
+
+// Configure animation parameters
+kwami.body.blob.touchStrength = 0.6;
+kwami.body.blob.thinkingDuration = 15000;
+kwami.body.blob.transitionSpeed = 2.0;
 ```
 
 ---
@@ -147,8 +157,12 @@ await kwami.speak('Here is my response!');
 ✅ **Body**: Audio-reactive 3D blob that animates to sound  
 ✅ **Mind**: ElevenLabs voice synthesis integration  
 ✅ **Soul**: Customizable personality system  
-✅ **States**: Visual feedback for different interaction modes  
-✅ **Skins**: Multiple visual styles (tricolor, zebra)  
+✅ **States**: Visual feedback for different interaction modes (neutral, listening, thinking, speaking)  
+✅ **Interactive Touch**: Click for liquid-like touch effects, double-click to toggle listening  
+✅ **Smooth Transitions**: Natural blending between animation states  
+✅ **Skins**: Multiple visual styles (tricolor, tricolor2/donut, zebra)  
+✅ **Background Manager**: Gradients, colors, images, and transparent backgrounds  
+✅ **Export**: Download your blob as GLB 3D model  
 ✅ **TypeScript**: Fully typed for great developer experience  
 
 ---
@@ -175,8 +189,12 @@ await kwami.speak('Here is my response!');
 
 1. **Try Different Voices**: Browse the [ElevenLabs Voice Library](https://elevenlabs.io/voice-library)
 2. **Create Custom Personalities**: Use the personality templates as a starting point
-3. **Experiment with States**: Different states create different visual behaviors
+3. **Experiment with States**: Different states create different visual behaviors (neutral, listening, thinking, speaking)
 4. **Adjust Voice Settings**: Play with stability, similarity, and style for different effects
+5. **Interactive Touch**: Click the blob to see liquid physics, double-click to toggle listening mode
+6. **Configure Animations**: Fine-tune touch strength, duration, and transition speed for custom feel
+7. **Export Your Creation**: Download your customized blob as GLB for use in other 3D tools
+8. **Use Background Images**: Set custom background images to match your theme
 
 ---
 

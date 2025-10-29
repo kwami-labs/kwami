@@ -8,10 +8,14 @@ An **independent, reusable** 3D Interactive AI Companion Library for creating en
 
 - 🎨 **3D Blob Body** - Morphing sphere that reacts to audio in real-time
 - 🎵 **Audio Integration** - Built-in audio playback and frequency analysis
-- 🎭 **Multiple Skins** - Tricolor and Zebra shader materials with easy extensibility
+- 🎭 **Multiple Skins** - Tricolor, Tricolor2 (Donut), and Zebra shader materials with easy extensibility
 - 🔊 **Audio Visualization** - Real-time audio-reactive animations
-- 🎮 **Interactive** - Event system for user interactions
-- 🧠 **AI Ready** - Prepared for LLM, TTS, and STT integration
+- 🤚 **Interactive Touch** - Click the blob for natural liquid-like touch effects
+- 🎤 **Listening Mode** - Double-click to start/stop microphone listening with inward audio-reactive spikes
+- 🧠 **Thinking Animation** - Chaotic contemplative movements during processing
+- 🔄 **Smooth State Transitions** - Seamless blending between neutral, listening, thinking, and speaking states
+- 🎮 **Event System** - Rich interaction API for user events
+- 💬 **AI Ready** - Integrated ElevenLabs TTS and personality system
 - 🎯 **TypeScript** - Fully typed for better DX
 - 🚀 **Performant** - Optimized WebGL rendering
 - 📦 **Modular** - Use only what you need
@@ -159,6 +163,7 @@ const frequencyData = kwami.body.audio.getFrequencyData();
 ```typescript
 // Change skin
 kwami.body.blob.setSkin("zebra");
+kwami.body.blob.setSkin("tricolor2"); // Donut skin
 
 // Set custom colors (tricolor skin)
 kwami.body.blob.setColors("#ff0000", "#00ff00", "#0000ff");
@@ -185,9 +190,56 @@ kwami.body.blob.setWireframe(true);
 kwami.body.blob.exportGLTF();
 ```
 
+### Interactive Animations
+
+```typescript
+// Enable click interaction (natural liquid touch effects)
+kwami.body.enableBlobInteraction();
+kwami.body.blob.touchStrength = 0.6; // Adjust intensity
+kwami.body.blob.touchDuration = 1200; // Duration in ms
+kwami.body.blob.maxTouchPoints = 5; // Max simultaneous touches
+
+// Listening mode (microphone with inward spikes)
+kwami.body.startListening();
+const listening = kwami.body.isListening(); // Check state
+kwami.body.stopListening();
+
+// Thinking animation (chaotic contemplative movement)
+kwami.body.startThinking();
+kwami.body.blob.thinkingDuration = 10000; // Duration in ms
+kwami.body.stopThinking();
+
+// Smooth state transitions
+kwami.body.blob.transitionSpeed = 2.0; // Adjust transition speed
+```
+
+### Background Management
+
+```typescript
+// Set gradient background
+kwami.body.setBackgroundGradient("#1a1a2e", "#16213e");
+
+// Set solid color
+kwami.body.setBackgroundColor("#000000");
+
+// Set transparent
+kwami.body.setBackgroundTransparent();
+
+// Advanced configuration
+kwami.body.setBackground({
+  type: "gradient",
+  color1: "#ff0066",
+  color2: "#00ff66",
+  opacity: 0.8
+});
+
+// Get current type
+const bgType = kwami.body.getBackgroundType(); // 'gradient' | 'solid' | 'transparent'
+```
+
 ### States
 
-Kwami can have different states that affect its behavior:
+Kwami supports multiple states with unique visual behaviors and smooth transitions:
 
 ```typescript
 // Get current state
@@ -201,6 +253,15 @@ await kwami.listen(); // Start listening (STT)
 kwami.think(); // Thinking state
 await kwami.speak("Hello!"); // Speak (TTS)
 ```
+
+**State Behaviors:**
+- **Neutral/Idle**: Gentle breathing animation
+- **Listening**: Inward audio-reactive spikes responding to microphone input
+- **Thinking**: Chaotic fluid movements simulating contemplation
+- **Speaking**: Outward audio-reactive spikes responding to TTS output
+- **Interactive**: Liquid-like touch effects on click
+
+All state transitions blend smoothly for natural visual flow.
 
 ### Creating Custom Skins
 
@@ -395,7 +456,13 @@ The playground features:
 - **✨ Personality Editor**: Create and customize AI personalities in real-time
 - **🎨 Visual Controls**: Fine-tune every aspect of the 3D blob appearance
 - **📹 Camera Controls**: Orbit and position camera for perfect viewing angles
-- **🌈 Background Manager**: Gradients, solid colors, or transparent with opacity control
+- **🌈 Background Manager**: Gradients, solid colors, images, or transparent with opacity control
+- **🤚 Interactive Touch**: Click the blob for liquid-like touch effects
+- **🎤 Listening Mode**: Double-click to toggle microphone listening
+- **🧠 Thinking Animation**: Test contemplative movements with configurable duration
+- **⚙️ Animation Configuration**: Fine-tune touch strength, duration, transition speed, and more
+- **📥 GLB Export**: Download your blob as a 3D model with materials and animation
+- **💡 Dynamic Lighting**: Adjust scene lighting intensity in real-time
 - **🎲 Randomization**: Generate creative variations instantly
 
 See the [Playground README](./playground/README.md) for detailed documentation.
@@ -407,14 +474,21 @@ See the [Playground README](./playground/README.md) for detailed documentation.
 - [x] Text-to-Speech integration
 - [x] MediaStream audio support
 - [x] Interactive playground with UI controls
-- [x] Background management system
+- [x] Background management system (gradients, colors, images)
+- [x] Interactive touch animations with liquid physics
+- [x] Multiple animation states (listening, thinking, speaking)
+- [x] Smooth state transitions
+- [x] GLB export functionality
+- [x] Dynamic lighting controls
+- [x] Configurable animation parameters
 - [ ] Speech-to-Text integration
 - [ ] Conversational AI (full voice agent)
-- [ ] More built-in skins
-- [ ] Animation presets
-- [ ] WebXR support
-- [ ] Mobile optimizations
+- [ ] More built-in skins and texture support
+- [ ] Animation presets and sequences
+- [ ] WebXR/VR support
+- [ ] Mobile touch optimizations
 - [ ] React/Vue/Svelte wrappers
+- [ ] Emotion-based animation mapping
 
 ## 📧 Support
 

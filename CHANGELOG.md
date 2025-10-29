@@ -9,6 +9,31 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### ✨ Added
 
+#### Interactive Animations & State Management
+
+- **Click Interaction** - Natural liquid-like touch effects when clicking the blob:
+  - Inward push simulation with smooth falloff
+  - Ripple wave effects for realistic fluid dynamics
+  - Configurable touch strength, duration, and max touch points
+  - Natural ease-in and ease-out transitions
+  - Multiple simultaneous touch points support
+- **Thinking Animation** - Chaotic contemplative movement when processing:
+  - Multi-layer noise for organic, fluid motion
+  - Pulsing effect with smooth intensity transitions
+  - Configurable thinking duration (default 10 seconds)
+  - Automatic fade-in and fade-out transitions
+- **Listening State** - Microphone-responsive animation with audio-reactive movements:
+  - Double-click blob to start/stop listening
+  - Inward spikes responsive to audio input
+  - Opposite animation style from speaking state
+- **Smooth State Transitions** - Fluid blending between animation states:
+  - Seamless transitions between neutral, listening, thinking, and speaking
+  - Configurable transition speed
+  - Natural interpolation prevents abrupt visual changes
+  - State-aware animation blending
+- **State Indicators** - Visual feedback in UI for current blob state
+- **Test Thinking Button** - Trigger thinking animation manually for testing
+
 #### Playground UI Enhancement
 
 - **Rotating Sidebar System** - Innovative 3-section, 2-sidebar interface for accessing Mind, Body, and Soul configurations
@@ -23,8 +48,38 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **State Preservation** - Kwami state persists correctly across sidebar swaps
 - **Camera Position Controls** - X, Y, Z sliders for orbiting around the blob
 - **Background Opacity** - Transparency control for canvas backgrounds
+- **Background Image Support** - Load custom background images from assets
 - **Enhanced Body Controls** - Updated scale ranges (3-8) and spike parameters (0-20)
 - **Real-time Camera Tracking** - UI reflects both manual slider changes and OrbitControls interactions
+- **Animation Configuration Controls** - Fine-tune all animation parameters:
+  - Touch Strength (0-1)
+  - Touch Duration (500-3000ms)
+  - Max Touch Points (1-10)
+  - Transition Speed (0.5-5)
+  - Thinking Duration (5-30 seconds)
+- **GLB Export** - Download the blob as a 3D GLB file with animation and materials
+- **Dynamic Lighting Controls** - Adjust light intensity in real-time
+- **Tricolor2 Skin** - New donut-like appearance option
+
+#### Core Library Features
+
+- **Blob Interaction API**:
+  - `enableBlobInteraction()` - Enable click/touch interaction
+  - `disableBlobInteraction()` - Disable interaction
+  - `startListening()` - Start microphone listening with visual feedback
+  - `stopListening()` - Stop listening mode
+  - `isListening()` - Check listening state
+  - `startThinking()` - Trigger thinking animation
+  - `stopThinking()` - End thinking animation
+  - `isThinking()` - Check thinking state
+- **Background Management API**:
+  - `setBackground(config)` - Set gradient, solid color, or transparent background
+  - `setBackgroundColor(color)` - Quick solid color setter
+  - `setBackgroundGradient(color1, color2)` - Quick gradient setter
+  - `setBackgroundTransparent()` - Quick transparent setter
+  - `getBackgroundType()` - Get current background type
+- **Scene Access** - `getScene()` method for direct Three.js scene manipulation
+- **Dynamic Lighting** - `setLightIntensity()` method for runtime light control
 
 #### Documentation
 
@@ -32,6 +87,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Added **Playground Architecture** section to main ARCHITECTURE.md
 - Enhanced main **README** with playground features showcase
 - Updated tips section with new UI interaction guidance
+- Documented all new interactive features and animation systems
 
 ### 🔄 Changed
 
@@ -41,6 +97,57 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **After**: Dynamic rotating system (Mind, Body, Soul across two sidebars)
 - Reorganized controls to align with Kwami's core concepts (Mind/Body/Soul)
 - Improved visual hierarchy with section-specific icons and colors
+- Renamed "Export Scene" button to "Download GLB" for clarity
+
+#### Animation System
+
+- **Before**: Single animation state with speaking-only audio reactivity
+- **After**: Multiple animation states with smooth transitions:
+  - Neutral (idle breathing)
+  - Listening (inward audio-reactive spikes)
+  - Thinking (chaotic fluid movements)
+  - Speaking (outward audio-reactive spikes)
+  - Interactive (click/touch response)
+- Improved animation easing curves for more natural motion
+- Reduced breathing intensity for subtler idle state
+- Enhanced noise layering for more organic movements
+
+#### Blob Configuration
+
+- Default shininess reduced to 50 for more matte appearance
+- Click interaction enabled by default in playground
+- Lights disabled in shader materials for consistent appearance
+- Improved color management across all skin types
+
+### 🐛 Bug Fixes
+
+- Fixed GLTFExporter module resolution by switching to esm.sh CDN
+- Fixed blob collapse issue from multiple rapid clicks by clamping total displacement
+- Fixed spiky artifacts in click animation by ensuring inward-only displacement
+- Fixed abrupt state transitions by implementing smooth blending system
+- Fixed thinking animation being too spiky by reducing noise frequencies
+- Fixed click animation recovery being too slow by adjusting duration and easing
+- Fixed color updates not applying to all skins
+- Improved material disposal and memory management
+
+### 🔧 Technical Improvements
+
+#### Animation Engine
+
+- Multi-layer Perlin noise for natural fluid dynamics
+- Configurable easing functions (quadratic, cubic, smoothstep)
+- Touch point management with decay and influence radius
+- State transition blending with configurable speed
+- Clamped displacement to prevent visual artifacts
+- Optimized animation loop with proper state tracking
+
+#### Code Quality
+
+- Exposed animation configuration parameters as public properties
+- Improved type safety for animation states
+- Better encapsulation of interaction logic
+- Enhanced raycasting for click detection
+- Proper cleanup of event listeners and resources
 
 ## [2.0.0] - 2025-10-20
 
