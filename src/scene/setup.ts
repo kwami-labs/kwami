@@ -181,7 +181,7 @@ function applySceneBackground(scene: Scene, config?: SceneConfig) {
  */
 function createGradientTexture(
   colors: string[],
-  direction: 'vertical' | 'horizontal' | 'radial'
+  direction: 'vertical' | 'horizontal' | 'radial' | 'diagonal'
 ): CanvasTexture {
   const canvas = document.createElement('canvas');
   canvas.width = 512;
@@ -194,6 +194,8 @@ function createGradientTexture(
     gradient = ctx.createRadialGradient(256, 256, 0, 256, 256, 512);
   } else if (direction === 'horizontal') {
     gradient = ctx.createLinearGradient(0, 0, 512, 0);
+  } else if (direction === 'diagonal') {
+    gradient = ctx.createLinearGradient(0, 0, 512, 512);
   } else {
     // vertical (default)
     gradient = ctx.createLinearGradient(0, 0, 0, 512);

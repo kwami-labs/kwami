@@ -203,7 +203,8 @@ export class Blob {
       material.stencilWrite = true;
       material.stencilRef = 1;
       material.stencilFunc = AlwaysStencilFunc;
-      material.stencilMask = 0xff;
+      material.stencilFuncMask = 0xff;
+      material.stencilWriteMask = 0xff;
       material.stencilFail = KeepStencilOp;
       material.stencilZFail = KeepStencilOp;
       material.stencilZPass = ReplaceStencilOp;
@@ -213,7 +214,8 @@ export class Blob {
       material.stencilWrite = false;
       material.stencilRef = 0;
       material.stencilFunc = AlwaysStencilFunc;
-      material.stencilMask = 0xff;
+      material.stencilFuncMask = 0xff;
+      material.stencilWriteMask = 0xff;
       material.stencilFail = KeepStencilOp;
       material.stencilZFail = KeepStencilOp;
       material.stencilZPass = ReplaceStencilOp;

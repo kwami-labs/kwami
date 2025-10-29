@@ -228,6 +228,7 @@ let backgroundRandomizeClickCount = 0;
 
 // Blob image transparency mode
 let blobImageTransparencyEnabled = false;
+let blobImageTransparencyMode = 'overlay';
 let currentBackgroundImage = '';
 
 // Default camera position
@@ -1652,10 +1653,30 @@ function applyBackground() {
   const type = document.getElementById('bg-type').value;
   const opacity = parseFloat(document.getElementById('bg-opacity').value);
 
+  if (type === 'transparent') {
+    window.kwami.body.setBackgroundTransparent();
+  } else if (type === 'solid') {
+    const color = document.getElementById('bg-solid-color').value;
+    window.kwami.body.setBackgroundColor(color, opacity);
+  } else if (type === 'gradient') {
+    const color1 = document.getElementById('bg-color-1').value;
+    const color2 = document.getElementById('bg-color-2').value;
+    const color3 = document.getElementById('bg-color-3').value;
+    const direction = document.getElementById('bg-direction').value;
+    window.kwami.body.setBackgroundGradient([color1, color2, color3], direction, opacity);
+  }
+
   if (blobImageTransparencyEnabled && type !== 'transparent') {
     if (type === 'solid') {
       const color = document.getElementById('bg-solid-color').value;
-      window.kwami.body.setBlobImageTransparencyMode(true, [color], 'solid', 'vertical', opacity);
+      window.kwami.body.setBlobImageTransparencyMode(
+        true,
+        [color],
+        'solid',
+        'vertical',
+        opacity,
+        blobImageTransparencyMode,
+      );
     } else if (type === 'gradient') {
       const color1 = document.getElementById('bg-color-1').value;
       const color2 = document.getElementById('bg-color-2').value;
@@ -1667,32 +1688,29 @@ function applyBackground() {
         'gradient',
         direction,
         opacity,
+        blobImageTransparencyMode,
       );
     }
   } else {
     window.kwami.body.setBlobImageTransparencyMode(false);
-
-    if (type === 'transparent') {
-      window.kwami.body.setBackgroundTransparent();
-    } else if (type === 'solid') {
-      const color = document.getElementById('bg-solid-color').value;
-      window.kwami.body.setBackgroundColor(color, opacity);
-    } else if (type === 'gradient') {
-      const color1 = document.getElementById('bg-color-1').value;
-      const color2 = document.getElementById('bg-color-2').value;
-      const color3 = document.getElementById('bg-color-3').value;
-      const direction = document.getElementById('bg-direction').value;
-      window.kwami.body.setBackgroundGradient([color1, color2, color3], direction, opacity);
-    }
   }
 }
 
 window.resetBackground = function() {
   // Reset blob transparency mode
   blobImageTransparencyEnabled = false;
+  blobImageTransparencyMode = 'overlay';
   const blobImageTransparencyCheckbox = document.getElementById('blob-image-transparency');
   if (blobImageTransparencyCheckbox) {
     blobImageTransparencyCheckbox.checked = false;
+  }
+  const blobTransparencyModeSelect = document.getElementById('blob-transparency-mode');
+  if (blobTransparencyModeSelect) {
+    blobTransparencyModeSelect.value = 'overlay';
+  }
+  const blobTransparencyModeWrapper = document.getElementById('blob-transparency-mode-wrapper');
+  if (blobTransparencyModeWrapper) {
+    blobTransparencyModeWrapper.style.display = 'none';
   }
   
   // Reset to default values
@@ -1738,18 +1756,45 @@ window.resetBackground = function() {
 function initializeBackgroundControls() {
   // Blob image transparency checkbox
   const blobImageTransparencyCheckbox = document.getElementById('blob-image-transparency');
+  const blobTransparencyModeWrapper = document.getElementById('blob-transparency-mode-wrapper');
+  const blobTransparencyModeSelect = document.getElementById('blob-transparency-mode');
+
   if (blobImageTransparencyCheckbox) {
     blobImageTransparencyCheckbox.addEventListener('change', (e) => {
       blobImageTransparencyEnabled = e.target.checked;
-      
+      if (blobTransparencyModeWrapper) {
+        blobTransparencyModeWrapper.style.display = blobImageTransparencyEnabled ? 'flex' : 'none';
+      }
+
       // Re-apply background with new mode
       applyBackground();
       
       // Update status
       if (blobImageTransparencyEnabled) {
-        updateStatus('🪟 Blob transparency mode enabled - image shows through blob');
+        const message = blobImageTransparencyMode === 'glass'
+          ? '🪟 Glass window mode enabled - blob reveals the background image'
+          : '🖼️ Overlay mode enabled - image fills the blob interior';
+        updateStatus(message);
       } else {
         updateStatus('🎨 Normal background mode');
+      }
+    });
+  }
+
+  if (blobTransparencyModeSelect) {
+    blobTransparencyModeSelect.addEventListener('change', (e) => {
+      blobImageTransparencyMode = e.target.value;
+
+      if (blobImageTransparencyEnabled) {
+        applyBackground();
+        const message = blobImageTransparencyMode === 'glass'
+          ? '🪟 Glass window mode enabled - blob reveals the background image'
+          : '🖼️ Overlay mode enabled - image fills the blob interior';
+        updateStatus(message);
+
+        if (blobImageTransparencyMode === 'overlay' && currentBackgroundImage) {
+          window.kwami.body.setBlobBackgroundImage(`assets/${currentBackgroundImage}`);
+        }
       }
     });
   }

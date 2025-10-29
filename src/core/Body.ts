@@ -87,6 +87,12 @@ export class KwamiBody {
 
     // Setup resize handling
     this.setupResize();
+
+    if (config?.scene?.background) {
+      this.setBackground(config.scene.background);
+    } else {
+      this.applyBackgroundState();
+    }
   }
 
   /**
@@ -216,24 +222,8 @@ export class KwamiBody {
    * @param config - Background configuration
    */
   setBackground(config: SceneBackgroundConfig): void {
-    if (!config || config.type === 'transparent') {
-      this.scene.background = null;
-      return;
-    }
-    
-    if (config.type === 'solid' && config.color) {
-      this.scene.background = new Color(config.color);
-      return;
-    }
-    
-    if (config.type === 'gradient' && config.gradient) {
-      const gradientTexture = this.createGradientTexture(
-        config.gradient.colors,
-        config.gradient.direction || 'vertical'
-      );
-      this.scene.background = gradientTexture;
-      return;
-    }
+    this.backgroundState = this.mapConfigToBackgroundState(config);
+    this.applyBackgroundState();
   }
 
   /**
@@ -242,62 +232,95 @@ export class KwamiBody {
    * @param opacity - Opacity value (0-1), default 1
    */
   setBackgroundColor(color: string, opacity: number = 1): void {
-    if (opacity >= 1) {
-      this.scene.background = new Color(color);
-    } else {
-      // Use canvas texture for opacity support
-      const texture = this.createSolidColorTexture(color, opacity);
-      this.scene.background = texture;
-    }
+    this.backgroundState = {
+      type: 'solid',
+      color,
+      colors: [color],
+      direction: 'vertical',
+      opacity,
+    };
+    this.applyBackgroundState();
   }
 
   /**
    * Set a gradient background
    * @param colors - Array of hex color strings
-   * @param direction - Gradient direction ('vertical', 'horizontal', or 'radial')
+   * @param direction - Gradient direction ('vertical', 'horizontal', 'radial', or 'diagonal')
    * @param opacity - Opacity value (0-1), default 1
    */
   setBackgroundGradient(
     colors: string[],
-    direction: 'vertical' | 'horizontal' | 'radial' = 'vertical',
-    opacity: number = 1
+    direction: BackgroundDirection = 'vertical',
+    opacity: number = 1,
   ): void {
-    const gradientTexture = this.createGradientTexture(colors, direction, opacity);
-    this.scene.background = gradientTexture;
+    this.backgroundState = {
+      type: 'gradient',
+      colors,
+      direction,
+      opacity,
+    };
+    this.applyBackgroundState();
   }
 
   /**
    * Set transparent background
    */
   setBackgroundTransparent(): void {
-    this.scene.background = null;
-    this.disableBlobImageTransparencyMode();
+    this.backgroundState = { ...DEFAULT_BACKGROUND_STATE };
+    this.applyBackgroundState();
   }
 
   /**
-   * Enable blob image transparency mode. When enabled, the scene background becomes transparent
-   * and a gradient/solid plane is rendered behind the blob so that, when the blob has partial
-   * opacity, the DOM background image becomes visible through it.
+   * Configure blob transparency modes (overlay/glass window)
    */
   setBlobImageTransparencyMode(
     enabled: boolean,
     colors?: string[],
     type: 'gradient' | 'solid' = 'gradient',
-    direction: 'vertical' | 'horizontal' | 'radial' = 'vertical',
+    direction: BackgroundDirection = 'vertical',
     opacity: number = 1,
+    mode: 'overlay' | 'glass' = 'overlay',
   ): void {
-    if (enabled) {
-      this.enableBlobImageTransparencyMode(colors, type, direction, opacity);
-    } else {
-      this.disableBlobImageTransparencyMode();
+    if (!enabled) {
+      this.blobImageMode = 'none';
+      this.applyBackgroundState();
+      this.updateBlobBackgroundTextureForMode();
+      return;
     }
+
+    if (type === 'solid' && colors && colors.length > 0) {
+      this.backgroundState = {
+        type: 'solid',
+        color: colors[0],
+        colors: [colors[0]],
+        direction: 'vertical',
+        opacity,
+      };
+    } else if (type === 'gradient' && colors && colors.length > 0) {
+      this.backgroundState = {
+        type: 'gradient',
+        colors,
+        direction,
+        opacity,
+      };
+    } else {
+      this.backgroundState = {
+        ...this.backgroundState,
+        opacity,
+        direction: this.backgroundState.direction ?? direction,
+      };
+    }
+
+    this.blobImageMode = mode;
+    this.applyBackgroundState();
+    this.updateBlobBackgroundTextureForMode();
   }
 
   /**
    * Returns whether blob image transparency mode is active
    */
   isBlobImageTransparencyMode(): boolean {
-    return this.blobImageTransparencyMode;
+    return this.blobImageMode !== 'none';
   }
 
   setBlobBackgroundImage(imagePath: string | null): void {
@@ -308,13 +331,14 @@ export class KwamiBody {
         this.backgroundTexture.dispose();
         this.backgroundTexture = null;
       }
-      this.blob.setBackgroundTexture(null);
+      this.updateBlobBackgroundTextureForMode();
       return;
     }
 
     const url = imagePath;
 
-    this.textureLoader.load(url,
+    this.textureLoader.load(
+      url,
       (texture) => {
         if (this.currentBackgroundImageUrl !== imagePath) {
           texture.dispose();
@@ -329,35 +353,71 @@ export class KwamiBody {
         }
 
         this.backgroundTexture = texture;
-
-        if (this.blobImageTransparencyMode) {
-          this.blob.setBackgroundTexture(texture);
-        }
+        this.updateBlobBackgroundTextureForMode();
       },
       undefined,
       () => {
         if (this.currentBackgroundImageUrl === imagePath) {
           this.backgroundTexture = null;
-          this.blob.setBackgroundTexture(null);
+          this.updateBlobBackgroundTextureForMode();
         }
       },
     );
   }
 
   refreshBlobImageTransparencyMode(): void {
-    if (!this.blobImageTransparencyMode) return;
+    if (this.blobImageMode === 'none') return;
     this.updateBackgroundPlaneTransform();
   }
 
-  private enableBlobImageTransparencyMode(
-    colors: string[] = ['#000000'],
-    type: 'gradient' | 'solid',
-    direction: 'vertical' | 'horizontal' | 'radial',
-    opacity: number,
-  ): void {
-    this.blobImageTransparencyMode = true;
-    this.scene.background = null;
+  private applyBackgroundState(): void {
+    const state = this.backgroundState;
 
+    if (this.blobImageMode === 'none') {
+      this.blob.setGlassMode(false);
+      this.disposeBackgroundPlane();
+      this.applyStateToSceneBackground(state);
+      return;
+    }
+
+    this.scene.background = null;
+    const plane = this.ensureBackgroundPlane();
+    const material = plane.material as MeshBasicMaterial;
+
+    this.configureBackgroundPlaneMaterial(material);
+    this.updateBackgroundPlaneTexture(state);
+
+    material.opacity = state.opacity;
+    material.needsUpdate = true;
+
+    this.updateBackgroundPlaneTransform();
+  }
+
+  private applyStateToSceneBackground(state: BackgroundState): void {
+    if (state.type === 'transparent') {
+      this.scene.background = null;
+      return;
+    }
+
+    if (state.type === 'solid' && state.color) {
+      if (state.opacity >= 1) {
+        this.scene.background = new Color(state.color);
+      } else {
+        this.scene.background = this.createSolidColorTexture(state.color, state.opacity);
+      }
+      return;
+    }
+
+    if (state.type === 'gradient' && state.colors) {
+      this.scene.background = this.createGradientTexture(
+        state.colors,
+        state.direction ?? 'vertical',
+        state.opacity,
+      );
+    }
+  }
+
+  private ensureBackgroundPlane(): Mesh {
     if (!this.backgroundPlane) {
       const geometry = new PlaneGeometry(200, 200);
       const material = new MeshBasicMaterial({
@@ -365,46 +425,128 @@ export class KwamiBody {
         depthWrite: false,
         depthTest: false,
       });
+      material.stencilWrite = false;
       this.backgroundPlane = new Mesh(geometry, material);
-      this.backgroundPlane.renderOrder = -1;
       this.scene.add(this.backgroundPlane);
     }
 
-    this.updateBackgroundPlaneTransform();
+    return this.backgroundPlane;
+  }
 
-    const texture = type === 'solid'
-      ? this.createSolidColorTexture(colors[0], opacity)
-      : this.createGradientTexture(colors, direction, opacity);
+  private configureBackgroundPlaneMaterial(material: MeshBasicMaterial): void {
+    material.depthWrite = false;
+    material.depthTest = false;
+    material.transparent = true;
+    material.stencilWrite = false;
+    material.stencilFuncMask = 0xff;
+    material.stencilWriteMask = 0xff;
+    material.stencilFail = KeepStencilOp;
+    material.stencilZFail = KeepStencilOp;
+    material.stencilZPass = KeepStencilOp;
 
-    texture.needsUpdate = true;
-
-    const material = this.backgroundPlane!.material as MeshBasicMaterial;
-    material.map = texture;
-    material.opacity = opacity;
-    material.needsUpdate = true;
-
-    if (this.backgroundTexture) {
-      this.blob.setBackgroundTexture(this.backgroundTexture);
+    if (this.blobImageMode === 'glass') {
+      this.blob.setGlassMode(true);
+      material.stencilFunc = NotEqualStencilFunc;
+      material.stencilRef = 1;
+      if (this.backgroundPlane) {
+        this.backgroundPlane.renderOrder = 10;
+      }
+    } else {
+      this.blob.setGlassMode(false);
+      material.stencilFunc = AlwaysStencilFunc;
+      material.stencilRef = 0;
+      if (this.backgroundPlane) {
+        this.backgroundPlane.renderOrder = -1;
+      }
     }
   }
 
-  private disableBlobImageTransparencyMode(): void {
-    if (!this.blobImageTransparencyMode && !this.backgroundPlane) return;
+  private updateBackgroundPlaneTexture(state: BackgroundState): void {
+    if (!this.backgroundPlane) return;
 
-    this.blobImageTransparencyMode = false;
+    const material = this.backgroundPlane.material as MeshBasicMaterial;
 
-    this.blob.setBackgroundTexture(null);
+    if (this.backgroundPlaneTexture) {
+      this.backgroundPlaneTexture.dispose();
+      this.backgroundPlaneTexture = null;
+    }
 
-    if (this.backgroundPlane) {
-      const material = this.backgroundPlane.material as MeshBasicMaterial;
-      if (material.map) {
-        material.map.dispose();
-        material.map = null;
+    if (state.type === 'solid' && state.color) {
+      this.backgroundPlaneTexture = this.createSolidColorTexture(state.color, state.opacity);
+    } else if (state.type === 'gradient' && state.colors) {
+      this.backgroundPlaneTexture = this.createGradientTexture(
+        state.colors,
+        state.direction ?? 'vertical',
+        state.opacity,
+      );
+    } else {
+      material.map = null;
+      return;
+    }
+
+    this.backgroundPlaneTexture.needsUpdate = true;
+    material.map = this.backgroundPlaneTexture;
+  }
+
+  private mapConfigToBackgroundState(config?: SceneBackgroundConfig): BackgroundState {
+    if (!config || !config.type || config.type === 'transparent') {
+      return { ...DEFAULT_BACKGROUND_STATE, opacity: config?.opacity ?? 1 };
+    }
+
+    if (config.type === 'solid' && config.color) {
+      const opacity = config.opacity ?? 1;
+      return {
+        type: 'solid',
+        color: config.color,
+        colors: [config.color],
+        direction: 'vertical',
+        opacity,
+      };
+    }
+
+    if (config.type === 'gradient' && config.gradient) {
+      const opacity = config.gradient.opacity ?? config.opacity ?? 1;
+      return {
+        type: 'gradient',
+        colors: config.gradient.colors,
+        direction: config.gradient.direction ?? 'vertical',
+        opacity,
+      };
+    }
+
+    return { ...DEFAULT_BACKGROUND_STATE };
+  }
+
+  private disposeBackgroundPlane(): void {
+    if (!this.backgroundPlane) {
+      if (this.backgroundPlaneTexture) {
+        this.backgroundPlaneTexture.dispose();
+        this.backgroundPlaneTexture = null;
       }
-      material.dispose();
-      this.backgroundPlane.geometry.dispose();
-      this.scene.remove(this.backgroundPlane);
-      this.backgroundPlane = null;
+      return;
+    }
+
+    const material = this.backgroundPlane.material as MeshBasicMaterial;
+    if (material.map) {
+      material.map.dispose();
+      material.map = null;
+    }
+    material.dispose();
+    this.backgroundPlane.geometry.dispose();
+    this.scene.remove(this.backgroundPlane);
+    this.backgroundPlane = null;
+
+    if (this.backgroundPlaneTexture) {
+      this.backgroundPlaneTexture.dispose();
+      this.backgroundPlaneTexture = null;
+    }
+  }
+
+  private updateBlobBackgroundTextureForMode(): void {
+    if (this.blobImageMode === 'overlay' && this.backgroundTexture) {
+      this.blob.setBackgroundTexture(this.backgroundTexture);
+    } else {
+      this.blob.setBackgroundTexture(null);
     }
   }
 
@@ -423,6 +565,12 @@ export class KwamiBody {
    * Get current background type
    */
   getBackgroundType(): 'transparent' | 'color' | 'texture' {
+    if (this.blobImageMode !== 'none') {
+      if (this.backgroundState.type === 'solid') return 'color';
+      if (this.backgroundState.type === 'gradient') return 'texture';
+      return 'transparent';
+    }
+
     if (this.scene.background === null) {
       return 'transparent';
     }
@@ -438,7 +586,7 @@ export class KwamiBody {
    */
   private createGradientTexture(
     colors: string[],
-    direction: 'vertical' | 'horizontal' | 'radial',
+    direction: BackgroundDirection,
     opacity: number = 1
   ): CanvasTexture {
     const canvas = document.createElement('canvas');
@@ -455,6 +603,8 @@ export class KwamiBody {
       gradient = ctx.createRadialGradient(256, 256, 0, 256, 256, 512);
     } else if (direction === 'horizontal') {
       gradient = ctx.createLinearGradient(0, 0, 512, 0);
+    } else if (direction === 'diagonal') {
+      gradient = ctx.createLinearGradient(0, 0, 512, 512);
     } else {
       // vertical (default)
       gradient = ctx.createLinearGradient(0, 0, 0, 512);
@@ -498,7 +648,14 @@ export class KwamiBody {
       this.resizeObserver.disconnect();
     }
 
-    this.disableBlobImageTransparencyMode();
+    this.blobImageMode = 'none';
+    this.blob.setGlassMode(false);
+    this.disposeBackgroundPlane();
+    if (this.backgroundTexture) {
+      this.backgroundTexture.dispose();
+      this.backgroundTexture = null;
+    }
+    this.blob.setBackgroundTexture(null);
 
     this.blob.dispose();
     this.audio.dispose();

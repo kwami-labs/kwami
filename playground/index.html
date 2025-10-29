@@ -603,9 +603,17 @@
             <input type="range" id="blob-opacity" min="0" max="1" step="0.01" value="1">
             <label class="slider-checkbox">
               <input type="checkbox" id="blob-image-transparency">
-              Show Background Image Through Blob
+              Enable Blob Transparency
             </label>
-            <small class="checkbox-hint">Reveals selected background image in transparent areas</small>
+            <div class="slider-select" id="blob-transparency-mode-wrapper" style="display: none;">
+              <label for="blob-transparency-mode">Transparency Mode</label>
+              <select id="blob-transparency-mode">
+                <option value="overlay">Image Fill (inside the blob)</option>
+                <option value="glass">Glass Window (image behind the blob)</option>
+              </select>
+              <small class="checkbox-hint">Pick how the blob interacts with the background image</small>
+            </div>
+            <small class="checkbox-hint">Toggle to blend the blob with the background image</small>
           </div>
           <div class="slider-control">
             <label>Shininess <span class="value-display" id="shininess-value">50</span></label>

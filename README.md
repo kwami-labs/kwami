@@ -6,7 +6,7 @@ An **independent, reusable** 3D Interactive AI Companion Library for creating en
 
 ## ✨ Features
 
-### Core Features
+### 💫 Core Features
 
 - 🎨 **3D Blob Body** - Morphing sphere that reacts to audio in real-time
 - 🎵 **Audio Integration** - Built-in audio playback and frequency analysis
@@ -22,14 +22,30 @@ An **independent, reusable** 3D Interactive AI Companion Library for creating en
 - 🚀 **Performant** - Optimized WebGL rendering
 - 📦 **Modular** - Use only what you need
 
-### Recent Enhancements (Last 48 hours)
+### ✨ Latest Enhancements
+
+#### Playground UI (Last 48 hours)
 
 - 📐 **Scale Control** - Adjust blob size (0.1-3.0) while preserving audio-reactive breathing
-- 🌈 **Advanced Background Controls** - Full tricolor gradient system with angle and color stop positioning
-- 🎨 **Dual Sidebar Layout** - Organized left/right sidebars for better UX
-- 🔧 **Comprehensive Body Controls** - All blob parameters now controllable via playground
-- 💾 **Real-time Updates** - Immediate visual feedback for all adjustments
-- 📝 **Better Documentation** - Complete documentation suite in `/docs` folder
+- 🌈 **Advanced Background Controls** - Full tricolor gradient system:
+  - 3 color pickers for gradient creation
+  - Angle control (0-360°) for gradient direction
+  - Color stop positioning (0-100%)
+  - Randomize & Reset functionality
+  - Smooth 0.8s CSS transitions
+- 🎨 **Dual Sidebar Layout** - Organized left/right sidebars:
+  - **Left**: Configuration (Voice, Personality, Background)
+  - **Right**: Speech & Body controls
+  - **Center**: Large canvas area
+- 🔧 **Comprehensive Body Controls** - All blob parameters now fully controllable:
+  - Spikes (X/Y/Z noise frequency)
+  - Time (X/Y/Z animation speed)
+  - Rotation (X/Y/Z spin effects)
+  - Colors (X/Y/Z tricolor selection)
+  - Resolution, Shininess, Wireframe
+  - Real-time value displays
+- 💾 **Real-time Updates** - Immediate visual feedback with bidirectional sync
+- 📝 **Enhanced Documentation** - Complete documentation suite in `/docs` folder with 8 comprehensive guides
 
 ## 📦 Installation
 
@@ -341,6 +357,66 @@ const customSkin = new ShaderMaterial({
 // Apply to blob
 kwami.body.blob.getMesh().material = customSkin;
 ```
+
+## 🎲 Playground Features Overview
+
+The interactive playground includes a comprehensive dual-sidebar interface:
+
+### 💫 Left Sidebar Controls
+
+**About Kwami** - Learn about the project
+
+**Voice Settings**
+- ElevenLabs API Key configuration
+- Voice ID selection
+- Initialize Mind button
+
+**Personality Selection**
+- 😊 **Kaya** - Warm, empathetic companion
+- 💼 **Nexus** - Professional, knowledgeable assistant
+- ✨ **Spark** - Playful, energetic companion
+
+**Background Gradient Controls**
+- 🌈 **Color System** - 3 color pickers for tricolor gradients
+- 🔎 **Angle Control** - 0-360° gradient direction
+- 🔍 **Color Stops** - Position sliders (0-100%) for each color
+- 🎲 **Randomize** - Generate random gradient combinations
+- 🔄 **Reset** - Restore default gradient
+
+### 💪 Right Sidebar Controls
+
+**Speech Synthesis**
+- Text input area for custom speech
+- Speak button with blob animation sync
+
+**Body Controls** - Complete blob customization:
+
+**Spikes (Noise Frequency)**
+- X, Y, Z sliders (0-20, step 0.1)
+- Controls deformation intensity
+
+**Time (Animation Speed)**
+- X, Y, Z sliders (0-5, step 0.1)
+- Controls animation responsiveness
+
+**Rotation Speed**
+- X, Y, Z sliders (0-0.01, step 0.001)
+- Creates spinning effects on different axes
+
+**Colors (Tricolor Skin)**
+- X, Y, Z color pickers
+- Real-time color updates
+
+**Appearance Settings**
+- 📐 **Scale** - Blob size (0.1-3.0)
+- 🔍 **Resolution** - Mesh detail (120-220)
+- ✨ **Shininess** - Specular intensity (0-100000)
+- 📋 **Wireframe** - Toggle wireframe mode
+- 🎭 **Skin** - Choose Tricolor or Zebra skin
+
+**Action Buttons**
+- 🎲 **Randomize Blob** - Generate random appearance
+- 🔄 **Reset to Defaults** - Restore all settings
 
 ## 🎨 Examples
 

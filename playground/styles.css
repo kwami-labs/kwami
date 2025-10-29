@@ -675,6 +675,26 @@ button:disabled {
   margin-top: 2px;
 }
 
+.slider-control .slider-select {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  margin-top: 6px;
+}
+
+.slider-control .slider-select label {
+  font-size: 12px;
+  color: #777;
+}
+
+.slider-control .slider-select select {
+  background: #1b1b2b;
+  border: 1px solid #2d2d3f;
+  border-radius: 6px;
+  padding: 6px 8px;
+  color: #f5f5fb;
+}
+
 .value-display {
   font-family: 'Courier New', monospace;
   font-size: 11px;
