@@ -350,8 +350,48 @@ try {
   // Set initial scale after initialization
   window.kwami.body.blob.setScale(DEFAULT_VALUES.scale);
 
-  // Enable click interaction by default
-  window.kwami.body.enableBlobInteraction();
+  // Create conversation callbacks for blob interaction
+  const conversationCallbacks = {
+    onAgentResponse: (text) => {
+      updateStatus('🤖 Agent is speaking...');
+      const transcriptDiv = document.getElementById('conversation-transcript');
+      if (transcriptDiv) {
+        const entry = document.createElement('div');
+        entry.style.cssText = 'margin: 5px 0; padding: 5px; background: #e3e8ff; border-radius: 4px;';
+        entry.innerHTML = `<strong>🤖 Agent:</strong> ${text}`;
+        transcriptDiv.appendChild(entry);
+        transcriptDiv.scrollTop = transcriptDiv.scrollHeight;
+        transcriptDiv.style.display = 'block';
+      }
+    },
+    onUserTranscript: (text) => {
+      const transcriptDiv = document.getElementById('conversation-transcript');
+      if (transcriptDiv) {
+        const entry = document.createElement('div');
+        entry.style.cssText = 'margin: 5px 0; padding: 5px; background: #fff; border-radius: 4px;';
+        entry.innerHTML = `<strong>👤 You:</strong> ${text}`;
+        transcriptDiv.appendChild(entry);
+        transcriptDiv.scrollTop = transcriptDiv.scrollHeight;
+        transcriptDiv.style.display = 'block';
+      }
+    },
+    onTurnStart: () => {
+      updateStatus('🎙️ Agent is speaking...');
+    },
+    onTurnEnd: () => {
+      updateStatus('👂 Listening for your response...');
+    },
+    onError: (error) => {
+      showError('Conversation error: ' + error.message);
+      stopConversation();
+    }
+  };
+  
+  // Store callbacks globally for reuse
+  window.conversationCallbacks = conversationCallbacks;
+  
+  // Enable click interaction by default (includes double-click for conversations)
+  window.kwami.enableBlobInteraction(conversationCallbacks);
 
   // Initialize body controls event listeners
   initializeBodyControls();
@@ -459,7 +499,13 @@ window.initializeMind = async function() {
     document.getElementById('init-btn').textContent = '✅ Mind Ready';
     document.getElementById('init-btn').disabled = true;
     
-    updateStatus('✅ Mind initialized! Ready to speak.');
+    // Add conversation-ready class to indicate double-click is available
+    const canvasContainer = document.getElementById('canvas-container');
+    const canvas = document.getElementById('kwami-canvas');
+    if (canvasContainer) canvasContainer.classList.add('conversation-ready');
+    if (canvas) canvas.classList.add('conversation-ready');
+    
+    updateStatus('✅ Mind initialized! Ready to speak. Double-click Kwami to start conversation.');
   } catch (error) {
     showError('Failed to initialize Mind: ' + error.message);
   }
@@ -609,6 +655,35 @@ window.previewVoice = async function() {
   }
 };
 
+// Conversation toggle state sync
+function updateConversationButtonState(isActive) {
+  const startBtn = document.getElementById('start-conversation-btn');
+  const stopBtn = document.getElementById('stop-conversation-btn');
+  
+  if (startBtn && stopBtn) {
+    if (isActive) {
+      startBtn.style.display = 'none';
+      stopBtn.style.display = 'block';
+      stopBtn.disabled = false;
+    } else {
+      startBtn.style.display = 'block';
+      startBtn.disabled = false;
+      stopBtn.style.display = 'none';
+    }
+  }
+}
+
+// Toggle Conversation (used by both button and double-click)
+window.toggleConversation = async function() {
+  if (!window.kwami) return;
+  
+  if (window.kwami.isConversationActive()) {
+    await stopConversation();
+  } else {
+    await startConversation();
+  }
+};
+
 // Start Conversation
 window.startConversation = async function() {
   if (!window.kwami || !window.kwami.mind || !window.kwami.mind.isReady()) {
@@ -628,7 +703,7 @@ window.startConversation = async function() {
   
   try {
     updateStatus('🔄 Starting conversation...');
-    document.getElementById('start-conversation-btn').disabled = true;
+    updateConversationButtonState(false); // Disable buttons during start
     
     // Update conversation config
     window.kwami.mind.config.conversational = {
@@ -651,8 +726,8 @@ window.startConversation = async function() {
       }
     }
     
-    // Define conversation callbacks
-    const callbacks = {
+    // Use the global conversation callbacks or create if needed
+    const callbacks = window.conversationCallbacks || {
       onAgentResponse: (text) => {
         console.log('Agent:', text);
         if (transcriptArea) {
@@ -687,17 +762,19 @@ window.startConversation = async function() {
       }
     };
     
+    // Update the transcript area reference if needed
+    if (transcriptArea) {
+      callbacks.transcriptArea = transcriptArea;
+    }
+    
     // Start conversation with callbacks
     await window.kwami.startConversation(callbacks);
     
-    document.getElementById('start-conversation-btn').style.display = 'none';
-    document.getElementById('stop-conversation-btn').style.display = 'block';
-    document.getElementById('stop-conversation-btn').disabled = false;
-    
-    updateStatus('✅ Conversation started! Listening...');
+    updateConversationButtonState(true);
+    updateStatus('✅ Conversation started! Listening... (Double-click Kwami to stop)');
   } catch (error) {
     showError('Failed to start conversation: ' + error.message);
-    document.getElementById('start-conversation-btn').disabled = false;
+    updateConversationButtonState(false);
   }
 };
 
@@ -710,11 +787,8 @@ window.stopConversation = async function() {
     
     await window.kwami.mind.stopConversation();
     
-    document.getElementById('start-conversation-btn').style.display = 'block';
-    document.getElementById('start-conversation-btn').disabled = false;
-    document.getElementById('stop-conversation-btn').style.display = 'none';
-    
-    updateStatus('✅ Conversation stopped.');
+    updateConversationButtonState(false);
+    updateStatus('✅ Conversation stopped. (Double-click Kwami to start again)');
   } catch (error) {
     showError('Failed to stop conversation: ' + error.message);
   }
@@ -1466,10 +1540,10 @@ function initializeBodyControls() {
   if (clickInteractionCheckbox) {
     clickInteractionCheckbox.addEventListener('change', (e) => {
       if (e.target.checked) {
-        window.kwami.body.enableBlobInteraction();
-        updateStatus('👆 Click interaction enabled - Click the blob!');
+        window.kwami.enableBlobInteraction(window.conversationCallbacks);
+        updateStatus('👆 Click interaction enabled - Click the blob! Double-click to start/stop conversation');
       } else {
-        window.kwami.body.disableBlobInteraction();
+        window.kwami.disableBlobInteraction();
         updateStatus('🚫 Click interaction disabled');
       }
     });
@@ -1614,6 +1688,13 @@ function applyBackground() {
 }
 
 window.resetBackground = function() {
+  // Reset blob transparency mode
+  blobImageTransparencyEnabled = false;
+  const blobImageTransparencyCheckbox = document.getElementById('blob-image-transparency');
+  if (blobImageTransparencyCheckbox) {
+    blobImageTransparencyCheckbox.checked = false;
+  }
+  
   // Reset to default values
   document.getElementById('bg-type').value = DEFAULT_BACKGROUND.type;
   document.getElementById('bg-color-1').value = DEFAULT_BACKGROUND.colors[0];
@@ -1621,6 +1702,7 @@ window.resetBackground = function() {
   document.getElementById('bg-color-3').value = DEFAULT_BACKGROUND.colors[2];
   document.getElementById('bg-direction').value = DEFAULT_BACKGROUND.direction;
   document.getElementById('bg-opacity').value = DEFAULT_BACKGROUND.opacity;
+  document.getElementById('bg-solid-color').value = DEFAULT_BACKGROUND.colors[0];
   updateValueDisplay('bg-opacity-value', DEFAULT_BACKGROUND.opacity, 2);
   
   // Show/hide appropriate controls
@@ -1654,6 +1736,24 @@ window.resetBackground = function() {
 };
 
 function initializeBackgroundControls() {
+  // Blob image transparency checkbox
+  const blobImageTransparencyCheckbox = document.getElementById('blob-image-transparency');
+  if (blobImageTransparencyCheckbox) {
+    blobImageTransparencyCheckbox.addEventListener('change', (e) => {
+      blobImageTransparencyEnabled = e.target.checked;
+      
+      // Re-apply background with new mode
+      applyBackground();
+      
+      // Update status
+      if (blobImageTransparencyEnabled) {
+        updateStatus('🪟 Blob transparency mode enabled - image shows through blob');
+      } else {
+        updateStatus('🎨 Normal background mode');
+      }
+    });
+  }
+  
   // Background type selector
   const bgTypeSelect = document.getElementById('bg-type');
   if (bgTypeSelect) {
@@ -2022,12 +2122,12 @@ window.toggleMenus = function() {
   if (menusVisible) {
     leftSidebar.classList.remove('hidden');
     rightSidebar.classList.remove('hidden');
-    toggleIcon.textContent = '◀◀';
+    toggleIcon.textContent = '☰';
     updateStatus('📂 Sidebars shown');
   } else {
     leftSidebar.classList.add('hidden');
     rightSidebar.classList.add('hidden');
-    toggleIcon.textContent = '▶▶';
+    toggleIcon.textContent = '☰';
     updateStatus('📁 Sidebars hidden');
   }
 };

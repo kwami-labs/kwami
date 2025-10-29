@@ -9,6 +9,37 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### ✨ Added
 
+#### 🌈 Dual Sidebar Layout with Background Gradient Controls
+
+- **Left Sidebar**: Configuration and environment controls
+  - ℹ️ About section with Kwami description
+  - 🗣️ Voice Settings (ElevenLabs API configuration)
+  - 🎭 Personality selection
+  - 🌈 Background gradient controls with advanced options
+- **Right Sidebar**: Interaction and appearance controls
+  - 💬 Speech synthesis controls
+  - 🎨 Complete body parameter controls
+- **Background Gradient System**:
+  - 3 color pickers for tricolor gradient backgrounds
+  - Angle control (0-360°) for gradient direction
+  - 3 color stop position sliders (0-100%)
+  - 🎲 Randomize Background button with sorted stops
+  - 🔄 Reset Background button to restore defaults
+  - Real-time gradient updates with smooth 0.8s transitions
+- **Scale Control**: New slider to adjust blob size (0.1-3.0)
+  - Preserved during animation as multiplier to breathing effect
+  - Works seamlessly with audio reactivity
+- **Playground Body Controls Complete**:
+  - All blob parameters configurable (spikes, time, rotation)
+  - Color pickers for tricolor skin
+  - Resolution and shininess sliders
+  - Wireframe toggle
+  - Skin type selector
+  - Real-time value displays
+  - Randomize and reset functionality
+
+### ✨ Added
+
 #### 🎙️ Natural Voice Conversations - WebSocket Conversational AI (Beta)
 
 **Status**: Implementation ready, pending ElevenLabs Conversational AI beta access

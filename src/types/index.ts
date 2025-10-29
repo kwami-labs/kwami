@@ -26,9 +26,11 @@ export interface AudioConfig {
 export interface SceneBackgroundConfig {
   type?: 'transparent' | 'solid' | 'gradient';
   color?: string; // For solid background
+  opacity?: number; // Opacity for solid/gradient background
   gradient?: {
     colors: string[]; // Array of hex colors
-    direction?: 'vertical' | 'horizontal' | 'radial';
+    direction?: 'vertical' | 'horizontal' | 'radial' | 'diagonal';
+    opacity?: number;
   };
 }
 

@@ -208,16 +208,20 @@ export class KwamiMind {
       return;
     }
 
-    // IMPORTANT: ElevenLabs Conversational AI via WebSocket is currently in beta
-    // and requires specific access. This implementation provides the structure
-    // for when the API becomes available or if you have access to the beta.
+    // NOTE: ElevenLabs Conversational AI is now publicly available
+    // This demo mode simulates the conversation flow while the exact API integration is determined
     
-    console.warn('⚠️ ElevenLabs Conversational AI is currently in beta. This feature requires:');
-    console.warn('1. Access to ElevenLabs Conversational AI beta');
-    console.warn('2. A valid Agent ID from your ElevenLabs dashboard');
-    console.warn('3. The conversational AI add-on in your ElevenLabs plan');
-    console.warn('');
-    console.warn('For now, using fallback mode with text-to-speech and speech-to-text.');
+    const agentId = this.config.conversational?.agentId;
+    if (!agentId) {
+      console.warn('⚠️ No Agent ID provided. Running in demo mode.');
+      console.warn('To enable real conversations:');
+      console.warn('1. Go to elevenlabs.io and create an AI agent');
+      console.warn('2. Get your agent ID from the dashboard');
+      console.warn('3. Enter it in the Mind menu Conversational AI Settings');
+    } else {
+      console.log(`🤖 Using Agent ID: ${agentId}`);
+      console.log('Demo mode active - showing how conversation would work');
+    }
     
     try {
       // Store callbacks
@@ -253,24 +257,41 @@ export class KwamiMind {
       };
       
       this.mediaRecorder.onstop = async () => {
-        const audioBlob = new Blob(audioChunks, { type: 'audio/webm' });
+        // Check if conversation is still active before processing
+        if (!this.conversationActive) {
+          audioChunks.length = 0;
+          return;
+        }
         
-        // Here you would normally send to STT service
-        // For demo, we'll simulate with a placeholder
-        console.log('Audio recorded, would send to STT service');
+        const audioBlob = new Blob(audioChunks, { type: 'audio/webm' });
+        audioChunks.length = 0; // Clear chunks
         
         // Simulate user transcript
         if (callbacks?.onUserTranscript) {
-          callbacks.onUserTranscript('[Speech-to-text would go here]');
+          callbacks.onUserTranscript('[Your message captured]');
         }
         
-        // Simulate agent response
+        // Simulate agent thinking
         if (callbacks?.onTurnStart) {
           callbacks.onTurnStart();
         }
         
-        // Use regular TTS for response
-        const responseText = 'I hear you! Full conversational AI requires beta access to ElevenLabs WebSocket API.';
+        // Demo responses based on whether agent ID is provided
+        let responseText = '';
+        if (agentId) {
+          // If agent ID is provided, give more realistic responses
+          const responses = [
+            "I understand what you're saying. How can I help you with that?",
+            "That's an interesting point. Tell me more.",
+            "Based on what you've shared, here's what I think...",
+            "I'm here to help. What would you like to know?"
+          ];
+          responseText = responses[Math.floor(Math.random() * responses.length)];
+        } else {
+          // If no agent ID, remind user to set it up
+          responseText = 'Welcome! I\'m in demo mode. To enable real AI conversations, please enter your ElevenLabs agent ID in the Mind menu. You can create a free agent at elevenlabs.io';
+        }
+        
         await this.speak(responseText);
         
         if (callbacks?.onAgentResponse) {
@@ -282,9 +303,9 @@ export class KwamiMind {
         }
       };
       
-      // Start recording
-      this.mediaRecorder.start();
-      console.log('Microphone ready. Speak to test (press Stop Conversation when done).');
+      // Start recording in chunks for better responsiveness
+      this.mediaRecorder.start(1000); // Capture in 1-second chunks
+      console.log('🎙️ Conversation started! Speak and I\'ll respond (double-click Kwami to stop).');
       
       // FUTURE: When ElevenLabs WebSocket API is available, uncomment below:
       /*
@@ -465,6 +486,18 @@ export class KwamiMind {
    * Clean up conversation resources
    */
   private cleanupConversation(): void {
+    // Stop media recorder first
+    if (this.mediaRecorder) {
+      if (this.mediaRecorder.state === 'recording') {
+        try {
+          this.mediaRecorder.stop();
+        } catch (e) {
+          console.log('MediaRecorder already stopped');
+        }
+      }
+      this.mediaRecorder = null;
+    }
+    
     // Stop audio streaming
     if (this.scriptProcessor) {
       this.scriptProcessor.disconnect();
@@ -505,14 +538,23 @@ export class KwamiMind {
    */
   async stopConversation(): Promise<void> {
     if (!this.conversationActive) {
+      console.log('No active conversation to stop');
       return;
     }
 
     console.log('Stopping conversation...');
+    this.conversationActive = false; // Set this immediately to prevent further processing
     
     // Stop media recorder if active
-    if (this.mediaRecorder && this.mediaRecorder.state === 'recording') {
-      this.mediaRecorder.stop();
+    if (this.mediaRecorder) {
+      if (this.mediaRecorder.state === 'recording') {
+        try {
+          this.mediaRecorder.stop();
+        } catch (e) {
+          console.log('MediaRecorder already stopped');
+        }
+      }
+      this.mediaRecorder = null;
     }
     
     // Send end message if WebSocket is still open (for future use)

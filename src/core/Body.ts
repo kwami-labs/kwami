@@ -13,11 +13,30 @@ import {
   TextureLoader,
   Texture,
   SRGBColorSpace,
+  AlwaysStencilFunc,
+  NotEqualStencilFunc,
+  KeepStencilOp,
 } from 'three';
 import { KwamiAudio } from './Audio';
 import { Blob } from '../blob/Blob.js';
 import { setupScene } from '../scene/setup.js';
 import type { BodyConfig, BlobSkinType, SceneBackgroundConfig } from '../types/index';
+
+type BackgroundDirection = 'vertical' | 'horizontal' | 'radial' | 'diagonal';
+type BlobImageMode = 'none' | 'overlay' | 'glass';
+
+interface BackgroundState {
+  type: 'transparent' | 'solid' | 'gradient';
+  color?: string;
+  colors?: string[];
+  direction?: BackgroundDirection;
+  opacity: number;
+}
+
+const DEFAULT_BACKGROUND_STATE: BackgroundState = {
+  type: 'transparent',
+  opacity: 1,
+};
 
 /**
  * KwamiBody - Manages the 3D visual representation of Kwami
@@ -30,10 +49,12 @@ export class KwamiBody {
   private scene: Scene;
   private resizeObserver?: ResizeObserver;
   private backgroundPlane: Mesh | null = null;
-  private blobImageTransparencyMode = false;
+  private backgroundPlaneTexture: CanvasTexture | null = null;
+  private blobImageMode: BlobImageMode = 'none';
   private backgroundTexture: Texture | null = null;
   private currentBackgroundImageUrl: string | null = null;
   private readonly textureLoader = new TextureLoader();
+  private backgroundState: BackgroundState = { ...DEFAULT_BACKGROUND_STATE };
 
   public audio: KwamiAudio;
   public blob: Blob;
@@ -134,8 +155,10 @@ export class KwamiBody {
   /**
    * Enable click interaction on the blob
    * Click to create liquid-like touch effects
+   * Double-click triggers conversation if callback is set
    */
-  enableBlobInteraction(): void {
+  enableBlobInteraction(onConversationToggle?: () => Promise<void>): void {
+    this.blob.onConversationToggle = onConversationToggle;
     this.blob.enableClickInteraction();
   }
 

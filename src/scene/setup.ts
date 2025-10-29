@@ -43,12 +43,20 @@ function createRenderer(
   canvas: HTMLCanvasElement,
   config?: SceneConfig,
 ): WebGLRenderer {
+  const context = canvas.getContext('webgl2', {
+    antialias: true,
+    alpha: true,
+    stencil: true,
+  }) as WebGL2RenderingContext;
+
   const renderer = new WebGLRenderer({
     canvas,
-    context: canvas.getContext('webgl2')!,
+    context,
     antialias: true,
     alpha: true,
   });
+
+  renderer.autoClearStencil = true;
 
   renderer.setSize(canvas.clientWidth, canvas.clientHeight);
   renderer.setPixelRatio(window.devicePixelRatio || 1);

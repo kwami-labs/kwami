@@ -202,6 +202,28 @@ export class Kwami {
   }
 
   /**
+   * Enable blob interaction including double-click for conversations
+   * @param callbacks - Optional conversation callbacks for when double-click starts a conversation
+   */
+  enableBlobInteraction(conversationCallbacks?: any): void {
+    this.body.enableBlobInteraction(async () => {
+      // Toggle conversation on double-click
+      if (this.isConversationActive()) {
+        await this.stopConversation();
+      } else {
+        await this.startConversation(conversationCallbacks);
+      }
+    });
+  }
+  
+  /**
+   * Disable blob interaction
+   */
+  disableBlobInteraction(): void {
+    this.body.disableBlobInteraction();
+  }
+
+  /**
    * Cleanup and dispose all resources
    */
   dispose(): void {

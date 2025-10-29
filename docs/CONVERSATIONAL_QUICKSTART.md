@@ -163,3 +163,4 @@ As we learn more about the exact integration methods, we'll update:
 
 _Last checked: October 29, 2025_  
 _Status: Conversational AI is PUBLIC - no beta needed!_
+

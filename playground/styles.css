@@ -90,6 +90,33 @@ canvas {
   z-index: 2;
 }
 
+/* Double-click hint on canvas hover when conversation is ready */
+canvas.conversation-ready {
+  cursor: pointer;
+}
+
+#canvas-container.conversation-ready::after {
+  content: 'Double-click Kwami to toggle conversation';
+  position: absolute;
+  bottom: 20px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: rgba(0, 0, 0, 0.9);
+  color: #00ff66;
+  padding: 8px 16px;
+  border-radius: 20px;
+  font-size: 12px;
+  font-weight: 600;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+  z-index: 100;
+}
+
+#canvas-container.conversation-ready:hover::after {
+  opacity: 1;
+}
+
 /* Menu Toggle Button */
 .menu-toggle-btn {
   position: absolute;

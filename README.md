@@ -6,6 +6,8 @@ An **independent, reusable** 3D Interactive AI Companion Library for creating en
 
 ## ✨ Features
 
+### Core Features
+
 - 🎨 **3D Blob Body** - Morphing sphere that reacts to audio in real-time
 - 🎵 **Audio Integration** - Built-in audio playback and frequency analysis
 - 🎭 **Multiple Skins** - Tricolor, Tricolor2 (Donut), and Zebra shader materials with easy extensibility
@@ -19,6 +21,15 @@ An **independent, reusable** 3D Interactive AI Companion Library for creating en
 - 🎯 **TypeScript** - Fully typed for better DX
 - 🚀 **Performant** - Optimized WebGL rendering
 - 📦 **Modular** - Use only what you need
+
+### Recent Enhancements (Last 48 hours)
+
+- 📐 **Scale Control** - Adjust blob size (0.1-3.0) while preserving audio-reactive breathing
+- 🌈 **Advanced Background Controls** - Full tricolor gradient system with angle and color stop positioning
+- 🎨 **Dual Sidebar Layout** - Organized left/right sidebars for better UX
+- 🔧 **Comprehensive Body Controls** - All blob parameters now controllable via playground
+- 💾 **Real-time Updates** - Immediate visual feedback for all adjustments
+- 📝 **Better Documentation** - Complete documentation suite in `/docs` folder
 
 ## 📦 Installation
 
@@ -79,6 +90,19 @@ kwami.body.blob.setRandomBlob();
 ```
 
 ## 📚 Documentation
+
+### 📖 Documentation Guides
+
+Comprehensive guides for different aspects of Kwami:
+
+- **[QUICKSTART.md](./docs/QUICKSTART.md)** - Quick start guide for getting up and running
+- **[CONVERSATIONAL_QUICKSTART.md](./docs/CONVERSATIONAL_QUICKSTART.md)** - Quick start for conversational AI features
+- **[ELEVENLABS_INTEGRATION.md](./docs/ELEVENLABS_INTEGRATION.md)** - Complete ElevenLabs integration guide
+- **[CONVERSATIONAL_AI.md](./docs/CONVERSATIONAL_AI.md)** - Detailed conversational AI documentation
+- **[CONVERSATION_BETA_GUIDE.md](./docs/CONVERSATION_BETA_GUIDE.md)** - Beta guide for voice conversation features
+- **[MIND_CLASS_IMPLEMENTATION.md](./docs/MIND_CLASS_IMPLEMENTATION.md)** - Technical implementation details for the Mind class
+- **[MIGRATION.md](./docs/MIGRATION.md)** - Migration guide for upgrading from previous versions
+- **[ARCHITECTURE.md](./ARCHITECTURE.md)** - Complete architecture overview
 
 ### Core Concepts
 

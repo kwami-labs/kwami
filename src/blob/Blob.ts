@@ -6,6 +6,9 @@ import {
   Vector3,
   Raycaster,
   Texture,
+  AlwaysStencilFunc,
+  KeepStencilOp,
+  ReplaceStencilOp,
   type ShaderMaterial,
 } from 'three';
 import { GLTFExporter } from 'three/addons/exporters/GLTFExporter.js';
@@ -50,6 +53,9 @@ export class Blob {
   public touchDuration = 1100;
   public maxTouchPoints = 5;
   
+  // Conversation callback
+  public onConversationToggle?: () => Promise<void>;
+  
   // Listening mode (inverts spikes)
   public isListening = false;
   private listeningTransition = 0; // 0 to 1
@@ -85,6 +91,7 @@ export class Blob {
   public baseScale = 1.0; // User-defined base scale
   public dna = '';
   private backgroundTexture: Texture | null = null;
+  private glassModeEnabled = false;
 
   constructor(private options: BlobOptions) {
     this.currentSkin = options.skin || 'tricolor';
@@ -164,6 +171,8 @@ export class Blob {
       material.uniforms.useBackgroundTexture.value = Boolean(this.backgroundTexture);
     }
 
+    this.applyGlassModeState(material);
+
     material.needsUpdate = true;
   }
 
@@ -179,6 +188,47 @@ export class Blob {
     this.backgroundTexture = texture;
     this.applyBackgroundTextureToAllSkins();
     this.updateLightIntensityUniforms();
+  }
+
+  public setGlassMode(enabled: boolean): void {
+    if (this.glassModeEnabled === enabled) return;
+    this.glassModeEnabled = enabled;
+    this.applyGlassModeStateToAllMaterials();
+  }
+
+  private applyGlassModeState(material: ShaderMaterial): void {
+    if (!material) return;
+
+    if (this.glassModeEnabled) {
+      material.stencilWrite = true;
+      material.stencilRef = 1;
+      material.stencilFunc = AlwaysStencilFunc;
+      material.stencilMask = 0xff;
+      material.stencilFail = KeepStencilOp;
+      material.stencilZFail = KeepStencilOp;
+      material.stencilZPass = ReplaceStencilOp;
+      // Ensure silhouette writes to depth for proper stencil behaviour
+      material.depthWrite = true;
+    } else {
+      material.stencilWrite = false;
+      material.stencilRef = 0;
+      material.stencilFunc = AlwaysStencilFunc;
+      material.stencilMask = 0xff;
+      material.stencilFail = KeepStencilOp;
+      material.stencilZFail = KeepStencilOp;
+      material.stencilZPass = ReplaceStencilOp;
+      material.depthWrite = !material.transparent;
+    }
+
+    material.needsUpdate = true;
+  }
+
+  private applyGlassModeStateToAllMaterials(): void {
+    this.skins.forEach((material) => this.applyGlassModeState(material));
+
+    if (this.mesh) {
+      this.applyGlassModeState(this.mesh.material as ShaderMaterial);
+    }
   }
 
   /**
@@ -454,7 +504,6 @@ export class Blob {
     console.log('Blob.setScale called with:', scale);
     this.baseScale = scale;
     console.log('Base scale set to:', this.baseScale);
-    this.updateLightPositions();
   }
 
   /**
@@ -505,7 +554,6 @@ export class Blob {
         this.lights.x.intensity = intensity;
         this.lights.y.intensity = intensity;
         this.lights.z.intensity = intensity;
-        this.updateLightPositions();
       }
     } else {
       // Turn off lights by setting intensity to 0
@@ -528,14 +576,17 @@ export class Blob {
     const lightY = new PointLight(new Color(this.colors.y).getHex(), this.lightIntensity, 10);
     const lightZ = new PointLight(new Color(this.colors.z).getHex(), this.lightIntensity, 10);
     
+    // Position lights around the blob
+    lightX.position.set(3, 0, 0);
+    lightY.position.set(0, 3, 0);
+    lightZ.position.set(0, 0, 3);
+    
     // Add lights to the scene
     this.options.scene.add(lightX);
     this.options.scene.add(lightY);
     this.options.scene.add(lightZ);
     
     this.lights = { x: lightX, y: lightY, z: lightZ };
-
-    this.updateLightPositions();
   }
 
   /**
@@ -547,25 +598,6 @@ export class Blob {
       this.lights.y.color.setHex(new Color(this.colors.y).getHex());
       this.lights.z.color.setHex(new Color(this.colors.z).getHex());
     }
-  }
-
-  private updateLightPositions(): void {
-    if (!this.lights) return;
-
-    const radius = Math.max(2.5, this.baseScale * 1.5);
-    const range = Math.max(12, this.baseScale * 6);
-
-    this.lights.x.position.set(radius, 0, 0);
-    this.lights.y.position.set(0, radius, 0);
-    this.lights.z.position.set(0, 0, radius);
-
-    this.lights.x.distance = range;
-    this.lights.y.distance = range;
-    this.lights.z.distance = range;
-
-    this.lights.x.decay = 2;
-    this.lights.y.decay = 2;
-    this.lights.z.decay = 2;
   }
 
   private updateLightIntensityUniforms(): void {
@@ -721,7 +753,7 @@ export class Blob {
       }
     };
 
-    // Handle double-click for listening mode
+    // Handle double-click for conversation mode
     const handleDoubleClick = async (event: MouseEvent) => {
       event.preventDefault();
       
@@ -737,11 +769,16 @@ export class Blob {
       const intersects = raycaster.intersectObject(this.mesh);
       
       if (intersects.length > 0) {
-        // Toggle listening mode
-        if (this.isListening) {
-          this.stopListening();
+        // Toggle conversation if callback is set
+        if (this.onConversationToggle) {
+          await this.onConversationToggle();
         } else {
-          await this.startListening();
+          // Fallback to listening mode if no conversation callback
+          if (this.isListening) {
+            this.stopListening();
+          } else {
+            await this.startListening();
+          }
         }
       }
     };
