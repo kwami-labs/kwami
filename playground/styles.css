@@ -230,6 +230,12 @@ canvas.conversation-ready {
   background: rgba(255, 255, 255, 0.98);
 }
 
+#audio-player.hidden {
+  opacity: 0;
+  pointer-events: none;
+  transform: translateX(-50%) translateY(-20px);
+}
+
 .player-btn {
   background: none;
   border: none;

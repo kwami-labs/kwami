@@ -772,7 +772,14 @@ window.startConversation = async function() {
     await window.kwami.startConversation(callbacks);
     
     updateConversationButtonState(true);
-    updateStatus('✅ Conversation started! Listening... (Double-click Kwami to stop)');
+    
+    // Show embed container if iframe was created
+    const embedContainer = document.getElementById('elevenlabs-embed-container');
+    if (embedContainer && embedContainer.querySelector('iframe')) {
+      embedContainer.style.display = 'block';
+    }
+    
+    updateStatus('✅ Conversation started! Talk naturally with your AI agent. (Double-click Kwami to stop)');
   } catch (error) {
     showError('Failed to start conversation: ' + error.message);
     updateConversationButtonState(false);
@@ -787,6 +794,12 @@ window.stopConversation = async function() {
     updateStatus('🔄 Stopping conversation...');
     
     await window.kwami.mind.stopConversation();
+    
+    // Hide embed container
+    const embedContainer = document.getElementById('elevenlabs-embed-container');
+    if (embedContainer) {
+      embedContainer.style.display = 'none';
+    }
     
     updateConversationButtonState(false);
     updateStatus('✅ Conversation stopped. (Double-click Kwami to start again)');
@@ -2161,19 +2174,20 @@ window.toggleMenus = function() {
   const leftSidebar = document.getElementById('left-sidebar');
   const rightSidebar = document.getElementById('right-sidebar');
   const toggleIcon = document.getElementById('menu-toggle-icon');
-  
+  const audioPlayer = document.getElementById('audio-player');
+
   menusVisible = !menusVisible;
-  
+
   if (menusVisible) {
     leftSidebar.classList.remove('hidden');
     rightSidebar.classList.remove('hidden');
+    audioPlayer.classList.remove('hidden');
     toggleIcon.textContent = '☰';
-    updateStatus('📂 Sidebars shown');
   } else {
     leftSidebar.classList.add('hidden');
     rightSidebar.classList.add('hidden');
+    audioPlayer.classList.add('hidden');
     toggleIcon.textContent = '☰';
-    updateStatus('📁 Sidebars hidden');
   }
 };
 

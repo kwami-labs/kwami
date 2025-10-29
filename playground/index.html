@@ -238,9 +238,14 @@
         <div class="section-title">💬 Conversational AI</div>
         
         <div class="input-group">
-          <label>Agent ID (Optional)</label>
-          <input type="text" id="agent-id" placeholder="Enter Agent ID for conversations">
-          <small style="display: block; color: #888; margin-top: 2px;">Required for real-time voice conversations</small>
+          <label>Agent ID (Required for Conversations)</label>
+          <input type="text" id="agent-id" placeholder="Enter your ElevenLabs Agent ID">
+          <small style="display: block; color: #888; margin-top: 2px;">Get your agent ID from elevenlabs.io dashboard</small>
+        </div>
+        
+        <!-- Container for embedded conversation iframe -->
+        <div id="elevenlabs-embed-container" style="display: none; margin-top: 15px; border-radius: 12px; overflow: hidden; background: #1a1a1a;">
+          <!-- Iframe will be inserted here dynamically -->
         </div>
 
         <div class="input-group">

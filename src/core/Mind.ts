@@ -55,6 +55,8 @@ export class KwamiMind {
   private currentAudioStream: MediaStream | null = null;
   private mediaRecorder: MediaRecorder | null = null;
   private pronunciationDictionary: Map<string, string> = new Map();
+  private conversationWindow: Window | null = null;
+  private windowCheckInterval: any = null;
   
   // Conversational AI WebSocket properties
   private conversationWebSocket: WebSocket | null = null;
@@ -208,20 +210,15 @@ export class KwamiMind {
       return;
     }
 
-    // NOTE: ElevenLabs Conversational AI is now publicly available
-    // This demo mode simulates the conversation flow while the exact API integration is determined
-    
     const agentId = this.config.conversational?.agentId;
     if (!agentId) {
-      console.warn('⚠️ No Agent ID provided. Running in demo mode.');
-      console.warn('To enable real conversations:');
-      console.warn('1. Go to elevenlabs.io and create an AI agent');
-      console.warn('2. Get your agent ID from the dashboard');
-      console.warn('3. Enter it in the Mind menu Conversational AI Settings');
-    } else {
-      console.log(`🤖 Using Agent ID: ${agentId}`);
-      console.log('Demo mode active - showing how conversation would work');
+      throw new Error('Agent ID is required. Please enter your ElevenLabs agent ID in the Mind menu.');
     }
+
+    console.log(`🤖 Starting real conversation with Agent ID: ${agentId}`);
+    
+    // ElevenLabs provides a share URL for each agent
+    const shareUrl = `https://elevenlabs.io/app/conversational-ai/share/${agentId}`;
     
     try {
       // Store callbacks
@@ -238,74 +235,89 @@ export class KwamiMind {
       });
       this.currentAudioStream = stream;
 
-      // For now, use a simplified conversation mode with STT and TTS
-      // This provides basic functionality while waiting for full WebSocket support
-      
       this.conversationActive = true;
       
-      // Notify that we're in listening mode
-      if (callbacks?.onTurnEnd) {
-        callbacks.onTurnEnd();
-      }
-      
-      // Start recording for speech-to-text
-      this.mediaRecorder = new MediaRecorder(stream);
-      const audioChunks: Blob[] = [];
-      
-      this.mediaRecorder.ondataavailable = (event) => {
-        audioChunks.push(event.data);
-      };
-      
-      this.mediaRecorder.onstop = async () => {
-        // Check if conversation is still active before processing
-        if (!this.conversationActive) {
-          audioChunks.length = 0;
-          return;
-        }
+      // Option 1: Try to embed in an iframe (if container exists)
+      const embedContainer = document.getElementById('elevenlabs-embed-container');
+      if (embedContainer && !document.getElementById('elevenlabs-conversation-iframe')) {
+        const iframe = document.createElement('iframe');
+        iframe.src = shareUrl;
+        iframe.width = '100%';
+        iframe.height = '600';
+        iframe.style.border = 'none';
+        iframe.style.borderRadius = '12px';
+        iframe.id = 'elevenlabs-conversation-iframe';
+        iframe.allow = 'microphone';
+        embedContainer.appendChild(iframe);
         
-        const audioBlob = new Blob(audioChunks, { type: 'audio/webm' });
-        audioChunks.length = 0; // Clear chunks
+        console.log('✅ Embedded conversation started in iframe');
         
-        // Simulate user transcript
-        if (callbacks?.onUserTranscript) {
-          callbacks.onUserTranscript('[Your message captured]');
-        }
-        
-        // Simulate agent thinking
-        if (callbacks?.onTurnStart) {
-          callbacks.onTurnStart();
-        }
-        
-        // Demo responses based on whether agent ID is provided
-        let responseText = '';
-        if (agentId) {
-          // If agent ID is provided, give more realistic responses
-          const responses = [
-            "I understand what you're saying. How can I help you with that?",
-            "That's an interesting point. Tell me more.",
-            "Based on what you've shared, here's what I think...",
-            "I'm here to help. What would you like to know?"
-          ];
-          responseText = responses[Math.floor(Math.random() * responses.length)];
-        } else {
-          // If no agent ID, remind user to set it up
-          responseText = 'Welcome! I\'m in demo mode. To enable real AI conversations, please enter your ElevenLabs agent ID in the Mind menu. You can create a free agent at elevenlabs.io';
-        }
-        
-        await this.speak(responseText);
-        
+        // Notify callbacks
         if (callbacks?.onAgentResponse) {
-          callbacks.onAgentResponse(responseText);
+          callbacks.onAgentResponse('AI agent loaded! Speak naturally to have a conversation.');
         }
-        
         if (callbacks?.onTurnEnd) {
           callbacks.onTurnEnd();
         }
-      };
+        
+        // Stream already initialized earlier
+        
+        return; // Exit early if iframe works
+      }
       
-      // Start recording in chunks for better responsiveness
-      this.mediaRecorder.start(1000); // Capture in 1-second chunks
-      console.log('🎙️ Conversation started! Speak and I\'ll respond (double-click Kwami to stop).');
+      // Option 2: Open in a popup window
+      if (!this.conversationWindow || this.conversationWindow.closed) {
+        this.conversationWindow = window.open(
+          shareUrl,
+          'ElevenLabs_Conversation',
+          'width=400,height=600,resizable=yes,scrollbars=yes'
+        );
+        
+        if (this.conversationWindow) {
+          console.log('✅ Conversation window opened! Talk to your AI agent in the popup.');
+          
+          // Monitor window status
+          this.windowCheckInterval = setInterval(() => {
+            if (!this.conversationWindow || this.conversationWindow.closed) {
+              clearInterval(this.windowCheckInterval);
+              this.windowCheckInterval = null;
+              this.stopConversation();
+            }
+          }, 1000);
+          
+          // Notify callbacks
+          if (callbacks?.onAgentResponse) {
+            callbacks.onAgentResponse('AI agent opened in a new window! Speak there to have a conversation.');
+          }
+          if (callbacks?.onTurnEnd) {
+            callbacks.onTurnEnd();
+          }
+          
+          // Keep microphone stream for visual feedback
+          const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+          this.currentAudioStream = stream;
+          
+          return; // Exit early if popup works
+        } else {
+          console.warn('Could not open popup window. Check your popup blocker.');
+        }
+      }
+      
+      // Fallback: Provide instructions if neither option works
+      
+      // If we get here, provide manual instructions
+      const fallbackUrl = `https://elevenlabs.io/app/conversational-ai/share/${agentId}`;
+      console.log('🔗 Direct link to your AI agent:', fallbackUrl);
+      console.log('Copy and paste this URL in a new tab to start the conversation.');
+      
+      // Stream already initialized earlier at the beginning
+      
+      if (callbacks?.onAgentResponse) {
+        callbacks.onAgentResponse(`Open this link to talk to your AI agent: ${fallbackUrl}`);
+      }
+      if (callbacks?.onTurnEnd) {
+        callbacks.onTurnEnd();
+      }
       
       // FUTURE: When ElevenLabs WebSocket API is available, uncomment below:
       /*
@@ -544,6 +556,24 @@ export class KwamiMind {
 
     console.log('Stopping conversation...');
     this.conversationActive = false; // Set this immediately to prevent further processing
+    
+    // Close conversation window if open
+    if (this.conversationWindow && !this.conversationWindow.closed) {
+      this.conversationWindow.close();
+      this.conversationWindow = null;
+    }
+    
+    // Clear window check interval
+    if (this.windowCheckInterval) {
+      clearInterval(this.windowCheckInterval);
+      this.windowCheckInterval = null;
+    }
+    
+    // Remove iframe if exists
+    const iframe = document.getElementById('elevenlabs-conversation-iframe');
+    if (iframe) {
+      iframe.remove();
+    }
     
     // Stop media recorder if active
     if (this.mediaRecorder) {
