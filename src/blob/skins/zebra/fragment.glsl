@@ -6,6 +6,7 @@ uniform vec3 _color3;
 uniform vec3 lightPosition;
 uniform vec3 specular_color;
 uniform float shininess;
+uniform float opacity;
 
 float zebraStripes(float x,float frequency,float width){
   return smoothstep(.5-width*.5,.5+width*.5,mod(x*frequency+.5,1.));
@@ -27,7 +28,7 @@ void main(){
   vec3 color=mix(_color1,_color2,stripeX);
   color=mix(color,_color3,stripeY*0.5);
   
-  vec3 finalColor=color+specular;
-  gl_FragColor=vec4(finalColor,1.);
+  vec3 finalColor=clamp(color+specular,0.,1.);
+  gl_FragColor=vec4(finalColor,opacity);
 }
 

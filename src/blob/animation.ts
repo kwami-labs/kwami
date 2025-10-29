@@ -113,7 +113,7 @@ export function animateBlob(
   const bands = getFrequencyBands(frequencyData);
 
   // Smooth frequency bands for viscous response
-  const audioSmoothFactor = 0.15;
+  const audioSmoothFactor = 0.1;
   audioSmoothing.low += (bands.low - audioSmoothing.low) * audioSmoothFactor;
   audioSmoothing.mid += (bands.mid - audioSmoothing.mid) * audioSmoothFactor;
   audioSmoothing.high += (bands.high - audioSmoothing.high) * audioSmoothFactor;
@@ -170,12 +170,12 @@ export function animateBlob(
     
     // Calculate audio-reactive amplitude multiplier (smooth and natural)
     const weightedAudioEnergy
-      = smoothBands.low * audioEffects.bassSpike
-      + smoothBands.mid * audioEffects.midSpike
-      + smoothBands.high * audioEffects.highSpike;
+      = smoothBands.low * audioEffects.bassSpike * 0.7
+      + smoothBands.mid * audioEffects.midSpike * 0.5
+      + smoothBands.high * audioEffects.highSpike * 0.3;
 
     const audioIntensity = audioEffects.enabled
-      ? 1 + Math.min(2.5, weightedAudioEnergy * 2.2)
+      ? 1 + Math.min(3.2, weightedAudioEnergy * 3.2)
       : 1;
 
     // Generate multi-layered noise for liquid texture (smoother)
@@ -203,7 +203,7 @@ export function animateBlob(
     const finalNoise = noise1 * 0.5 + noise2 * 0.3 + noise3 * 0.2;
 
     // Base amplitude enhanced by audio (creates natural, liquid response)
-    const baseAmplitude = 0.18;
+    const baseAmplitude = 0.24;
 
     // Touch interactions modulate amplitude (not direct displacement)
     let touchModulation = 0;
@@ -244,7 +244,7 @@ export function animateBlob(
       touchModulation = Math.max(-0.35, Math.min(0.25, touchModulation));
     }
 
-    const amplitudeFactor = Math.max(0.65, 1 + touchModulation);
+    const amplitudeFactor = Math.max(0.7, 1 + touchModulation);
     const amplitude = baseAmplitude * audioIntensity * amplitudeFactor;
 
     // High-frequency detail shimmer driven by treble content
@@ -258,10 +258,10 @@ export function animateBlob(
     
     // Calculate displacement for each state separately
     // Normal/Speaking mode displacement (outward spikes, enhanced by audio)
-    const speakingDisplacement = amplitude * finalNoise + detailNoise;
+    const speakingDisplacement = amplitude * finalNoise + detailNoise + weightedAudioEnergy * 0.15;
     
     // Listening mode displacement (inward spikes, enhanced by audio)
-    const listeningDisplacement = -amplitude * finalNoise + detailNoise * 0.6;
+    const listeningDisplacement = -amplitude * finalNoise + detailNoise * 0.6 + weightedAudioEnergy * 0.10;
     
     // Thinking mode displacement (fluid, flowing movements)
     let thinkingDisplacement = 0;
@@ -312,8 +312,8 @@ export function animateBlob(
     let displacement = 1 + audioDisplacement;
     
     // Final safety clamp and viscous smoothing
-    const minDisplacement = 0.75;
-    const maxDisplacement = 1.45;
+    const minDisplacement = 0.7;
+    const maxDisplacement = 1.6;
     const targetDisplacement = Math.max(minDisplacement, Math.min(maxDisplacement, displacement));
 
     const previous = previousDisplacements[i];

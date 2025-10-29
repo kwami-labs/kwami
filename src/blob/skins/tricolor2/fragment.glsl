@@ -6,6 +6,7 @@ uniform vec3 _color3;
 uniform vec3 lightPosition;
 uniform vec3 specular_color;
 uniform float shininess;
+uniform float opacity;
 
 void main(){
   vec3 lightDir=normalize(lightPosition-vPosition);
@@ -39,7 +40,8 @@ void main(){
     _color = mix(_color3, _color2, smoothstep(0.0, 1.0, t));
   }
   
-  gl_FragColor=vec4(_color+specular,1.);
+  vec3 finalColor=_color+specular;
+  gl_FragColor=vec4(clamp(finalColor,0.,1.),opacity);
 }
 
 
