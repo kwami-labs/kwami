@@ -1056,6 +1056,138 @@ window.testThinking = function() {
   }
 };
 
+// Test listening mode function
+window.testListening = function() {
+  if (window.kwami && window.kwami.body.blob) {
+    if (window.kwami.body.blob.isListening) {
+      window.kwami.body.blob.stopListening();
+      updateStatus('🔇 Stopped listening mode');
+    } else {
+      window.kwami.body.blob.startListening();
+      updateStatus('👂 Started listening mode');
+    }
+  } else {
+    showError('Kwami not initialized yet!');
+  }
+};
+
+// ============================================================================
+// Audio Effects Configuration
+// ============================================================================
+
+// Store audio effect parameters globally
+window.audioEffects = {
+  bassSpike: 0.3,
+  midSpike: 0.4,
+  highSpike: 0.2,
+  midTime: 0.5,
+  highTime: 0.8,
+  ultraTime: 0.3,
+  enabled: true
+};
+
+// Initialize audio effect controls
+function initializeAudioEffects() {
+  // Bass → Spikes
+  const audioBassSpike = document.getElementById('audio-bass-spike');
+  if (audioBassSpike) {
+    audioBassSpike.addEventListener('input', (e) => {
+      window.audioEffects.bassSpike = parseFloat(e.target.value);
+      updateValueDisplay('audio-bass-spike-value', e.target.value, 2);
+    });
+  }
+  
+  // Mid → Spikes
+  const audioMidSpike = document.getElementById('audio-mid-spike');
+  if (audioMidSpike) {
+    audioMidSpike.addEventListener('input', (e) => {
+      window.audioEffects.midSpike = parseFloat(e.target.value);
+      updateValueDisplay('audio-mid-spike-value', e.target.value, 2);
+    });
+  }
+  
+  // High → Spikes
+  const audioHighSpike = document.getElementById('audio-high-spike');
+  if (audioHighSpike) {
+    audioHighSpike.addEventListener('input', (e) => {
+      window.audioEffects.highSpike = parseFloat(e.target.value);
+      updateValueDisplay('audio-high-spike-value', e.target.value, 2);
+    });
+  }
+  
+  // Mid → Time
+  const audioMidTime = document.getElementById('audio-mid-time');
+  if (audioMidTime) {
+    audioMidTime.addEventListener('input', (e) => {
+      window.audioEffects.midTime = parseFloat(e.target.value);
+      updateValueDisplay('audio-mid-time-value', e.target.value, 1);
+    });
+  }
+  
+  // High → Time
+  const audioHighTime = document.getElementById('audio-high-time');
+  if (audioHighTime) {
+    audioHighTime.addEventListener('input', (e) => {
+      window.audioEffects.highTime = parseFloat(e.target.value);
+      updateValueDisplay('audio-high-time-value', e.target.value, 1);
+    });
+  }
+  
+  // Ultra → Time
+  const audioUltraTime = document.getElementById('audio-ultra-time');
+  if (audioUltraTime) {
+    audioUltraTime.addEventListener('input', (e) => {
+      window.audioEffects.ultraTime = parseFloat(e.target.value);
+      updateValueDisplay('audio-ultra-time-value', e.target.value, 1);
+    });
+  }
+  
+  // FFT Size selector
+  const fftSizeSelect = document.getElementById('fft-size');
+  if (fftSizeSelect) {
+    fftSizeSelect.addEventListener('change', (e) => {
+      const fftSize = parseInt(e.target.value);
+      if (window.kwami && window.kwami.body.audio) {
+        const analyser = window.kwami.body.audio.getAnalyser();
+        if (analyser) {
+          analyser.fftSize = fftSize;
+        }
+      }
+    });
+  }
+  
+  // Smoothing slider
+  const smoothingSlider = document.getElementById('smoothing');
+  if (smoothingSlider) {
+    smoothingSlider.addEventListener('input', (e) => {
+      const smoothing = parseFloat(e.target.value);
+      updateValueDisplay('smoothing-value', smoothing, 2);
+      if (window.kwami && window.kwami.body.audio) {
+        const analyser = window.kwami.body.audio.getAnalyser();
+        if (analyser) {
+          analyser.smoothingTimeConstant = smoothing;
+        }
+      }
+    });
+  }
+  
+  // Audio Reactive toggle
+  const audioReactiveToggle = document.getElementById('audio-reactive');
+  if (audioReactiveToggle) {
+    audioReactiveToggle.addEventListener('change', (e) => {
+      window.audioEffects.enabled = e.target.checked;
+      updateStatus(e.target.checked ? '🎵 Audio reactivity enabled' : '🔇 Audio reactivity disabled');
+    });
+  }
+}
+
+// Initialize audio effects when DOM is ready
+if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', initializeAudioEffects);
+} else {
+  initializeAudioEffects();
+}
+
 // Monitor state changes, camera position, and listening/thinking modes
 setInterval(() => {
   if (window.kwami) {

@@ -63,6 +63,23 @@ export function animateBlob(
   listeningBlend: number = 0,  // 0 to 1 transition
   thinkingBlend: number = 0,   // 0 to 1 transition
   thinkingProgress: number = 0,
+  audioEffects: {
+    bassSpike: number;
+    midSpike: number;
+    highSpike: number;
+    midTime: number;
+    highTime: number;
+    ultraTime: number;
+    enabled: boolean;
+  } = {
+    bassSpike: 0.3,
+    midSpike: 0.4,
+    highSpike: 0.2,
+    midTime: 0.5,
+    highTime: 0.8,
+    ultraTime: 0.3,
+    enabled: true
+  },
 ): void {
   const positions = mesh.geometry.attributes.position;
   if (!positions) return;
@@ -77,7 +94,9 @@ export function animateBlob(
   
   // Time calculation - faster for more responsive animation
   // Audio modulates the time speed (makes animation more dynamic with music)
-  const audioTimeMod = 1 + (bands.mid * 0.5 + bands.high * 0.8 + bands.ultra * 0.3);
+  const audioTimeMod = audioEffects.enabled 
+    ? 1 + (bands.mid * audioEffects.midTime + bands.high * audioEffects.highTime + bands.ultra * audioEffects.ultraTime)
+    : 1;
   const reduction = 0.00003;
   const perf = performance.now() * reduction;
   const tX = perf * timeX * audioTimeMod;
@@ -90,7 +109,9 @@ export function animateBlob(
 
   // Calculate noise frequencies for smooth, organic movement
   // Audio modulates the spike frequencies (makes them more dynamic)
-  const audioSpikeMod = 1 + (bands.low * 0.3 + bands.mid * 0.4 + bands.high * 0.2);
+  const audioSpikeMod = audioEffects.enabled
+    ? 1 + (bands.low * audioEffects.bassSpike + bands.mid * audioEffects.midSpike + bands.high * audioEffects.highSpike)
+    : 1;
   const baseFreqX = Math.max(0.025, spikeX * audioSpikeMod);
   const baseFreqY = Math.max(0.025, spikeY * audioSpikeMod);
   const baseFreqZ = Math.max(0.025, spikeZ * audioSpikeMod);

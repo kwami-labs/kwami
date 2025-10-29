@@ -59,6 +59,17 @@ export class Blob {
   public spikes = { x: 0.2, y: 0.2, z: 0.2 };
   public time = { x: 1, y: 1, z: 1 };
   public rotation = { x: 0, y: 0, z: 0 };
+  
+  // Audio effect parameters (configurable from playground)
+  public audioEffects = {
+    bassSpike: 0.3,
+    midSpike: 0.4,
+    highSpike: 0.2,
+    midTime: 0.5,
+    highTime: 0.8,
+    ultraTime: 0.3,
+    enabled: true
+  };
   public colors = { x: '#ff0000', y: '#00ff00', z: '#0000ff' };
   public baseScale = 1.0; // User-defined base scale
   public dna = '';
@@ -146,6 +157,7 @@ export class Blob {
           this.listeningTransition,
           this.thinkingTransition,
           thinkingProgress,
+          this.audioEffects,
         );
       }
 
