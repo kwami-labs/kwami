@@ -437,15 +437,15 @@ export class KwamiBody {
     material.depthWrite = false;
     material.depthTest = false;
     material.transparent = true;
-    material.stencilWrite = false;
     material.stencilFuncMask = 0xff;
-    material.stencilWriteMask = 0xff;
+    material.stencilWriteMask = 0x00;
     material.stencilFail = KeepStencilOp;
     material.stencilZFail = KeepStencilOp;
     material.stencilZPass = KeepStencilOp;
 
     if (this.blobImageMode === 'glass') {
       this.blob.setGlassMode(true);
+      material.stencilWrite = true;
       material.stencilFunc = NotEqualStencilFunc;
       material.stencilRef = 1;
       if (this.backgroundPlane) {
@@ -453,6 +453,7 @@ export class KwamiBody {
       }
     } else {
       this.blob.setGlassMode(false);
+      material.stencilWrite = false;
       material.stencilFunc = AlwaysStencilFunc;
       material.stencilRef = 0;
       if (this.backgroundPlane) {
