@@ -326,6 +326,8 @@ label {
 }
 
 input[type="text"],
+input[type="password"],
+input[type="number"],
 textarea,
 select {
   width: 100%;
@@ -334,13 +336,18 @@ select {
   border-radius: 8px;
   font-size: 14px;
   transition: border-color 0.3s;
+  font-family: inherit;
+  background: white;
 }
 
 input[type="text"]:focus,
+input[type="password"]:focus,
+input[type="number"]:focus,
 textarea:focus,
 select:focus {
   outline: none;
   border-color: #667eea;
+  box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
 }
 
 textarea {

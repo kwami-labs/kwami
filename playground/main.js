@@ -1609,9 +1609,9 @@ window.testListening = function() {
 
 // Store audio effect parameters globally
 window.audioEffects = {
-  bassSpike: 0.35,
-  midSpike: 0.30,
-  highSpike: 0.25,
+  bassSpike: 0.45,
+  midSpike: 0.35,
+  highSpike: 0.30,
   midTime: 0.2,
   highTime: 0.3,
   ultraTime: 0.15,

@@ -1,14 +1,26 @@
 import { ElevenLabsClient } from '@elevenlabs/elevenlabs-js';
-import type { MindConfig, VoiceSettings } from '../types/index';
+import type { 
+  MindConfig, 
+  VoiceSettings, 
+  AdvancedTTSOptions,
+  ConversationalAISettings,
+  STTConfig,
+  PronunciationConfig,
+  TTSOutputFormat,
+  STTModel
+} from '../types/index';
 import type { KwamiAudio } from './Audio';
 
 /**
  * KwamiMind - Manages AI capabilities and voice interactions using ElevenLabs
  * 
  * The Mind handles all AI-powered features including:
- * - Voice synthesis (Text-to-Speech)
- * - Voice conversations (Voice Agent)
- * - Speech recognition integration
+ * - Voice synthesis (Text-to-Speech) with full ElevenLabs API support
+ * - Voice conversations (Voice Agent) with conversational AI
+ * - Speech recognition integration with STT configuration
+ * - Advanced TTS options (output formats, latency optimization)
+ * - Custom pronunciation dictionary
+ * - Real-time voice settings adjustment
  * 
  * @example
  * ```typescript
@@ -16,7 +28,18 @@ import type { KwamiAudio } from './Audio';
  *   apiKey: process.env.ELEVEN_LABS_KEY,
  *   voice: {
  *     voiceId: 'pNInz6obpgDQGcFmaJgB', // Adam voice
- *     model: 'eleven_multilingual_v2'
+ *     model: 'eleven_multilingual_v2',
+ *     settings: {
+ *       stability: 0.5,
+ *       similarity_boost: 0.75,
+ *       style: 0.0,
+ *       use_speaker_boost: true
+ *     }
+ *   },
+ *   language: 'en',
+ *   advancedTTS: {
+ *     outputFormat: 'mp3_44100_128',
+ *     optimizeStreamingLatency: false
  *   }
  * });
  * 
@@ -26,11 +49,12 @@ import type { KwamiAudio } from './Audio';
  */
 export class KwamiMind {
   private client: ElevenLabsClient | null = null;
-  private config: MindConfig;
+  public config: MindConfig;
   private audio: KwamiAudio;
   private isInitialized: boolean = false;
   private currentAudioStream: MediaStream | null = null;
   private mediaRecorder: MediaRecorder | null = null;
+  private pronunciationDictionary: Map<string, string> = new Map();
 
   constructor(audio: KwamiAudio, config?: MindConfig) {
     this.audio = audio;
@@ -78,18 +102,42 @@ export class KwamiMind {
     }
 
     try {
+      // Apply pronunciation replacements
+      const processedText = this.applyPronunciations(text);
+      
       const voiceId = this.config.voice?.voiceId || 'pNInz6obpgDQGcFmaJgB'; // Default to Adam voice
       const model = this.config.voice?.model || 'eleven_multilingual_v2';
       
       // Get voice settings
       const voiceSettings = this.getVoiceSettings();
 
-      // Generate speech audio
-      const audioStream = await this.client.textToSpeech.convert(voiceId, {
-        text,
+      // Build request options
+      const requestOptions: any = {
+        text: processedText,
         modelId: model,
         voiceSettings: voiceSettings,
-      });
+      };
+
+      // Add advanced TTS options if configured
+      if (this.config.advancedTTS) {
+        if (this.config.advancedTTS.outputFormat) {
+          requestOptions.output_format = this.config.advancedTTS.outputFormat;
+        }
+        if (this.config.advancedTTS.optimizeStreamingLatency !== undefined) {
+          requestOptions.optimize_streaming_latency = this.config.advancedTTS.optimizeStreamingLatency;
+        }
+        if (this.config.advancedTTS.nextTextTimeout) {
+          requestOptions.next_text_timeout = this.config.advancedTTS.nextTextTimeout;
+        }
+      }
+
+      // Add language if configured
+      if (this.config.language) {
+        requestOptions.language_code = this.config.language;
+      }
+
+      // Generate speech audio
+      const audioStream = await this.client.textToSpeech.convert(voiceId, requestOptions);
 
       // Convert the stream to an audio blob
       const chunks: Uint8Array[] = [];
@@ -333,6 +381,339 @@ export class KwamiMind {
   }
 
   /**
+   * Set language for speech synthesis and recognition
+   * 
+   * @param language - Language code (e.g., 'en', 'es', 'fr')
+   */
+  setLanguage(language: string): void {
+    this.config.language = language;
+  }
+
+  /**
+   * Get current language
+   * 
+   * @returns Current language code
+   */
+  getLanguage(): string | undefined {
+    return this.config.language;
+  }
+
+  /**
+   * Set advanced TTS options
+   * 
+   * @param options - Advanced TTS configuration
+   */
+  setAdvancedTTSOptions(options: Partial<AdvancedTTSOptions>): void {
+    this.config.advancedTTS = {
+      ...this.config.advancedTTS,
+      ...options,
+    };
+  }
+
+  /**
+   * Get advanced TTS options
+   * 
+   * @returns Current advanced TTS settings
+   */
+  getAdvancedTTSOptions(): AdvancedTTSOptions | undefined {
+    return this.config.advancedTTS;
+  }
+
+  /**
+   * Set output format for TTS
+   * 
+   * @param format - Output format (e.g., 'mp3_44100_128', 'pcm_16000')
+   */
+  setOutputFormat(format: TTSOutputFormat): void {
+    if (!this.config.advancedTTS) {
+      this.config.advancedTTS = {};
+    }
+    this.config.advancedTTS.outputFormat = format;
+  }
+
+  /**
+   * Enable or disable streaming latency optimization
+   * 
+   * @param optimize - True to optimize for low latency
+   */
+  setOptimizeStreamingLatency(optimize: boolean): void {
+    if (!this.config.advancedTTS) {
+      this.config.advancedTTS = {};
+    }
+    this.config.advancedTTS.optimizeStreamingLatency = optimize;
+  }
+
+  /**
+   * Set next text timeout
+   * 
+   * @param timeout - Timeout in milliseconds
+   */
+  setNextTextTimeout(timeout: number): void {
+    if (!this.config.advancedTTS) {
+      this.config.advancedTTS = {};
+    }
+    this.config.advancedTTS.nextTextTimeout = timeout;
+  }
+
+  /**
+   * Set conversational AI settings
+   * 
+   * @param settings - Conversational AI configuration
+   */
+  setConversationalSettings(settings: Partial<ConversationalAISettings>): void {
+    this.config.conversational = {
+      ...this.config.conversational,
+      ...settings,
+    };
+  }
+
+  /**
+   * Get conversational AI settings
+   * 
+   * @returns Current conversational settings
+   */
+  getConversationalSettings(): ConversationalAISettings | undefined {
+    return this.config.conversational;
+  }
+
+  /**
+   * Set agent ID for conversational AI
+   * 
+   * @param agentId - ElevenLabs agent ID
+   */
+  setAgentId(agentId: string): void {
+    if (!this.config.conversational) {
+      this.config.conversational = {};
+    }
+    this.config.conversational.agentId = agentId;
+  }
+
+  /**
+   * Set STT (Speech-to-Text) configuration
+   * 
+   * @param config - STT configuration
+   */
+  setSTTConfig(config: Partial<STTConfig>): void {
+    this.config.stt = {
+      ...this.config.stt,
+      ...config,
+    };
+  }
+
+  /**
+   * Get STT configuration
+   * 
+   * @returns Current STT settings
+   */
+  getSTTConfig(): STTConfig | undefined {
+    return this.config.stt;
+  }
+
+  /**
+   * Set STT model
+   * 
+   * @param model - STT model (base, small, medium, large)
+   */
+  setSTTModel(model: STTModel): void {
+    if (!this.config.stt) {
+      this.config.stt = {};
+    }
+    this.config.stt.model = model;
+  }
+
+  /**
+   * Enable or disable automatic punctuation in STT
+   * 
+   * @param enable - True to enable automatic punctuation
+   */
+  setAutomaticPunctuation(enable: boolean): void {
+    if (!this.config.stt) {
+      this.config.stt = {};
+    }
+    this.config.stt.automaticPunctuation = enable;
+  }
+
+  /**
+   * Enable or disable speaker diarization in STT
+   * 
+   * @param enable - True to enable speaker diarization
+   */
+  setSpeakerDiarization(enable: boolean): void {
+    if (!this.config.stt) {
+      this.config.stt = {};
+    }
+    this.config.stt.speakerDiarization = enable;
+  }
+
+  /**
+   * Add a word to the pronunciation dictionary
+   * 
+   * @param word - Word to add
+   * @param pronunciation - Phonetic pronunciation
+   */
+  addPronunciation(word: string, pronunciation: string): void {
+    this.pronunciationDictionary.set(word.toLowerCase(), pronunciation);
+  }
+
+  /**
+   * Remove a word from the pronunciation dictionary
+   * 
+   * @param word - Word to remove
+   */
+  removePronunciation(word: string): void {
+    this.pronunciationDictionary.delete(word.toLowerCase());
+  }
+
+  /**
+   * Clear all pronunciations from the dictionary
+   */
+  clearPronunciations(): void {
+    this.pronunciationDictionary.clear();
+  }
+
+  /**
+   * Get pronunciation for a specific word
+   * 
+   * @param word - Word to look up
+   * @returns Pronunciation or undefined if not found
+   */
+  getPronunciation(word: string): string | undefined {
+    return this.pronunciationDictionary.get(word.toLowerCase());
+  }
+
+  /**
+   * Get all pronunciations as an object
+   * 
+   * @returns Object with word-pronunciation pairs
+   */
+  getAllPronunciations(): Record<string, string> {
+    const result: Record<string, string> = {};
+    this.pronunciationDictionary.forEach((pronunciation, word) => {
+      result[word] = pronunciation;
+    });
+    return result;
+  }
+
+  /**
+   * Set pronunciation configuration
+   * 
+   * @param config - Pronunciation configuration
+   */
+  setPronunciationConfig(config: Partial<PronunciationConfig>): void {
+    this.config.pronunciation = {
+      ...this.config.pronunciation,
+      ...config,
+    };
+    
+    // Update internal dictionary if provided
+    if (config.dictionary) {
+      this.pronunciationDictionary.clear();
+      if (config.dictionary instanceof Map) {
+        this.pronunciationDictionary = new Map(config.dictionary);
+      } else {
+        Object.entries(config.dictionary).forEach(([word, pronunciation]) => {
+          this.pronunciationDictionary.set(word.toLowerCase(), pronunciation);
+        });
+      }
+    }
+  }
+
+  /**
+   * Get pronunciation configuration
+   * 
+   * @returns Current pronunciation settings
+   */
+  getPronunciationConfig(): PronunciationConfig | undefined {
+    return this.config.pronunciation;
+  }
+
+  /**
+   * Apply pronunciation replacements to text before synthesis
+   * 
+   * @param text - Original text
+   * @returns Text with pronunciation replacements
+   */
+  private applyPronunciations(text: string): string {
+    if (this.pronunciationDictionary.size === 0) {
+      return text;
+    }
+
+    let result = text;
+    this.pronunciationDictionary.forEach((pronunciation, word) => {
+      // Use regex with word boundaries for whole word matching
+      const regex = new RegExp(`\\b${word}\\b`, 'gi');
+      result = result.replace(regex, pronunciation);
+    });
+
+    return result;
+  }
+
+  /**
+   * Update the complete configuration
+   * 
+   * @param config - New configuration (merged with existing)
+   */
+  updateConfig(config: Partial<MindConfig>): void {
+    this.config = {
+      ...this.config,
+      ...config,
+      voice: {
+        ...this.config.voice,
+        ...config.voice,
+        settings: {
+          ...this.config.voice?.settings,
+          ...config.voice?.settings,
+        },
+      },
+      advancedTTS: {
+        ...this.config.advancedTTS,
+        ...config.advancedTTS,
+      },
+      conversational: {
+        ...this.config.conversational,
+        ...config.conversational,
+      },
+      stt: {
+        ...this.config.stt,
+        ...config.stt,
+      },
+      pronunciation: {
+        ...this.config.pronunciation,
+        ...config.pronunciation,
+      },
+    };
+  }
+
+  /**
+   * Export complete configuration as JSON-serializable object
+   * 
+   * @returns Configuration object
+   */
+  exportConfig(): MindConfig {
+    return {
+      ...this.config,
+      pronunciation: {
+        ...this.config.pronunciation,
+        dictionary: this.getAllPronunciations(),
+      },
+    };
+  }
+
+  /**
+   * Import configuration from a JSON object
+   * 
+   * @param config - Configuration to import
+   */
+  importConfig(config: MindConfig): void {
+    this.updateConfig(config);
+    
+    // Re-initialize pronunciation dictionary
+    if (config.pronunciation?.dictionary) {
+      this.setPronunciationConfig(config.pronunciation);
+    }
+  }
+
+  /**
    * Cleanup and dispose resources
    */
   dispose(): void {
@@ -341,5 +722,6 @@ export class KwamiMind {
       this.currentAudioStream.getTracks().forEach(track => track.stop());
       this.currentAudioStream = null;
     }
+    this.pronunciationDictionary.clear();
   }
 }
