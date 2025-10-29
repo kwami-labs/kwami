@@ -68,7 +68,8 @@ export class Blob {
     midTime: 0.5,
     highTime: 0.8,
     ultraTime: 0.3,
-    enabled: true
+    enabled: true,
+    timeEnabled: true
   };
   public colors = { x: '#ff0000', y: '#00ff00', z: '#0000ff' };
   public baseScale = 1.0; // User-defined base scale

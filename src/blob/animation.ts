@@ -71,6 +71,7 @@ export function animateBlob(
     highTime: number;
     ultraTime: number;
     enabled: boolean;
+    timeEnabled: boolean;
   } = {
     bassSpike: 0.3,
     midSpike: 0.4,
@@ -78,7 +79,8 @@ export function animateBlob(
     midTime: 0.5,
     highTime: 0.8,
     ultraTime: 0.3,
-    enabled: true
+    enabled: true,
+    timeEnabled: true
   },
 ): void {
   const positions = mesh.geometry.attributes.position;
@@ -94,7 +96,7 @@ export function animateBlob(
   
   // Time calculation - faster for more responsive animation
   // Audio modulates the time speed (makes animation more dynamic with music)
-  const audioTimeMod = audioEffects.enabled 
+  const audioTimeMod = (audioEffects.enabled && audioEffects.timeEnabled)
     ? 1 + (bands.mid * audioEffects.midTime + bands.high * audioEffects.highTime + bands.ultra * audioEffects.ultraTime)
     : 1;
   const reduction = 0.00003;
