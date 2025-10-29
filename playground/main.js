@@ -65,6 +65,8 @@ window.swapLeftSidebar = function() {
         initializeCameraControls();
       } else if (sidebarState.left === 'soul') {
         initializeSoulControls();
+      } else if (sidebarState.left === 'mind') {
+        initializeMindControls();
       }
     }
   }, 100);
@@ -92,6 +94,8 @@ window.swapRightSidebar = function() {
         initializeCameraControls();
       } else if (sidebarState.right === 'soul') {
         initializeSoulControls();
+      } else if (sidebarState.right === 'mind') {
+        initializeMindControls();
       }
     }
   }, 100);
@@ -303,6 +307,13 @@ window.randomizeBackgroundImage = function() {
 // Initialize sidebars first
 initializeSidebars();
 
+// Initialize Mind controls since Mind is on the left by default
+setTimeout(() => {
+  if (sidebarState.left === 'mind') {
+    initializeMindControls();
+  }
+}, 100);
+
 // Initialize Kwami
 const canvas = document.getElementById('kwami-canvas');
 
@@ -376,10 +387,36 @@ try {
   showError('Failed to initialize Kwami: ' + error.message);
 }
 
+// ============================================================================
+// Mind Functions (ElevenLabs AI Agent Configuration)
+// ============================================================================
+
+// Global mind configuration storage
+window.mindConfig = {
+  voiceSettings: {
+    stability: 0.5,
+    similarity_boost: 0.75,
+    style: 0.0,
+    use_speaker_boost: true
+  },
+  pronunciationDict: {},
+  outputFormat: 'mp3_44100_128',
+  optimizeLatency: false
+};
+
 // Initialize Mind
 window.initializeMind = async function() {
   const apiKey = document.getElementById('api-key').value.trim();
-  const voiceId = document.getElementById('voice-id').value.trim();
+  let voiceId = document.getElementById('voice-id').value.trim();
+  
+  // Check if custom voice ID is selected
+  if (voiceId === 'custom') {
+    voiceId = document.getElementById('custom-voice-id').value.trim();
+    if (!voiceId) {
+      showError('Please enter a custom voice ID');
+      return;
+    }
+  }
 
   if (!apiKey) {
     showError('Please enter your ElevenLabs API Key');
@@ -393,9 +430,20 @@ window.initializeMind = async function() {
     window.kwami.mind.setVoiceId(voiceId);
     window.kwami.mind.config.apiKey = apiKey;
     
+    // Apply model
+    const model = document.getElementById('voice-model').value;
+    window.kwami.mind.setModel(model);
+    
+    // Apply initial voice settings
+    applyVoiceSettings();
+    
     await window.kwami.mind.initialize();
     
+    // Enable all Mind buttons
     document.getElementById('speak-btn').disabled = false;
+    document.getElementById('preview-btn').disabled = false;
+    document.getElementById('test-mic-btn').disabled = false;
+    document.getElementById('start-conversation-btn').disabled = false;
     document.getElementById('init-btn').textContent = '✅ Mind Ready';
     document.getElementById('init-btn').disabled = true;
     
@@ -404,6 +452,458 @@ window.initializeMind = async function() {
     showError('Failed to initialize Mind: ' + error.message);
   }
 };
+
+// Apply Voice Settings
+window.applyVoiceSettings = function() {
+  if (!window.kwami || !window.kwami.mind) return;
+  
+  const settings = {
+    stability: parseFloat(document.getElementById('voice-stability').value),
+    similarity_boost: parseFloat(document.getElementById('voice-similarity').value),
+    style: parseFloat(document.getElementById('voice-style').value),
+    use_speaker_boost: document.getElementById('voice-speaker-boost').checked
+  };
+  
+  window.mindConfig.voiceSettings = settings;
+  window.kwami.mind.setVoiceSettings(settings);
+  
+  updateStatus('✅ Voice settings applied!');
+};
+
+// Load Available Voices from ElevenLabs
+window.loadAvailableVoices = async function() {
+  if (!window.kwami || !window.kwami.mind || !window.kwami.mind.isReady()) {
+    showError('Please initialize Mind first');
+    return;
+  }
+  
+  try {
+    updateStatus('🔄 Loading available voices...');
+    
+    const voices = await window.kwami.mind.getAvailableVoices();
+    
+    const voicesList = document.getElementById('user-voices');
+    voicesList.innerHTML = '';
+    
+    voices.forEach(voice => {
+      const option = document.createElement('option');
+      option.value = voice.voice_id;
+      option.textContent = `${voice.name} (${voice.category || 'Custom'})`;
+      voicesList.appendChild(option);
+    });
+    
+    document.getElementById('available-voices-list').style.display = 'block';
+    updateStatus(`✅ Loaded ${voices.length} voices!`);
+  } catch (error) {
+    showError('Failed to load voices: ' + error.message);
+  }
+};
+
+// Select User Voice
+window.selectUserVoice = function() {
+  const voicesList = document.getElementById('user-voices');
+  const selectedVoiceId = voicesList.value;
+  
+  if (!selectedVoiceId) {
+    showError('Please select a voice');
+    return;
+  }
+  
+  // Update the voice ID in the main dropdown
+  const voiceSelect = document.getElementById('voice-id');
+  voiceSelect.value = 'custom';
+  document.getElementById('custom-voice-id').value = selectedVoiceId;
+  document.getElementById('custom-voice-container').style.display = 'block';
+  
+  // Apply the new voice
+  if (window.kwami && window.kwami.mind) {
+    window.kwami.mind.setVoiceId(selectedVoiceId);
+  }
+  
+  const selectedText = voicesList.options[voicesList.selectedIndex].text;
+  updateStatus(`✅ Voice changed to: ${selectedText}`);
+};
+
+// Apply Voice Preset
+window.applyVoicePreset = function(preset) {
+  const presets = {
+    natural: {
+      stability: 0.5,
+      similarity_boost: 0.75,
+      style: 0.0,
+      use_speaker_boost: true
+    },
+    expressive: {
+      stability: 0.3,
+      similarity_boost: 0.8,
+      style: 0.4,
+      use_speaker_boost: true
+    },
+    stable: {
+      stability: 0.8,
+      similarity_boost: 0.7,
+      style: 0.0,
+      use_speaker_boost: true
+    },
+    clear: {
+      stability: 0.7,
+      similarity_boost: 0.9,
+      style: 0.0,
+      use_speaker_boost: true
+    }
+  };
+  
+  const settings = presets[preset];
+  if (!settings) return;
+  
+  // Update UI
+  document.getElementById('voice-stability').value = settings.stability;
+  document.getElementById('voice-similarity').value = settings.similarity_boost;
+  document.getElementById('voice-style').value = settings.style;
+  document.getElementById('voice-speaker-boost').checked = settings.use_speaker_boost;
+  
+  updateValueDisplay('voice-stability-value', settings.stability, 2);
+  updateValueDisplay('voice-similarity-value', settings.similarity_boost, 2);
+  updateValueDisplay('voice-style-value', settings.style, 2);
+  
+  // Apply settings
+  applyVoiceSettings();
+  
+  const presetNames = {
+    natural: 'Natural',
+    expressive: 'Expressive',
+    stable: 'Stable',
+    clear: 'Clear & Crisp'
+  };
+  
+  updateStatus(`✅ Applied ${presetNames[preset]} preset!`);
+};
+
+// Preview Voice
+window.previewVoice = async function() {
+  const previewText = "Hello! This is a preview of my voice. How do I sound?";
+  
+  try {
+    updateStatus('🎤 Generating preview...');
+    document.getElementById('preview-btn').disabled = true;
+    
+    await window.kwami.speak(previewText);
+    
+    updateStatus('✅ Preview complete!');
+    document.getElementById('preview-btn').disabled = false;
+  } catch (error) {
+    showError('Failed to preview voice: ' + error.message);
+    document.getElementById('preview-btn').disabled = false;
+  }
+};
+
+// Start Conversation
+window.startConversation = async function() {
+  if (!window.kwami || !window.kwami.mind || !window.kwami.mind.isReady()) {
+    showError('Please initialize Mind first');
+    return;
+  }
+  
+  const agentId = document.getElementById('agent-id').value.trim();
+  const firstMessage = document.getElementById('conversation-first-message').value.trim();
+  
+  try {
+    updateStatus('🔄 Starting conversation...');
+    document.getElementById('start-conversation-btn').disabled = true;
+    
+    // Build system prompt from Soul if available
+    let systemPrompt = 'You are a helpful AI assistant.';
+    if (window.kwami.soul) {
+      systemPrompt = window.kwami.soul.getSystemPrompt();
+    }
+    
+    await window.kwami.mind.startConversation(systemPrompt);
+    
+    // Speak first message if provided
+    if (firstMessage) {
+      await window.kwami.speak(firstMessage);
+    }
+    
+    document.getElementById('start-conversation-btn').style.display = 'none';
+    document.getElementById('stop-conversation-btn').style.display = 'block';
+    document.getElementById('stop-conversation-btn').disabled = false;
+    
+    updateStatus('✅ Conversation started! Listening...');
+  } catch (error) {
+    showError('Failed to start conversation: ' + error.message);
+    document.getElementById('start-conversation-btn').disabled = false;
+  }
+};
+
+// Stop Conversation
+window.stopConversation = async function() {
+  if (!window.kwami || !window.kwami.mind) return;
+  
+  try {
+    updateStatus('🔄 Stopping conversation...');
+    
+    await window.kwami.mind.stopConversation();
+    
+    document.getElementById('start-conversation-btn').style.display = 'block';
+    document.getElementById('start-conversation-btn').disabled = false;
+    document.getElementById('stop-conversation-btn').style.display = 'none';
+    
+    updateStatus('✅ Conversation stopped.');
+  } catch (error) {
+    showError('Failed to stop conversation: ' + error.message);
+  }
+};
+
+// Test Microphone
+window.testMicrophone = async function() {
+  if (!window.kwami || !window.kwami.mind) {
+    showError('Please initialize Mind first');
+    return;
+  }
+  
+  try {
+    updateStatus('🎤 Testing microphone...');
+    
+    const stream = await window.kwami.mind.listen();
+    
+    document.getElementById('mic-status').style.display = 'block';
+    document.getElementById('mic-status-text').textContent = 'Active';
+    document.getElementById('mic-status-text').style.color = '#4CAF50';
+    
+    updateStatus('✅ Microphone is working!');
+    
+    // Stop listening after 3 seconds
+    setTimeout(() => {
+      window.kwami.mind.stopListening();
+      document.getElementById('mic-status-text').textContent = 'Test complete';
+      document.getElementById('mic-status-text').style.color = '#888';
+    }, 3000);
+  } catch (error) {
+    document.getElementById('mic-status').style.display = 'block';
+    document.getElementById('mic-status-text').textContent = 'Failed';
+    document.getElementById('mic-status-text').style.color = '#f44336';
+    showError('Microphone test failed: ' + error.message);
+  }
+};
+
+// Apply Pronunciation Rules
+window.applyPronunciation = function() {
+  const dictText = document.getElementById('pronunciation-dict').value.trim();
+  
+  if (!dictText) {
+    updateStatus('ℹ️ No pronunciation rules to apply');
+    return;
+  }
+  
+  const lines = dictText.split('\n');
+  const dict = {};
+  
+  lines.forEach(line => {
+    const [word, pronunciation] = line.split(':').map(s => s.trim());
+    if (word && pronunciation) {
+      dict[word] = pronunciation;
+    }
+  });
+  
+  window.mindConfig.pronunciationDict = dict;
+  
+  updateStatus(`✅ Applied ${Object.keys(dict).length} pronunciation rules!`);
+};
+
+// Check API Usage
+window.checkUsage = async function() {
+  if (!window.kwami || !window.kwami.mind || !window.kwami.mind.isReady()) {
+    showError('Please initialize Mind first');
+    return;
+  }
+  
+  try {
+    updateStatus('🔄 Checking API usage...');
+    
+    // Note: This would require additional ElevenLabs API endpoint
+    // For now, show placeholder
+    document.getElementById('usage-info').style.display = 'block';
+    document.getElementById('usage-characters').textContent = 'N/A';
+    document.getElementById('usage-limit').textContent = 'N/A';
+    document.getElementById('usage-remaining').textContent = 'N/A';
+    
+    updateStatus('ℹ️ Usage API endpoint requires additional implementation');
+  } catch (error) {
+    showError('Failed to check usage: ' + error.message);
+  }
+};
+
+// Export Mind Configuration
+window.exportMindConfig = function() {
+  const config = {
+    voiceId: document.getElementById('voice-id').value,
+    model: document.getElementById('voice-model').value,
+    language: document.getElementById('voice-language').value,
+    voiceSettings: {
+      stability: parseFloat(document.getElementById('voice-stability').value),
+      similarity_boost: parseFloat(document.getElementById('voice-similarity').value),
+      style: parseFloat(document.getElementById('voice-style').value),
+      use_speaker_boost: document.getElementById('voice-speaker-boost').checked
+    },
+    advancedSettings: {
+      outputFormat: document.getElementById('tts-output-format').value,
+      optimizeLatency: document.getElementById('tts-optimize-latency').checked,
+      nextTextTimeout: parseInt(document.getElementById('tts-next-text').value)
+    },
+    conversational: {
+      agentId: document.getElementById('agent-id').value,
+      firstMessage: document.getElementById('conversation-first-message').value,
+      maxDuration: parseInt(document.getElementById('conversation-max-duration').value),
+      allowInterruption: document.getElementById('conversation-interruption').checked
+    },
+    stt: {
+      model: document.getElementById('stt-model').value,
+      punctuation: document.getElementById('stt-punctuation').checked,
+      diarization: document.getElementById('stt-diarization').checked
+    },
+    pronunciation: {
+      dictionary: document.getElementById('pronunciation-dict').value,
+      usePhonemes: document.getElementById('use-phonemes').checked
+    }
+  };
+  
+  const blob = new Blob([JSON.stringify(config, null, 2)], { type: 'application/json' });
+  const link = document.createElement('a');
+  link.href = URL.createObjectURL(blob);
+  link.download = `kwami-mind-config-${Date.now()}.json`;
+  link.click();
+  
+  setTimeout(() => URL.revokeObjectURL(link.href), 100);
+  
+  updateStatus('💾 Mind configuration exported!');
+};
+
+// Import Mind Configuration
+window.importMindConfig = function() {
+  const fileInput = document.getElementById('mind-config-import');
+  fileInput.click();
+};
+
+// Initialize Mind controls event listeners
+function initializeMindControls() {
+  // Voice ID dropdown change handler
+  const voiceIdSelect = document.getElementById('voice-id');
+  if (voiceIdSelect) {
+    voiceIdSelect.addEventListener('change', (e) => {
+      const customContainer = document.getElementById('custom-voice-container');
+      if (e.target.value === 'custom') {
+        customContainer.style.display = 'block';
+      } else {
+        customContainer.style.display = 'none';
+        if (window.kwami && window.kwami.mind) {
+          window.kwami.mind.setVoiceId(e.target.value);
+        }
+      }
+    });
+  }
+  
+  // Voice stability slider
+  const voiceStability = document.getElementById('voice-stability');
+  if (voiceStability) {
+    voiceStability.addEventListener('input', (e) => {
+      updateValueDisplay('voice-stability-value', e.target.value, 2);
+    });
+  }
+  
+  // Voice similarity slider
+  const voiceSimilarity = document.getElementById('voice-similarity');
+  if (voiceSimilarity) {
+    voiceSimilarity.addEventListener('input', (e) => {
+      updateValueDisplay('voice-similarity-value', e.target.value, 2);
+    });
+  }
+  
+  // Voice style slider
+  const voiceStyle = document.getElementById('voice-style');
+  if (voiceStyle) {
+    voiceStyle.addEventListener('input', (e) => {
+      updateValueDisplay('voice-style-value', e.target.value, 2);
+    });
+  }
+  
+  // TTS next text timeout slider
+  const ttsNextText = document.getElementById('tts-next-text');
+  if (ttsNextText) {
+    ttsNextText.addEventListener('input', (e) => {
+      updateValueDisplay('tts-next-text-value', e.target.value, 0);
+    });
+  }
+  
+  // Model change handler
+  const voiceModel = document.getElementById('voice-model');
+  if (voiceModel) {
+    voiceModel.addEventListener('change', (e) => {
+      if (window.kwami && window.kwami.mind) {
+        window.kwami.mind.setModel(e.target.value);
+        updateStatus(`Model changed to: ${e.target.options[e.target.selectedIndex].text}`);
+      }
+    });
+  }
+  
+  // Config import file handler
+  const configImport = document.getElementById('mind-config-import');
+  if (configImport) {
+    configImport.addEventListener('change', async (e) => {
+      const file = e.target.files[0];
+      if (!file) return;
+      
+      try {
+        const text = await file.text();
+        const config = JSON.parse(text);
+        
+        // Apply imported configuration
+        if (config.voiceId) document.getElementById('voice-id').value = config.voiceId;
+        if (config.model) document.getElementById('voice-model').value = config.model;
+        if (config.language) document.getElementById('voice-language').value = config.language;
+        
+        if (config.voiceSettings) {
+          document.getElementById('voice-stability').value = config.voiceSettings.stability;
+          document.getElementById('voice-similarity').value = config.voiceSettings.similarity_boost;
+          document.getElementById('voice-style').value = config.voiceSettings.style;
+          document.getElementById('voice-speaker-boost').checked = config.voiceSettings.use_speaker_boost;
+          
+          updateValueDisplay('voice-stability-value', config.voiceSettings.stability, 2);
+          updateValueDisplay('voice-similarity-value', config.voiceSettings.similarity_boost, 2);
+          updateValueDisplay('voice-style-value', config.voiceSettings.style, 2);
+        }
+        
+        if (config.advancedSettings) {
+          document.getElementById('tts-output-format').value = config.advancedSettings.outputFormat;
+          document.getElementById('tts-optimize-latency').checked = config.advancedSettings.optimizeLatency;
+          document.getElementById('tts-next-text').value = config.advancedSettings.nextTextTimeout;
+          updateValueDisplay('tts-next-text-value', config.advancedSettings.nextTextTimeout, 0);
+        }
+        
+        if (config.conversational) {
+          document.getElementById('agent-id').value = config.conversational.agentId || '';
+          document.getElementById('conversation-first-message').value = config.conversational.firstMessage || '';
+          document.getElementById('conversation-max-duration').value = config.conversational.maxDuration || 300;
+          document.getElementById('conversation-interruption').checked = config.conversational.allowInterruption || false;
+        }
+        
+        if (config.stt) {
+          document.getElementById('stt-model').value = config.stt.model || 'base';
+          document.getElementById('stt-punctuation').checked = config.stt.punctuation !== false;
+          document.getElementById('stt-diarization').checked = config.stt.diarization || false;
+        }
+        
+        if (config.pronunciation) {
+          document.getElementById('pronunciation-dict').value = config.pronunciation.dictionary || '';
+          document.getElementById('use-phonemes').checked = config.pronunciation.usePhonemes || false;
+        }
+        
+        updateStatus('✅ Mind configuration imported!');
+      } catch (error) {
+        showError('Failed to import configuration: ' + error.message);
+      }
+    });
+  }
+}
 
 // Load Personality
 window.loadPersonality = async function(type) {
@@ -1109,14 +1609,14 @@ window.testListening = function() {
 
 // Store audio effect parameters globally
 window.audioEffects = {
-  bassSpike: 0.25,
-  midSpike: 0.20,
-  highSpike: 0.15,
+  bassSpike: 0.35,
+  midSpike: 0.30,
+  highSpike: 0.25,
   midTime: 0.2,
   highTime: 0.3,
   ultraTime: 0.15,
   enabled: true,
-  timeEnabled: true
+  timeEnabled: false  // Disabled by default to prevent chaotic movement
 };
 
 // Initialize audio effect controls
@@ -1124,6 +1624,7 @@ function initializeAudioEffects() {
   // Bass → Spikes
   const audioBassSpike = document.getElementById('audio-bass-spike');
   if (audioBassSpike) {
+    updateValueDisplay('audio-bass-spike-value', audioBassSpike.value, 2);
     audioBassSpike.addEventListener('input', (e) => {
       window.audioEffects.bassSpike = parseFloat(e.target.value);
       updateValueDisplay('audio-bass-spike-value', e.target.value, 2);
@@ -1136,6 +1637,7 @@ function initializeAudioEffects() {
   // Mid → Spikes
   const audioMidSpike = document.getElementById('audio-mid-spike');
   if (audioMidSpike) {
+    updateValueDisplay('audio-mid-spike-value', audioMidSpike.value, 2);
     audioMidSpike.addEventListener('input', (e) => {
       window.audioEffects.midSpike = parseFloat(e.target.value);
       updateValueDisplay('audio-mid-spike-value', e.target.value, 2);
@@ -1148,6 +1650,7 @@ function initializeAudioEffects() {
   // High → Spikes
   const audioHighSpike = document.getElementById('audio-high-spike');
   if (audioHighSpike) {
+    updateValueDisplay('audio-high-spike-value', audioHighSpike.value, 2);
     audioHighSpike.addEventListener('input', (e) => {
       window.audioEffects.highSpike = parseFloat(e.target.value);
       updateValueDisplay('audio-high-spike-value', e.target.value, 2);
@@ -1160,6 +1663,7 @@ function initializeAudioEffects() {
   // Mid → Time
   const audioMidTime = document.getElementById('audio-mid-time');
   if (audioMidTime) {
+    updateValueDisplay('audio-mid-time-value', audioMidTime.value, 1);
     audioMidTime.addEventListener('input', (e) => {
       window.audioEffects.midTime = parseFloat(e.target.value);
       updateValueDisplay('audio-mid-time-value', e.target.value, 1);
@@ -1172,6 +1676,7 @@ function initializeAudioEffects() {
   // High → Time
   const audioHighTime = document.getElementById('audio-high-time');
   if (audioHighTime) {
+    updateValueDisplay('audio-high-time-value', audioHighTime.value, 1);
     audioHighTime.addEventListener('input', (e) => {
       window.audioEffects.highTime = parseFloat(e.target.value);
       updateValueDisplay('audio-high-time-value', e.target.value, 1);
@@ -1184,6 +1689,7 @@ function initializeAudioEffects() {
   // Ultra → Time
   const audioUltraTime = document.getElementById('audio-ultra-time');
   if (audioUltraTime) {
+    updateValueDisplay('audio-ultra-time-value', audioUltraTime.value, 1);
     audioUltraTime.addEventListener('input', (e) => {
       window.audioEffects.ultraTime = parseFloat(e.target.value);
       updateValueDisplay('audio-ultra-time-value', e.target.value, 1);
@@ -1225,6 +1731,7 @@ function initializeAudioEffects() {
   // Audio Reactive toggle
   const audioReactiveToggle = document.getElementById('audio-reactive');
   if (audioReactiveToggle) {
+    audioReactiveToggle.checked = window.audioEffects.enabled;
     audioReactiveToggle.addEventListener('change', (e) => {
       window.audioEffects.enabled = e.target.checked;
       if (window.kwami && window.kwami.body.blob) {
@@ -1237,6 +1744,7 @@ function initializeAudioEffects() {
   // Time Modulation toggle
   const audioTimeToggle = document.getElementById('audio-time-enabled');
   if (audioTimeToggle) {
+    audioTimeToggle.checked = window.audioEffects.timeEnabled;
     audioTimeToggle.addEventListener('change', (e) => {
       window.audioEffects.timeEnabled = e.target.checked;
       if (window.kwami && window.kwami.body.blob) {
