@@ -1,14 +1,24 @@
 # 🎙️ Kwami Conversational AI
 
-## ⚠️ Important Notice
+## ⚠️ Important Update
 
-**ElevenLabs Conversational AI is currently in beta** and requires:
+**ElevenLabs Conversational AI is now publicly available!**
 
-1. Access to the ElevenLabs Conversational AI beta program
-2. A valid Agent ID from your ElevenLabs dashboard
-3. The conversational AI add-on in your ElevenLabs subscription plan
+### What You Need:
 
-**Current Status**: The implementation provides a demo mode that simulates the conversation flow using standard TTS and placeholder STT. Full WebSocket-based conversations will be available once you have beta access.
+1. **Free account** at [elevenlabs.io/conversational-ai](https://elevenlabs.io/conversational-ai)
+2. **Agent ID** from your ElevenLabs dashboard (after creating an agent)
+3. **15 minutes free** per month (paid plans for more)
+
+### Integration Status:
+
+The exact programmatic API for conversational agents is still being determined. ElevenLabs may offer:
+
+- Dashboard-based agent creation and testing
+- Widget/iframe embedding for websites
+- Different API endpoints than initially assumed
+
+**Current Implementation**: Provides structure for WebSocket integration, with demo mode using standard TTS.
 
 ## Overview
 

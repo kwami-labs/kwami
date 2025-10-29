@@ -10,6 +10,7 @@ uniform float shininess;
 uniform float opacity;
 uniform sampler2D backgroundTexture;
 uniform bool useBackgroundTexture;
+uniform float lightIntensity;
 
 void main(){
   vec3 lightDir=normalize(lightPosition-vPosition);
@@ -44,6 +45,13 @@ void main(){
   }
   
   vec3 finalColor=clamp(_color+specular,0.,1.);
+
+  if(lightIntensity>0.){
+    float normalizedIntensity=clamp(lightIntensity/2.5,0.,3.);
+    float rim=pow(1.-max(dot(normalize(vNormal),viewDir),0.),2.);
+    vec3 emissionColor=finalColor*(0.4+rim*0.6);
+    finalColor=clamp(finalColor+emissionColor*normalizedIntensity,0.,1.);
+  }
   float alpha = opacity;
 
   if (useBackgroundTexture) {

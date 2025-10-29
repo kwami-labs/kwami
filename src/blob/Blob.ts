@@ -116,6 +116,7 @@ export class Blob {
     const material = this.skins.get(this.currentSkin)!;
     this.mesh = new Mesh(geometry, material);
     this.updateMaterialOpacity(this.opacity);
+    this.updateLightIntensityUniforms();
 
     // Apply initial configuration
     if (options.spikes) this.spikes = options.spikes;
@@ -177,6 +178,7 @@ export class Blob {
   public setBackgroundTexture(texture: Texture | null): void {
     this.backgroundTexture = texture;
     this.applyBackgroundTextureToAllSkins();
+    this.updateLightIntensityUniforms();
   }
 
   /**
@@ -297,6 +299,8 @@ export class Blob {
       
       // Apply current wireframe state to the new material
       material.wireframe = currentWireframe;
+
+      this.updateLightIntensityUniforms();
     }
   }
 
@@ -450,6 +454,7 @@ export class Blob {
     console.log('Blob.setScale called with:', scale);
     this.baseScale = scale;
     console.log('Base scale set to:', this.baseScale);
+    this.updateLightPositions();
   }
 
   /**
@@ -500,6 +505,7 @@ export class Blob {
         this.lights.x.intensity = intensity;
         this.lights.y.intensity = intensity;
         this.lights.z.intensity = intensity;
+        this.updateLightPositions();
       }
     } else {
       // Turn off lights by setting intensity to 0
@@ -509,6 +515,8 @@ export class Blob {
         this.lights.z.intensity = 0;
       }
     }
+
+    this.updateLightIntensityUniforms();
   }
 
   /**
@@ -520,17 +528,14 @@ export class Blob {
     const lightY = new PointLight(new Color(this.colors.y).getHex(), this.lightIntensity, 10);
     const lightZ = new PointLight(new Color(this.colors.z).getHex(), this.lightIntensity, 10);
     
-    // Position lights around the blob
-    lightX.position.set(3, 0, 0);
-    lightY.position.set(0, 3, 0);
-    lightZ.position.set(0, 0, 3);
-    
     // Add lights to the scene
     this.options.scene.add(lightX);
     this.options.scene.add(lightY);
     this.options.scene.add(lightZ);
     
     this.lights = { x: lightX, y: lightY, z: lightZ };
+
+    this.updateLightPositions();
   }
 
   /**
@@ -541,6 +546,42 @@ export class Blob {
       this.lights.x.color.setHex(new Color(this.colors.x).getHex());
       this.lights.y.color.setHex(new Color(this.colors.y).getHex());
       this.lights.z.color.setHex(new Color(this.colors.z).getHex());
+    }
+  }
+
+  private updateLightPositions(): void {
+    if (!this.lights) return;
+
+    const radius = Math.max(2.5, this.baseScale * 1.5);
+    const range = Math.max(12, this.baseScale * 6);
+
+    this.lights.x.position.set(radius, 0, 0);
+    this.lights.y.position.set(0, radius, 0);
+    this.lights.z.position.set(0, 0, radius);
+
+    this.lights.x.distance = range;
+    this.lights.y.distance = range;
+    this.lights.z.distance = range;
+
+    this.lights.x.decay = 2;
+    this.lights.y.decay = 2;
+    this.lights.z.decay = 2;
+  }
+
+  private updateLightIntensityUniforms(): void {
+    const applyIntensity = (material: ShaderMaterial) => {
+      if (!material.uniforms) return;
+
+      if (Object.prototype.hasOwnProperty.call(material.uniforms, 'lightIntensity')) {
+        material.uniforms.lightIntensity.value = this.lightIntensity;
+        material.needsUpdate = true;
+      }
+    };
+
+    this.skins.forEach(applyIntensity);
+
+    if (this.mesh) {
+      applyIntensity(this.mesh.material as ShaderMaterial);
     }
   }
 

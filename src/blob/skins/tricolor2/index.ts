@@ -52,6 +52,9 @@ export function createTricolor2Skin(config: TricolorSkinConfig): ShaderMaterial 
       useBackgroundTexture: {
         value: false,
       },
+      lightIntensity: {
+        value: 0,
+      },
     },
   });
 }

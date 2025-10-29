@@ -10,6 +10,7 @@ uniform float shininess;
 uniform float opacity;
 uniform sampler2D backgroundTexture;
 uniform bool useBackgroundTexture;
+uniform float lightIntensity;
 
 float zebraStripes(float x,float frequency,float width){
   return smoothstep(.5-width*.5,.5+width*.5,mod(x*frequency+.5,1.));
@@ -32,6 +33,13 @@ void main(){
   color=mix(color,_color3,stripeY*0.5);
   
   vec3 finalColor=clamp(color+specular,0.,1.);
+
+  if(lightIntensity>0.){
+    float normalizedIntensity=clamp(lightIntensity/2.5,0.,3.);
+    float rim=pow(1.-max(dot(normalize(vNormal),viewDir),0.),2.);
+    vec3 emissionColor=finalColor*(0.4+rim*0.6);
+    finalColor=clamp(finalColor+emissionColor*normalizedIntensity,0.,1.);
+  }
   float alpha = opacity;
 
   if (useBackgroundTexture) {

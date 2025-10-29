@@ -1,8 +1,15 @@
-# 🚀 ElevenLabs Conversational AI Beta Guide
+# 🚀 ElevenLabs Conversational AI Integration Guide
 
-## Current Status
+## 🎉 Update: Conversational AI is Now Public!
 
-Kwami's conversational AI implementation is **ready and waiting** for ElevenLabs' WebSocket API. Currently operating in **demo mode** to showcase the interface and flow.
+Great news! ElevenLabs Conversational AI is **now publicly available** - no beta access needed!
+
+### How to Get Started
+
+1. **Sign up for free** at [elevenlabs.io/conversational-ai](https://elevenlabs.io/conversational-ai)
+2. **Free tier includes** 15 minutes of conversation per month
+3. **Create your agent** in the ElevenLabs dashboard
+4. **Get your Agent ID** for integration
 
 ## What's Working Now
 
@@ -22,24 +29,33 @@ Kwami's conversational AI implementation is **ready and waiting** for ElevenLabs
 - Real-time transcription display
 - Conversation callbacks and events
 
-## Getting Beta Access
+## Setting Up Your Agent
 
-### Option 1: Request ElevenLabs Beta Access
+### Step 1: Create Your ElevenLabs Account
 
-1. **Contact ElevenLabs Support**
+1. **Go to** [elevenlabs.io/conversational-ai](https://elevenlabs.io/conversational-ai)
+2. **Sign up** for a free account
+3. **Verify** your email
 
-   - Email: support@elevenlabs.io
-   - Subject: "Conversational AI Beta Access Request"
-   - Mention your use case and Kwami integration
+### Step 2: Create Your Conversational Agent
 
-2. **Check Your Plan**
+1. **Dashboard**: Navigate to the Conversational AI section
+2. **Create Agent**: Click "Create New Agent"
+3. **Configure**:
+   - Choose a voice
+   - Set the language model
+   - Add custom instructions
+   - Configure knowledge base (optional)
+4. **Save**: Get your Agent ID
 
-   - Conversational AI may require specific subscription tiers
-   - Enterprise plans typically have priority access
+### Step 3: Integration Options
 
-3. **Join Developer Community**
-   - [ElevenLabs Discord](https://discord.gg/elevenlabs)
-   - Follow announcements for beta program openings
+**Note**: The exact programmatic API for conversational agents may differ from standard TTS. Check their latest documentation for:
+
+- Widget/iframe embedding
+- SDK methods
+- WebSocket endpoints
+- REST API endpoints
 
 ### Option 2: Alternative Implementation
 

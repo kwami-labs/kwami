@@ -55,6 +55,9 @@ export function createZebraSkin(config: ZebraSkinConfig | TricolorSkinConfig): S
       useBackgroundTexture: {
         value: false,
       },
+      lightIntensity: {
+        value: 0,
+      },
     },
   });
 }

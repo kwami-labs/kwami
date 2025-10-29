@@ -3,10 +3,19 @@ import type {
   PerspectiveCamera,
   Scene,
 } from 'three';
-import { Color, CanvasTexture, Vector2 } from 'three';
+import {
+  Color,
+  CanvasTexture,
+  Mesh,
+  PlaneGeometry,
+  MeshBasicMaterial,
+  Vector3,
+  TextureLoader,
+  Texture,
+  SRGBColorSpace,
+} from 'three';
 import { KwamiAudio } from './Audio';
 import { Blob } from '../blob/Blob.js';
-import { BackgroundManager, type BackgroundConfig } from './BackgroundManager';
 import { setupScene } from '../scene/setup.js';
 import type { BodyConfig, BlobSkinType, SceneBackgroundConfig } from '../types/index';
 
@@ -20,8 +29,11 @@ export class KwamiBody {
   private camera: PerspectiveCamera;
   private scene: Scene;
   private resizeObserver?: ResizeObserver;
-  private backgroundManager: BackgroundManager;
-  private blobTransparencyMode = false;
+  private backgroundPlane: Mesh | null = null;
+  private blobImageTransparencyMode = false;
+  private backgroundTexture: Texture | null = null;
+  private currentBackgroundImageUrl: string | null = null;
+  private readonly textureLoader = new TextureLoader();
 
   public audio: KwamiAudio;
   public blob: Blob;
@@ -45,15 +57,12 @@ export class KwamiBody {
       renderer: this.renderer,
       audio: this.audio,
       skin: config?.initialSkin || 'tricolor',
-      onAfterRender: () => this.updateBackgroundPlane(),
+      onAfterRender: () => this.refreshBlobImageTransparencyMode(),
       ...config?.blob,
     });
 
     // Add blob to scene
     this.scene.add(this.blob.getMesh());
-
-    // Initialize background manager
-    this.backgroundManager = new BackgroundManager(this.scene);
 
     // Setup resize handling
     this.setupResize();
@@ -180,12 +189,28 @@ export class KwamiBody {
   }
 
   /**
-   * Set the scene background using the new BackgroundManager
+   * Set the scene background
    * @param config - Background configuration
    */
-  setBackground(config: BackgroundConfig): void {
-    this.backgroundManager.setBackground(config);
-    this.updateBlobBackgroundTexture();
+  setBackground(config: SceneBackgroundConfig): void {
+    if (!config || config.type === 'transparent') {
+      this.scene.background = null;
+      return;
+    }
+    
+    if (config.type === 'solid' && config.color) {
+      this.scene.background = new Color(config.color);
+      return;
+    }
+    
+    if (config.type === 'gradient' && config.gradient) {
+      const gradientTexture = this.createGradientTexture(
+        config.gradient.colors,
+        config.gradient.direction || 'vertical'
+      );
+      this.scene.background = gradientTexture;
+      return;
+    }
   }
 
   /**
