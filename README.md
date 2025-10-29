@@ -230,7 +230,7 @@ kwami.body.setBackground({
   type: "gradient",
   color1: "#ff0066",
   color2: "#00ff66",
-  opacity: 0.8
+  opacity: 0.8,
 });
 
 // Get current type
@@ -255,6 +255,7 @@ await kwami.speak("Hello!"); // Speak (TTS)
 ```
 
 **State Behaviors:**
+
 - **Neutral/Idle**: Gentle breathing animation
 - **Listening**: Inward audio-reactive spikes responding to microphone input
 - **Thinking**: Chaotic fluid movements simulating contemplation

@@ -1103,3 +1103,146 @@ setInterval(() => {
     }
   }
 }, 100);
+
+// ============================================================================
+// Audio Player
+// ============================================================================
+
+let audioPlayerElement = null;
+let isAudioPlaying = false;
+
+// Initialize audio player
+function initializeAudioPlayer() {
+  const uploadBtn = document.getElementById('upload-audio-btn');
+  const audioFileInput = document.getElementById('audio-file');
+  const playPauseBtn = document.getElementById('play-pause-btn');
+  const volumeSlider = document.getElementById('volume-slider');
+  
+  // Upload button click
+  uploadBtn.addEventListener('click', () => {
+    audioFileInput.click();
+  });
+  
+  // File selection
+  audioFileInput.addEventListener('change', (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      loadAudioFile(file);
+    }
+  });
+  
+  // Play/Pause button
+  playPauseBtn.addEventListener('click', () => {
+    if (!audioPlayerElement) return;
+    
+    if (isAudioPlaying) {
+      pauseAudio();
+    } else {
+      playAudio();
+    }
+  });
+  
+  // Volume control
+  volumeSlider.addEventListener('input', (e) => {
+    const volume = e.target.value / 100;
+    if (window.kwami && window.kwami.body.audio) {
+      window.kwami.body.audio.setVolume(volume);
+    }
+    
+    // Update volume icon
+    const volumeIcon = document.getElementById('volume-icon');
+    if (volume === 0) {
+      volumeIcon.textContent = '🔇';
+    } else if (volume < 0.5) {
+      volumeIcon.textContent = '🔉';
+    } else {
+      volumeIcon.textContent = '🔊';
+    }
+  });
+}
+
+// Load audio file
+async function loadAudioFile(file) {
+  try {
+    const arrayBuffer = await file.arrayBuffer();
+    
+    if (window.kwami && window.kwami.body.audio) {
+      // Load audio into Kwami's audio system
+      await window.kwami.body.audio.loadAudio(arrayBuffer);
+      
+      // Get the audio element from Kwami
+      audioPlayerElement = window.kwami.body.audio.getAudioElement();
+      
+      // Update UI
+      document.getElementById('audio-name').textContent = file.name;
+      document.getElementById('play-pause-btn').disabled = false;
+      
+      // Add time update listener
+      audioPlayerElement.addEventListener('timeupdate', updateAudioTime);
+      audioPlayerElement.addEventListener('ended', onAudioEnded);
+      
+      // Update total duration
+      audioPlayerElement.addEventListener('loadedmetadata', () => {
+        updateAudioTime();
+      });
+      
+      updateStatus(`✅ Loaded: ${file.name}`);
+    } else {
+      showError('Kwami not initialized. Please initialize first.');
+    }
+  } catch (error) {
+    showError(`Failed to load audio: ${error.message}`);
+    console.error('Audio load error:', error);
+  }
+}
+
+// Play audio
+function playAudio() {
+  if (!audioPlayerElement || !window.kwami) return;
+  
+  window.kwami.body.audio.play();
+  isAudioPlaying = true;
+  document.getElementById('play-pause-btn').textContent = '⏸️';
+  updateStatus('🎵 Playing audio');
+}
+
+// Pause audio
+function pauseAudio() {
+  if (!audioPlayerElement || !window.kwami) return;
+  
+  window.kwami.body.audio.pause();
+  isAudioPlaying = false;
+  document.getElementById('play-pause-btn').textContent = '▶️';
+  updateStatus('⏸️ Audio paused');
+}
+
+// Update audio time display
+function updateAudioTime() {
+  if (!audioPlayerElement) return;
+  
+  const current = audioPlayerElement.currentTime;
+  const duration = audioPlayerElement.duration || 0;
+  
+  const formatTime = (seconds) => {
+    const mins = Math.floor(seconds / 60);
+    const secs = Math.floor(seconds % 60);
+    return `${mins}:${secs.toString().padStart(2, '0')}`;
+  };
+  
+  document.getElementById('audio-time').textContent = 
+    `${formatTime(current)} / ${formatTime(duration)}`;
+}
+
+// Handle audio end
+function onAudioEnded() {
+  isAudioPlaying = false;
+  document.getElementById('play-pause-btn').textContent = '▶️';
+  updateStatus('✅ Audio finished');
+}
+
+// Initialize audio player when DOM is ready
+if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', initializeAudioPlayer);
+} else {
+  initializeAudioPlayer();
+}

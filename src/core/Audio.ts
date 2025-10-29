@@ -139,6 +139,26 @@ export class KwamiAudio {
   }
 
   /**
+   * Load audio from ArrayBuffer (uploaded files)
+   */
+  async loadAudio(arrayBuffer: ArrayBuffer): Promise<void> {
+    try {
+      const blob = new Blob([arrayBuffer], { type: 'audio/mpeg' });
+      const audioURL = URL.createObjectURL(blob);
+      
+      this.loadAudioSource(audioURL);
+      
+      // Reinitialize audio context if needed
+      if (!this.analyser) {
+        this.initialize();
+      }
+    } catch (error) {
+      console.error('Failed to load audio from ArrayBuffer:', error);
+      throw error;
+    }
+  }
+
+  /**
    * Load audio from base64 string
    */
   loadAudioFromBase64(base64Audio: string): void {

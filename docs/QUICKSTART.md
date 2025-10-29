@@ -12,6 +12,7 @@ Get your AI companion up and running in 3 minutes!
 Perfect for trying out Kwami and seeing it in action!
 
 ### 1. Clone and Setup
+
 ```bash
 git clone https://github.com/alexcolls/kwami.git
 cd kwami
@@ -19,14 +20,17 @@ npm install
 ```
 
 ### 2. Run the Playground
+
 ```bash
 npm run playground
 ```
 
 ### 3. Open Your Browser
+
 Navigate to `http://localhost:3000`
 
 ### 4. Configure and Test
+
 1. Enter your ElevenLabs API key
 2. Click "Initialize Mind"
 3. Choose a personality (Kaya, Nexus, or Spark)
@@ -39,56 +43,66 @@ See [playground/README.md](playground/README.md) for detailed playground instruc
 ## 📦 Option 2: Use as Library in Your Project
 
 ### 1. Install Kwami
+
 ```bash
 npm install @kwami/core three simplex-noise
 ```
 
 ### 2. Create Your HTML
+
 ```html
 <!DOCTYPE html>
 <html>
-<head>
-  <style>
-    body { margin: 0; }
-    canvas { width: 100vw; height: 100vh; display: block; }
-  </style>
-</head>
-<body>
-  <canvas id="kwami-canvas"></canvas>
-  <script type="module" src="./main.js"></script>
-</body>
+  <head>
+    <style>
+      body {
+        margin: 0;
+      }
+      canvas {
+        width: 100vw;
+        height: 100vh;
+        display: block;
+      }
+    </style>
+  </head>
+  <body>
+    <canvas id="kwami-canvas"></canvas>
+    <script type="module" src="./main.js"></script>
+  </body>
 </html>
 ```
 
 ### 3. Initialize Kwami
+
 ```javascript
 // main.js
-import { Kwami } from '@kwami/core';
+import { Kwami } from "@kwami/core";
 
-const canvas = document.getElementById('kwami-canvas');
+const canvas = document.getElementById("kwami-canvas");
 
 const kwami = new Kwami(canvas, {
   mind: {
-    apiKey: 'your-elevenlabs-api-key',
+    apiKey: "your-elevenlabs-api-key",
     voice: {
-      voiceId: 'pNInz6obpgDQGcFmaJgB', // Adam voice
-      model: 'eleven_multilingual_v2'
-    }
+      voiceId: "pNInz6obpgDQGcFmaJgB", // Adam voice
+      model: "eleven_multilingual_v2",
+    },
   },
   soul: {
-    name: 'Kaya',
-    personality: 'friendly and helpful AI companion',
-    traits: ['empathetic', 'curious', 'patient']
-  }
+    name: "Kaya",
+    personality: "friendly and helpful AI companion",
+    traits: ["empathetic", "curious", "patient"],
+  },
 });
 
 // Make Kwami speak - blob animates automatically!
-document.addEventListener('click', async () => {
-  await kwami.speak('Hello! I am Kwami, your AI companion!');
+document.addEventListener("click", async () => {
+  await kwami.speak("Hello! I am Kwami, your AI companion!");
 });
 ```
 
 ### 4. Run Your Project
+
 ```bash
 # Using Vite (recommended)
 npx vite
@@ -102,47 +116,51 @@ npx serve
 ## 🎨 Customization Examples
 
 ### Change Voice
+
 ```javascript
-kwami.mind.setVoiceId('EXAVITQu4vr4xnSDxMaL'); // Bella voice
+kwami.mind.setVoiceId("EXAVITQu4vr4xnSDxMaL"); // Bella voice
 kwami.mind.setVoiceSettings({
   stability: 0.7,
   similarity_boost: 0.8,
-  style: 0.5
+  style: 0.5,
 });
 ```
 
 ### Load Personality Template
+
 ```javascript
-await kwami.soul.loadPersonality('/assets/personalities/playful.json');
+await kwami.soul.loadPersonality("/assets/personalities/playful.json");
 ```
 
 ### Update Visual Appearance
+
 ```javascript
 // Randomize blob
 kwami.body.blob.setRandomBlob();
 
 // Change colors
-kwami.body.blob.setColors('#ff0066', '#00ff66', '#6600ff');
+kwami.body.blob.setColors("#ff0066", "#00ff66", "#6600ff");
 
 // Switch skin
-kwami.body.setSkin('zebra');
+kwami.body.setSkin("zebra");
 ```
 
 ### State-Based Interactions
+
 ```javascript
 // Enable interactive touch effects
 kwami.body.enableBlobInteraction();
 
 // Listening state with microphone
-kwami.body.startListening();  // Inward audio-reactive spikes
+kwami.body.startListening(); // Inward audio-reactive spikes
 // ... or double-click the blob ...
 
 // Thinking animation
-kwami.body.startThinking();   // Chaotic contemplative movement
+kwami.body.startThinking(); // Chaotic contemplative movement
 // ... process input (default 10 seconds) ...
 
 // Speaking with smooth transition
-await kwami.speak('Here is my response!'); // Outward audio-reactive spikes
+await kwami.speak("Here is my response!"); // Outward audio-reactive spikes
 
 // Configure animation parameters
 kwami.body.blob.touchStrength = 0.6;
@@ -163,7 +181,7 @@ kwami.body.blob.transitionSpeed = 2.0;
 ✅ **Skins**: Multiple visual styles (tricolor, tricolor2/donut, zebra)  
 ✅ **Background Manager**: Gradients, colors, images, and transparent backgrounds  
 ✅ **Export**: Download your blob as GLB 3D model  
-✅ **TypeScript**: Fully typed for great developer experience  
+✅ **TypeScript**: Fully typed for great developer experience
 
 ---
 
