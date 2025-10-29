@@ -24,6 +24,19 @@ body {
   padding: 50px 30px 30px;
   overflow-y: auto;
   position: relative;
+  transition: transform 0.3s ease, opacity 0.3s ease;
+}
+
+#left-sidebar.hidden {
+  transform: translateX(-100%);
+  opacity: 0;
+  pointer-events: none;
+}
+
+#right-sidebar.hidden {
+  transform: translateX(100%);
+  opacity: 0;
+  pointer-events: none;
 }
 
 #left-sidebar {
@@ -59,6 +72,96 @@ canvas {
   display: block;
   position: relative;
   z-index: 1;
+}
+
+/* Menu Toggle Button */
+.menu-toggle-btn {
+  position: absolute;
+  top: 20px;
+  left: 20px;
+  z-index: 11;
+  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(10px);
+  border: none;
+  width: 45px;
+  height: 45px;
+  border-radius: 50%;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
+  transition: all 0.3s ease;
+  font-size: 18px;
+  color: #667eea;
+  padding: 0;
+}
+
+.menu-toggle-btn:hover {
+  background: rgba(255, 255, 255, 0.98);
+  box-shadow: 0 6px 25px rgba(0, 0, 0, 0.3);
+  transform: scale(1.1);
+}
+
+.menu-toggle-btn:active {
+  transform: scale(0.95);
+}
+
+#menu-toggle-icon {
+  font-weight: bold;
+  transition: transform 0.3s ease;
+}
+
+/* GitHub Star Button */
+.github-star-btn {
+  position: absolute;
+  top: 20px;
+  right: 20px;
+  z-index: 11;
+  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(10px);
+  border: none;
+  padding: 10px 16px;
+  border-radius: 20px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
+  transition: all 0.3s ease;
+  font-size: 13px;
+  color: #333;
+  text-decoration: none;
+  font-weight: 600;
+}
+
+.github-star-btn:hover {
+  background: rgba(255, 255, 255, 0.98);
+  box-shadow: 0 6px 25px rgba(0, 0, 0, 0.3);
+  transform: translateY(-2px);
+  color: #667eea;
+}
+
+.github-star-btn:active {
+  transform: translateY(0);
+}
+
+.github-star-btn svg {
+  transition: transform 0.2s ease;
+}
+
+.github-star-btn:hover svg {
+  transform: scale(1.2);
+  fill: #f59e0b;
+}
+
+#star-count {
+  background: rgba(102, 126, 234, 0.1);
+  padding: 2px 8px;
+  border-radius: 10px;
+  font-size: 12px;
+  color: #667eea;
+  font-weight: 700;
 }
 
 /* Audio Player */
@@ -284,19 +387,60 @@ button:disabled {
   box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
 }
 
-.state-indicator {
+/* State Indicator (Below Blob) */
+#canvas-container .state-indicator {
+  position: absolute;
+  bottom: 120px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 10;
   display: inline-block;
-  padding: 4px 12px;
-  border-radius: 12px;
-  font-size: 12px;
-  font-weight: 600;
-  margin-bottom: 15px;
+  padding: 10px 24px;
+  border-radius: 20px;
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 1px;
+  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(10px);
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
+  transition: all 0.3s ease;
+  pointer-events: none;
 }
 
-.state-idle { background: #e0e0e0; color: #666; }
-.state-listening { background: #4caf50; color: white; }
-.state-thinking { background: #ff9800; color: white; }
-.state-speaking { background: #2196f3; color: white; }
+/* State Colors */
+.state-idle { 
+  background: rgba(224, 224, 224, 0.95);
+  color: #666;
+}
+
+.state-listening { 
+  background: rgba(76, 175, 80, 0.95);
+  color: white;
+  animation: pulse 2s infinite;
+}
+
+.state-thinking { 
+  background: rgba(255, 152, 0, 0.95);
+  color: white;
+  animation: pulse 1.5s infinite;
+}
+
+.state-speaking { 
+  background: rgba(33, 150, 243, 0.95);
+  color: white;
+  animation: pulse 1s infinite;
+}
+
+@keyframes pulse {
+  0%, 100% { 
+    transform: translateX(-50%) scale(1);
+    opacity: 1;
+  }
+  50% { 
+    transform: translateX(-50%) scale(1.05);
+    opacity: 0.9;
+  }
+}
 
 .personality-buttons {
   display: grid;
@@ -311,20 +455,70 @@ button:disabled {
   margin-bottom: 0;
 }
 
-.error {
-  background: #ffebee;
+/* Messages Container (Below Blob) */
+#messages-container {
+  position: absolute;
+  bottom: 30px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 10;
+  max-width: 600px;
+  width: 90%;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  pointer-events: none;
+}
+
+.message {
+  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(10px);
+  padding: 12px 20px;
+  border-radius: 12px;
+  font-size: 13px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
+  opacity: 0;
+  transform: translateY(10px);
+  transition: all 0.3s ease;
+  pointer-events: auto;
+  max-height: 0;
+  overflow: hidden;
+  line-height: 1.5;
+}
+
+.message:not(:empty) {
+  opacity: 1;
+  transform: translateY(0);
+  max-height: 200px;
+  padding: 12px 20px;
+  margin-bottom: 0;
+}
+
+#status {
+  color: #1565c0;
+  border-left: 3px solid #1565c0;
+}
+
+.error-message {
+  background: rgba(255, 235, 238, 0.98);
   color: #c62828;
-  padding: 10px;
-  border-radius: 8px;
-  font-size: 12px;
-  margin-top: 10px;
-  display: none;
+  border-left: 3px solid #c62828;
 }
 
-.error.show {
-  display: block;
+/* Success/Info variations */
+.message.success {
+  background: rgba(232, 245, 233, 0.98);
+  color: #2e7d32;
+  border-left: 3px solid #2e7d32;
 }
 
+.message.warning {
+  background: rgba(255, 243, 224, 0.98);
+  color: #ef6c00;
+  border-left: 3px solid #ef6c00;
+}
+
+/* Legacy support for old .info class in templates */
 .info {
   background: #e3f2fd;
   color: #1565c0;
@@ -332,17 +526,6 @@ button:disabled {
   border-radius: 8px;
   font-size: 12px;
   margin-bottom: 15px;
-}
-
-#status {
-  font-size: 12px;
-  color: #666;
-  margin-top: 10px;
-  padding: 8px;
-  background: #f5f5f5;
-  border-radius: 6px;
-  max-height: 100px;
-  overflow-y: auto;
 }
 
 /* Body Controls Styles */

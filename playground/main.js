@@ -189,16 +189,28 @@ const DEFAULT_BACKGROUND = {
 };
 
 const BACKGROUND_IMAGES = [
+  'alaska.jpeg',
   'binary-reality.jpg',
   'black-candle.jpg',
   'black-hole.jpg',
   'black-sea.jpg',
   'black-windows.jpg',
   'black.jpg',
+  'colors.jpeg',
   'galaxy.jpg',
   'galaxy2.jpg',
+  'galaxy3.jpg',
+  'galaxy4.jpg',
   'gargantua.jpg',
   'interstellar.png',
+  'islan.jpg',
+  'lake.jpg',
+  'mountain.jpeg',
+  'paisaje.jpg',
+  'pik.jpg',
+  'planet.jpg',
+  'planet2.jpg',
+  'planet3.jpg',
   'sahara.jpeg',
   'skinet.png',
   'skynet.png',
@@ -777,13 +789,29 @@ function initializeBodyControls() {
 function updateStatus(message) {
   const status = document.getElementById('status');
   status.textContent = message;
+  
+  // Auto-clear status messages after 5 seconds
+  if (message) {
+    setTimeout(() => {
+      if (status.textContent === message) {
+        status.textContent = '';
+      }
+    }, 5000);
+  }
 }
 
 function showError(message) {
   const error = document.getElementById('error');
   error.textContent = message;
-  error.classList.add('show');
-  setTimeout(() => error.classList.remove('show'), 5000);
+  
+  // Auto-clear error messages after 8 seconds
+  if (message) {
+    setTimeout(() => {
+      if (error.textContent === message) {
+        error.textContent = '';
+      }
+    }, 8000);
+  }
 }
 
 function updateStateIndicator(state) {
@@ -805,11 +833,11 @@ function applyBackground() {
     const color = document.getElementById('bg-solid-color').value;
     window.kwami.body.setBackgroundColor(color, opacity);
   } else if (type === 'gradient') {
-    const color1 = document.getElementById('bg-color-1').value;
-    const color2 = document.getElementById('bg-color-2').value;
-    const color3 = document.getElementById('bg-color-3').value;
+  const color1 = document.getElementById('bg-color-1').value;
+  const color2 = document.getElementById('bg-color-2').value;
+  const color3 = document.getElementById('bg-color-3').value;
     const direction = document.getElementById('bg-direction').value;
-    
+  
     window.kwami.body.setBackgroundGradient([color1, color2, color3], direction, opacity);
   }
 }
@@ -1083,7 +1111,8 @@ window.audioEffects = {
   midTime: 0.5,
   highTime: 0.8,
   ultraTime: 0.3,
-  enabled: true
+  enabled: true,
+  timeEnabled: true
 };
 
 // Initialize audio effect controls
@@ -1200,6 +1229,18 @@ function initializeAudioEffects() {
       updateStatus(e.target.checked ? '🎵 Audio reactivity enabled' : '🔇 Audio reactivity disabled');
     });
   }
+  
+  // Time Modulation toggle
+  const audioTimeToggle = document.getElementById('audio-time-enabled');
+  if (audioTimeToggle) {
+    audioTimeToggle.addEventListener('change', (e) => {
+      window.audioEffects.timeEnabled = e.target.checked;
+      if (window.kwami && window.kwami.body.blob) {
+        window.kwami.body.blob.audioEffects.timeEnabled = window.audioEffects.timeEnabled;
+      }
+      updateStatus(e.target.checked ? '⏱️ Time modulation enabled' : '⏱️ Time modulation disabled');
+    });
+  }
 }
 
 // Initialize audio effects when DOM is ready
@@ -1208,6 +1249,62 @@ if (document.readyState === 'loading') {
 } else {
   initializeAudioEffects();
 }
+
+// ============================================================================
+// GitHub Star Count
+// ============================================================================
+
+async function fetchGitHubStars() {
+  try {
+    const response = await fetch('https://api.github.com/repos/alexcolls/kwami');
+    const data = await response.json();
+    const starCount = data.stargazers_count || 0;
+    
+    const starCountElement = document.getElementById('star-count');
+    if (starCountElement) {
+      starCountElement.textContent = starCount.toLocaleString();
+    }
+  } catch (error) {
+    console.error('Failed to fetch GitHub stars:', error);
+    const starCountElement = document.getElementById('star-count');
+    if (starCountElement) {
+      starCountElement.textContent = '★';
+    }
+  }
+}
+
+// Fetch star count when page loads
+if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', fetchGitHubStars);
+} else {
+  fetchGitHubStars();
+}
+
+// ============================================================================
+// Menu Toggle
+// ============================================================================
+
+let menusVisible = true;
+
+window.toggleMenus = function() {
+  const leftSidebar = document.getElementById('left-sidebar');
+  const rightSidebar = document.getElementById('right-sidebar');
+  const toggleIcon = document.getElementById('menu-toggle-icon');
+  
+  menusVisible = !menusVisible;
+  
+  if (menusVisible) {
+    leftSidebar.classList.remove('hidden');
+    rightSidebar.classList.remove('hidden');
+    toggleIcon.textContent = '◀◀';
+    updateStatus('📂 Sidebars shown');
+  } else {
+    leftSidebar.classList.add('hidden');
+    rightSidebar.classList.add('hidden');
+    toggleIcon.textContent = '▶▶';
+    updateStatus('📁 Sidebars hidden');
+  }
+};
 
 // Monitor state changes, camera position, and listening/thinking modes
 setInterval(() => {

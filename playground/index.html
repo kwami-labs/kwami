@@ -14,11 +14,24 @@
         <span id="left-swap-text">→ Soul</span>
       </button>
       <div id="left-content"></div>
-      <div id="error" class="error"></div>
     </div>
 
     <!-- Canvas Container -->
     <div id="canvas-container">
+      <!-- Menu Toggle Button -->
+      <button id="menu-toggle-btn" class="menu-toggle-btn" onclick="toggleMenus()" title="Toggle Sidebars">
+        <span id="menu-toggle-icon">◀◀</span>
+      </button>
+      
+      <!-- GitHub Star Button -->
+      <a id="github-star-btn" class="github-star-btn" href="https://github.com/alexcolls/kwami" target="_blank" title="Star on GitHub">
+        <svg height="16" width="16" viewBox="0 0 16 16" fill="currentColor">
+          <path d="M8 .25a.75.75 0 0 1 .673.418l1.882 3.815 4.21.612a.75.75 0 0 1 .416 1.279l-3.046 2.97.719 4.192a.751.751 0 0 1-1.088.791L8 12.347l-3.766 1.98a.75.75 0 0 1-1.088-.79l.72-4.194L.818 6.374a.75.75 0 0 1 .416-1.28l4.21-.611L7.327.668A.75.75 0 0 1 8 .25Z"></path>
+        </svg>
+        <span>Star</span>
+        <span id="star-count">...</span>
+      </a>
+      
       <!-- Audio Player -->
       <div id="audio-player">
         <input type="file" id="audio-file" accept="audio/*" style="display: none;">
@@ -34,6 +47,17 @@
       
       <div id="background-image"></div>
       <canvas id="kwami-canvas"></canvas>
+      
+      <!-- State Indicator (Below Blob) -->
+      <div id="state-indicator" class="state-indicator">
+        <span id="state-text">IDLE</span>
+      </div>
+      
+      <!-- Messages Area (Below Blob) -->
+      <div id="messages-container">
+        <div id="status" class="message"></div>
+        <div id="error" class="message error-message"></div>
+      </div>
     </div>
     
     <!-- Right Sidebar -->
@@ -42,7 +66,6 @@
         <span id="right-swap-text">Soul ←</span>
       </button>
       <div id="right-content"></div>
-      <div id="status"></div>
     </div>
   </div>
 
@@ -51,10 +74,6 @@
     <div class="sidebar-content">
       <h1>🤖 Mind</h1>
       <p class="subtitle">AI Agent Configuration</p>
-      
-      <div class="state-indicator" id="state-indicator">
-        <span id="state-text">IDLE</span>
-      </div>
 
       <!-- Voice Settings -->
       <div class="section">
@@ -117,16 +136,28 @@
           <label>Background Image</label>
           <select id="bg-image">
             <option value="">None</option>
+            <option value="alaska.jpeg">Alaska</option>
             <option value="binary-reality.jpg">Binary Reality</option>
             <option value="black-candle.jpg">Black Candle</option>
             <option value="black-hole.jpg">Black Hole</option>
             <option value="black-sea.jpg">Black Sea</option>
             <option value="black-windows.jpg">Black Windows</option>
             <option value="black.jpg">Black</option>
+            <option value="colors.jpeg">Colors</option>
             <option value="galaxy.jpg">Galaxy</option>
             <option value="galaxy2.jpg">Galaxy 2</option>
+            <option value="galaxy3.jpg">Galaxy 3</option>
+            <option value="galaxy4.jpg">Galaxy 4</option>
             <option value="gargantua.jpg">Gargantua</option>
             <option value="interstellar.png">Interstellar</option>
+            <option value="islan.jpg">Island</option>
+            <option value="lake.jpg">Lake</option>
+            <option value="mountain.jpeg">Mountain</option>
+            <option value="paisaje.jpg">Paisaje</option>
+            <option value="pik.jpg">Pik</option>
+            <option value="planet.jpg">Planet</option>
+            <option value="planet2.jpg">Planet 2</option>
+            <option value="planet3.jpg">Planet 3</option>
             <option value="sahara.jpeg">Sahara</option>
             <option value="skinet.png">Skinet</option>
             <option value="skynet.png">Skynet</option>
@@ -325,6 +356,12 @@
         <div class="parameter-group">
           <div class="parameter-group-title">Time Modulation</div>
           <p class="parameter-info">Control how audio affects animation speed</p>
+          <div class="input-group">
+            <label>
+              <input type="checkbox" id="audio-time-enabled" checked>
+              Enable Time Modulation
+            </label>
+          </div>
           <div class="slider-control">
             <label>Mid → Speed <span class="value-display" id="audio-mid-time-value">0.5</span></label>
             <input type="range" id="audio-mid-time" min="0" max="2" step="0.1" value="0.5">
