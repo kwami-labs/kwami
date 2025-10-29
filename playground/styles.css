@@ -396,11 +396,11 @@ button:disabled {
   transform: translateX(-50%) scale(0.9);
   z-index: 10;
   display: inline-block;
-  padding: 14px 32px;
-  border-radius: 25px;
-  font-size: 16px;
-  font-weight: 800;
-  letter-spacing: 1.5px;
+  padding: 10px 24px;
+  border-radius: 20px;
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 1.2px;
   background: rgba(255, 255, 255, 0.95);
   backdrop-filter: blur(10px);
   box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
@@ -409,7 +409,6 @@ button:disabled {
   opacity: 0;
   max-height: 0;
   overflow: hidden;
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
 }
 
 /* Show state indicator when not idle */
@@ -419,7 +418,7 @@ button:disabled {
   max-height: 50px;
 }
 
-/* State Colors - High Contrast for Better Readability */
+/* State Colors - Solid Dark Backgrounds for White Text */
 .state-idle { 
   opacity: 0;
   max-height: 0;
@@ -427,30 +426,24 @@ button:disabled {
 }
 
 .state-listening { 
-  background: linear-gradient(135deg, #2d7a72 0%, #1b8a5a 100%);
+  background: #2e7d32;
   color: #ffffff;
-  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
   animation: pulse-listening 2s infinite;
-  box-shadow: 0 4px 25px rgba(17, 153, 142, 0.5);
-  border: 1px solid rgba(255, 255, 255, 0.2);
+  box-shadow: 0 4px 20px rgba(46, 125, 50, 0.4);
 }
 
 .state-thinking { 
-  background: linear-gradient(135deg, #8b4f9f 0%, #c2185b 100%);
+  background: #7b1fa2;
   color: #ffffff;
-  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
   animation: pulse-thinking 1.5s infinite;
-  box-shadow: 0 4px 25px rgba(240, 147, 251, 0.5);
-  border: 1px solid rgba(255, 255, 255, 0.2);
+  box-shadow: 0 4px 20px rgba(123, 31, 162, 0.4);
 }
 
 .state-speaking { 
-  background: linear-gradient(135deg, #1976d2 0%, #0097a7 100%);
+  background: #1565c0;
   color: #ffffff;
-  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
   animation: pulse-speaking 1s infinite;
-  box-shadow: 0 4px 25px rgba(79, 172, 254, 0.5);
-  border: 1px solid rgba(255, 255, 255, 0.2);
+  box-shadow: 0 4px 20px rgba(21, 101, 192, 0.4);
 }
 
 @keyframes pulse-listening {
