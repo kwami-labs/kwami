@@ -284,9 +284,46 @@
           </div>
         </div>
 
+        <!-- Touch/Click Effects -->
+        <div class="parameter-group">
+          <div class="parameter-group-title">Touch/Click Effects</div>
+          <div class="input-group">
+            <label>
+              <input type="checkbox" id="click-interaction" checked>
+              Enable Click Interaction
+            </label>
+          </div>
+          <div class="slider-control">
+            <label>Touch Strength <span class="value-display" id="touch-strength-value">0.6</span></label>
+            <input type="range" id="touch-strength" min="0.1" max="1.5" step="0.1" value="0.6">
+          </div>
+          <div class="slider-control">
+            <label>Touch Duration <span class="value-display" id="touch-duration-value">1200</span>ms</label>
+            <input type="range" id="touch-duration" min="500" max="3000" step="100" value="1200">
+          </div>
+          <div class="slider-control">
+            <label>Max Touch Points <span class="value-display" id="max-touches-value">3</span></label>
+            <input type="range" id="max-touches" min="1" max="10" step="1" value="3">
+          </div>
+        </div>
+
+        <!-- State Transitions -->
+        <div class="parameter-group">
+          <div class="parameter-group-title">State Transitions</div>
+          <div class="slider-control">
+            <label>Transition Speed <span class="value-display" id="transition-speed-value">0.05</span></label>
+            <input type="range" id="transition-speed" min="0.01" max="0.2" step="0.01" value="0.05">
+          </div>
+          <div class="slider-control">
+            <label>Thinking Duration <span class="value-display" id="thinking-duration-value">10</span>s</label>
+            <input type="range" id="thinking-duration" min="3" max="30" step="1" value="10">
+          </div>
+        </div>
+
         <!-- Action Buttons -->
         <button class="button-secondary" onclick="randomizeBlob()">🎲 Randomize Blob</button>
         <button class="button-secondary" onclick="exportGLB()">💾 Download GLB</button>
+        <button class="button-secondary" onclick="testThinking()">🤔 Test Thinking (10s)</button>
       </div>
     </div>
   </template>

@@ -243,6 +243,9 @@ try {
   // Set initial scale after initialization
   window.kwami.body.blob.setScale(DEFAULT_VALUES.scale);
 
+  // Enable click interaction by default
+  window.kwami.body.enableBlobInteraction();
+
   // Initialize body controls event listeners
   initializeBodyControls();
   
@@ -696,12 +699,76 @@ function initializeBodyControls() {
     });
   }
   
+  // Click interaction checkbox
+  const clickInteractionCheckbox = document.getElementById('click-interaction');
+  if (clickInteractionCheckbox) {
+    clickInteractionCheckbox.addEventListener('change', (e) => {
+      if (e.target.checked) {
+        window.kwami.body.enableBlobInteraction();
+        updateStatus('👆 Click interaction enabled - Click the blob!');
+      } else {
+        window.kwami.body.disableBlobInteraction();
+        updateStatus('🚫 Click interaction disabled');
+      }
+    });
+  }
+  
   // Skin type selector
   const skinSelect = document.getElementById('skin-type');
   if (skinSelect) {
     skinSelect.addEventListener('change', (e) => {
       blob.setSkin(e.target.value);
       updateStatus(`👕 Changed to ${e.target.value} skin`);
+    });
+  }
+  
+  // Touch strength slider
+  const touchStrengthSlider = document.getElementById('touch-strength');
+  if (touchStrengthSlider) {
+    touchStrengthSlider.addEventListener('input', (e) => {
+      const value = parseFloat(e.target.value);
+      blob.touchStrength = value;
+      updateValueDisplay('touch-strength-value', value, 1);
+    });
+  }
+  
+  // Touch duration slider
+  const touchDurationSlider = document.getElementById('touch-duration');
+  if (touchDurationSlider) {
+    touchDurationSlider.addEventListener('input', (e) => {
+      const value = parseInt(e.target.value);
+      blob.touchDuration = value;
+      updateValueDisplay('touch-duration-value', value, 0);
+    });
+  }
+  
+  // Max touches slider
+  const maxTouchesSlider = document.getElementById('max-touches');
+  if (maxTouchesSlider) {
+    maxTouchesSlider.addEventListener('input', (e) => {
+      const value = parseInt(e.target.value);
+      blob.maxTouchPoints = value;
+      updateValueDisplay('max-touches-value', value, 0);
+    });
+  }
+  
+  // Transition speed slider
+  const transitionSpeedSlider = document.getElementById('transition-speed');
+  if (transitionSpeedSlider) {
+    transitionSpeedSlider.addEventListener('input', (e) => {
+      const value = parseFloat(e.target.value);
+      blob.transitionSpeed = value;
+      updateValueDisplay('transition-speed-value', value, 2);
+    });
+  }
+  
+  // Thinking duration slider
+  const thinkingDurationSlider = document.getElementById('thinking-duration');
+  if (thinkingDurationSlider) {
+    thinkingDurationSlider.addEventListener('input', (e) => {
+      const value = parseInt(e.target.value);
+      blob.thinkingDuration = value * 1000; // Convert to milliseconds
+      updateValueDisplay('thinking-duration-value', value, 0);
     });
   }
 }
@@ -981,10 +1048,39 @@ function initializeCameraControls() {
 }
 
 
-// Monitor state changes and camera position
+// Test thinking mode function
+window.testThinking = function() {
+  if (window.kwami) {
+    window.kwami.body.startThinking();
+    updateStatus('🤔 Started thinking mode (10 seconds)');
+  }
+};
+
+// Monitor state changes, camera position, and listening/thinking modes
 setInterval(() => {
   if (window.kwami) {
-    updateStateIndicator(window.kwami.getState());
+    // Update state with listening/thinking indicators
+    const state = window.kwami.getState();
+    const isListening = window.kwami.body.isListening();
+    const isThinking = window.kwami.body.isThinking();
+    
+    if (isThinking) {
+      updateStateIndicator('thinking');
+      // Show thinking status
+      const stateText = document.getElementById('state-text');
+      if (stateText && !stateText.textContent.includes('🤔')) {
+        stateText.textContent = '🤔 THINKING';
+      }
+    } else if (isListening) {
+      updateStateIndicator('listening');
+      // Show listening status
+      const stateText = document.getElementById('state-text');
+      if (stateText && !stateText.textContent.includes('🎤')) {
+        stateText.textContent = '🎤 LISTENING';
+      }
+    } else {
+      updateStateIndicator(state);
+    }
     
     // Update camera position display
     const camera = window.kwami.body.getCamera();
