@@ -64,13 +64,6 @@ export function animateBlob(
   thinkingBlend: number = 0,   // 0 to 1 transition
   thinkingProgress: number = 0,
 ): void {
-  // Time calculation - faster for more responsive animation
-  const reduction = 0.00003;
-  const perf = performance.now() * reduction;
-  const tX = perf * timeX;
-  const tY = perf * timeY;
-  const tZ = perf * timeZ;
-
   const positions = mesh.geometry.attributes.position;
   if (!positions) return;
 
@@ -81,18 +74,26 @@ export function animateBlob(
 
   // Extract frequency bands for natural sound reaction
   const bands = getFrequencyBands(frequencyData);
+  
+  // Time calculation - faster for more responsive animation
+  // Audio modulates the time speed (makes animation more dynamic with music)
+  const audioTimeMod = 1 + (bands.mid * 0.5 + bands.high * 0.8 + bands.ultra * 0.3);
+  const reduction = 0.00003;
+  const perf = performance.now() * reduction;
+  const tX = perf * timeX * audioTimeMod;
+  const tY = perf * timeY * audioTimeMod;
+  const tZ = perf * timeZ * audioTimeMod;
 
-  // Very subtle overall scale based only on low frequencies (bass)
-  // This creates a gentle "breathing" effect without dominating the animation
-  const breathScale = 1 + (bands.low * 0.05);
-  // Apply user's base scale as a multiplier
-  const finalScale = baseScale * breathScale;
-  mesh.scale.set(finalScale, finalScale, finalScale);
+  // No overall scale change from audio - keep mesh size constant
+  // Only the noise patterns (spikes and time) are affected by audio
+  mesh.scale.set(baseScale, baseScale, baseScale);
 
   // Calculate noise frequencies for smooth, organic movement
-  const baseFreqX = Math.max(0.025, spikeX);
-  const baseFreqY = Math.max(0.025, spikeY);
-  const baseFreqZ = Math.max(0.025, spikeZ);
+  // Audio modulates the spike frequencies (makes them more dynamic)
+  const audioSpikeMod = 1 + (bands.low * 0.3 + bands.mid * 0.4 + bands.high * 0.2);
+  const baseFreqX = Math.max(0.025, spikeX * audioSpikeMod);
+  const baseFreqY = Math.max(0.025, spikeY * audioSpikeMod);
+  const baseFreqZ = Math.max(0.025, spikeZ * audioSpikeMod);
 
   // Apply frequency-reactive noise to each vertex
   for (let i = 0; i < positions.count; i++) {
@@ -108,42 +109,21 @@ export function animateBlob(
     );
     const angleFactor = Math.atan2(direction.z, direction.x) / Math.PI;
 
-    // Map frequency bands to different parts of the blob for liquid effect
-    // Low frequencies (bass) - affect bottom/center more (smoother)
-    const lowInfluence = (1 - heightFactor * 0.5) * bands.low;
-
-    // Mid frequencies - affect middle regions and create "speaking" motion (less angular)
-    const midInfluence
-      = (0.5 + Math.sin(angleFactor * 4 + tY * 1.5) * 0.5) * bands.mid;
-
-    // High frequencies - affect top and create detail/texture (gentler)
-    const highInfluence = (heightFactor * 0.6 + 0.4) * bands.high;
-
-    // Ultra high - create surface ripples (subtler)
-    const ultraInfluence = bands.ultra * radialFactor * 0.5;
-
-    // Combine all influences for natural, varied amplitude (deeper but smooth)
-    const combinedAmplitude = 0.15
-      + lowInfluence * 0.35
-      + midInfluence * 0.45
-      + highInfluence * 0.30
-      + ultraInfluence * 0.18;
-
-    // Add frequency-modulated time offset for more dynamic movement
-    const timeOffset = bands.mid * 2 + bands.high * 3;
+    // Audio affects the noise pattern, not the displacement directly
+    // This prevents geometry collapse while still creating audio-reactive movement
 
     // Generate multi-layered noise for liquid texture (smoother)
     const noise1 = noise3D(
-      direction.x * baseFreqX * 0.5 + tX + timeOffset,
-      direction.y * baseFreqY * 0.5 + tY + timeOffset * 0.5,
-      direction.z * baseFreqZ * 0.5 + tZ + timeOffset * 0.3,
+      direction.x * baseFreqX * 0.5 + tX,
+      direction.y * baseFreqY * 0.5 + tY,
+      direction.z * baseFreqZ * 0.5 + tZ,
     );
 
     // Second noise layer for detail (slower, gentler)
     const noise2 = noise3D(
-      direction.x * baseFreqX * 1.2 + tX * 1.2 + bands.high * 3,
-      direction.y * baseFreqY * 1.2 + tY * 1.2 + bands.mid * 2,
-      direction.z * baseFreqZ * 1.2 + tZ * 1.2 + bands.ultra * 3,
+      direction.x * baseFreqX * 1.2 + tX * 1.2,
+      direction.y * baseFreqY * 1.2 + tY * 1.2,
+      direction.z * baseFreqZ * 1.2 + tZ * 1.2,
     );
 
     // Third noise layer for even smoother transitions
@@ -156,12 +136,15 @@ export function animateBlob(
     // Combine noises with frequency weighting (more layers for smoothness)
     const finalNoise = noise1 * 0.5 + noise2 * 0.3 + noise3 * 0.2;
 
+    // Fixed amplitude - not affected by audio to prevent geometry collapse
+    const fixedAmplitude = 0.15;
+    
     // Calculate displacement for each state separately
     // Normal/Speaking mode displacement (outward spikes)
-    const speakingDisplacement = combinedAmplitude * finalNoise;
+    const speakingDisplacement = fixedAmplitude * finalNoise;
     
     // Listening mode displacement (inward spikes)
-    const listeningDisplacement = -combinedAmplitude * finalNoise;
+    const listeningDisplacement = -fixedAmplitude * finalNoise;
     
     // Thinking mode displacement (fluid, flowing movements)
     let thinkingDisplacement = 0;
@@ -249,13 +232,13 @@ export function animateBlob(
           // Smooth gaussian falloff
           const smoothInfluence = Math.pow(influence, 3);
           
-          // Moderate inward push
-          const touchEffect = -touch.strength * 0.5 * smoothInfluence * easeFactor;
+          // Very gentle inward push (conservative to work with audio)
+          const touchEffect = -touch.strength * 0.30 * smoothInfluence * easeFactor;
           
           // Subtle liquid wave with spike-like ripples
           const waveFreq = 4; // Higher frequency for more defined waves
           const wave = Math.cos(dist * waveFreq - progress * 5) * 0.5 + 0.5;
-          const subtleWave = -wave * 0.18 * smoothInfluence * easeFactor;
+          const subtleWave = -wave * 0.10 * smoothInfluence * easeFactor;
           
           // Accumulate touch effects
           totalTouchEffect += touchEffect + subtleWave;
@@ -263,16 +246,16 @@ export function animateBlob(
       }
       
       // Clamp total touch effect to prevent over-collapse
-      // Maximum inward displacement is -0.3 (30% of radius)
-      totalTouchEffect = Math.max(totalTouchEffect, -0.3);
+      // Maximum inward displacement is -0.18 (18% of radius) - conservative with audio
+      totalTouchEffect = Math.max(totalTouchEffect, -0.18);
       
       // Apply touch effect to displacement
       displacement += totalTouchEffect;
     }
     
     // Final safety clamp: ensure displacement never causes collapse or extreme spikes
-    // Keep blob between 55% and 160% of its base size at any vertex
-    displacement = Math.max(0.55, Math.min(1.6, displacement));
+    // Safe range that allows for spiky variations without geometry issues
+    displacement = Math.max(0.65, Math.min(1.6, displacement));
 
     // Set final position: direction * displacement
     vertex.normalize().multiplyScalar(displacement);
