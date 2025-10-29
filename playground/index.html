@@ -76,7 +76,7 @@
       <!-- Speech Test -->
       <div class="section">
         <div class="section-title">💬 Test Speech</div>
-        
+
         <div class="input-group">
           <label>Text to Speak</label>
           <textarea id="speak-text" placeholder="Enter text for Kwami to speak...">Hello! I am Kwami, your AI companion. Watch as I animate while I speak!</textarea>
@@ -136,21 +136,21 @@
         </div>
 
         <div id="gradient-controls">
-          <div class="parameter-group">
-            <div class="parameter-group-title">Gradient Colors</div>
-            <div class="color-control">
-              <label>Color 1</label>
-              <input type="color" id="bg-color-1" value="#667eea">
-            </div>
-            <div class="color-control">
-              <label>Color 2</label>
-              <input type="color" id="bg-color-2" value="#764ba2">
-            </div>
-            <div class="color-control">
-              <label>Color 3</label>
-              <input type="color" id="bg-color-3" value="#f093fb">
-            </div>
+        <div class="parameter-group">
+          <div class="parameter-group-title">Gradient Colors</div>
+          <div class="color-control">
+            <label>Color 1</label>
+            <input type="color" id="bg-color-1" value="#667eea">
           </div>
+          <div class="color-control">
+            <label>Color 2</label>
+            <input type="color" id="bg-color-2" value="#764ba2">
+          </div>
+          <div class="color-control">
+            <label>Color 3</label>
+            <input type="color" id="bg-color-3" value="#f093fb">
+          </div>
+        </div>
 
           <div class="input-group">
             <label>Direction</label>
@@ -160,7 +160,7 @@
               <option value="radial">Radial</option>
             </select>
           </div>
-        </div>
+          </div>
 
         <div id="solid-controls" style="display: none;">
           <div class="color-control">
@@ -297,6 +297,79 @@
           </div>
         </div>
 
+      </div>
+
+      <!-- Audio Effects Configuration -->
+      <div class="section">
+        <div class="section-title">🎵 Audio Effects</div>
+        
+        <!-- Audio Effect Multipliers -->
+        <div class="parameter-group">
+          <div class="parameter-group-title">Frequency Modulation</div>
+          <p class="parameter-info">Control how audio frequencies affect the blob animation</p>
+          <div class="slider-control">
+            <label>Bass → Spikes <span class="value-display" id="audio-bass-spike-value">0.3</span></label>
+            <input type="range" id="audio-bass-spike" min="0" max="1" step="0.05" value="0.3">
+          </div>
+          <div class="slider-control">
+            <label>Mid → Spikes <span class="value-display" id="audio-mid-spike-value">0.4</span></label>
+            <input type="range" id="audio-mid-spike" min="0" max="1" step="0.05" value="0.4">
+          </div>
+          <div class="slider-control">
+            <label>High → Spikes <span class="value-display" id="audio-high-spike-value">0.2</span></label>
+            <input type="range" id="audio-high-spike" min="0" max="1" step="0.05" value="0.2">
+          </div>
+        </div>
+
+        <!-- Time Modulation -->
+        <div class="parameter-group">
+          <div class="parameter-group-title">Time Modulation</div>
+          <p class="parameter-info">Control how audio affects animation speed</p>
+          <div class="slider-control">
+            <label>Mid → Speed <span class="value-display" id="audio-mid-time-value">0.5</span></label>
+            <input type="range" id="audio-mid-time" min="0" max="2" step="0.1" value="0.5">
+          </div>
+          <div class="slider-control">
+            <label>High → Speed <span class="value-display" id="audio-high-time-value">0.8</span></label>
+            <input type="range" id="audio-high-time" min="0" max="2" step="0.1" value="0.8">
+          </div>
+          <div class="slider-control">
+            <label>Ultra → Speed <span class="value-display" id="audio-ultra-time-value">0.3</span></label>
+            <input type="range" id="audio-ultra-time" min="0" max="2" step="0.1" value="0.3">
+          </div>
+        </div>
+
+        <!-- Audio Analyzer Settings -->
+        <div class="parameter-group">
+          <div class="parameter-group-title">Audio Analyzer</div>
+          <div class="slider-control">
+            <label>FFT Size <span class="value-display" id="fft-size-value">2048</span></label>
+            <select id="fft-size">
+              <option value="512">512 (Fast, Low Res)</option>
+              <option value="1024">1024 (Balanced)</option>
+              <option value="2048" selected>2048 (Default)</option>
+              <option value="4096">4096 (High Res)</option>
+            </select>
+          </div>
+          <div class="slider-control">
+            <label>Smoothing <span class="value-display" id="smoothing-value">0.7</span></label>
+            <input type="range" id="smoothing" min="0" max="1" step="0.05" value="0.7">
+          </div>
+        </div>
+
+        <!-- Audio Reactive Toggle -->
+        <div class="input-group">
+          <label>
+            <input type="checkbox" id="audio-reactive" checked>
+            Enable Audio Reactivity
+          </label>
+        </div>
+      </div>
+
+      <!-- Interaction Configuration -->
+      <div class="section">
+        <div class="section-title">👆 Interaction</div>
+        
         <!-- Touch/Click Effects -->
         <div class="parameter-group">
           <div class="parameter-group-title">Touch/Click Effects</div>
@@ -332,11 +405,15 @@
             <input type="range" id="thinking-duration" min="3" max="30" step="1" value="10">
           </div>
         </div>
+      </div>
 
-        <!-- Action Buttons -->
+      <!-- Actions -->
+      <div class="section">
+        <div class="section-title">⚡ Actions</div>
         <button class="button-secondary" onclick="randomizeBlob()">🎲 Randomize Blob</button>
         <button class="button-secondary" onclick="exportGLB()">💾 Download GLB</button>
-        <button class="button-secondary" onclick="testThinking()">🤔 Test Thinking (10s)</button>
+        <button class="button-secondary" onclick="testThinking()">🤔 Test Thinking Mode</button>
+        <button class="button-secondary" onclick="testListening()">👂 Test Listening Mode</button>
       </div>
     </div>
   </template>
@@ -395,7 +472,7 @@
           <button class="button-secondary" onclick="loadPersonality('friendly')">😊 Kaya</button>
           <button class="button-secondary" onclick="loadPersonality('professional')">💼 Nexus</button>
           <button class="button-secondary" onclick="loadPersonality('playful')">✨ Spark</button>
-        </div>
+  </div>
 
         <div class="input-group">
           <label>Current Name: <span id="personality-name">Kwami</span></label>
