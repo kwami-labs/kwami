@@ -363,6 +363,13 @@ button:disabled {
   letter-spacing: 0.5px;
 }
 
+.parameter-info {
+  font-size: 11px;
+  color: #888;
+  margin: -5px 0 10px 0;
+  line-height: 1.4;
+}
+
 .slider-control {
   margin-bottom: 12px;
 }
