@@ -37,8 +37,8 @@ export class Blob {
   private clickEnabled = false;
   
   // Touch configuration
-  public touchStrength = 0.6;
-  public touchDuration = 1200;
+  public touchStrength = 0.5; // Reduced from 0.6 to prevent geometry collapse
+  public touchDuration = 1000; // Slightly shorter for quicker recovery
   public maxTouchPoints = 3;
   
   // Listening mode (inverts spikes)

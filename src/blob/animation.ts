@@ -97,8 +97,8 @@ export function animateBlob(
   // Apply frequency-reactive noise to each vertex
   for (let i = 0; i < positions.count; i++) {
     vertex.fromBufferAttribute(positions, i);
-
-    // Normalize to get the direction
+    
+    // Get the spherical direction from vertex position
     const direction = vertex.clone().normalize();
 
     // Calculate vertex position factors
@@ -109,25 +109,26 @@ export function animateBlob(
     const angleFactor = Math.atan2(direction.z, direction.x) / Math.PI;
 
     // Map frequency bands to different parts of the blob for liquid effect
+    // SUBTLE audio modulation that respects the blob's spike configuration
     // Low frequencies (bass) - affect bottom/center more (creates pulsing waves)
-    const lowInfluence = (1 - heightFactor * 0.5) * bands.low * 1.2;
+    const lowInfluence = (1 - heightFactor * 0.5) * bands.low * 0.25;
 
-    // Mid frequencies - affect middle regions and create "speaking" motion (more varied)
+    // Mid frequencies - affect middle regions and create "speaking" motion
     const midInfluence
-      = (0.5 + Math.sin(angleFactor * 6 + tY * 2) * 0.5) * bands.mid * 1.5;
+      = (0.5 + Math.sin(angleFactor * 6 + tY * 2) * 0.5) * bands.mid * 0.35;
 
-    // High frequencies - affect top and create detail/texture (more reactive)
-    const highInfluence = (heightFactor * 0.7 + 0.3) * bands.high * 1.3;
+    // High frequencies - affect top and create detail/texture
+    const highInfluence = (heightFactor * 0.7 + 0.3) * bands.high * 0.28;
 
-    // Ultra high - create surface ripples (more varied patterns)
-    const ultraInfluence = bands.ultra * (radialFactor * 0.8 + Math.sin(angleFactor * 8 + tZ * 2) * 0.3);
+    // Ultra high - create surface ripples
+    const ultraInfluence = bands.ultra * (radialFactor * 0.8 + Math.sin(angleFactor * 8 + tZ * 2) * 0.3) * 0.22;
 
-    // Combine all influences for natural, varied amplitude (more dynamic)
-    const combinedAmplitude = 0.2
-      + lowInfluence * 0.5
-      + midInfluence * 0.65
-      + highInfluence * 0.45
-      + ultraInfluence * 0.25;
+    // Combine all influences - subtle modulation on top of base noise shape
+    const combinedAmplitude = 0.08
+      + lowInfluence * 0.18
+      + midInfluence * 0.25
+      + highInfluence * 0.20
+      + ultraInfluence * 0.15;
 
     // Add frequency-modulated time offset for more dynamic movement
     const timeOffset = bands.mid * 2 + bands.high * 3;
@@ -156,18 +157,18 @@ export function animateBlob(
     // Combine noises with more emphasis on detail and variation
     const finalNoise = noise1 * 0.45 + noise2 * 0.35 + noise3 * 0.2;
 
-    // Add directional variation for more organic speaking motion
+    // Add directional variation for more organic speaking motion (SUBTLE)
     const directionalVariation = (
-      Math.sin(angleFactor * 5 + tX * 2) * 0.3 +
-      Math.cos(angleFactor * 3 + tY * 1.5) * 0.2 +
-      Math.sin(heightFactor * Math.PI * 4 + tZ * 1.8) * 0.25
+      Math.sin(angleFactor * 5 + tX * 2) * 0.12 +
+      Math.cos(angleFactor * 3 + tY * 1.5) * 0.10 +
+      Math.sin(heightFactor * Math.PI * 4 + tZ * 1.8) * 0.11
     ) * (bands.mid + bands.high * 0.5);
 
     // Calculate displacement for each state separately
-    // Normal/Speaking mode displacement (outward spikes with variation)
+    // Normal/Speaking mode displacement
     const speakingDisplacement = (combinedAmplitude * finalNoise) + directionalVariation;
     
-    // Listening mode displacement (inward spikes with variation)
+    // Listening mode displacement
     const listeningDisplacement = (-combinedAmplitude * finalNoise) + directionalVariation * 0.5;
     
     // Thinking mode displacement (fluid, flowing movements)
@@ -204,8 +205,6 @@ export function animateBlob(
     }
     
     // Blend between states smoothly
-    // When thinking, blend between speaking/listening and thinking
-    // When not thinking, blend between speaking and listening
     let audioDisplacement;
     
     if (thinkingBlend > 0.01) {
@@ -217,6 +216,7 @@ export function animateBlob(
       audioDisplacement = speakingDisplacement * (1 - listeningBlend) + listeningDisplacement * listeningBlend;
     }
     
+    // Start with base displacement of 1.0 (normalized sphere)
     let displacement = 1 + audioDisplacement;
 
     // Apply touch/click effects
@@ -254,16 +254,16 @@ export function animateBlob(
           
           const influence = Math.max(0, 1 - (dist / influenceRadius));
           
-          // Smooth gaussian falloff - reduced power for wider spread
+          // Smooth gaussian falloff
           const smoothInfluence = Math.pow(influence, 3);
           
-          // Stronger inward push for more intensity
-          const touchEffect = -touch.strength * 0.9 * smoothInfluence * easeFactor;
+          // Gentle inward push
+          const touchEffect = -touch.strength * 0.35 * smoothInfluence * easeFactor;
           
-          // More pronounced liquid wave with spike-like ripples
-          const waveFreq = 4; // Higher frequency for more defined waves
+          // Subtle liquid wave
+          const waveFreq = 4;
           const wave = Math.cos(dist * waveFreq - progress * 5) * 0.5 + 0.5;
-          const subtleWave = -wave * 0.35 * smoothInfluence * easeFactor;
+          const subtleWave = -wave * 0.15 * smoothInfluence * easeFactor;
           
           // Accumulate touch effects
           totalTouchEffect += touchEffect + subtleWave;
@@ -271,17 +271,16 @@ export function animateBlob(
       }
       
       // Clamp total touch effect to prevent over-collapse
-      // Maximum inward displacement is -0.45 (45% of radius) for more dramatic effect
-      totalTouchEffect = Math.max(totalTouchEffect, -0.45);
+      totalTouchEffect = Math.max(totalTouchEffect, -0.25);
       
-      // Apply clamped touch effect
+      // Apply touch effect to displacement
       displacement += totalTouchEffect;
     }
     
-    // Final safety clamp: ensure displacement never causes collapse or extreme spikes
-    // Allow more variation for fluid speaking motion - between 40% and 180% of base size
-    displacement = Math.max(0.4, Math.min(1.8, displacement));
+    // Safety clamp: ensure displacement stays within reasonable bounds
+    displacement = Math.max(0.6, Math.min(1.5, displacement));
 
+    // Set final position: direction * displacement
     vertex.normalize().multiplyScalar(displacement);
     positions.setXYZ(i, vertex.x, vertex.y, vertex.z);
   }
