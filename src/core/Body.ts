@@ -116,6 +116,63 @@ export class KwamiBody {
   }
 
   /**
+   * Enable click interaction on the blob
+   * Click to create liquid-like touch effects
+   */
+  enableBlobInteraction(): void {
+    this.blob.enableClickInteraction();
+  }
+
+  /**
+   * Disable click interaction on the blob
+   */
+  disableBlobInteraction(): void {
+    this.blob.disableClickInteraction();
+  }
+
+  /**
+   * Check if blob is currently listening to microphone
+   */
+  isListening(): boolean {
+    return this.blob.isListening;
+  }
+
+  /**
+   * Start listening to microphone (double-click also triggers this)
+   */
+  async startListening(): Promise<void> {
+    await this.blob.startListening();
+  }
+
+  /**
+   * Stop listening to microphone
+   */
+  stopListening(): void {
+    this.blob.stopListening();
+  }
+
+  /**
+   * Check if blob is currently in thinking mode
+   */
+  isThinking(): boolean {
+    return this.blob.isThinking;
+  }
+
+  /**
+   * Start thinking mode (random animation for 10 seconds)
+   */
+  startThinking(): void {
+    this.blob.startThinking();
+  }
+
+  /**
+   * Stop thinking mode
+   */
+  stopThinking(): void {
+    this.blob.stopThinking();
+  }
+
+  /**
    * Set the scene background
    * @param config - Background configuration
    */

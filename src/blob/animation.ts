@@ -132,36 +132,43 @@ export function animateBlob(
     // Add frequency-modulated time offset for more dynamic movement
     const timeOffset = bands.mid * 2 + bands.high * 3;
 
-    // Generate multi-layered noise for liquid texture (smoother)
+    // Generate multi-layered noise for liquid texture (more varied with spikes)
     const noise1 = noise3D(
-      direction.x * baseFreqX * 0.5 + tX + timeOffset,
-      direction.y * baseFreqY * 0.5 + tY + timeOffset * 0.5,
-      direction.z * baseFreqZ * 0.5 + tZ + timeOffset * 0.3,
+      direction.x * baseFreqX * 1.0 + tX + timeOffset,
+      direction.y * baseFreqY * 1.0 + tY + timeOffset * 0.5,
+      direction.z * baseFreqZ * 1.0 + tZ + timeOffset * 0.3,
     );
 
-    // Second noise layer for detail (slower, gentler)
+    // Second noise layer for detail (more responsive to spikes)
     const noise2 = noise3D(
-      direction.x * baseFreqX * 1.2 + tX * 1.2 + bands.high * 3,
-      direction.y * baseFreqY * 1.2 + tY * 1.2 + bands.mid * 2,
-      direction.z * baseFreqZ * 1.2 + tZ * 1.2 + bands.ultra * 3,
+      direction.x * baseFreqX * 2.5 + tX * 1.5 + bands.high * 4,
+      direction.y * baseFreqY * 2.5 + tY * 1.5 + bands.mid * 3,
+      direction.z * baseFreqZ * 2.5 + tZ * 1.5 + bands.ultra * 4,
     );
 
-    // Third noise layer for even smoother transitions
+    // Third noise layer for flow and liquid motion
     const noise3 = noise3D(
-      direction.x * baseFreqX * 0.3 + tX * 0.8,
-      direction.y * baseFreqY * 0.3 + tY * 0.8,
-      direction.z * baseFreqZ * 0.3 + tZ * 0.8,
+      direction.x * baseFreqX * 0.4 + tX * 0.9 + Math.sin(tY * 2) * 0.5,
+      direction.y * baseFreqY * 0.4 + tY * 0.9 + Math.cos(tX * 2) * 0.5,
+      direction.z * baseFreqZ * 0.4 + tZ * 0.9 + Math.sin(tX * 1.5) * 0.5,
     );
 
-    // Combine noises with frequency weighting (more layers for smoothness)
-    const finalNoise = noise1 * 0.5 + noise2 * 0.3 + noise3 * 0.2;
+    // Combine noises with more emphasis on detail and variation
+    const finalNoise = noise1 * 0.45 + noise2 * 0.35 + noise3 * 0.2;
+
+    // Add directional variation for more organic speaking motion
+    const directionalVariation = (
+      Math.sin(angleFactor * 5 + tX * 2) * 0.3 +
+      Math.cos(angleFactor * 3 + tY * 1.5) * 0.2 +
+      Math.sin(heightFactor * Math.PI * 4 + tZ * 1.8) * 0.25
+    ) * (bands.mid + bands.high * 0.5);
 
     // Calculate displacement for each state separately
-    // Normal/Speaking mode displacement (outward spikes)
-    const speakingDisplacement = combinedAmplitude * finalNoise;
+    // Normal/Speaking mode displacement (outward spikes with variation)
+    const speakingDisplacement = (combinedAmplitude * finalNoise) + directionalVariation;
     
-    // Listening mode displacement (inward spikes)
-    const listeningDisplacement = -combinedAmplitude * finalNoise;
+    // Listening mode displacement (inward spikes with variation)
+    const listeningDisplacement = (-combinedAmplitude * finalNoise) + directionalVariation * 0.5;
     
     // Thinking mode displacement (fluid, flowing movements)
     let thinkingDisplacement = 0;
@@ -272,8 +279,8 @@ export function animateBlob(
     }
     
     // Final safety clamp: ensure displacement never causes collapse or extreme spikes
-    // Keep blob between 50% and 150% of its base size at any vertex
-    displacement = Math.max(0.5, Math.min(1.5, displacement));
+    // Allow more variation for fluid speaking motion - between 40% and 180% of base size
+    displacement = Math.max(0.4, Math.min(1.8, displacement));
 
     vertex.normalize().multiplyScalar(displacement);
     positions.setXYZ(i, vertex.x, vertex.y, vertex.z);
