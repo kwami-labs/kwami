@@ -181,7 +181,8 @@ const DEFAULT_VALUES = {
   resolution: 180,
   shininess: 50,
   wireframe: false,
-  skin: 'tricolor'
+  skin: 'tricolor',
+  opacity: 1,
 };
 
 // Default background settings
@@ -224,6 +225,10 @@ const BACKGROUND_IMAGES = [
 
 // Counter for background randomization clicks
 let backgroundRandomizeClickCount = 0;
+
+// Blob image transparency mode
+let blobImageTransparencyEnabled = false;
+let currentBackgroundImage = '';
 
 // Default camera position
 const DEFAULT_CAMERA_POSITION = {
@@ -288,6 +293,13 @@ function setBackgroundImage(imageName) {
   } else {
     bgImageElement.style.backgroundImage = 'none';
     updateStatus('Background image removed');
+  }
+
+  currentBackgroundImage = imageName || '';
+
+  if (window.kwami && window.kwami.body && typeof window.kwami.body.setBlobBackgroundImage === 'function') {
+    const imagePath = currentBackgroundImage ? `assets/${currentBackgroundImage}` : null;
+    window.kwami.body.setBlobBackgroundImage(imagePath);
   }
 }
 
@@ -605,24 +617,78 @@ window.startConversation = async function() {
   }
   
   const agentId = document.getElementById('agent-id').value.trim();
+  if (!agentId) {
+    showError('Please enter an Agent ID for conversational AI');
+    return;
+  }
+  
   const firstMessage = document.getElementById('conversation-first-message').value.trim();
+  const maxDuration = parseInt(document.getElementById('conversation-max-duration').value) || 300;
+  const allowInterruption = document.getElementById('conversation-interruption').checked;
   
   try {
     updateStatus('🔄 Starting conversation...');
     document.getElementById('start-conversation-btn').disabled = true;
     
-    // Build system prompt from Soul if available
-    let systemPrompt = 'You are a helpful AI assistant.';
-    if (window.kwami.soul) {
-      systemPrompt = window.kwami.soul.getSystemPrompt();
+    // Update conversation config
+    window.kwami.mind.config.conversational = {
+      agentId: agentId,
+      firstMessage: firstMessage || 'Hello! How can I help you today?',
+      maxDuration: maxDuration,
+      allowInterruption: allowInterruption
+    };
+    
+    // Create transcript display area if it doesn't exist
+    let transcriptArea = document.getElementById('conversation-transcript');
+    if (!transcriptArea) {
+      const conversationSection = document.querySelector('.section:has(#agent-id)');
+      if (conversationSection) {
+        transcriptArea = document.createElement('div');
+        transcriptArea.id = 'conversation-transcript';
+        transcriptArea.style.cssText = 'margin-top: 15px; padding: 10px; background: #f5f5f5; border-radius: 8px; max-height: 200px; overflow-y: auto; font-size: 12px; display: none;';
+        transcriptArea.innerHTML = '<div style="color: #888; margin-bottom: 5px;">📝 Conversation Transcript:</div>';
+        conversationSection.appendChild(transcriptArea);
+      }
     }
     
-    await window.kwami.mind.startConversation(systemPrompt);
+    // Define conversation callbacks
+    const callbacks = {
+      onAgentResponse: (text) => {
+        console.log('Agent:', text);
+        if (transcriptArea) {
+          const entry = document.createElement('div');
+          entry.style.cssText = 'margin: 5px 0; padding: 5px; background: #e3e8ff; border-radius: 4px;';
+          entry.innerHTML = `<strong>🤖 Agent:</strong> ${text}`;
+          transcriptArea.appendChild(entry);
+          transcriptArea.scrollTop = transcriptArea.scrollHeight;
+          transcriptArea.style.display = 'block';
+        }
+      },
+      onUserTranscript: (text) => {
+        console.log('User:', text);
+        if (transcriptArea) {
+          const entry = document.createElement('div');
+          entry.style.cssText = 'margin: 5px 0; padding: 5px; background: #fff; border-radius: 4px;';
+          entry.innerHTML = `<strong>👤 You:</strong> ${text}`;
+          transcriptArea.appendChild(entry);
+          transcriptArea.scrollTop = transcriptArea.scrollHeight;
+          transcriptArea.style.display = 'block';
+        }
+      },
+      onTurnStart: () => {
+        updateStatus('🎙️ Agent is speaking...');
+      },
+      onTurnEnd: () => {
+        updateStatus('👂 Listening for your response...');
+      },
+      onError: (error) => {
+        showError('Conversation error: ' + error.message);
+        stopConversation();
+      }
+    };
     
-    // Speak first message if provided
-    if (firstMessage) {
-      await window.kwami.speak(firstMessage);
-    }
+    // Start conversation with callbacks
+    await window.kwami.startConversation(callbacks);
     
     document.getElementById('start-conversation-btn').style.display = 'none';
     document.getElementById('stop-conversation-btn').style.display = 'block';
@@ -1016,6 +1082,7 @@ window.resetToDefaults = function() {
   blob.setShininess(DEFAULT_VALUES.shininess);
   blob.setWireframe(DEFAULT_VALUES.wireframe);
   blob.setSkin(DEFAULT_VALUES.skin);
+  blob.setOpacity(DEFAULT_VALUES.opacity);
   
   // Reset camera position
   const camera = window.kwami.body.getCamera();
@@ -1140,6 +1207,33 @@ function updateAllControlsFromBlob() {
       colorPicker.value = colors[axis];
     }
   });
+
+  const opacitySlider = document.getElementById('blob-opacity');
+  if (opacitySlider) {
+    const opacityDisplay = document.getElementById('blob-opacity-value');
+    const opacity = blob.getOpacity();
+    opacitySlider.value = opacity.toString();
+    if (opacityDisplay) {
+      opacityDisplay.textContent = formatValue(opacity, 2);
+    }
+  }
+
+  const camera = window.kwami.body.getCamera();
+  const cameraXSlider = document.getElementById('camera-x');
+  if (cameraXSlider) {
+    cameraXSlider.value = camera.position.x.toString();
+    updateValueDisplay('camera-x-value', camera.position.x, 1);
+  }
+  const cameraYSlider = document.getElementById('camera-y');
+  if (cameraYSlider) {
+    cameraYSlider.value = camera.position.y.toString();
+    updateValueDisplay('camera-y-value', camera.position.y, 1);
+  }
+  const cameraZSlider = document.getElementById('camera-z');
+  if (cameraZSlider) {
+    cameraZSlider.value = camera.position.z.toString();
+    updateValueDisplay('camera-z-value', camera.position.z, 1);
+  }
   
   // Update scale
   const scaleSlider = document.getElementById('scale');
@@ -1156,6 +1250,11 @@ function updateAllControlsFromBlob() {
     shininessSlider.value = shininess;
     shininessDisplay.textContent = formatValue(shininess, 0);
   }
+  const lightIntensitySlider = document.getElementById('light-intensity');
+  if (lightIntensitySlider) {
+    lightIntensitySlider.value = blob.lightIntensity.toString();
+    updateValueDisplay('light-intensity-value', blob.lightIntensity, 1);
+  }
   
   // Update wireframe
   const wireframeCheckbox = document.getElementById('wireframe');
@@ -1167,6 +1266,76 @@ function updateAllControlsFromBlob() {
   const skinSelect = document.getElementById('skin-type');
   if (skinSelect) {
     skinSelect.value = skin;
+  }
+
+  const touchStrengthSlider = document.getElementById('touch-strength');
+  if (touchStrengthSlider) {
+    touchStrengthSlider.value = blob.touchStrength.toString();
+    updateValueDisplay('touch-strength-value', blob.touchStrength, 1);
+  }
+
+  const touchDurationSlider = document.getElementById('touch-duration');
+  if (touchDurationSlider) {
+    const durationSeconds = blob.touchDuration;
+    touchDurationSlider.value = durationSeconds.toString();
+    updateValueDisplay('touch-duration-value', durationSeconds, 0);
+  }
+
+  const maxTouchesSlider = document.getElementById('max-touches');
+  if (maxTouchesSlider) {
+    maxTouchesSlider.value = blob.maxTouchPoints.toString();
+    updateValueDisplay('max-touches-value', blob.maxTouchPoints, 0);
+  }
+
+  const audioConfig = blob.audioEffects;
+  window.audioEffects = {
+    ...window.audioEffects,
+    bassSpike: audioConfig.bassSpike,
+    midSpike: audioConfig.midSpike,
+    highSpike: audioConfig.highSpike,
+    midTime: audioConfig.midTime,
+    highTime: audioConfig.highTime,
+    ultraTime: audioConfig.ultraTime,
+    enabled: audioConfig.enabled,
+    timeEnabled: audioConfig.timeEnabled,
+  };
+  const bassSlider = document.getElementById('audio-bass-spike');
+  if (bassSlider) {
+    bassSlider.value = audioConfig.bassSpike.toString();
+    updateValueDisplay('audio-bass-spike-value', audioConfig.bassSpike, 2);
+  }
+  const midSlider = document.getElementById('audio-mid-spike');
+  if (midSlider) {
+    midSlider.value = audioConfig.midSpike.toString();
+    updateValueDisplay('audio-mid-spike-value', audioConfig.midSpike, 2);
+  }
+  const highSlider = document.getElementById('audio-high-spike');
+  if (highSlider) {
+    highSlider.value = audioConfig.highSpike.toString();
+    updateValueDisplay('audio-high-spike-value', audioConfig.highSpike, 2);
+  }
+  const midTimeSlider = document.getElementById('audio-mid-time');
+  if (midTimeSlider) {
+    midTimeSlider.value = audioConfig.midTime.toString();
+    updateValueDisplay('audio-mid-time-value', audioConfig.midTime, 1);
+  }
+  const highTimeSlider = document.getElementById('audio-high-time');
+  if (highTimeSlider) {
+    highTimeSlider.value = audioConfig.highTime.toString();
+    updateValueDisplay('audio-high-time-value', audioConfig.highTime, 1);
+  }
+  const ultraTimeSlider = document.getElementById('audio-ultra-time');
+  if (ultraTimeSlider) {
+    ultraTimeSlider.value = audioConfig.ultraTime.toString();
+    updateValueDisplay('audio-ultra-time-value', audioConfig.ultraTime, 1);
+  }
+  const audioReactiveToggle = document.getElementById('audio-reactive');
+  if (audioReactiveToggle) {
+    audioReactiveToggle.checked = audioConfig.enabled;
+  }
+  const audioTimeToggle = document.getElementById('audio-time-enabled');
+  if (audioTimeToggle) {
+    audioTimeToggle.checked = audioConfig.timeEnabled;
   }
 }
 
@@ -1230,6 +1399,15 @@ function initializeBodyControls() {
       });
     }
   });
+
+  const opacitySlider = document.getElementById('blob-opacity');
+  if (opacitySlider) {
+    opacitySlider.addEventListener('input', (e) => {
+      const value = parseFloat(e.target.value);
+      blob.setOpacity(value);
+      updateValueDisplay('blob-opacity-value', value, 2);
+    });
+  }
   
   // Scale slider
   const scaleSlider = document.getElementById('scale');
@@ -1303,6 +1481,7 @@ function initializeBodyControls() {
     skinSelect.addEventListener('change', (e) => {
       blob.setSkin(e.target.value);
       updateStatus(`👕 Changed to ${e.target.value} skin`);
+      updateAllControlsFromBlob();
     });
   }
   
@@ -1398,19 +1577,39 @@ function updateStateIndicator(state) {
 function applyBackground() {
   const type = document.getElementById('bg-type').value;
   const opacity = parseFloat(document.getElementById('bg-opacity').value);
-  
-  if (type === 'transparent') {
-    window.kwami.body.setBackgroundTransparent();
-  } else if (type === 'solid') {
-    const color = document.getElementById('bg-solid-color').value;
-    window.kwami.body.setBackgroundColor(color, opacity);
-  } else if (type === 'gradient') {
-  const color1 = document.getElementById('bg-color-1').value;
-  const color2 = document.getElementById('bg-color-2').value;
-  const color3 = document.getElementById('bg-color-3').value;
-    const direction = document.getElementById('bg-direction').value;
-  
-    window.kwami.body.setBackgroundGradient([color1, color2, color3], direction, opacity);
+
+  if (blobImageTransparencyEnabled && type !== 'transparent') {
+    if (type === 'solid') {
+      const color = document.getElementById('bg-solid-color').value;
+      window.kwami.body.setBlobImageTransparencyMode(true, [color], 'solid', 'vertical', opacity);
+    } else if (type === 'gradient') {
+      const color1 = document.getElementById('bg-color-1').value;
+      const color2 = document.getElementById('bg-color-2').value;
+      const color3 = document.getElementById('bg-color-3').value;
+      const direction = document.getElementById('bg-direction').value;
+      window.kwami.body.setBlobImageTransparencyMode(
+        true,
+        [color1, color2, color3],
+        'gradient',
+        direction,
+        opacity,
+      );
+    }
+  } else {
+    window.kwami.body.setBlobImageTransparencyMode(false);
+
+    if (type === 'transparent') {
+      window.kwami.body.setBackgroundTransparent();
+    } else if (type === 'solid') {
+      const color = document.getElementById('bg-solid-color').value;
+      window.kwami.body.setBackgroundColor(color, opacity);
+    } else if (type === 'gradient') {
+      const color1 = document.getElementById('bg-color-1').value;
+      const color2 = document.getElementById('bg-color-2').value;
+      const color3 = document.getElementById('bg-color-3').value;
+      const direction = document.getElementById('bg-direction').value;
+      window.kwami.body.setBackgroundGradient([color1, color2, color3], direction, opacity);
+    }
   }
 }
 
@@ -1548,6 +1747,9 @@ function initializeCameraControls() {
       camera.position.x = value;
       camera.lookAt(0, 0, 0); // Always look at the blob center
       updateValueDisplay('camera-x-value', value, 1);
+      if (window.kwami?.body?.isBlobImageTransparencyMode?.()) {
+        window.kwami.body.refreshBlobImageTransparencyMode();
+      }
     });
   }
   
@@ -1559,6 +1761,9 @@ function initializeCameraControls() {
       camera.position.y = value;
       camera.lookAt(0, 0, 0); // Always look at the blob center
       updateValueDisplay('camera-y-value', value, 1);
+      if (window.kwami?.body?.isBlobImageTransparencyMode?.()) {
+        window.kwami.body.refreshBlobImageTransparencyMode();
+      }
     });
   }
   
@@ -1570,6 +1775,9 @@ function initializeCameraControls() {
       camera.position.z = value;
       camera.lookAt(0, 0, 0); // Always look at the blob center
       updateValueDisplay('camera-z-value', value, 1);
+      if (window.kwami?.body?.isBlobImageTransparencyMode?.()) {
+        window.kwami.body.refreshBlobImageTransparencyMode();
+      }
     });
   }
   
@@ -1624,6 +1832,7 @@ function initializeAudioEffects() {
   // Bass → Spikes
   const audioBassSpike = document.getElementById('audio-bass-spike');
   if (audioBassSpike) {
+    audioBassSpike.value = window.audioEffects.bassSpike.toString();
     updateValueDisplay('audio-bass-spike-value', audioBassSpike.value, 2);
     audioBassSpike.addEventListener('input', (e) => {
       window.audioEffects.bassSpike = parseFloat(e.target.value);
@@ -1637,6 +1846,7 @@ function initializeAudioEffects() {
   // Mid → Spikes
   const audioMidSpike = document.getElementById('audio-mid-spike');
   if (audioMidSpike) {
+    audioMidSpike.value = window.audioEffects.midSpike.toString();
     updateValueDisplay('audio-mid-spike-value', audioMidSpike.value, 2);
     audioMidSpike.addEventListener('input', (e) => {
       window.audioEffects.midSpike = parseFloat(e.target.value);
@@ -1650,6 +1860,7 @@ function initializeAudioEffects() {
   // High → Spikes
   const audioHighSpike = document.getElementById('audio-high-spike');
   if (audioHighSpike) {
+    audioHighSpike.value = window.audioEffects.highSpike.toString();
     updateValueDisplay('audio-high-spike-value', audioHighSpike.value, 2);
     audioHighSpike.addEventListener('input', (e) => {
       window.audioEffects.highSpike = parseFloat(e.target.value);
@@ -1663,6 +1874,7 @@ function initializeAudioEffects() {
   // Mid → Time
   const audioMidTime = document.getElementById('audio-mid-time');
   if (audioMidTime) {
+    audioMidTime.value = window.audioEffects.midTime.toString();
     updateValueDisplay('audio-mid-time-value', audioMidTime.value, 1);
     audioMidTime.addEventListener('input', (e) => {
       window.audioEffects.midTime = parseFloat(e.target.value);
@@ -1676,6 +1888,7 @@ function initializeAudioEffects() {
   // High → Time
   const audioHighTime = document.getElementById('audio-high-time');
   if (audioHighTime) {
+    audioHighTime.value = window.audioEffects.highTime.toString();
     updateValueDisplay('audio-high-time-value', audioHighTime.value, 1);
     audioHighTime.addEventListener('input', (e) => {
       window.audioEffects.highTime = parseFloat(e.target.value);
@@ -1689,6 +1902,7 @@ function initializeAudioEffects() {
   // Ultra → Time
   const audioUltraTime = document.getElementById('audio-ultra-time');
   if (audioUltraTime) {
+    audioUltraTime.value = window.audioEffects.ultraTime.toString();
     updateValueDisplay('audio-ultra-time-value', audioUltraTime.value, 1);
     audioUltraTime.addEventListener('input', (e) => {
       window.audioEffects.ultraTime = parseFloat(e.target.value);

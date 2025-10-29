@@ -8,11 +8,15 @@ import type { TricolorSkinConfig } from '../../../types/index';
  * Colors blend around the blob based on position angle
  */
 export function createTricolorSkin(config: TricolorSkinConfig): ShaderMaterial {
+  const isTransparent = config.opacity < 0.999;
+
   return new ShaderMaterial({
     vertexShader,
     fragmentShader,
     wireframe: config.wireframe,
     lights: false,
+    transparent: isTransparent,
+    depthWrite: !isTransparent,
     uniforms: {
       lightPosition: {
         value: new Vector3(
@@ -35,6 +39,15 @@ export function createTricolorSkin(config: TricolorSkinConfig): ShaderMaterial {
       },
       _color3: {
         value: new Color(config.color3),
+      },
+      opacity: {
+        value: config.opacity,
+      },
+      backgroundTexture: {
+        value: null,
+      },
+      useBackgroundTexture: {
+        value: false,
       },
     },
   });

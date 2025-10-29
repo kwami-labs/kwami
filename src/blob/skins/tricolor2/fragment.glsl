@@ -1,5 +1,6 @@
 varying vec3 vNormal;
 varying vec3 vPosition;
+varying vec2 vUv;
 uniform vec3 _color1;
 uniform vec3 _color2;
 uniform vec3 _color3;
@@ -7,6 +8,8 @@ uniform vec3 lightPosition;
 uniform vec3 specular_color;
 uniform float shininess;
 uniform float opacity;
+uniform sampler2D backgroundTexture;
+uniform bool useBackgroundTexture;
 
 void main(){
   vec3 lightDir=normalize(lightPosition-vPosition);
@@ -40,8 +43,15 @@ void main(){
     _color = mix(_color3, _color2, smoothstep(0.0, 1.0, t));
   }
   
-  vec3 finalColor=_color+specular;
-  gl_FragColor=vec4(clamp(finalColor,0.,1.),opacity);
+  vec3 finalColor=clamp(_color+specular,0.,1.);
+  float alpha = opacity;
+
+  if (useBackgroundTexture) {
+    vec3 backgroundColor = texture2D(backgroundTexture, vUv).rgb;
+    finalColor = mix(finalColor, backgroundColor, 1.0 - alpha);
+  }
+
+  gl_FragColor=vec4(finalColor,alpha);
 }
 
 

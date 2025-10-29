@@ -78,28 +78,102 @@ export interface BodyConfig {
  * ElevenLabs Voice Settings Configuration
  */
 export interface VoiceSettings {
-  stability?: number; // 0-1
-  similarity_boost?: number; // 0-1
-  style?: number; // 0-1
-  use_speaker_boost?: boolean;
+  stability?: number; // 0-1: Controls expressiveness vs consistency
+  similarity_boost?: number; // 0-1: Enhances voice clarity
+  style?: number; // 0-1: Adds expressiveness (use with caution)
+  use_speaker_boost?: boolean; // Enhanced clarity option
+}
+
+/**
+ * TTS Output Format Options
+ */
+export type TTSOutputFormat = 
+  | 'mp3_44100_128'  // MP3 - 44.1kHz, 128kbps (Recommended)
+  | 'mp3_44100_64'   // MP3 - 44.1kHz, 64kbps (Smaller size)
+  | 'mp3_44100_192'  // MP3 - 44.1kHz, 192kbps (High quality)
+  | 'pcm_16000'      // PCM - 16kHz (Low latency)
+  | 'pcm_22050'      // PCM - 22.05kHz (Balanced)
+  | 'pcm_24000'      // PCM - 24kHz (Good quality)
+  | 'pcm_44100';     // PCM - 44.1kHz (CD quality)
+
+/**
+ * STT Model Options
+ */
+export type STTModel = 'base' | 'small' | 'medium' | 'large';
+
+/**
+ * Advanced TTS Options
+ */
+export interface AdvancedTTSOptions {
+  outputFormat?: TTSOutputFormat; // Audio output format
+  optimizeStreamingLatency?: boolean; // Reduces delay for real-time applications
+  nextTextTimeout?: number; // Wait time before processing next chunk (ms)
+}
+
+/**
+ * Conversational AI Settings
+ */
+export interface ConversationalAISettings {
+  agentId?: string; // ElevenLabs agent ID
+  firstMessage?: string; // Agent's opening greeting
+  maxDuration?: number; // Maximum conversation length (seconds)
+  allowInterruption?: boolean; // Let users interrupt the agent mid-speech
+}
+
+/**
+ * Speech-to-Text Configuration
+ */
+export interface STTConfig {
+  model?: STTModel; // STT model selection
+  language?: string; // Language code (e.g., 'en', 'es', 'fr')
+  automaticPunctuation?: boolean; // Add punctuation automatically
+  speakerDiarization?: boolean; // Identify different speakers
+}
+
+/**
+ * Pronunciation Dictionary Entry
+ */
+export interface PronunciationEntry {
+  word: string;
+  pronunciation: string;
+}
+
+/**
+ * Pronunciation Configuration
+ */
+export interface PronunciationConfig {
+  dictionary?: Map<string, string> | Record<string, string>; // Custom pronunciations
+  useIPAPhonemes?: boolean; // Use International Phonetic Alphabet
 }
 
 /**
  * AI Mind configuration for ElevenLabs Voice Agent
  */
 export interface MindConfig {
+  // Authentication
   apiKey?: string; // ElevenLabs API key (or from env)
-  agentId?: string; // ElevenLabs agent ID
   
   // Voice configuration
   voice?: {
     voiceId?: string; // Specific voice ID from ElevenLabs
-    model?: string; // e.g., 'eleven_multilingual_v2', 'eleven_turbo_v2'
-    settings?: VoiceSettings;
+    model?: string; // e.g., 'eleven_multilingual_v2', 'eleven_turbo_v2', 'eleven_turbo_v2_5'
+    settings?: VoiceSettings; // Fine-tuning parameters
   };
   
   // Language and behavior
-  language?: string; // e.g., 'en', 'es', 'fr'
+  language?: string; // Primary language (e.g., 'en', 'es', 'fr')
+  
+  // Advanced TTS options
+  advancedTTS?: AdvancedTTSOptions;
+  
+  // Conversational AI
+  conversational?: ConversationalAISettings;
+  
+  // Speech-to-Text
+  stt?: STTConfig;
+  
+  // Pronunciation
+  pronunciation?: PronunciationConfig;
   
   // Legacy/additional AI configuration
   llm?: {
@@ -107,17 +181,6 @@ export interface MindConfig {
     provider: string;
     temperature?: number;
     maxTokens?: number;
-  };
-  tts?: {
-    model: string;
-    provider: string;
-    voice?: string;
-    language?: string;
-  };
-  stt?: {
-    model: string;
-    provider: string;
-    language?: string;
   };
 }
 
@@ -157,6 +220,7 @@ export interface BlobOptions {
   spikes?: { x: number; y: number; z: number };
   time?: { x: number; y: number; z: number };
   rotation?: { x: number; y: number; z: number };
+  onAfterRender?: () => void;
 }
 
 /**
@@ -179,6 +243,7 @@ export interface TricolorSkinConfig {
   color1: string;
   color2: string;
   color3: string;
+  opacity: number;
 }
 
 /**
@@ -188,6 +253,10 @@ export interface ZebraSkinConfig {
   wireframe: boolean;
   lightPosition: { x: number; y: number; z: number };
   shininess: number;
+  opacity: number;
+  color1: string;
+  color2: string;
+  color3: string;
 }
 
 /**
@@ -221,6 +290,7 @@ export interface BlobOptionsConfig {
   };
   skins: {
     tricolor: TricolorSkinConfig;
+    tricolor2: TricolorSkinConfig;
     zebra: ZebraSkinConfig;
   };
 }

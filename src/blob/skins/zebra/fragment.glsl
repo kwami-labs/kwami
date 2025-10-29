@@ -1,5 +1,6 @@
 varying vec3 vNormal;
 varying vec3 vPosition;
+varying vec2 vUv;
 uniform vec3 _color1;
 uniform vec3 _color2;
 uniform vec3 _color3;
@@ -7,6 +8,8 @@ uniform vec3 lightPosition;
 uniform vec3 specular_color;
 uniform float shininess;
 uniform float opacity;
+uniform sampler2D backgroundTexture;
+uniform bool useBackgroundTexture;
 
 float zebraStripes(float x,float frequency,float width){
   return smoothstep(.5-width*.5,.5+width*.5,mod(x*frequency+.5,1.));
@@ -29,6 +32,13 @@ void main(){
   color=mix(color,_color3,stripeY*0.5);
   
   vec3 finalColor=clamp(color+specular,0.,1.);
-  gl_FragColor=vec4(finalColor,opacity);
+  float alpha = opacity;
+
+  if (useBackgroundTexture) {
+    vec3 backgroundColor = texture2D(backgroundTexture, vUv).rgb;
+    finalColor = mix(finalColor, backgroundColor, 1.0 - alpha);
+  }
+
+  gl_FragColor=vec4(finalColor,alpha);
 }
 

@@ -488,6 +488,10 @@ npm run playground
 The playground features:
 
 - **🎨 Rotating Sidebar System**: Seamlessly switch between Mind, Body, and Soul configurations
+- **🎙️ Natural Voice Conversations (Beta)**: WebSocket-based voice interaction structure
+  - **Demo mode available** - test the conversation interface
+  - **Full features pending** ElevenLabs Conversational AI beta access
+  - **Visual state sync** - blob animation reflects conversation states
 - **🤖 Complete Mind Menu**: Most comprehensive ElevenLabs configuration interface available:
   - **50+ configuration options** for AI audio agents
   - **20+ professional voices** plus custom voice support

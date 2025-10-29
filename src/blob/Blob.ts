@@ -1,4 +1,13 @@
-import { Mesh, Color, PointLight, Vector2, Vector3, Raycaster, type ShaderMaterial } from 'three';
+import {
+  Mesh,
+  Color,
+  PointLight,
+  Vector2,
+  Vector3,
+  Raycaster,
+  Texture,
+  type ShaderMaterial,
+} from 'three';
 import { GLTFExporter } from 'three/addons/exporters/GLTFExporter.js';
 import { createBlobGeometry } from './geometry';
 import { animateBlob } from './animation';
@@ -37,9 +46,9 @@ export class Blob {
   private clickEnabled = false;
   
   // Touch configuration
-  public touchStrength = 0.5;
-  public touchDuration = 1200;
-  public maxTouchPoints = 3;
+  public touchStrength = 1.0;
+  public touchDuration = 1100;
+  public maxTouchPoints = 5;
   
   // Listening mode (inverts spikes)
   public isListening = false;
@@ -62,9 +71,9 @@ export class Blob {
   
   // Audio effect parameters (configurable from playground)
   public audioEffects = {
-    bassSpike: 0.35,
-    midSpike: 0.30,
-    highSpike: 0.25,
+    bassSpike: 0.45,
+    midSpike: 0.35,
+    highSpike: 0.30,
     midTime: 0.2,
     highTime: 0.3,
     ultraTime: 0.15,
@@ -72,14 +81,31 @@ export class Blob {
     timeEnabled: false  // Disabled by default to prevent chaotic movement
   };
   public colors = { x: '#ff0000', y: '#00ff00', z: '#0000ff' };
+  public opacity = 1;
   public baseScale = 1.0; // User-defined base scale
   public dna = '';
+  private backgroundTexture: Texture | null = null;
 
   constructor(private options: BlobOptions) {
     this.currentSkin = options.skin || 'tricolor';
 
     // Initialize skins
     this.initializeSkins();
+
+    // Apply initial colors and opacity from configuration
+    const activeSkinConfig
+      = this.currentSkin === 'tricolor'
+        ? this.config.skins.tricolor
+        : this.currentSkin === 'tricolor2'
+          ? this.config.skins.tricolor2 || this.config.skins.tricolor
+          : this.config.skins.zebra;
+
+    if ('color1' in activeSkinConfig) {
+      this.setColors(activeSkinConfig.color1, activeSkinConfig.color2, activeSkinConfig.color3);
+    }
+
+    this.opacity = activeSkinConfig.opacity ?? 1;
+    this.updateMaterialOpacity(this.opacity);
 
     // Create geometry
     const geometry = createBlobGeometry(
@@ -89,6 +115,7 @@ export class Blob {
     // Create mesh with initial skin
     const material = this.skins.get(this.currentSkin)!;
     this.mesh = new Mesh(geometry, material);
+    this.updateMaterialOpacity(this.opacity);
 
     // Apply initial configuration
     if (options.spikes) this.spikes = options.spikes;
@@ -103,15 +130,53 @@ export class Blob {
    * Initialize all available skins
    */
   private initializeSkins(): void {
-    // Tricolor skin
     const tricolorConfig = this.config.skins.tricolor;
-    this.skins.set('tricolor', createSkin('tricolor', tricolorConfig));
+    const tricolor2Config = this.config.skins.tricolor2 || tricolorConfig;
+    const zebraConfig = this.config.skins.zebra;
 
-    // Tricolor2 (Donut) skin
-    this.skins.set('tricolor2', createSkin('tricolor2', tricolorConfig));
+    const tricolorMaterial = createSkin('tricolor', tricolorConfig);
+    this.applyBackgroundTextureToMaterial(tricolorMaterial);
+    this.skins.set('tricolor', tricolorMaterial);
 
-    // Zebra skin (uses tricolor config for colors)
-    this.skins.set('zebra', createSkin('zebra', tricolorConfig));
+    const tricolor2Material = createSkin('tricolor2', tricolor2Config);
+    this.applyBackgroundTextureToMaterial(tricolor2Material);
+    this.skins.set('tricolor2', tricolor2Material);
+
+    const zebraMaterial = createSkin('zebra', {
+      ...zebraConfig,
+      color1: zebraConfig.color1 ?? tricolorConfig.color1,
+      color2: zebraConfig.color2 ?? tricolorConfig.color2,
+      color3: zebraConfig.color3 ?? tricolorConfig.color3,
+    });
+    this.applyBackgroundTextureToMaterial(zebraMaterial);
+    this.skins.set('zebra', zebraMaterial);
+  }
+
+  private applyBackgroundTextureToMaterial(material: ShaderMaterial): void {
+    if (!material.uniforms) return;
+
+    if (Object.prototype.hasOwnProperty.call(material.uniforms, 'backgroundTexture')) {
+      material.uniforms.backgroundTexture.value = this.backgroundTexture;
+    }
+
+    if (Object.prototype.hasOwnProperty.call(material.uniforms, 'useBackgroundTexture')) {
+      material.uniforms.useBackgroundTexture.value = Boolean(this.backgroundTexture);
+    }
+
+    material.needsUpdate = true;
+  }
+
+  private applyBackgroundTextureToAllSkins(): void {
+    this.skins.forEach((material) => this.applyBackgroundTextureToMaterial(material));
+
+    if (this.mesh) {
+      this.applyBackgroundTextureToMaterial(this.mesh.material as ShaderMaterial);
+    }
+  }
+
+  public setBackgroundTexture(texture: Texture | null): void {
+    this.backgroundTexture = texture;
+    this.applyBackgroundTextureToAllSkins();
   }
 
   /**
@@ -175,6 +240,7 @@ export class Blob {
 
       // Render
       this.options.renderer.render(this.options.scene, this.options.camera);
+      this.options.onAfterRender?.();
 
       this.animationFrameId = requestAnimationFrame(animate);
     };
@@ -212,6 +278,12 @@ export class Blob {
       
       this.currentSkin = skin;
       this.mesh.material = material;
+      this.applyBackgroundTextureToMaterial(material);
+
+      if ((material as ShaderMaterial).uniforms?.opacity) {
+        (material as ShaderMaterial).uniforms.opacity.value = this.opacity;
+      }
+      this.updateMaterialOpacity(this.opacity);
       
       // Apply current colors to the new material
       this.setColor('x', this.colors.x);
@@ -288,13 +360,9 @@ export class Blob {
    * Set colors (for tricolor skin)
    */
   setColors(x: string, y: string, z: string): void {
-    this.colors = { x, y, z };
-    const tricolorMaterial = this.skins.get('tricolor') as ShaderMaterial;
-    if (tricolorMaterial) {
-      tricolorMaterial.uniforms._color1.value = new Color(x);
-      tricolorMaterial.uniforms._color2.value = new Color(y);
-      tricolorMaterial.uniforms._color3.value = new Color(z);
-    }
+    this.setColor('x', x);
+    this.setColor('y', y);
+    this.setColor('z', z);
   }
 
   /**
@@ -321,6 +389,42 @@ export class Blob {
     
     // Update light colors if lights are active
     this.updateLightColors();
+  }
+
+  getOpacity(): number {
+    return this.opacity;
+  }
+
+  setOpacity(value: number): void {
+    const clamped = Math.max(0, Math.min(1, value));
+    this.opacity = clamped;
+    this.updateMaterialOpacity(clamped);
+  }
+
+  private updateMaterialOpacity(value: number): void {
+    const isTransparent = value < 0.999;
+
+    this.skins.forEach((material) => {
+      const shader = material as ShaderMaterial;
+      if (shader.uniforms?.opacity) {
+        shader.uniforms.opacity.value = value;
+      }
+      shader.transparent = isTransparent;
+      shader.depthWrite = !isTransparent;
+      shader.opacity = value;
+      shader.needsUpdate = true;
+    });
+
+    if (this.mesh) {
+      const meshMaterial = this.mesh.material as ShaderMaterial;
+      if (meshMaterial.uniforms?.opacity) {
+        meshMaterial.uniforms.opacity.value = value;
+      }
+      meshMaterial.transparent = isTransparent;
+      meshMaterial.depthWrite = !isTransparent;
+      meshMaterial.opacity = value;
+      meshMaterial.needsUpdate = true;
+    }
   }
 
   /**
@@ -706,6 +810,10 @@ export class Blob {
     // Dispose all skin materials
     this.skins.forEach(material => material.dispose());
     this.skins.clear();
+    if (this.backgroundTexture) {
+      this.backgroundTexture.dispose();
+      this.backgroundTexture = null;
+    }
     
     // Remove lights from scene
     if (this.lights) {

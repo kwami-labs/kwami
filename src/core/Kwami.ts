@@ -42,6 +42,9 @@ export class Kwami {
 
     // Initialize mind (AI capabilities) with reference to audio for visualization
     this.mind = new KwamiMind(this.body.audio, config?.mind);
+    
+    // Set parent reference in audio for state management during conversations
+    this.body.audio.parentKwami = this;
   }
 
   /**
@@ -131,16 +134,43 @@ export class Kwami {
 
   /**
    * Start a conversation with Kwami using ElevenLabs Conversational AI
-   * This enables real-time voice interactions
+   * This enables real-time voice interactions with automatic voice activity detection
+   * 
+   * @param callbacks - Optional event callbacks for conversation events
    */
-  async startConversation(): Promise<void> {
+  async startConversation(callbacks?: {
+    onAgentResponse?: (text: string) => void;
+    onUserTranscript?: (text: string) => void;
+    onError?: (error: Error) => void;
+    onTurnStart?: () => void;
+    onTurnEnd?: () => void;
+  }): Promise<void> {
     try {
       await this.mind.initialize();
       const systemPrompt = this.soul.getSystemPrompt();
-      await this.mind.startConversation(systemPrompt);
+      
+      // Enhanced callbacks with state management
+      const enhancedCallbacks = {
+        ...callbacks,
+        onTurnStart: () => {
+          this.setState('speaking');
+          callbacks?.onTurnStart?.();
+        },
+        onTurnEnd: () => {
+          this.setState('listening');
+          callbacks?.onTurnEnd?.();
+        },
+        onError: (error: Error) => {
+          this.setState('idle');
+          callbacks?.onError?.(error);
+        }
+      };
+      
+      await this.mind.startConversation(systemPrompt, enhancedCallbacks);
       this.setState('listening');
     } catch (error) {
       console.error('Error starting conversation:', error);
+      this.setState('idle');
       throw error;
     }
   }
@@ -154,9 +184,31 @@ export class Kwami {
   }
 
   /**
+   * Check if a conversation is currently active
+   * 
+   * @returns True if conversation is active
+   */
+  isConversationActive(): boolean {
+    return this.mind.isConversationActive();
+  }
+
+  /**
+   * Send a text message during conversation (hybrid mode)
+   * 
+   * @param text - Text to send to the agent
+   */
+  sendConversationMessage(text: string): void {
+    this.mind.sendConversationMessage(text);
+  }
+
+  /**
    * Cleanup and dispose all resources
    */
   dispose(): void {
+    // Stop any active conversations
+    if (this.isConversationActive()) {
+      this.stopConversation();
+    }
     this.body.dispose();
   }
 }

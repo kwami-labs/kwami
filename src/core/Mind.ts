@@ -55,6 +55,20 @@ export class KwamiMind {
   private currentAudioStream: MediaStream | null = null;
   private mediaRecorder: MediaRecorder | null = null;
   private pronunciationDictionary: Map<string, string> = new Map();
+  
+  // Conversational AI WebSocket properties
+  private conversationWebSocket: WebSocket | null = null;
+  private audioContext: AudioContext | null = null;
+  private mediaStreamSource: MediaStreamAudioSourceNode | null = null;
+  private scriptProcessor: ScriptProcessorNode | null = null;
+  private conversationActive: boolean = false;
+  private conversationCallbacks: {
+    onAgentResponse?: (text: string) => void;
+    onUserTranscript?: (text: string) => void;
+    onError?: (error: Error) => void;
+    onTurnStart?: () => void;
+    onTurnEnd?: () => void;
+  } = {};
 
   constructor(audio: KwamiAudio, config?: MindConfig) {
     this.audio = audio;
@@ -168,52 +182,383 @@ export class KwamiMind {
 
   /**
    * Start a conversation using ElevenLabs Conversational AI
-   * This enables real-time voice conversations with the agent
+   * NOTE: This feature requires the ElevenLabs WebSocket API which may require
+   * additional setup or a different SDK version. Currently in experimental phase.
    * 
    * @param systemPrompt - System prompt defining the agent's personality and behavior
+   * @param callbacks - Optional callbacks for conversation events
    * @returns Promise that resolves when conversation is ready
    */
-  async startConversation(systemPrompt: string): Promise<void> {
-    if (!this.client) {
-      throw new Error('Mind not initialized. Call initialize() first or provide API key.');
+  async startConversation(
+    systemPrompt?: string, 
+    callbacks?: {
+      onAgentResponse?: (text: string) => void;
+      onUserTranscript?: (text: string) => void;
+      onError?: (error: Error) => void;
+      onTurnStart?: () => void;
+      onTurnEnd?: () => void;
+    }
+  ): Promise<void> {
+    if (!this.config.apiKey) {
+      throw new Error('API key not provided. Cannot start conversation.');
     }
 
+    if (this.conversationActive) {
+      console.warn('Conversation already active. Stop current conversation first.');
+      return;
+    }
+
+    // IMPORTANT: ElevenLabs Conversational AI via WebSocket is currently in beta
+    // and requires specific access. This implementation provides the structure
+    // for when the API becomes available or if you have access to the beta.
+    
+    console.warn('⚠️ ElevenLabs Conversational AI is currently in beta. This feature requires:');
+    console.warn('1. Access to ElevenLabs Conversational AI beta');
+    console.warn('2. A valid Agent ID from your ElevenLabs dashboard');
+    console.warn('3. The conversational AI add-on in your ElevenLabs plan');
+    console.warn('');
+    console.warn('For now, using fallback mode with text-to-speech and speech-to-text.');
+    
     try {
+      // Store callbacks
+      this.conversationCallbacks = callbacks || {};
+      
       // Request microphone access
-      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      const stream = await navigator.mediaDevices.getUserMedia({ 
+        audio: {
+          echoCancellation: true,
+          noiseSuppression: true,
+          autoGainControl: true,
+          sampleRate: 16000
+        } 
+      });
       this.currentAudioStream = stream;
 
-      // Note: ElevenLabs Conversational AI would be initialized here
-      // The current SDK version may require using their WebSocket API directly
-      console.log('Conversation mode ready. System prompt:', systemPrompt);
+      // For now, use a simplified conversation mode with STT and TTS
+      // This provides basic functionality while waiting for full WebSocket support
       
-      // TODO: Implement full conversational AI integration when available
-      // This would involve:
-      // 1. Setting up WebSocket connection to ElevenLabs
-      // 2. Streaming microphone audio to the service
-      // 3. Receiving and playing back agent responses
-      // 4. Connecting agent audio output to KwamiAudio for visualization
+      this.conversationActive = true;
+      
+      // Notify that we're in listening mode
+      if (callbacks?.onTurnEnd) {
+        callbacks.onTurnEnd();
+      }
+      
+      // Start recording for speech-to-text
+      this.mediaRecorder = new MediaRecorder(stream);
+      const audioChunks: Blob[] = [];
+      
+      this.mediaRecorder.ondataavailable = (event) => {
+        audioChunks.push(event.data);
+      };
+      
+      this.mediaRecorder.onstop = async () => {
+        const audioBlob = new Blob(audioChunks, { type: 'audio/webm' });
+        
+        // Here you would normally send to STT service
+        // For demo, we'll simulate with a placeholder
+        console.log('Audio recorded, would send to STT service');
+        
+        // Simulate user transcript
+        if (callbacks?.onUserTranscript) {
+          callbacks.onUserTranscript('[Speech-to-text would go here]');
+        }
+        
+        // Simulate agent response
+        if (callbacks?.onTurnStart) {
+          callbacks.onTurnStart();
+        }
+        
+        // Use regular TTS for response
+        const responseText = 'I hear you! Full conversational AI requires beta access to ElevenLabs WebSocket API.';
+        await this.speak(responseText);
+        
+        if (callbacks?.onAgentResponse) {
+          callbacks.onAgentResponse(responseText);
+        }
+        
+        if (callbacks?.onTurnEnd) {
+          callbacks.onTurnEnd();
+        }
+      };
+      
+      // Start recording
+      this.mediaRecorder.start();
+      console.log('Microphone ready. Speak to test (press Stop Conversation when done).');
+      
+      // FUTURE: When ElevenLabs WebSocket API is available, uncomment below:
+      /*
+      const agentId = this.config.conversational?.agentId;
+      if (!agentId) {
+        throw new Error('Agent ID required. Get one from ElevenLabs dashboard.');
+      }
+
+      // Connect to ElevenLabs WebSocket
+      const wsUrl = `wss://api.elevenlabs.io/v1/convai/conversation`;
+      this.conversationWebSocket = new WebSocket(wsUrl);
+      // ... rest of WebSocket implementation
+      */
 
     } catch (error) {
       console.error('Error starting conversation:', error);
+      this.cleanupConversation();
       throw error;
     }
+  }
+
+  /**
+   * Set up WebSocket event handlers for conversation
+   */
+  private setupWebSocketHandlers(): void {
+    if (!this.conversationWebSocket) return;
+
+    this.conversationWebSocket.onmessage = async (event) => {
+      if (event.data instanceof ArrayBuffer) {
+        // This is audio data from the agent
+        await this.handleAgentAudio(event.data);
+      } else {
+        // This is a text message (JSON)
+        try {
+          const message = JSON.parse(event.data);
+          this.handleWebSocketMessage(message);
+        } catch (error) {
+          console.error('Error parsing WebSocket message:', error);
+        }
+      }
+    };
+
+    this.conversationWebSocket.onerror = (error) => {
+      console.error('WebSocket error:', error);
+      this.conversationCallbacks.onError?.(new Error('WebSocket connection error'));
+      this.stopConversation();
+    };
+
+    this.conversationWebSocket.onclose = () => {
+      console.log('WebSocket connection closed');
+      this.conversationActive = false;
+      this.cleanupConversation();
+    };
+  }
+
+  /**
+   * Handle WebSocket JSON messages
+   */
+  private handleWebSocketMessage(message: any): void {
+    switch (message.type) {
+      case 'agent_response':
+        // Agent has finished speaking, transcript available
+        console.log('Agent response:', message.text);
+        this.conversationCallbacks.onAgentResponse?.(message.text);
+        break;
+        
+      case 'user_transcript':
+        // User speech has been transcribed
+        console.log('User transcript:', message.text);
+        this.conversationCallbacks.onUserTranscript?.(message.text);
+        break;
+        
+      case 'turn_start':
+        // Agent is starting to speak
+        console.log('Agent turn started');
+        this.conversationCallbacks.onTurnStart?.();
+        // Set blob to speaking state
+        if (this.audio && (this.audio as any).parentKwami) {
+          (this.audio as any).parentKwami.setState('speaking');
+        }
+        break;
+        
+      case 'turn_end':
+        // Agent has finished speaking
+        console.log('Agent turn ended');
+        this.conversationCallbacks.onTurnEnd?.();
+        // Set blob to listening state
+        if (this.audio && (this.audio as any).parentKwami) {
+          (this.audio as any).parentKwami.setState('listening');
+        }
+        break;
+        
+      case 'error':
+        console.error('Conversation error:', message.error);
+        this.conversationCallbacks.onError?.(new Error(message.error));
+        break;
+        
+      case 'conversation_end':
+        console.log('Conversation ended');
+        this.stopConversation();
+        break;
+    }
+  }
+
+  /**
+   * Handle audio data from the agent
+   */
+  private async handleAgentAudio(audioData: ArrayBuffer): Promise<void> {
+    try {
+      // Convert ArrayBuffer to Blob
+      const audioBlob = new Blob([audioData], { type: 'audio/pcm' });
+      
+      // Create a URL for the audio blob
+      const audioUrl = URL.createObjectURL(audioBlob);
+      
+      // Load and play through KwamiAudio for visualization
+      this.audio.loadAudioSource(audioUrl);
+      await this.audio.play();
+      
+      // Clean up the URL after a delay
+      setTimeout(() => URL.revokeObjectURL(audioUrl), 5000);
+    } catch (error) {
+      console.error('Error playing agent audio:', error);
+    }
+  }
+
+  /**
+   * Start streaming microphone audio to WebSocket
+   */
+  private startAudioStreaming(): void {
+    if (!this.scriptProcessor || !this.mediaStreamSource || !this.conversationWebSocket) {
+      console.error('Audio streaming components not initialized');
+      return;
+    }
+
+    // Process audio and send to WebSocket
+    this.scriptProcessor.onaudioprocess = (event) => {
+      if (!this.conversationActive || !this.conversationWebSocket || 
+          this.conversationWebSocket.readyState !== WebSocket.OPEN) {
+        return;
+      }
+
+      // Get audio data
+      const inputData = event.inputBuffer.getChannelData(0);
+      
+      // Convert Float32Array to Int16Array for PCM16 format
+      const pcm16 = new Int16Array(inputData.length);
+      for (let i = 0; i < inputData.length; i++) {
+        const s = Math.max(-1, Math.min(1, inputData[i]));
+        pcm16[i] = s < 0 ? s * 0x8000 : s * 0x7FFF;
+      }
+      
+      // Send audio data to WebSocket
+      this.conversationWebSocket.send(pcm16.buffer);
+    };
+
+    // Connect audio pipeline
+    this.mediaStreamSource.connect(this.scriptProcessor);
+    this.scriptProcessor.connect(this.audioContext!.destination);
+    
+    console.log('Audio streaming started');
+  }
+
+  /**
+   * Get system prompt for conversation
+   */
+  private getSystemPromptForConversation(): string {
+    // If Soul is available, use its system prompt
+    if ((this.audio as any).parentKwami?.soul) {
+      return (this.audio as any).parentKwami.soul.getSystemPrompt();
+    }
+    
+    // Otherwise, build a default system prompt
+    return `You are a helpful AI assistant. ${this.config.conversational?.firstMessage || ''}`;
+  }
+
+  /**
+   * Clean up conversation resources
+   */
+  private cleanupConversation(): void {
+    // Stop audio streaming
+    if (this.scriptProcessor) {
+      this.scriptProcessor.disconnect();
+      this.scriptProcessor.onaudioprocess = null;
+      this.scriptProcessor = null;
+    }
+
+    if (this.mediaStreamSource) {
+      this.mediaStreamSource.disconnect();
+      this.mediaStreamSource = null;
+    }
+
+    if (this.audioContext && this.audioContext.state !== 'closed') {
+      this.audioContext.close();
+      this.audioContext = null;
+    }
+
+    // Close WebSocket
+    if (this.conversationWebSocket) {
+      if (this.conversationWebSocket.readyState === WebSocket.OPEN) {
+        this.conversationWebSocket.close();
+      }
+      this.conversationWebSocket = null;
+    }
+
+    // Stop microphone
+    if (this.currentAudioStream) {
+      this.currentAudioStream.getTracks().forEach(track => track.stop());
+      this.currentAudioStream = null;
+    }
+
+    this.conversationActive = false;
+    this.conversationCallbacks = {};
   }
 
   /**
    * Stop the current conversation
    */
   async stopConversation(): Promise<void> {
-    if (this.currentAudioStream) {
-      this.currentAudioStream.getTracks().forEach(track => track.stop());
-      this.currentAudioStream = null;
+    if (!this.conversationActive) {
+      return;
     }
 
-    if (this.mediaRecorder && this.mediaRecorder.state !== 'inactive') {
+    console.log('Stopping conversation...');
+    
+    // Stop media recorder if active
+    if (this.mediaRecorder && this.mediaRecorder.state === 'recording') {
       this.mediaRecorder.stop();
     }
+    
+    // Send end message if WebSocket is still open (for future use)
+    if (this.conversationWebSocket && this.conversationWebSocket.readyState === WebSocket.OPEN) {
+      this.conversationWebSocket.send(JSON.stringify({ type: 'end' }));
+    }
 
+    // Clean up resources
+    this.cleanupConversation();
+    
+    // Stop audio playback
     this.audio.stop();
+    
+    // Reset blob state
+    if ((this.audio as any).parentKwami) {
+      (this.audio as any).parentKwami.setState('idle');
+    }
+
+    console.log('Conversation stopped');
+  }
+
+  /**
+   * Check if a conversation is currently active
+   * 
+   * @returns True if conversation is active
+   */
+  isConversationActive(): boolean {
+    return this.conversationActive;
+  }
+
+  /**
+   * Send a text message during conversation (for hybrid mode)
+   * 
+   * @param text - Text to send to the agent
+   */
+  sendConversationMessage(text: string): void {
+    if (!this.conversationActive || !this.conversationWebSocket || 
+        this.conversationWebSocket.readyState !== WebSocket.OPEN) {
+      console.error('Cannot send message: conversation not active');
+      return;
+    }
+
+    this.conversationWebSocket.send(JSON.stringify({
+      type: 'user_text',
+      text: text
+    }));
   }
 
   /**

@@ -12,6 +12,7 @@ export class KwamiAudio {
   private analyser: AnalyserNode | null = null;
   private audioContext: AudioContext | null = null;
   private streamSource: MediaStreamAudioSourceNode | null = null;
+  public parentKwami: any; // Reference to parent Kwami instance for state management
 
   constructor(audioFiles: string[] = [], config?: AudioConfig) {
     this.files = audioFiles;

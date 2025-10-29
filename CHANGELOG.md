@@ -9,6 +9,44 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### ✨ Added
 
+#### 🎙️ Natural Voice Conversations - WebSocket Conversational AI (Beta)
+
+**Status**: Implementation ready, pending ElevenLabs Conversational AI beta access
+
+- **WebSocket-based conversation structure** prepared for ElevenLabs Conversational AI
+- **Demo mode available** with simulated conversation flow using TTS
+- **Microphone access and audio capture** with proper permissions handling
+- **Visual state synchronization** - blob animation reflects conversation state
+- **Conversation callbacks** for handling transcripts, turns, and errors
+- **Resource cleanup** and proper error handling
+- **Clear user feedback** about beta requirements and current limitations
+- **Future-ready implementation** awaiting WebSocket API availability
+
+**New KwamiMind Methods:**
+
+- `startConversation(systemPrompt?, callbacks?)` - Start WebSocket conversation
+- `stopConversation()` - Clean up conversation resources
+- `isConversationActive()` - Check conversation status
+- `sendConversationMessage(text)` - Send text during voice conversation
+- Private methods for WebSocket handling and audio streaming
+
+**New Kwami Methods:**
+
+- Enhanced `startConversation(callbacks?)` with state management
+- `isConversationActive()` - Check if conversation is active
+- `sendConversationMessage(text)` - Hybrid mode text messaging
+
+**Audio Class Updates:**
+
+- Added `parentKwami` reference for state management during conversations
+
+**Playground Updates:**
+
+- Enhanced conversation UI with live transcript display
+- Real-time status updates during conversation
+- Visual feedback for agent/user turns
+- Improved error handling and user feedback
+
 #### Complete Mind Menu - ElevenLabs AI Audio Agent Configuration
 
 - **Comprehensive ElevenLabs Integration** - Full SDK and API configuration interface:

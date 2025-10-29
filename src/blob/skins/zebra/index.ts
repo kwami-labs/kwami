@@ -12,12 +12,17 @@ export function createZebraSkin(config: ZebraSkinConfig | TricolorSkinConfig): S
   const colors = 'color1' in config 
     ? { color1: config.color1, color2: config.color2, color3: config.color3 }
     : { color1: '#ff0066', color2: '#00ff66', color3: '#6600ff' };
-    
+
+  const opacity = 'opacity' in config ? config.opacity : 1;
+  const isTransparent = opacity < 0.999;
+
   return new ShaderMaterial({
     vertexShader,
     fragmentShader,
     wireframe: config.wireframe,
     lights: false,
+    transparent: isTransparent,
+    depthWrite: !isTransparent,
     uniforms: {
       lightPosition: {
         value: new Vector3(
@@ -40,6 +45,15 @@ export function createZebraSkin(config: ZebraSkinConfig | TricolorSkinConfig): S
       },
       _color3: {
         value: new Color(colors.color3),
+      },
+      opacity: {
+        value: opacity,
+      },
+      backgroundTexture: {
+        value: null,
+      },
+      useBackgroundTexture: {
+        value: false,
       },
     },
   });

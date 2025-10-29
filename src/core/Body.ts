@@ -3,9 +3,10 @@ import type {
   PerspectiveCamera,
   Scene,
 } from 'three';
-import { Color, CanvasTexture } from 'three';
+import { Color, CanvasTexture, Vector2 } from 'three';
 import { KwamiAudio } from './Audio';
 import { Blob } from '../blob/Blob.js';
+import { BackgroundManager, type BackgroundConfig } from './BackgroundManager';
 import { setupScene } from '../scene/setup.js';
 import type { BodyConfig, BlobSkinType, SceneBackgroundConfig } from '../types/index';
 
@@ -19,6 +20,8 @@ export class KwamiBody {
   private camera: PerspectiveCamera;
   private scene: Scene;
   private resizeObserver?: ResizeObserver;
+  private backgroundManager: BackgroundManager;
+  private blobTransparencyMode = false;
 
   public audio: KwamiAudio;
   public blob: Blob;
@@ -42,11 +45,15 @@ export class KwamiBody {
       renderer: this.renderer,
       audio: this.audio,
       skin: config?.initialSkin || 'tricolor',
+      onAfterRender: () => this.updateBackgroundPlane(),
       ...config?.blob,
     });
 
     // Add blob to scene
     this.scene.add(this.blob.getMesh());
+
+    // Initialize background manager
+    this.backgroundManager = new BackgroundManager(this.scene);
 
     // Setup resize handling
     this.setupResize();
@@ -173,28 +180,12 @@ export class KwamiBody {
   }
 
   /**
-   * Set the scene background
+   * Set the scene background using the new BackgroundManager
    * @param config - Background configuration
    */
-  setBackground(config: SceneBackgroundConfig): void {
-    if (!config || config.type === 'transparent') {
-      this.scene.background = null;
-      return;
-    }
-    
-    if (config.type === 'solid' && config.color) {
-      this.scene.background = new Color(config.color);
-      return;
-    }
-    
-    if (config.type === 'gradient' && config.gradient) {
-      const gradientTexture = this.createGradientTexture(
-        config.gradient.colors,
-        config.gradient.direction || 'vertical'
-      );
-      this.scene.background = gradientTexture;
-      return;
-    }
+  setBackground(config: BackgroundConfig): void {
+    this.backgroundManager.setBackground(config);
+    this.updateBlobBackgroundTexture();
   }
 
   /**
@@ -232,6 +223,152 @@ export class KwamiBody {
    */
   setBackgroundTransparent(): void {
     this.scene.background = null;
+    this.disableBlobImageTransparencyMode();
+  }
+
+  /**
+   * Enable blob image transparency mode. When enabled, the scene background becomes transparent
+   * and a gradient/solid plane is rendered behind the blob so that, when the blob has partial
+   * opacity, the DOM background image becomes visible through it.
+   */
+  setBlobImageTransparencyMode(
+    enabled: boolean,
+    colors?: string[],
+    type: 'gradient' | 'solid' = 'gradient',
+    direction: 'vertical' | 'horizontal' | 'radial' = 'vertical',
+    opacity: number = 1,
+  ): void {
+    if (enabled) {
+      this.enableBlobImageTransparencyMode(colors, type, direction, opacity);
+    } else {
+      this.disableBlobImageTransparencyMode();
+    }
+  }
+
+  /**
+   * Returns whether blob image transparency mode is active
+   */
+  isBlobImageTransparencyMode(): boolean {
+    return this.blobImageTransparencyMode;
+  }
+
+  setBlobBackgroundImage(imagePath: string | null): void {
+    this.currentBackgroundImageUrl = imagePath;
+
+    if (!imagePath) {
+      if (this.backgroundTexture) {
+        this.backgroundTexture.dispose();
+        this.backgroundTexture = null;
+      }
+      this.blob.setBackgroundTexture(null);
+      return;
+    }
+
+    const url = imagePath;
+
+    this.textureLoader.load(url,
+      (texture) => {
+        if (this.currentBackgroundImageUrl !== imagePath) {
+          texture.dispose();
+          return;
+        }
+
+        texture.colorSpace = SRGBColorSpace;
+        texture.needsUpdate = true;
+
+        if (this.backgroundTexture) {
+          this.backgroundTexture.dispose();
+        }
+
+        this.backgroundTexture = texture;
+
+        if (this.blobImageTransparencyMode) {
+          this.blob.setBackgroundTexture(texture);
+        }
+      },
+      undefined,
+      () => {
+        if (this.currentBackgroundImageUrl === imagePath) {
+          this.backgroundTexture = null;
+          this.blob.setBackgroundTexture(null);
+        }
+      },
+    );
+  }
+
+  refreshBlobImageTransparencyMode(): void {
+    if (!this.blobImageTransparencyMode) return;
+    this.updateBackgroundPlaneTransform();
+  }
+
+  private enableBlobImageTransparencyMode(
+    colors: string[] = ['#000000'],
+    type: 'gradient' | 'solid',
+    direction: 'vertical' | 'horizontal' | 'radial',
+    opacity: number,
+  ): void {
+    this.blobImageTransparencyMode = true;
+    this.scene.background = null;
+
+    if (!this.backgroundPlane) {
+      const geometry = new PlaneGeometry(200, 200);
+      const material = new MeshBasicMaterial({
+        transparent: true,
+        depthWrite: false,
+        depthTest: false,
+      });
+      this.backgroundPlane = new Mesh(geometry, material);
+      this.backgroundPlane.renderOrder = -1;
+      this.scene.add(this.backgroundPlane);
+    }
+
+    this.updateBackgroundPlaneTransform();
+
+    const texture = type === 'solid'
+      ? this.createSolidColorTexture(colors[0], opacity)
+      : this.createGradientTexture(colors, direction, opacity);
+
+    texture.needsUpdate = true;
+
+    const material = this.backgroundPlane!.material as MeshBasicMaterial;
+    material.map = texture;
+    material.opacity = opacity;
+    material.needsUpdate = true;
+
+    if (this.backgroundTexture) {
+      this.blob.setBackgroundTexture(this.backgroundTexture);
+    }
+  }
+
+  private disableBlobImageTransparencyMode(): void {
+    if (!this.blobImageTransparencyMode && !this.backgroundPlane) return;
+
+    this.blobImageTransparencyMode = false;
+
+    this.blob.setBackgroundTexture(null);
+
+    if (this.backgroundPlane) {
+      const material = this.backgroundPlane.material as MeshBasicMaterial;
+      if (material.map) {
+        material.map.dispose();
+        material.map = null;
+      }
+      material.dispose();
+      this.backgroundPlane.geometry.dispose();
+      this.scene.remove(this.backgroundPlane);
+      this.backgroundPlane = null;
+    }
+  }
+
+  private updateBackgroundPlaneTransform(): void {
+    if (!this.backgroundPlane) return;
+
+    const cameraDirection = new Vector3();
+    this.camera.getWorldDirection(cameraDirection);
+
+    const planePosition = this.camera.position.clone().add(cameraDirection.multiplyScalar(50));
+    this.backgroundPlane.position.copy(planePosition);
+    this.backgroundPlane.quaternion.copy(this.camera.quaternion);
   }
 
   /**
@@ -312,6 +449,8 @@ export class KwamiBody {
     if (this.resizeObserver) {
       this.resizeObserver.disconnect();
     }
+
+    this.disableBlobImageTransparencyMode();
 
     this.blob.dispose();
     this.audio.dispose();

@@ -205,47 +205,7 @@ export function animateBlob(
     // Base amplitude enhanced by audio (creates natural, liquid response)
     const baseAmplitude = 0.24;
 
-    // Touch interactions modulate amplitude (not direct displacement)
-    let touchModulation = 0;
-    if (touchPoints.length > 0) {
-      const currentTime = Date.now();
-      for (const touch of touchPoints) {
-        const elapsed = currentTime - touch.startTime;
-        const progress = elapsed / touch.duration;
-
-        let easeFactor;
-        if (progress < 0.25) {
-          const t = progress / 0.25;
-          easeFactor = t * t;
-        } else {
-          const t = (progress - 0.25) / 0.75;
-          easeFactor = 1 - Math.pow(t, 3);
-        }
-
-        if (easeFactor > 0.01) {
-          const dist = vertex.distanceTo(touch.position);
-          const influenceRadius = 2.2;
-          if (dist > influenceRadius) continue;
-
-          const influence = Math.max(0, 1 - (dist / influenceRadius));
-          const smoothInfluence = Math.pow(influence, 3);
-
-          // Touch pulls blob inward slightly (viscous sink)
-          const inwardPull = -touch.strength * 0.18 * smoothInfluence * easeFactor;
-
-          // Gentle ripples emanating from touch point
-          const wave = Math.sin(dist * 3.2 - progress * 6) * 0.10 * smoothInfluence * easeFactor;
-
-          touchModulation += inwardPull + wave;
-        }
-      }
-
-      // Clamp modulation to maintain stability
-      touchModulation = Math.max(-0.35, Math.min(0.25, touchModulation));
-    }
-
-    const amplitudeFactor = Math.max(0.7, 1 + touchModulation);
-    const amplitude = baseAmplitude * audioIntensity * amplitudeFactor;
+    const amplitude = baseAmplitude * audioIntensity;
 
     // High-frequency detail shimmer driven by treble content
     const detailNoise = audioEffects.enabled
@@ -310,14 +270,53 @@ export function animateBlob(
     
     // Start with base displacement of 1.0 (normalized sphere)
     let displacement = 1 + audioDisplacement;
+
+    // Apply localized viscous response for touch/click interactions
+    if (touchPoints.length > 0) {
+      const currentTime = Date.now();
+      let touchDisplacement = 0;
+
+      for (const touch of touchPoints) {
+        const elapsed = currentTime - touch.startTime;
+        const progress = elapsed / touch.duration;
+
+        let easeFactor;
+        if (progress < 0.25) {
+          const t = progress / 0.25;
+          easeFactor = t * t;
+        } else {
+          const t = (progress - 0.25) / 0.75;
+          easeFactor = 1 - Math.pow(t, 3);
+        }
+
+        if (easeFactor <= 0.01) continue;
+
+        const dist = vertex.distanceTo(touch.position);
+        const influenceRadius = 2.1;
+        if (dist > influenceRadius) continue;
+
+        const influence = Math.max(0, 1 - dist / influenceRadius);
+        const smoothInfluence = Math.pow(influence, 3.2);
+
+        const sink = -touch.strength * 0.42 * smoothInfluence * easeFactor;
+        const wave = Math.sin(dist * 2.4 - progress * 5.4) * 0.24 * smoothInfluence * easeFactor;
+
+        touchDisplacement += sink + wave;
+      }
+
+      if (touchDisplacement !== 0) {
+        touchDisplacement = Math.max(-0.7, Math.min(0.5, touchDisplacement));
+        displacement += touchDisplacement;
+      }
+    }
     
     // Final safety clamp and viscous smoothing
-    const minDisplacement = 0.7;
-    const maxDisplacement = 1.6;
+    const minDisplacement = 0.65;
+    const maxDisplacement = 1.75;
     const targetDisplacement = Math.max(minDisplacement, Math.min(maxDisplacement, displacement));
 
     const previous = previousDisplacements[i];
-    const smoothingStrength = Math.min(0.35, 0.18 + smoothBands.mid * 0.12 + smoothBands.low * 0.08);
+    const smoothingStrength = Math.min(0.55, 0.24 + smoothBands.mid * 0.16 + smoothBands.low * 0.12);
     const smoothedDisplacement = previous + (targetDisplacement - previous) * smoothingStrength;
     previousDisplacements[i] = smoothedDisplacement;
 
