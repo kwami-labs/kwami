@@ -48,7 +48,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **State Preservation** - Kwami state persists correctly across sidebar swaps
 - **Camera Position Controls** - X, Y, Z sliders for orbiting around the blob
 - **Background Opacity** - Transparency control for canvas backgrounds
-- **Background Image Support** - Load custom background images from assets
+- **Background Image Support** - Load custom background images from assets (15+ included)
 - **Enhanced Body Controls** - Updated scale ranges (3-8) and spike parameters (0-20)
 - **Real-time Camera Tracking** - UI reflects both manual slider changes and OrbitControls interactions
 - **Animation Configuration Controls** - Fine-tune all animation parameters:
@@ -57,9 +57,29 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Max Touch Points (1-10)
   - Transition Speed (0.5-5)
   - Thinking Duration (5-30 seconds)
+- **Audio Player UI** - Integrated audio player with full controls:
+  - File upload support for custom audio tracks
+  - Play/pause button with state indication
+  - Volume slider with visual feedback (🔊/🔉/🔇)
+  - Time display (current / total duration)
+  - Audio metadata display (filename)
+- **Audio Effects Configuration** - Comprehensive audio reactivity controls:
+  - Frequency → Spike modulation (Bass, Mid, High)
+  - Frequency → Time modulation (Mid, High, Ultra)
+  - FFT size selector (512/1024/2048/4096)
+  - Smoothing time constant slider
+  - Audio reactivity toggle
+  - Separate spike and time effect toggles
+- **Unified Messages Area** - All status, error, and info messages below blob:
+  - Modern glassmorphism design
+  - Auto-dismiss functionality (5s status, 8s errors)
+  - Color-coded message types (blue info, red error, green success, orange warning)
+  - Smooth fade-in/slide-up animations
+  - Non-intrusive positioning
 - **GLB Export** - Download the blob as a 3D GLB file with animation and materials
 - **Dynamic Lighting Controls** - Adjust light intensity in real-time
 - **Tricolor2 Skin** - New donut-like appearance option
+- **Test Buttons** - Quick testing for listening and thinking modes
 
 #### Core Library Features
 
@@ -78,6 +98,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - `setBackgroundGradient(color1, color2)` - Quick gradient setter
   - `setBackgroundTransparent()` - Quick transparent setter
   - `getBackgroundType()` - Get current background type
+- **Audio Effects API**:
+  - `blob.audioEffects` - Configurable audio reactivity parameters
+  - `bassSpike`, `midSpike`, `highSpike` - Frequency to spike modulation
+  - `midTime`, `highTime`, `ultraTime` - Frequency to time modulation
+  - `enabled` - Master toggle for audio reactivity
+  - `timeEnabled` - Separate toggle for time modulation
+- **Audio Management API**:
+  - `loadAudio(arrayBuffer)` - Load audio from uploaded files
+  - `getAudioElement()` - Access HTML audio element
+  - `getAnalyser()` - Access Web Audio API analyser node
 - **Scene Access** - `getScene()` method for direct Three.js scene manipulation
 - **Dynamic Lighting** - `setLightIntensity()` method for runtime light control
 
@@ -98,6 +128,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Reorganized controls to align with Kwami's core concepts (Mind/Body/Soul)
 - Improved visual hierarchy with section-specific icons and colors
 - Renamed "Export Scene" button to "Download GLB" for clarity
+- **Messages relocated** from sidebars to below blob for better UX
+- **Audio player** integrated at top of canvas for easy access
+- Reorganized body template into logical sections:
+  - 🫧 Blob Configuration
+  - 🎵 Audio Effects
+  - 👆 Interaction
+  - ⚡ Actions
 
 #### Animation System
 
@@ -128,6 +165,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Fixed thinking animation being too spiky by reducing noise frequencies
 - Fixed click animation recovery being too slow by adjusting duration and easing
 - Fixed color updates not applying to all skins
+- Fixed audio effects controls not updating blob properties (wiring issue)
+- Fixed animation geometry collapse from audio by removing overall scale changes
+- Fixed breathing effect causing blob size changes
 - Improved material disposal and memory management
 
 ### 🔧 Technical Improvements
@@ -148,6 +188,22 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Better encapsulation of interaction logic
 - Enhanced raycasting for click detection
 - Proper cleanup of event listeners and resources
+
+#### Audio System
+
+- Configurable audio reactivity with separate spike and time modulation
+- ArrayBuffer support for uploaded audio files
+- Exposed analyser node for advanced control
+- FFT size and smoothing configurable at runtime
+- Audio effects apply immediately without reinitialization
+
+#### UI/UX
+
+- Unified message system with auto-dismiss
+- Glassmorphism design language throughout
+- Smooth animations for all state changes
+- Non-blocking pointer-events for overlays
+- Color-coded feedback for different message types
 
 ## [2.0.0] - 2025-10-20
 

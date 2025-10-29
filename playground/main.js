@@ -228,6 +228,78 @@ const DEFAULT_CAMERA_POSITION = {
   z: -1.8
 };
 
+// ============================================================================
+// Background Functions (defined early for initialization)
+// ============================================================================
+
+window.randomizeBackground = function() {
+  // Random color generator
+  const randomColor = () => '#' + Math.floor(Math.random()*16777215).toString(16).padStart(6, '0');
+  
+  // Increment click counter
+  backgroundRandomizeClickCount++;
+  
+  // Always use gradient
+  document.getElementById('bg-type').value = 'gradient';
+  
+  // Show gradient controls
+  document.getElementById('gradient-controls').style.display = 'block';
+  document.getElementById('solid-controls').style.display = 'none';
+  document.getElementById('opacity-control').style.display = 'block';
+  
+  // Randomize gradient colors
+  document.getElementById('bg-color-1').value = randomColor();
+  document.getElementById('bg-color-2').value = randomColor();
+  document.getElementById('bg-color-3').value = randomColor();
+  
+  // Random direction
+  const directions = ['vertical', 'horizontal', 'radial'];
+  document.getElementById('bg-direction').value = directions[Math.floor(Math.random() * directions.length)];
+  
+  // Opacity pattern: 1, 1, <1, 1, 1, <1, ...
+  let opacity;
+  if (backgroundRandomizeClickCount % 3 === 0) {
+    // Every third click: random opacity less than 1.0 (between 0.3 and 0.9)
+    opacity = (Math.random() * 0.6 + 0.3).toFixed(2);
+  } else {
+    // First and second clicks: full opacity
+    opacity = '1.00';
+  }
+  
+  document.getElementById('bg-opacity').value = opacity;
+  updateValueDisplay('bg-opacity-value', opacity, 2);
+  
+  applyBackground();
+  updateStatus('🎲 Background randomized!');
+};
+
+// Set background image
+function setBackgroundImage(imageName) {
+  const bgImageElement = document.getElementById('background-image');
+  if (!bgImageElement) return;
+  
+  if (imageName && imageName !== '') {
+    bgImageElement.style.backgroundImage = `url('assets/${imageName}')`;
+    updateStatus(`🖼️ Background image set to ${imageName}`);
+  } else {
+    bgImageElement.style.backgroundImage = 'none';
+    updateStatus('Background image removed');
+  }
+}
+
+// Randomize background image
+window.randomizeBackgroundImage = function() {
+  const randomImage = BACKGROUND_IMAGES[Math.floor(Math.random() * BACKGROUND_IMAGES.length)];
+  
+  // Set the select dropdown value
+  const bgImageSelect = document.getElementById('bg-image');
+  if (bgImageSelect) {
+    bgImageSelect.value = randomImage;
+  }
+  
+  setBackgroundImage(randomImage);
+};
+
 // Initialize sidebars first
 initializeSidebars();
 
@@ -842,74 +914,6 @@ function applyBackground() {
   }
 }
 
-window.randomizeBackground = function() {
-  // Random color generator
-  const randomColor = () => '#' + Math.floor(Math.random()*16777215).toString(16).padStart(6, '0');
-  
-  // Increment click counter
-  backgroundRandomizeClickCount++;
-  
-  // Always use gradient
-  document.getElementById('bg-type').value = 'gradient';
-  
-  // Show gradient controls
-  document.getElementById('gradient-controls').style.display = 'block';
-  document.getElementById('solid-controls').style.display = 'none';
-  document.getElementById('opacity-control').style.display = 'block';
-  
-  // Randomize gradient colors
-  document.getElementById('bg-color-1').value = randomColor();
-  document.getElementById('bg-color-2').value = randomColor();
-  document.getElementById('bg-color-3').value = randomColor();
-  
-  // Random direction
-  const directions = ['vertical', 'horizontal', 'radial'];
-  document.getElementById('bg-direction').value = directions[Math.floor(Math.random() * directions.length)];
-  
-  // Opacity pattern: 1, 1, <1, 1, 1, <1, ...
-  let opacity;
-  if (backgroundRandomizeClickCount % 3 === 0) {
-    // Every third click: random opacity less than 1.0 (between 0.3 and 0.9)
-    opacity = (Math.random() * 0.6 + 0.3).toFixed(2);
-  } else {
-    // First and second clicks: full opacity
-    opacity = '1.00';
-  }
-  
-  document.getElementById('bg-opacity').value = opacity;
-  updateValueDisplay('bg-opacity-value', opacity, 2);
-  
-  applyBackground();
-  updateStatus('🎲 Background randomized!');
-};
-
-// Set background image
-function setBackgroundImage(imageName) {
-  const bgImageElement = document.getElementById('background-image');
-  if (!bgImageElement) return;
-  
-  if (imageName && imageName !== '') {
-    bgImageElement.style.backgroundImage = `url('assets/${imageName}')`;
-    updateStatus(`🖼️ Background image set to ${imageName}`);
-  } else {
-    bgImageElement.style.backgroundImage = 'none';
-    updateStatus('Background image removed');
-  }
-}
-
-// Randomize background image
-window.randomizeBackgroundImage = function() {
-  const randomImage = BACKGROUND_IMAGES[Math.floor(Math.random() * BACKGROUND_IMAGES.length)];
-  
-  // Set the select dropdown value
-  const bgImageSelect = document.getElementById('bg-image');
-  if (bgImageSelect) {
-    bgImageSelect.value = randomImage;
-  }
-  
-  setBackgroundImage(randomImage);
-};
-
 window.resetBackground = function() {
   // Reset to default values
   document.getElementById('bg-type').value = DEFAULT_BACKGROUND.type;
@@ -1105,12 +1109,12 @@ window.testListening = function() {
 
 // Store audio effect parameters globally
 window.audioEffects = {
-  bassSpike: 0.3,
-  midSpike: 0.4,
-  highSpike: 0.2,
-  midTime: 0.5,
-  highTime: 0.8,
-  ultraTime: 0.3,
+  bassSpike: 0.25,
+  midSpike: 0.20,
+  highSpike: 0.15,
+  midTime: 0.2,
+  highTime: 0.3,
+  ultraTime: 0.15,
   enabled: true,
   timeEnabled: true
 };

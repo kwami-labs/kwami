@@ -65,9 +65,9 @@ export class Blob {
     bassSpike: 0.3,
     midSpike: 0.4,
     highSpike: 0.2,
-    midTime: 0.5,
-    highTime: 0.8,
-    ultraTime: 0.3,
+    midTime: 0.2,
+    highTime: 0.3,
+    ultraTime: 0.15,
     enabled: true,
     timeEnabled: true
   };

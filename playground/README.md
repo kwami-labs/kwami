@@ -36,8 +36,9 @@ The playground features a **rotating 3-section sidebar system** with two visible
 
 - **Left Sidebar**: Initially shows Mind (AI Agent)
 - **Right Sidebar**: Initially shows Body (Visual Config)
-- **Center Canvas**: Real-time 3D blob visualization
+- **Center Canvas**: Real-time 3D blob visualization with audio player
 - **Swap Buttons**: Toggle between Mind, Body, and Soul sections
+- **Messages Area**: Status and errors appear below the blob
 
 ### Rotating Sidebar System
 
@@ -68,22 +69,50 @@ The playground manages **three main configuration sections** across two sidebars
   - Solid: Single color picker
   - 🎲 Randomize and 🔄 Reset buttons
 
+- **Audio Player** (Top of Canvas)
+  - 📁 Upload custom audio files
+  - ▶️/⏸️ Play/Pause control
+  - Volume slider with icon feedback
+  - Time display (current/total)
+  - Audio filename display
+
 - **Body Parameters**
 
-  - **Spikes (Noise Frequency)**: X, Y, Z sliders (0-20) for noise frequency on each axis
-  - **Time (Animation Speed)**: X, Y, Z sliders (0-5) for animation speed
-  - **Camera Position**: X, Y, Z sliders for orbiting around the blob
-  - **Auto Rotation Speed**: X, Y, Z sliders (0-0.01) for continuous rotation
-  - **Colors (Tricolor Skin)**: Three color pickers for X, Y, Z axes
-  - **Appearance**:
-    - Scale (3-8): Size of the blob
-    - Resolution (120-220): Mesh detail level
-    - Shininess (0-100000): Specular highlight intensity
-    - Wireframe Mode: Toggle wireframe rendering
-    - Skin Type: Switch between tricolor and zebra skins
-  - **Quick Actions**:
-    - 🎲 Randomize Blob: Generate random appearance
-    - 🔄 Reset to Defaults: Restore default values
+  - **🫧 Blob Configuration**:
+    - **Spikes (Noise Frequency)**: X, Y, Z sliders (0-20)
+    - **Time (Animation Speed)**: X, Y, Z sliders (0-5)
+    - **Auto Rotation Speed**: X, Y, Z sliders (0-0.01)
+    - **Colors (Tricolor Skin)**: Three color pickers
+    - **Scale (3-8)**: Size of the blob
+    - **Resolution (120-220)**: Mesh detail level
+    - **Shininess (0-100000)**: Specular highlight
+    - **Wireframe Mode**: Toggle wireframe
+    - **Skin Type**: Tricolor, Tricolor2, or Zebra
+
+  - **🎵 Audio Effects**:
+    - **Frequency Modulation**: Bass/Mid/High → Spikes (0-1)
+    - **Time Modulation**: Mid/High/Ultra → Speed (0-2)
+    - **FFT Size**: 512/1024/2048/4096
+    - **Smoothing**: Time constant (0-1)
+    - **Audio Reactivity**: Master toggle
+
+  - **👆 Interaction**:
+    - **Touch Strength** (0-1)
+    - **Touch Duration** (500-3000ms)
+    - **Max Touch Points** (1-10)
+    - **Transition Speed** (0.5-5)
+    - **Thinking Duration** (5-30s)
+    - **Click Interaction**: Toggle
+
+  - **⚡ Actions**:
+    - 🎲 Randomize Blob
+    - 💾 Download GLB
+    - 🤔 Test Thinking Mode
+    - 👂 Test Listening Mode
+
+- **Camera & Lighting**
+  - **Camera Position**: X, Y, Z sliders for orbiting
+  - **Light Intensity**: Adjust scene brightness
 
 #### ✨ Soul (Personality Configuration)
 
@@ -120,12 +149,18 @@ Each sidebar has a swap button at the top showing which section is currently hid
 
 - **Swap Buttons**: Use the buttons at the top of each sidebar to rotate through Mind, Body, and Soul sections
 - **Audio-Reactive**: The blob animates more dynamically when Kwami speaks - try higher spike values!
+- **Custom Audio**: Upload your own music files to see the blob dance to your tracks
+- **Audio Effects**: Fine-tune how different frequencies affect the blob's movement
 - **Personalities**: Each personality (Kaya, Nexus, Spark) has unique traits - use Soul section to customize
 - **Camera Controls**: Use the Camera Position sliders or drag with your mouse to orbit around the blob
 - **Background Opacity**: Set opacity to 0 for a transparent canvas background
+- **Background Images**: Choose from 15+ included images or upload your own
 - **Voice Library**: Experiment with different voice IDs from [ElevenLabs Voice Library](https://elevenlabs.io/voice-library)
 - **State Indicator**: Watch the state change between IDLE, LISTENING, THINKING, and SPEAKING
+- **Messages**: All status and error messages appear below the blob with auto-dismiss
+- **Touch Effects**: Click the blob for liquid-like ripples, double-click to toggle listening
 - **Randomize**: Hit 🎲 Randomize Blob for instant creative variations
+- **Export**: Download your customized blob as a GLB 3D model
 
 ## 🔧 Troubleshooting
 

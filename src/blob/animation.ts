@@ -76,9 +76,9 @@ export function animateBlob(
     bassSpike: 0.3,
     midSpike: 0.4,
     highSpike: 0.2,
-    midTime: 0.5,
-    highTime: 0.8,
-    ultraTime: 0.3,
+    midTime: 0.2,
+    highTime: 0.3,
+    ultraTime: 0.15,
     enabled: true,
     timeEnabled: true
   },
@@ -94,29 +94,26 @@ export function animateBlob(
   // Extract frequency bands for natural sound reaction
   const bands = getFrequencyBands(frequencyData);
   
-  // Time calculation - faster for more responsive animation
-  // Audio modulates the time speed (makes animation more dynamic with music)
+  // Time calculation - smooth animation
+  const reduction = 0.00003;
+  const perf = performance.now() * reduction;
+  
+  // Optionally modulate time with audio (can create chaotic effects if too strong)
   const audioTimeMod = (audioEffects.enabled && audioEffects.timeEnabled)
     ? 1 + (bands.mid * audioEffects.midTime + bands.high * audioEffects.highTime + bands.ultra * audioEffects.ultraTime)
     : 1;
-  const reduction = 0.00003;
-  const perf = performance.now() * reduction;
+  
   const tX = perf * timeX * audioTimeMod;
   const tY = perf * timeY * audioTimeMod;
   const tZ = perf * timeZ * audioTimeMod;
 
   // No overall scale change from audio - keep mesh size constant
-  // Only the noise patterns (spikes and time) are affected by audio
   mesh.scale.set(baseScale, baseScale, baseScale);
 
   // Calculate noise frequencies for smooth, organic movement
-  // Audio modulates the spike frequencies (makes them more dynamic)
-  const audioSpikeMod = audioEffects.enabled
-    ? 1 + (bands.low * audioEffects.bassSpike + bands.mid * audioEffects.midSpike + bands.high * audioEffects.highSpike)
-    : 1;
-  const baseFreqX = Math.max(0.025, spikeX * audioSpikeMod);
-  const baseFreqY = Math.max(0.025, spikeY * audioSpikeMod);
-  const baseFreqZ = Math.max(0.025, spikeZ * audioSpikeMod);
+  const baseFreqX = Math.max(0.025, spikeX);
+  const baseFreqY = Math.max(0.025, spikeY);
+  const baseFreqZ = Math.max(0.025, spikeZ);
 
   // Apply frequency-reactive noise to each vertex
   for (let i = 0; i < positions.count; i++) {
@@ -132,8 +129,17 @@ export function animateBlob(
     );
     const angleFactor = Math.atan2(direction.z, direction.x) / Math.PI;
 
-    // Audio affects the noise pattern, not the displacement directly
-    // This prevents geometry collapse while still creating audio-reactive movement
+    // Audio enhances the natural noise amplitude instead of adding separate effects
+    // This creates a more organic, liquid response to sound
+    
+    // Calculate audio-reactive amplitude multiplier (smooth and natural)
+    const audioIntensity = audioEffects.enabled
+      ? 1 + (
+          bands.low * audioEffects.bassSpike * 0.8 +      // Bass creates overall energy
+          bands.mid * audioEffects.midSpike * 0.6 +       // Mids add movement
+          bands.high * audioEffects.highSpike * 0.4       // Highs add detail
+        )
+      : 1;
 
     // Generate multi-layered noise for liquid texture (smoother)
     const noise1 = noise3D(
@@ -159,15 +165,16 @@ export function animateBlob(
     // Combine noises with frequency weighting (more layers for smoothness)
     const finalNoise = noise1 * 0.5 + noise2 * 0.3 + noise3 * 0.2;
 
-    // Fixed amplitude - not affected by audio to prevent geometry collapse
-    const fixedAmplitude = 0.15;
+    // Base amplitude enhanced by audio (creates natural, liquid response)
+    const baseAmplitude = 0.15;
+    const amplitude = baseAmplitude * audioIntensity;
     
     // Calculate displacement for each state separately
-    // Normal/Speaking mode displacement (outward spikes)
-    const speakingDisplacement = fixedAmplitude * finalNoise;
+    // Normal/Speaking mode displacement (outward spikes, enhanced by audio)
+    const speakingDisplacement = amplitude * finalNoise;
     
-    // Listening mode displacement (inward spikes)
-    const listeningDisplacement = -fixedAmplitude * finalNoise;
+    // Listening mode displacement (inward spikes, enhanced by audio)
+    const listeningDisplacement = -amplitude * finalNoise;
     
     // Thinking mode displacement (fluid, flowing movements)
     let thinkingDisplacement = 0;
@@ -255,13 +262,13 @@ export function animateBlob(
           // Smooth gaussian falloff
           const smoothInfluence = Math.pow(influence, 3);
           
-          // Very gentle inward push (conservative to work with audio)
-          const touchEffect = -touch.strength * 0.30 * smoothInfluence * easeFactor;
+          // Very gentle inward push (must work safely with audio effects)
+          const touchEffect = -touch.strength * 0.25 * smoothInfluence * easeFactor;
           
           // Subtle liquid wave with spike-like ripples
           const waveFreq = 4; // Higher frequency for more defined waves
           const wave = Math.cos(dist * waveFreq - progress * 5) * 0.5 + 0.5;
-          const subtleWave = -wave * 0.10 * smoothInfluence * easeFactor;
+          const subtleWave = -wave * 0.08 * smoothInfluence * easeFactor;
           
           // Accumulate touch effects
           totalTouchEffect += touchEffect + subtleWave;
@@ -269,16 +276,16 @@ export function animateBlob(
       }
       
       // Clamp total touch effect to prevent over-collapse
-      // Maximum inward displacement is -0.18 (18% of radius) - conservative with audio
-      totalTouchEffect = Math.max(totalTouchEffect, -0.18);
+      // Maximum inward displacement is -0.15 (15% of radius) - safe with audio effects
+      totalTouchEffect = Math.max(totalTouchEffect, -0.15);
       
       // Apply touch effect to displacement
       displacement += totalTouchEffect;
     }
     
     // Final safety clamp: ensure displacement never causes collapse or extreme spikes
-    // Safe range that allows for spiky variations without geometry issues
-    displacement = Math.max(0.65, Math.min(1.6, displacement));
+    // Strict minimum prevents black lines, reasonable maximum allows liquid movement
+    displacement = Math.max(0.75, Math.min(1.45, displacement));
 
     // Set final position: direction * displacement
     vertex.normalize().multiplyScalar(displacement);

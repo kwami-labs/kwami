@@ -392,53 +392,89 @@ button:disabled {
   position: absolute;
   bottom: 120px;
   left: 50%;
-  transform: translateX(-50%);
+  transform: translateX(-50%) scale(0.9);
   z-index: 10;
   display: inline-block;
-  padding: 10px 24px;
-  border-radius: 20px;
-  font-size: 13px;
+  padding: 12px 28px;
+  border-radius: 25px;
+  font-size: 14px;
   font-weight: 700;
-  letter-spacing: 1px;
+  letter-spacing: 1.2px;
   background: rgba(255, 255, 255, 0.95);
   backdrop-filter: blur(10px);
   box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
   transition: all 0.3s ease;
   pointer-events: none;
+  opacity: 0;
+  max-height: 0;
+  overflow: hidden;
 }
 
-/* State Colors */
+/* Show state indicator when not idle */
+#canvas-container .state-indicator:not(.state-idle) {
+  opacity: 1;
+  transform: translateX(-50%) scale(1);
+  max-height: 50px;
+}
+
+/* State Colors - Vibrant and Modern */
 .state-idle { 
-  background: rgba(224, 224, 224, 0.95);
-  color: #666;
+  opacity: 0;
+  max-height: 0;
+  padding: 0;
 }
 
 .state-listening { 
-  background: rgba(76, 175, 80, 0.95);
+  background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);
   color: white;
-  animation: pulse 2s infinite;
+  animation: pulse-listening 2s infinite;
+  box-shadow: 0 4px 25px rgba(17, 153, 142, 0.5);
 }
 
 .state-thinking { 
-  background: rgba(255, 152, 0, 0.95);
+  background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
   color: white;
-  animation: pulse 1.5s infinite;
+  animation: pulse-thinking 1.5s infinite;
+  box-shadow: 0 4px 25px rgba(240, 147, 251, 0.5);
 }
 
 .state-speaking { 
-  background: rgba(33, 150, 243, 0.95);
+  background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
   color: white;
-  animation: pulse 1s infinite;
+  animation: pulse-speaking 1s infinite;
+  box-shadow: 0 4px 25px rgba(79, 172, 254, 0.5);
 }
 
-@keyframes pulse {
+@keyframes pulse-listening {
   0%, 100% { 
     transform: translateX(-50%) scale(1);
-    opacity: 1;
+    box-shadow: 0 4px 25px rgba(17, 153, 142, 0.5);
   }
   50% { 
     transform: translateX(-50%) scale(1.05);
-    opacity: 0.9;
+    box-shadow: 0 6px 30px rgba(17, 153, 142, 0.7);
+  }
+}
+
+@keyframes pulse-thinking {
+  0%, 100% { 
+    transform: translateX(-50%) scale(1);
+    box-shadow: 0 4px 25px rgba(240, 147, 251, 0.5);
+  }
+  50% { 
+    transform: translateX(-50%) scale(1.05);
+    box-shadow: 0 6px 30px rgba(240, 147, 251, 0.7);
+  }
+}
+
+@keyframes pulse-speaking {
+  0%, 100% { 
+    transform: translateX(-50%) scale(1);
+    box-shadow: 0 4px 25px rgba(79, 172, 254, 0.5);
+  }
+  50% { 
+    transform: translateX(-50%) scale(1.05);
+    box-shadow: 0 6px 30px rgba(79, 172, 254, 0.7);
   }
 }
 

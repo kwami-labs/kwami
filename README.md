@@ -237,6 +237,41 @@ kwami.body.setBackground({
 const bgType = kwami.body.getBackgroundType(); // 'gradient' | 'solid' | 'transparent'
 ```
 
+### Audio Effects Configuration
+
+```typescript
+// Configure how audio affects the blob
+kwami.body.blob.audioEffects = {
+  // Frequency to spike modulation (0-1)
+  bassSpike: 0.3, // Low frequencies affect spike intensity
+  midSpike: 0.4, // Mid frequencies affect spike intensity
+  highSpike: 0.2, // High frequencies affect spike intensity
+
+  // Frequency to time modulation (0-2)
+  midTime: 0.5, // Mid frequencies affect animation speed
+  highTime: 0.8, // High frequencies affect animation speed
+  ultraTime: 0.3, // Ultra high frequencies affect animation speed
+
+  // Toggles
+  enabled: true, // Master audio reactivity toggle
+  timeEnabled: true, // Separate toggle for time modulation
+};
+
+// Upload and play custom audio
+const fileInput = document.querySelector('input[type="file"]');
+fileInput.addEventListener("change", async (e) => {
+  const file = e.target.files[0];
+  const arrayBuffer = await file.arrayBuffer();
+  await kwami.body.audio.loadAudio(arrayBuffer);
+  await kwami.body.audio.play();
+});
+
+// Access analyser for advanced control
+const analyser = kwami.body.audio.getAnalyser();
+analyser.fftSize = 2048;
+analyser.smoothingTimeConstant = 0.7;
+```
+
 ### States
 
 Kwami supports multiple states with unique visual behaviors and smooth transitions:
@@ -457,13 +492,16 @@ The playground features:
 - **✨ Personality Editor**: Create and customize AI personalities in real-time
 - **🎨 Visual Controls**: Fine-tune every aspect of the 3D blob appearance
 - **📹 Camera Controls**: Orbit and position camera for perfect viewing angles
-- **🌈 Background Manager**: Gradients, solid colors, images, or transparent with opacity control
+- **🌈 Background Manager**: Gradients, solid colors, images (15+ included), or transparent with opacity control
 - **🤚 Interactive Touch**: Click the blob for liquid-like touch effects
 - **🎤 Listening Mode**: Double-click to toggle microphone listening
 - **🧠 Thinking Animation**: Test contemplative movements with configurable duration
 - **⚙️ Animation Configuration**: Fine-tune touch strength, duration, transition speed, and more
+- **🎵 Audio Player**: Upload and play custom audio files with volume control and time tracking
+- **🎛️ Audio Effects**: Configure how audio affects blob animation (frequency bands, time modulation, FFT settings)
 - **📥 GLB Export**: Download your blob as a 3D model with materials and animation
 - **💡 Dynamic Lighting**: Adjust scene lighting intensity in real-time
+- **💬 Unified Messages**: Status and error messages appear below the blob in modern glassmorphism style
 - **🎲 Randomization**: Generate creative variations instantly
 
 See the [Playground README](./playground/README.md) for detailed documentation.
