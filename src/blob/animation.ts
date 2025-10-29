@@ -83,8 +83,8 @@ export function animateBlob(
   const bands = getFrequencyBands(frequencyData);
 
   // Very subtle overall scale based only on low frequencies (bass)
-  // This creates a "breathing" effect without dominating the animation
-  const breathScale = 1 + (bands.low * 0.08);
+  // This creates a gentle "breathing" effect without dominating the animation
+  const breathScale = 1 + (bands.low * 0.05);
   // Apply user's base scale as a multiplier
   const finalScale = baseScale * breathScale;
   mesh.scale.set(finalScale, finalScale, finalScale);

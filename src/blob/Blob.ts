@@ -1,4 +1,4 @@
-import { Mesh, Color, PointLight, Vector3, Raycaster, type ShaderMaterial } from 'three';
+import { Mesh, Color, PointLight, Vector2, Vector3, Raycaster, type ShaderMaterial } from 'three';
 import { GLTFExporter } from 'three/addons/exporters/GLTFExporter.js';
 import { createBlobGeometry } from './geometry';
 import { animateBlob } from './animation';
@@ -527,7 +527,7 @@ export class Blob {
 
     const canvas = this.options.renderer.domElement;
     const raycaster = new Raycaster();
-    const mouse = { x: 0, y: 0 };
+    const mouse = new Vector2();
 
     const handleClick = (event: MouseEvent) => {
       // Calculate mouse position in normalized device coordinates
