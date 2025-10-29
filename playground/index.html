@@ -20,7 +20,7 @@
     <div id="canvas-container">
       <!-- Menu Toggle Button -->
       <button id="menu-toggle-btn" class="menu-toggle-btn" onclick="toggleMenus()" title="Toggle Sidebars">
-        <span id="menu-toggle-icon">◀◀</span>
+        <span id="menu-toggle-icon">☰</span>
       </button>
       
       <!-- GitHub Star Button -->
@@ -46,20 +46,21 @@
       </div>
       
       <div id="background-image"></div>
+      <div id="canvas-overlay"></div>
       <canvas id="kwami-canvas"></canvas>
       
       <!-- State Indicator (Below Blob) -->
       <div id="state-indicator" class="state-indicator">
         <span id="state-text">IDLE</span>
       </div>
-      
+
       <!-- Messages Area (Below Blob) -->
       <div id="messages-container">
         <div id="status" class="message"></div>
         <div id="error" class="message error-message"></div>
       </div>
-    </div>
-    
+      </div>
+
     <!-- Right Sidebar -->
     <div id="right-sidebar">
       <button class="swap-button" id="right-swap-btn" onclick="swapRightSidebar()">
@@ -323,7 +324,7 @@
       <!-- Test & Preview -->
       <div class="section">
         <div class="section-title">🎬 Test & Preview</div>
-
+        
         <div class="input-group">
           <label>Text to Speak</label>
           <textarea id="speak-text" placeholder="Enter text for Kwami to speak...">Hello! I am Kwami, your AI companion. Watch as I animate while I speak!</textarea>
@@ -362,7 +363,7 @@
           <button class="button-secondary" onclick="applyVoicePreset('expressive')">🎭 Expressive</button>
           <button class="button-secondary" onclick="applyVoicePreset('stable')">🎯 Stable</button>
           <button class="button-secondary" onclick="applyVoicePreset('clear')">💎 Clear & Crisp</button>
-        </div>
+    </div>
 
         <button class="button-secondary" onclick="exportMindConfig()">💾 Export Configuration</button>
         <button class="button-secondary" onclick="importMindConfig()">📂 Import Configuration</button>
@@ -432,21 +433,21 @@
         </div>
 
         <div id="gradient-controls">
-        <div class="parameter-group">
-          <div class="parameter-group-title">Gradient Colors</div>
-          <div class="color-control">
-            <label>Color 1</label>
-            <input type="color" id="bg-color-1" value="#667eea">
+          <div class="parameter-group">
+            <div class="parameter-group-title">Gradient Colors</div>
+            <div class="color-control">
+              <label>Color 1</label>
+              <input type="color" id="bg-color-1" value="#667eea">
+            </div>
+            <div class="color-control">
+              <label>Color 2</label>
+              <input type="color" id="bg-color-2" value="#764ba2">
+            </div>
+            <div class="color-control">
+              <label>Color 3</label>
+              <input type="color" id="bg-color-3" value="#f093fb">
+            </div>
           </div>
-          <div class="color-control">
-            <label>Color 2</label>
-            <input type="color" id="bg-color-2" value="#764ba2">
-          </div>
-          <div class="color-control">
-            <label>Color 3</label>
-            <input type="color" id="bg-color-3" value="#f093fb">
-          </div>
-        </div>
 
           <div class="input-group">
             <label>Direction</label>
@@ -456,7 +457,7 @@
               <option value="radial">Radial</option>
             </select>
           </div>
-          </div>
+        </div>
 
         <div id="solid-controls" style="display: none;">
           <div class="color-control">
@@ -465,17 +466,25 @@
           </div>
         </div>
 
+        <div class="input-group">
+          <label>
+            <input type="checkbox" id="blob-image-transparency">
+            Show Image Through Blob Transparency
+          </label>
+          <small style="display: block; color: #888; margin-top: 2px;">Background image visible through transparent blob</small>
+        </div>
+
         <button class="button-secondary" onclick="randomizeBackground()">🎲 Randomize Background</button>
         <button class="button-secondary" onclick="randomizeBackgroundImage()">🖼️ Random Image</button>
       </div>
 
-      <!-- Blob Configuration -->
+      <!-- Geometry & Motion -->
       <div class="section">
-        <div class="section-title">🫧 Blob Configuration</div>
+        <div class="section-title">🧬 Geometry & Motion</div>
         
-        <!-- Spikes -->
         <div class="parameter-group">
-          <div class="parameter-group-title">Spikes (Noise Frequency)</div>
+          <div class="parameter-group-title">Noise Frequency</div>
+          <p class="parameter-info">Control how much the blob stretches along each axis.</p>
           <div class="slider-control">
             <label>X <span class="value-display" id="spike-x-value">0.2</span></label>
             <input type="range" id="spike-x" min="0" max="20" step="0.1" value="0.2">
@@ -490,9 +499,9 @@
           </div>
         </div>
 
-        <!-- Time/Speed -->
         <div class="parameter-group">
-          <div class="parameter-group-title">Time (Animation Speed)</div>
+          <div class="parameter-group-title">Animation Speed</div>
+          <p class="parameter-info">Change how quickly the blob cycles through its movement.</p>
           <div class="slider-control">
             <label>X <span class="value-display" id="time-x-value">1.0</span></label>
             <input type="range" id="time-x" min="0" max="5" step="0.1" value="1">
@@ -507,26 +516,8 @@
           </div>
         </div>
 
-        <!-- Camera Position -->
         <div class="parameter-group">
-          <div class="parameter-group-title">Camera Position</div>
-          <div class="slider-control">
-            <label>X <span class="value-display" id="camera-x-value">-0.9</span></label>
-            <input type="range" id="camera-x" min="-20" max="20" step="0.5" value="-0.9">
-          </div>
-          <div class="slider-control">
-            <label>Y <span class="value-display" id="camera-y-value">7.3</span></label>
-            <input type="range" id="camera-y" min="-20" max="20" step="0.5" value="7.3">
-          </div>
-          <div class="slider-control">
-            <label>Z <span class="value-display" id="camera-z-value">-1.8</span></label>
-            <input type="range" id="camera-z" min="-20" max="30" step="0.5" value="-1.8">
-          </div>
-        </div>
-
-        <!-- Rotation Speed -->
-        <div class="parameter-group">
-          <div class="parameter-group-title">Auto Rotation Speed</div>
+          <div class="parameter-group-title">Auto Rotation</div>
           <div class="slider-control">
             <label>X <span class="value-display" id="rotation-x-value">0.000</span></label>
             <input type="range" id="rotation-x" min="0" max="0.01" step="0.001" value="0">
@@ -541,41 +532,95 @@
           </div>
         </div>
 
-        <!-- Colors -->
         <div class="parameter-group">
-          <div class="parameter-group-title">Colors (Tricolor Skin)</div>
-          <div class="color-control">
-            <label>Color X</label>
-            <input type="color" id="color-x" value="#ff0066">
-          </div>
-          <div class="color-control">
-            <label>Color Y</label>
-            <input type="color" id="color-y" value="#00ff66">
-          </div>
-          <div class="color-control">
-            <label>Color Z</label>
-            <input type="color" id="color-z" value="#6600ff">
-          </div>
-        </div>
-
-        <!-- Appearance -->
-        <div class="parameter-group">
-          <div class="parameter-group-title">Appearance</div>
-          <div class="slider-control">
-            <label>Light Intensity <span class="value-display" id="light-intensity-value">0</span></label>
-            <input type="range" id="light-intensity" min="0" max="5" step="0.1" value="0">
-          </div>
-          <div class="slider-control">
-            <label>Scale <span class="value-display" id="scale-value">4.0</span></label>
-            <input type="range" id="scale" min="3" max="8" step="0.1" value="4.0">
-          </div>
+          <div class="parameter-group-title">Mesh Detail</div>
           <div class="slider-control">
             <label>Resolution <span class="value-display" id="resolution-value">180</span></label>
             <input type="range" id="resolution" min="120" max="220" step="1" value="180">
           </div>
+        </div>
+      </div>
+
+      <!-- Scale & Camera -->
+      <div class="section">
+        <div class="section-title">📐 Scale & Camera</div>
+        <div class="parameter-group">
+          <div class="parameter-group-title">Global Scale</div>
+          <div class="slider-control">
+            <label>Scale <span class="value-display" id="scale-value">4.0</span></label>
+            <input type="range" id="scale" min="3" max="8" step="0.1" value="4.0">
+          </div>
+        </div>
+
+        <div class="parameter-group">
+          <div class="parameter-group-title">Camera Orbit</div>
+          <p class="parameter-info">Fine-tune the default camera orbit around the blob.</p>
+          <div class="slider-control">
+            <label>X <span class="value-display" id="camera-x-value">-0.9</span></label>
+            <input type="range" id="camera-x" min="-20" max="20" step="0.5" value="-0.9">
+          </div>
+          <div class="slider-control">
+            <label>Y <span class="value-display" id="camera-y-value">7.3</span></label>
+            <input type="range" id="camera-y" min="-20" max="20" step="0.5" value="7.3">
+          </div>
+          <div class="slider-control">
+            <label>Z <span class="value-display" id="camera-z-value">-1.8</span></label>
+            <input type="range" id="camera-z" min="-20" max="30" step="0.5" value="-1.8">
+          </div>
+        </div>
+      </div>
+
+      <!-- Skin & Surface -->
+      <div class="section">
+        <div class="section-title">🖌️ Skin & Surface</div>
+
+        <div class="parameter-group">
+          <div class="parameter-group-title">Skin Selection</div>
+          <div class="input-group">
+            <label>Skin Type</label>
+            <select id="skin-type">
+              <option value="tricolor">Tricolor</option>
+              <option value="tricolor2">Tricolor 2 (Donut)</option>
+              <option value="zebra">Zebra</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="parameter-group">
+          <div class="parameter-group-title">Palette</div>
+          <p class="parameter-info">These colors apply to every skin. Adjust them to re-tint the material.</p>
+          <div class="color-control">
+            <label>Primary</label>
+            <input type="color" id="color-x" value="#ff0066">
+          </div>
+          <div class="color-control">
+            <label>Secondary</label>
+            <input type="color" id="color-y" value="#00ff66">
+          </div>
+          <div class="color-control">
+            <label>Accent</label>
+            <input type="color" id="color-z" value="#6600ff">
+          </div>
+        </div>
+
+        <div class="parameter-group">
+          <div class="parameter-group-title">Material</div>
+          <div class="slider-control">
+            <label>Opacity <span class="value-display" id="blob-opacity-value">1.00</span></label>
+            <input type="range" id="blob-opacity" min="0" max="1" step="0.01" value="1">
+            <label class="slider-checkbox">
+              <input type="checkbox" id="blob-image-transparency">
+              Show Background Image Through Blob
+            </label>
+            <small class="checkbox-hint">Reveals selected background image in transparent areas</small>
+          </div>
           <div class="slider-control">
             <label>Shininess <span class="value-display" id="shininess-value">50</span></label>
             <input type="range" id="shininess" min="1" max="200" step="1" value="50">
+          </div>
+          <div class="slider-control">
+            <label>Light Intensity <span class="value-display" id="light-intensity-value">0</span></label>
+            <input type="range" id="light-intensity" min="0" max="5" step="0.1" value="0">
           </div>
           <div class="input-group">
             <label>
@@ -583,16 +628,7 @@
               Wireframe Mode
             </label>
           </div>
-          <div class="input-group">
-            <label>Skin Type</label>
-            <select id="skin-type">
-              <option value="tricolor">Tricolor</option>
-              <option value="tricolor2">Tricolor2 (Donut)</option>
-              <option value="zebra">Zebra</option>
-            </select>
-          </div>
         </div>
-
       </div>
 
       <!-- Audio Effects Configuration -->
@@ -602,17 +638,17 @@
         <!-- Audio Effect Multipliers -->
         <div class="parameter-group">
           <div class="parameter-group-title">Frequency Modulation</div>
-          <p class="parameter-info">Control how audio frequencies affect the blob animation</p>
+          <p class="parameter-info">Boost how strongly each frequency band pushes the blob. <span style="display:block;color:#999;font-size:11px;">The blob remembers your settings per skin.</span></p>
           <div class="slider-control">
-            <label>Bass Intensity <span class="value-display" id="audio-bass-spike-value">0.45</span></label>
+            <label>Bass Movement <span class="value-display" id="audio-bass-spike-value">0.45</span></label>
             <input type="range" id="audio-bass-spike" min="0" max="1" step="0.05" value="0.45">
           </div>
           <div class="slider-control">
-            <label>Mid Intensity <span class="value-display" id="audio-mid-spike-value">0.35</span></label>
+            <label>Mid Flow <span class="value-display" id="audio-mid-spike-value">0.35</span></label>
             <input type="range" id="audio-mid-spike" min="0" max="1" step="0.05" value="0.35">
           </div>
           <div class="slider-control">
-            <label>High Intensity <span class="value-display" id="audio-high-spike-value">0.30</span></label>
+            <label>High Detail <span class="value-display" id="audio-high-spike-value">0.30</span></label>
             <input type="range" id="audio-high-spike" min="0" max="1" step="0.05" value="0.30">
           </div>
         </div>
@@ -682,16 +718,16 @@
             </label>
           </div>
           <div class="slider-control">
-            <label>Touch Strength <span class="value-display" id="touch-strength-value">0.6</span></label>
-            <input type="range" id="touch-strength" min="0.1" max="1.5" step="0.1" value="0.6">
+            <label>Touch Strength <span class="value-display" id="touch-strength-value">1.0</span></label>
+            <input type="range" id="touch-strength" min="0.1" max="2" step="0.1" value="1.0">
           </div>
           <div class="slider-control">
-            <label>Touch Duration <span class="value-display" id="touch-duration-value">1200</span>ms</label>
-            <input type="range" id="touch-duration" min="500" max="3000" step="100" value="1200">
+            <label>Touch Duration <span class="value-display" id="touch-duration-value">1100</span>ms</label>
+            <input type="range" id="touch-duration" min="500" max="3000" step="100" value="1100">
           </div>
           <div class="slider-control">
-            <label>Max Touch Points <span class="value-display" id="max-touches-value">3</span></label>
-            <input type="range" id="max-touches" min="1" max="10" step="1" value="3">
+            <label>Max Touch Points <span class="value-display" id="max-touches-value">5</span></label>
+            <input type="range" id="max-touches" min="1" max="10" step="1" value="5">
           </div>
         </div>
 
