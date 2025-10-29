@@ -1,4 +1,4 @@
-import { Mesh, Color, PointLight, type ShaderMaterial } from 'three';
+import { Mesh, Color, PointLight, Vector3, Raycaster, type ShaderMaterial } from 'three';
 import { GLTFExporter } from 'three/addons/exporters/GLTFExporter.js';
 import { createBlobGeometry } from './geometry';
 import { animateBlob } from './animation';
@@ -26,6 +26,34 @@ export class Blob {
   // Tricolor lights
   private lights: { x: PointLight; y: PointLight; z: PointLight } | null = null;
   public lightIntensity = 0; // 0 = off, higher values = brighter
+
+  // Touch interaction
+  private touchPoints: Array<{
+    position: Vector3;
+    strength: number;
+    startTime: number;
+    duration: number;
+  }> = [];
+  private clickEnabled = false;
+  
+  // Touch configuration
+  public touchStrength = 0.6;
+  public touchDuration = 1200;
+  public maxTouchPoints = 3;
+  
+  // Listening mode (inverts spikes)
+  public isListening = false;
+  private listeningTransition = 0; // 0 to 1
+  
+  // Thinking mode (random chaotic animation)
+  public isThinking = false;
+  private thinkingTimeout: number | null = null;
+  private thinkingStartTime: number = 0;
+  private thinkingTransition = 0; // 0 to 1
+  public thinkingDuration = 10000; // milliseconds
+  
+  // State transition speed (how fast to blend between states)
+  public transitionSpeed = 0.05; // 5% per frame (~1 second at 60fps)
 
   // Animation parameters
   public spikes = { x: 0.2, y: 0.2, z: 0.2 };
@@ -79,9 +107,30 @@ export class Blob {
    */
   private startAnimation(): void {
     const animate = () => {
+      // Update state transitions smoothly
+      // Listening transition
+      if (this.isListening) {
+        this.listeningTransition = Math.min(1, this.listeningTransition + this.transitionSpeed);
+      } else {
+        this.listeningTransition = Math.max(0, this.listeningTransition - this.transitionSpeed);
+      }
+      
+      // Thinking transition
+      if (this.isThinking) {
+        this.thinkingTransition = Math.min(1, this.thinkingTransition + this.transitionSpeed);
+      } else {
+        this.thinkingTransition = Math.max(0, this.thinkingTransition - this.transitionSpeed);
+      }
+      
       const analyser = this.options.audio.getAnalyser();
       if (analyser) {
         const frequencyData = this.options.audio.getFrequencyData() as Uint8Array<ArrayBuffer>;
+        
+        // Calculate thinking progress if in thinking mode
+        const thinkingProgress = this.isThinking 
+          ? (Date.now() - this.thinkingStartTime) / this.thinkingDuration // 0 to 1 over duration
+          : 0;
+        
         animateBlob(
           this.mesh,
           frequencyData,
@@ -93,8 +142,18 @@ export class Blob {
           this.time.y,
           this.time.z,
           this.baseScale,
+          this.touchPoints,
+          this.listeningTransition,
+          this.thinkingTransition,
+          thinkingProgress,
         );
       }
+
+      // Clean up expired touch points
+      const currentTime = Date.now();
+      this.touchPoints = this.touchPoints.filter(
+        tp => (currentTime - tp.startTime) < tp.duration
+      );
 
       // Apply rotation
       this.mesh.rotation.x += this.rotation.x;
@@ -460,9 +519,174 @@ export class Blob {
   }
 
   /**
+   * Enable click interaction on the blob
+   */
+  enableClickInteraction(): void {
+    if (this.clickEnabled) return;
+    this.clickEnabled = true;
+
+    const canvas = this.options.renderer.domElement;
+    const raycaster = new Raycaster();
+    const mouse = { x: 0, y: 0 };
+
+    const handleClick = (event: MouseEvent) => {
+      // Calculate mouse position in normalized device coordinates
+      const rect = canvas.getBoundingClientRect();
+      mouse.x = ((event.clientX - rect.left) / rect.width) * 2 - 1;
+      mouse.y = -((event.clientY - rect.top) / rect.height) * 2 + 1;
+
+      // Update the raycaster
+      raycaster.setFromCamera(mouse, this.options.camera);
+
+      // Check for intersections
+      const intersects = raycaster.intersectObject(this.mesh);
+      
+      if (intersects.length > 0) {
+        const intersect = intersects[0];
+        if (intersect.point) {
+          // Convert world position to local position
+          const localPoint = this.mesh.worldToLocal(intersect.point.clone());
+          
+          // Limit to maximum active touch points to prevent over-stacking
+          if (this.touchPoints.length >= this.maxTouchPoints) {
+            this.touchPoints.shift(); // Remove oldest touch point
+          }
+          
+          // Add touch point with smooth decay
+          this.touchPoints.push({
+            position: localPoint,
+            strength: this.touchStrength,
+            startTime: Date.now(),
+            duration: this.touchDuration,
+          });
+        }
+      }
+    };
+
+    // Handle double-click for listening mode
+    const handleDoubleClick = async (event: MouseEvent) => {
+      event.preventDefault();
+      
+      // Calculate mouse position
+      const rect = canvas.getBoundingClientRect();
+      mouse.x = ((event.clientX - rect.left) / rect.width) * 2 - 1;
+      mouse.y = -((event.clientY - rect.top) / rect.height) * 2 + 1;
+
+      // Update the raycaster
+      raycaster.setFromCamera(mouse, this.options.camera);
+
+      // Check for intersections
+      const intersects = raycaster.intersectObject(this.mesh);
+      
+      if (intersects.length > 0) {
+        // Toggle listening mode
+        if (this.isListening) {
+          this.stopListening();
+        } else {
+          await this.startListening();
+        }
+      }
+    };
+
+    canvas.addEventListener('click', handleClick);
+    canvas.addEventListener('dblclick', handleDoubleClick);
+    
+    // Store the handlers for cleanup
+    (this as any)._clickHandler = handleClick;
+    (this as any)._dblClickHandler = handleDoubleClick;
+  }
+
+  /**
+   * Disable click interaction
+   */
+  disableClickInteraction(): void {
+    if (!this.clickEnabled) return;
+    this.clickEnabled = false;
+
+    const canvas = this.options.renderer.domElement;
+    const clickHandler = (this as any)._clickHandler;
+    const dblClickHandler = (this as any)._dblClickHandler;
+    
+    if (clickHandler) {
+      canvas.removeEventListener('click', clickHandler);
+      delete (this as any)._clickHandler;
+    }
+    
+    if (dblClickHandler) {
+      canvas.removeEventListener('dblclick', dblClickHandler);
+      delete (this as any)._dblClickHandler;
+    }
+    
+    // Stop listening if active
+    if (this.isListening) {
+      this.stopListening();
+    }
+    
+    // Clear any active touch points
+    this.touchPoints = [];
+  }
+
+  /**
+   * Start listening to microphone input (inverts spikes)
+   */
+  async startListening(): Promise<void> {
+    try {
+      await this.options.audio.startMicrophoneListening();
+      this.isListening = true;
+      console.log('🎤 Started listening to microphone');
+    } catch (error) {
+      console.error('Failed to start listening:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * Stop listening to microphone input
+   */
+  stopListening(): void {
+    this.options.audio.stopMicrophoneListening();
+    this.isListening = false;
+    console.log('🔇 Stopped listening to microphone');
+  }
+
+  /**
+   * Start thinking mode (random chaotic animation)
+   */
+  startThinking(): void {
+    // Clear any existing timeout
+    if (this.thinkingTimeout !== null) {
+      clearTimeout(this.thinkingTimeout);
+    }
+    
+    this.isThinking = true;
+    this.thinkingStartTime = Date.now();
+    console.log(`🤔 Started thinking mode (${this.thinkingDuration / 1000}s)`);
+    
+    // Auto-stop after duration
+    this.thinkingTimeout = window.setTimeout(() => {
+      this.stopThinking();
+    }, this.thinkingDuration);
+  }
+
+  /**
+   * Stop thinking mode
+   */
+  stopThinking(): void {
+    if (this.thinkingTimeout !== null) {
+      clearTimeout(this.thinkingTimeout);
+      this.thinkingTimeout = null;
+    }
+    
+    this.isThinking = false;
+    console.log('💭 Stopped thinking mode');
+  }
+
+  /**
    * Cleanup and dispose resources
    */
   dispose(): void {
+    this.disableClickInteraction();
+    this.stopThinking();
     this.stopAnimation();
     this.mesh.geometry.dispose();
 
