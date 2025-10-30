@@ -413,29 +413,35 @@ function setMediaType(type, { silent = false } = {}) {
 }
 
 window.randomizeBackground = function() {
-  const randomColor = () => '#' + Math.floor(Math.random() * 16777215).toString(16).padStart(6, '0');
-
-  backgroundRandomizeClickCount++;
-
-  document.getElementById('bg-color-1').value = randomColor();
-  document.getElementById('bg-color-2').value = randomColor();
-  document.getElementById('bg-color-3').value = randomColor();
-  
-  randomizeGradientLayout({ updateInputs: true });
-  
-  let opacity;
-  if (backgroundRandomizeClickCount % 3 === 0) {
-    opacity = (Math.random() * 0.6 + 0.3).toFixed(2);
-  } else {
-    opacity = '1.00';
+  if (window.kwami && window.kwami.body) {
+    // Use the library method to randomize background
+    window.kwami.body.randomizeBackground();
+    
+    // Update UI to reflect changes
+    const randomColor = () => '#' + Math.floor(Math.random() * 16777215).toString(16).padStart(6, '0');
+    
+    backgroundRandomizeClickCount++;
+    
+    document.getElementById('bg-color-1').value = randomColor();
+    document.getElementById('bg-color-2').value = randomColor();
+    document.getElementById('bg-color-3').value = randomColor();
+    
+    randomizeGradientLayout({ updateInputs: true });
+    
+    let opacity;
+    if (backgroundRandomizeClickCount % 3 === 0) {
+      opacity = (Math.random() * 0.6 + 0.3).toFixed(2);
+      window.kwami.body.setBackgroundOpacity(parseFloat(opacity));
+    } else {
+      opacity = '1.00';
+    }
+    
+    const opacitySlider = document.getElementById('bg-opacity');
+    if (opacitySlider) opacitySlider.value = opacity;
+    updateValueDisplay('bg-opacity-value', opacity, 2);
+    
+    updateStatus('🎲 Gradient randomized!');
   }
-  
-  const opacitySlider = document.getElementById('bg-opacity');
-  if (opacitySlider) opacitySlider.value = opacity;
-  updateValueDisplay('bg-opacity-value', opacity, 2);
-  
-  applyBackground();
-  updateStatus('🎲 Gradient randomized!');
 };
 
 window.randomizeMediaSelection = function(type) {
@@ -1058,6 +1064,14 @@ window.applyVoicePreset = function(preset) {
   updateStatus(`✅ Applied ${presetNames[preset]} preset!`);
 };
 
+// Alternative implementation using library method
+window.applyVoicePresetV2 = function(preset) {
+  if (window.kwami && window.kwami.mind) {
+    window.kwami.mind.applyVoicePreset(preset);
+    updateStatus(`✅ Applied ${preset} voice preset`);
+  }
+};
+
 // Preview Voice
 window.previewVoice = async function() {
   const previewText = "Hello! This is a preview of my voice. How do I sound?";
@@ -1484,10 +1498,21 @@ window.loadPersonality = async function(type) {
   try {
     updateStatus(`🔄 Loading ${type} personality...`);
     
-    await window.kwami.soul.loadPersonality(`/assets/personalities/${type}.json`);
+    // Use the library's preset method instead of loading JSON files
+    window.kwami.soul.loadPresetPersonality(type);
     
     const name = window.kwami.soul.getName();
     document.getElementById('personality-name').textContent = name;
+    
+    // Update Soul UI if visible
+    const soulName = document.getElementById('soul-name');
+    if (soulName) soulName.value = name;
+    
+    const soulPersonality = document.getElementById('soul-personality');
+    if (soulPersonality) {
+      const config = window.kwami.soul.getConfig();
+      soulPersonality.value = config.personality || '';
+    }
     
     updateStatus(`✅ Loaded ${name} personality!`);
   } catch (error) {
@@ -1546,8 +1571,8 @@ window.speak = async function() {
 
 // Export GLB
 window.exportGLB = function() {
-  if (window.kwami && window.kwami.body && window.kwami.body.blob) {
-    window.kwami.body.blob.exportGLTF();
+  if (window.kwami && window.kwami.body) {
+    window.kwami.body.exportAsGLB();
     updateStatus('💾 Downloading GLB file...');
   } else {
     showError('Kwami not initialized yet!');
@@ -1556,56 +1581,35 @@ window.exportGLB = function() {
 
 // Randomize Blob
 window.randomizeBlob = function() {
-  // Save current skin and scale
-  const currentSkin = window.kwami.body.blob.currentSkin;
-  const currentScale = 4.0;
-  
-  // Randomize the blob
-  window.kwami.body.blob.setRandomBlob();
-  
-  // Restore scale to 4
-  window.kwami.body.blob.setScale(currentScale);
-  
-  // Restore the skin
-  window.kwami.body.blob.setSkin(currentSkin);
-  
-  // Don't randomize camera - keep it at current position
-  // User can manually adjust camera with sliders or mouse controls
-  
-  updateAllControlsFromBlob();
-  updateStatus('🎲 Blob randomized!');
+  if (window.kwami && window.kwami.body) {
+    window.kwami.body.randomizeBlob();
+    updateAllControlsFromBlob();
+    updateStatus('🎲 Blob randomized!');
+  }
 };
 
 // Reset to Defaults
 window.resetToDefaults = function() {
-  const blob = window.kwami.body.blob;
-  
-  // Apply defaults
-  blob.setSpikes(DEFAULT_VALUES.spikes.x, DEFAULT_VALUES.spikes.y, DEFAULT_VALUES.spikes.z);
-  blob.setTime(DEFAULT_VALUES.time.x, DEFAULT_VALUES.time.y, DEFAULT_VALUES.time.z);
-  blob.setRotation(DEFAULT_VALUES.rotation.x, DEFAULT_VALUES.rotation.y, DEFAULT_VALUES.rotation.z);
-  blob.setColors(DEFAULT_VALUES.colors.x, DEFAULT_VALUES.colors.y, DEFAULT_VALUES.colors.z);
-  blob.setScale(DEFAULT_VALUES.scale);
-  blob.setResolution(DEFAULT_VALUES.resolution);
-  blob.setShininess(DEFAULT_VALUES.shininess);
-  blob.setWireframe(DEFAULT_VALUES.wireframe);
-  blob.setSkin(DEFAULT_VALUES.skin);
-  blob.setOpacity(DEFAULT_VALUES.opacity);
-  
-  // Reset camera position
-  const camera = window.kwami.body.getCamera();
-  camera.position.set(DEFAULT_CAMERA_POSITION.x, DEFAULT_CAMERA_POSITION.y, DEFAULT_CAMERA_POSITION.z);
-  camera.lookAt(0, 0, 0);
-  document.getElementById('camera-x').value = DEFAULT_CAMERA_POSITION.x;
-  document.getElementById('camera-y').value = DEFAULT_CAMERA_POSITION.y;
-  document.getElementById('camera-z').value = DEFAULT_CAMERA_POSITION.z;
-  updateValueDisplay('camera-x-value', DEFAULT_CAMERA_POSITION.x, 1);
-  updateValueDisplay('camera-y-value', DEFAULT_CAMERA_POSITION.y, 1);
-  updateValueDisplay('camera-z-value', DEFAULT_CAMERA_POSITION.z, 1);
-  
-  // Update UI
-  updateAllControlsFromBlob();
-  updateStatus('🔄 Reset to defaults!');
+  if (window.kwami && window.kwami.body) {
+    // Reset blob to defaults
+    window.kwami.body.resetBlobToDefaults();
+    
+    // Reset camera position
+    window.kwami.body.resetCameraPosition();
+    
+    // Update camera UI
+    const pos = window.kwami.body.getCameraPosition();
+    document.getElementById('camera-x').value = pos.x;
+    document.getElementById('camera-y').value = pos.y;
+    document.getElementById('camera-z').value = pos.z;
+    updateValueDisplay('camera-x-value', pos.x, 1);
+    updateValueDisplay('camera-y-value', pos.y, 1);
+    updateValueDisplay('camera-z-value', pos.z, 1);
+    
+    // Update UI
+    updateAllControlsFromBlob();
+    updateStatus('🔄 Reset to defaults!');
+  }
 };
 
 // Export Scene as GLB

@@ -1131,6 +1131,90 @@ export class KwamiMind {
   }
 
   /**
+   * Apply a voice preset for quick configuration
+   * 
+   * @param preset - Preset name: 'natural', 'expressive', 'stable', 'clear'
+   */
+  applyVoicePreset(preset: 'natural' | 'expressive' | 'stable' | 'clear'): void {
+    const presets = {
+      natural: {
+        stability: 0.50,
+        similarity_boost: 0.75,
+        style: 0.00,
+        use_speaker_boost: false
+      },
+      expressive: {
+        stability: 0.30,
+        similarity_boost: 0.60,
+        style: 0.50,
+        use_speaker_boost: true
+      },
+      stable: {
+        stability: 0.80,
+        similarity_boost: 0.85,
+        style: 0.00,
+        use_speaker_boost: true
+      },
+      clear: {
+        stability: 0.60,
+        similarity_boost: 0.90,
+        style: 0.10,
+        use_speaker_boost: true
+      }
+    };
+
+    const settings = presets[preset];
+    if (settings) {
+      this.setVoiceSettings(settings);
+    }
+  }
+
+  /**
+   * Preview voice with a sample text
+   * 
+   * @param text - Optional custom text to preview, defaults to a sample
+   * @returns Promise that resolves when preview starts playing
+   */
+  async previewVoice(text?: string): Promise<void> {
+    const previewText = text || "Hello! This is a preview of my voice. How do I sound?";
+    await this.speak(previewText);
+  }
+
+  /**
+   * Test microphone access
+   * 
+   * @returns Promise that resolves with true if microphone is accessible
+   */
+  async testMicrophone(): Promise<boolean> {
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      // Stop the stream immediately after testing
+      stream.getTracks().forEach(track => track.stop());
+      return true;
+    } catch (error) {
+      console.error('Microphone test failed:', error);
+      return false;
+    }
+  }
+
+  /**
+   * Check API usage (stub for future implementation)
+   * Note: ElevenLabs API usage checking requires additional API endpoints
+   * 
+   * @returns Promise with usage information
+   */
+  async checkUsage(): Promise<{ charactersUsed?: number; characterLimit?: number; remaining?: number }> {
+    // This would require additional ElevenLabs API endpoints for usage tracking
+    // For now, return a stub response
+    console.log('API usage checking not yet implemented in ElevenLabs SDK');
+    return {
+      charactersUsed: 0,
+      characterLimit: 0,
+      remaining: 0
+    };
+  }
+
+  /**
    * Cleanup and dispose resources
    */
   dispose(): void {

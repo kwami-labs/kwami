@@ -178,6 +178,79 @@ export class KwamiBody {
   }
 
   /**
+   * Randomize the blob appearance while maintaining current skin
+   * This randomizes geometry, colors, and animation parameters
+   */
+  randomizeBlob(): void {
+    const currentSkin = this.blob.currentSkin;
+    const currentScale = this.blob.getScale();
+    
+    // Randomize the blob
+    this.blob.setRandomBlob();
+    
+    // Restore scale and skin
+    this.blob.setScale(currentScale);
+    this.blob.setSkin(currentSkin);
+  }
+
+  /**
+   * Reset blob to default values
+   */
+  resetBlobToDefaults(): void {
+    const defaults = {
+      spikes: { x: 0.2, y: 0.2, z: 0.2 },
+      time: { x: 1, y: 1, z: 1 },
+      rotation: { x: 0, y: 0, z: 0 },
+      colors: { x: '#ff0066', y: '#00ff66', z: '#6600ff' },
+      scale: 4.0,
+      resolution: 180,
+      shininess: 50,
+      wireframe: false,
+      skin: 'tricolor' as BlobSkinType,
+      opacity: 1
+    };
+
+    this.blob.setSpikes(defaults.spikes.x, defaults.spikes.y, defaults.spikes.z);
+    this.blob.setTime(defaults.time.x, defaults.time.y, defaults.time.z);
+    this.blob.setRotation(defaults.rotation.x, defaults.rotation.y, defaults.rotation.z);
+    this.blob.setColors(defaults.colors.x, defaults.colors.y, defaults.colors.z);
+    this.blob.setScale(defaults.scale);
+    this.blob.setResolution(defaults.resolution);
+    this.blob.setShininess(defaults.shininess);
+    this.blob.setWireframe(defaults.wireframe);
+    this.blob.setSkin(defaults.skin);
+    this.blob.setOpacity(defaults.opacity);
+  }
+
+  /**
+   * Reset camera to default position
+   */
+  resetCameraPosition(): void {
+    const defaultPosition = { x: -0.9, y: 7.3, z: -1.8 };
+    this.camera.position.set(defaultPosition.x, defaultPosition.y, defaultPosition.z);
+    this.camera.lookAt(0, 0, 0);
+  }
+
+  /**
+   * Set camera position
+   */
+  setCameraPosition(x: number, y: number, z: number): void {
+    this.camera.position.set(x, y, z);
+    this.camera.lookAt(0, 0, 0);
+  }
+
+  /**
+   * Get camera position
+   */
+  getCameraPosition(): { x: number; y: number; z: number } {
+    return {
+      x: this.camera.position.x,
+      y: this.camera.position.y,
+      z: this.camera.position.z
+    };
+  }
+
+  /**
    * Enable click interaction on the blob
    * Click to create liquid-like touch effects
    * Double-click triggers conversation if callback is set
@@ -324,6 +397,34 @@ export class KwamiBody {
   setBackgroundTransparent(): void {
     this.backgroundState = { ...DEFAULT_BACKGROUND_STATE };
     this.applyBackgroundState();
+  }
+
+  /**
+   * Randomize background with random colors and gradient settings
+   */
+  randomizeBackground(): void {
+    const randomColor = () => '#' + Math.floor(Math.random() * 16777215).toString(16).padStart(6, '0');
+    const colors = [randomColor(), randomColor(), randomColor()];
+    const angle = Math.floor(Math.random() * 361);
+    const stop1 = Math.floor(Math.random() * 51);
+    const stop2 = 50 + Math.floor(Math.random() * 51);
+    
+    this.setBackgroundGradient(colors, { angle, stops: [0, stop1 / 100, stop2 / 100] });
+  }
+
+  /**
+   * Set background opacity
+   */
+  setBackgroundOpacity(opacity: number): void {
+    this.backgroundState.opacity = Math.max(0, Math.min(1, opacity));
+    this.applyBackgroundState();
+  }
+
+  /**
+   * Get current background opacity
+   */
+  getBackgroundOpacity(): number {
+    return this.backgroundState.opacity;
   }
 
   /**

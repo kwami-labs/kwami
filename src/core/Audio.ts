@@ -229,6 +229,101 @@ export class KwamiAudio {
   }
 
   /**
+   * Load an audio file from a File object (for file uploads)
+   */
+  async loadAudioFile(file: File): Promise<void> {
+    return new Promise((resolve, reject) => {
+      if (!file || !file.type.startsWith('audio/')) {
+        reject(new Error('Invalid audio file'));
+        return;
+      }
+
+      const url = URL.createObjectURL(file);
+      this.loadAudioSource(url);
+      
+      // Clean up the object URL after loading
+      this.instance.addEventListener('loadeddata', () => {
+        resolve();
+      }, { once: true });
+      
+      this.instance.addEventListener('error', (e) => {
+        URL.revokeObjectURL(url);
+        reject(new Error('Failed to load audio file'));
+      }, { once: true });
+    });
+  }
+
+  /**
+   * Get current playback time in seconds
+   */
+  getCurrentTime(): number {
+    return this.instance?.currentTime || 0;
+  }
+
+  /**
+   * Set playback time in seconds
+   */
+  setCurrentTime(time: number): void {
+    if (this.instance) {
+      this.instance.currentTime = Math.max(0, Math.min(time, this.getDuration()));
+    }
+  }
+
+  /**
+   * Get audio duration in seconds
+   */
+  getDuration(): number {
+    return this.instance?.duration || 0;
+  }
+
+  /**
+   * Format time in MM:SS format
+   */
+  formatTime(seconds: number): string {
+    if (isNaN(seconds) || !isFinite(seconds)) return '0:00';
+    const minutes = Math.floor(seconds / 60);
+    const secs = Math.floor(seconds % 60);
+    return `${minutes}:${secs.toString().padStart(2, '0')}`;
+  }
+
+  /**
+   * Check if audio is currently playing
+   */
+  isPlaying(): boolean {
+    return this.instance ? !this.instance.paused : false;
+  }
+
+  /**
+   * Toggle play/pause
+   */
+  async togglePlayPause(): Promise<void> {
+    if (this.isPlaying()) {
+      this.pause();
+    } else {
+      await this.play();
+    }
+  }
+
+  /**
+   * Set FFT size for frequency analysis
+   */
+  setFFTSize(size: 512 | 1024 | 2048 | 4096): void {
+    if (this.analyser) {
+      this.analyser.fftSize = size;
+      this.frequencyData = new Uint8Array(this.analyser.frequencyBinCount);
+    }
+  }
+
+  /**
+   * Set smoothing time constant for frequency analysis
+   */
+  setSmoothingTimeConstant(value: number): void {
+    if (this.analyser) {
+      this.analyser.smoothingTimeConstant = Math.max(0, Math.min(1, value));
+    }
+  }
+
+  /**
    * Connect a MediaStream (e.g., from ElevenLabs) to the audio analyzer
    * This allows real-time audio visualization from streamed sources
    * 
