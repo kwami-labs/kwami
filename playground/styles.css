@@ -6,7 +6,7 @@
 
 body {
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-  background: #1a1a1a;
+  background: #ffffff;
   min-height: 100vh;
   overflow: hidden;
 }
@@ -53,6 +53,18 @@ body {
   background: #1a1a1a;
 }
 
+#background-video {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  z-index: 0;
+  display: none;
+  background: #000;
+}
+
 #background-image {
   position: absolute;
   top: 0;
@@ -62,7 +74,7 @@ body {
   background-size: cover;
   background-position: center;
   background-repeat: no-repeat;
-  z-index: 0;
+  z-index: 1;
   transition: background-image 0.3s ease;
 }
 
@@ -72,7 +84,7 @@ body {
   left: 0;
   width: 100%;
   height: 100%;
-  z-index: 1;
+  z-index: 2;
   pointer-events: none;
   display: none;
   transition: opacity 0.3s ease;
@@ -87,7 +99,7 @@ canvas {
   height: 100%;
   display: block;
   position: relative;
-  z-index: 2;
+  z-index: 3;
 }
 
 /* Double-click hint on canvas hover when conversation is ready */
@@ -841,4 +853,48 @@ input[type="checkbox"] {
     opacity: 1;
     transform: translateY(0);
   }
+}
+
+.media-tabs {
+  display: flex;
+  gap: 8px;
+}
+
+.media-tab {
+  flex: 1;
+  padding: 6px 10px;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.04);
+  color: inherit;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.media-tab:hover {
+  background: rgba(255, 255, 255, 0.08);
+}
+
+.media-tab.active {
+  background: rgba(102, 126, 234, 0.25);
+  border-color: rgba(102, 126, 234, 0.6);
+  color: #fff;
+}
+
+.media-controls {
+  margin-top: 12px;
+}
+
+.button-row {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.button-row .button-secondary {
+  flex: 1;
+  min-width: 120px;
 }

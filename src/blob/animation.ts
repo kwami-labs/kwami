@@ -120,7 +120,7 @@ export function animateBlob(
   const bands = getFrequencyBands(frequencyData);
 
   // Smooth frequency bands for viscous response
-  const audioSmoothFactor = 0.06;
+  const audioSmoothFactor = 0.24;
   audioSmoothing.low += (bands.low - audioSmoothing.low) * audioSmoothFactor;
   audioSmoothing.mid += (bands.mid - audioSmoothing.mid) * audioSmoothFactor;
   audioSmoothing.high += (bands.high - audioSmoothing.high) * audioSmoothFactor;
@@ -144,7 +144,7 @@ export function animateBlob(
   const perf = performance.now() * reduction;
 
   // Normal animation time contribution is disabled while audio drives the motion
-  const timeFactor = audioActive ? 0 : 1;
+  const timeFactor = audioActive ? 0.2 : 1;
   
   // Optionally modulate time with audio (can create chaotic effects if too strong)
   const audioTimeMod = (audioEffects.enabled && audioEffects.timeEnabled)
@@ -188,18 +188,20 @@ export function animateBlob(
     
     // Calculate audio-reactive amplitude multiplier (smooth and natural)
     const weightedAudioEnergy
-      = smoothBands.low * audioEffects.bassSpike * 0.75
-      + smoothBands.mid * audioEffects.midSpike * 0.6
-      + smoothBands.high * audioEffects.highSpike * 0.4
-      + bands.ultra * 0.15;
+      = smoothBands.low * audioEffects.bassSpike * 0.55
+      + smoothBands.mid * audioEffects.midSpike * 0.8
+      + smoothBands.high * audioEffects.highSpike * 0.6
+      + bands.ultra * 0.25;
 
     const audioIntensity = audioEffects.enabled
-      ? 1 + Math.min(3.5, weightedAudioEnergy * reactivity * 2.4)
+      ? 1 + Math.min(2.6, weightedAudioEnergy * reactivity * 1.75)
       : 1;
 
     const pulse = audioEffects.enabled
-      ? Math.min(1.2, Math.pow(Math.max(0, audioLevel), 0.85) * reactivity * 1.2)
+      ? Math.min(1.45, Math.pow(Math.max(0, audioLevel), 0.95) * reactivity * 1.45)
       : 0;
+
+    const spikeEnvelope = Math.min(1.7, (smoothBands.mid * 0.85 + smoothBands.high * 1.25 + bands.ultra * 0.65) * reactivity);
 
     // Generate multi-layered noise for liquid texture (smoother)
     const noise1 = noise3D(
@@ -226,7 +228,7 @@ export function animateBlob(
     const finalNoise = noise1 * 0.5 + noise2 * 0.3 + noise3 * 0.2;
 
     // Base amplitude enhanced by audio (creates natural, liquid response)
-    const baseAmplitude = audioActive ? 0.12 + pulse * 0.08 : 0.18;
+    const baseAmplitude = audioActive ? 0.1 + spikeEnvelope * 0.09 : 0.16;
 
     const amplitude = baseAmplitude * audioIntensity;
 
@@ -240,11 +242,16 @@ export function animateBlob(
       : 0;
     
     // Calculate displacement for each state separately
+    const energyMultiplier = 1 + weightedAudioEnergy * 0.85;
+    const detailStrength = audioEffects.enabled ? (0.45 + weightedAudioEnergy * 0.55) : 0.45;
+
     // Normal/Speaking mode displacement (outward spikes, enhanced by audio)
-    const speakingDisplacement = amplitude * finalNoise + detailNoise + weightedAudioEnergy * 0.15;
+    const speakingDisplacement = amplitude * finalNoise * energyMultiplier
+      + detailNoise * detailStrength;
     
     // Listening mode displacement (inward spikes, enhanced by audio)
-    const listeningDisplacement = -amplitude * finalNoise + detailNoise * 0.6 + weightedAudioEnergy * 0.08;
+    const listeningDisplacement = -amplitude * finalNoise * (0.9 + weightedAudioEnergy * 0.55)
+      + detailNoise * (0.3 + weightedAudioEnergy * 0.35);
     
     // Thinking mode displacement (fluid, flowing movements)
     let thinkingDisplacement = 0;
@@ -292,11 +299,12 @@ export function animateBlob(
     }
     
     // Start with base displacement of 1.0 (normalized sphere)
-    const dynamicOffset = audioEffects.enabled
-      ? (pulse * 0.05) * (1 + radialFactor * 0.4) - (smoothBands.low * 0.03)
-      : 0;
+    let displacement = 1 + audioDisplacement;
 
-    let displacement = 1 + audioDisplacement + dynamicOffset;
+    if (audioEffects.enabled) {
+      const baselineShift = weightedAudioEnergy * 0.06 * (0.35 + radialFactor * 0.4);
+      displacement -= baselineShift;
+    }
 
     // Apply localized viscous response for touch/click interactions
     if (touchPoints.length > 0) {
@@ -339,7 +347,7 @@ export function animateBlob(
     
     // Final safety clamp and viscous smoothing
     const minDisplacement = 0.7;
-    const maxDisplacement = 1.45;
+    const maxDisplacement = 1.22;
     const targetDisplacement = Math.max(minDisplacement, Math.min(maxDisplacement, displacement));
 
     const previous = previousDisplacements[i];
