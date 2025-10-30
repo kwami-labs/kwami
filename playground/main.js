@@ -1676,7 +1676,10 @@ function applyBackground() {
     const color2 = document.getElementById('bg-color-2').value;
     const color3 = document.getElementById('bg-color-3').value;
     const direction = document.getElementById('bg-direction').value;
-    window.kwami.body.setBackgroundGradient([color1, color2, color3], direction, opacity);
+    const angle = parseInt(document.getElementById('bg-gradient-angle')?.value || '90', 10);
+    const stop1 = parseInt(document.getElementById('bg-gradient-stop1')?.value || '0', 10);
+    const stop2 = parseInt(document.getElementById('bg-gradient-stop2')?.value || '100', 10);
+    window.kwami.body.setBackgroundGradient([color1, color2, color3], direction, opacity, { angle, stops: [stop1, stop2] });
   }
 
   if (blobImageTransparencyEnabled && type !== 'transparent') {
@@ -1891,6 +1894,33 @@ function initializeBackgroundControls() {
   document.getElementById('bg-direction').value = DEFAULT_BACKGROUND.direction;
   document.getElementById('bg-type').value = DEFAULT_BACKGROUND.type;
   document.getElementById('bg-opacity').value = DEFAULT_BACKGROUND.opacity;
+  // Angle slider event
+  const angleSlider = document.getElementById('bg-gradient-angle');
+  const angleValue = document.getElementById('bg-gradient-angle-value');
+  if (angleSlider && angleValue) {
+    angleSlider.addEventListener('input', (e) => {
+      angleValue.textContent = e.target.value;
+      applyBackground();
+    });
+  }
+  // Stop1 slider event
+  const stop1Slider = document.getElementById('bg-gradient-stop1');
+  const stop1Value = document.getElementById('bg-gradient-stop1-value');
+  if (stop1Slider && stop1Value) {
+    stop1Slider.addEventListener('input', (e) => {
+      stop1Value.textContent = e.target.value;
+      applyBackground();
+    });
+  }
+  // Stop2 slider event
+  const stop2Slider = document.getElementById('bg-gradient-stop2');
+  const stop2Value = document.getElementById('bg-gradient-stop2-value');
+  if (stop2Slider && stop2Value) {
+    stop2Slider.addEventListener('input', (e) => {
+      stop2Value.textContent = e.target.value;
+      applyBackground();
+    });
+  }
 }
 
 // Camera position control functions
