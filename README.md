@@ -577,9 +577,79 @@ Built with:
 - [simplex-noise](https://github.com/jwagner/simplex-noise.js/) - Smooth noise generation
 - TypeScript - Type safety
 
+## 🚀 Deployment & Branch Strategy
+
+### Live Deployment
+
+**Kwami Playground is live at [kwami.io](https://kwami.io)** 🌐
+
+The playground is deployed from the `main` branch, which represents production-ready code.
+
+### Git Workflow
+
+We follow a professional branching strategy:
+
+```
+feature/*  →  [PR]  →  dev  →  [Review]  →  main  →  Deploy to kwami.io
+```
+
+**Branch Protection:**
+- 🔒 **main** - Protected production branch
+  - Requires PR review before merging
+  - Directly deployed to kwami.io
+  - Only receives merge commits from `dev`
+  - Tagged with version numbers (v2.0.0, etc.)
+
+- 🔧 **dev** - Development integration branch
+  - Main branch for feature development
+  - **All PRs should target `dev`, not `main`**
+  - Testing and review happens here
+  - Merged to `main` for releases
+
+- 🌿 **feature/** - Feature branches
+  - Create from `dev`
+  - PR to `dev` for review
+  - Deleted after merge
+
+### Contribution Workflow
+
+1. **Fork and branch** from `dev`
+   ```bash
+   git checkout -b feature/your-feature origin/dev
+   ```
+
+2. **Make changes** and commit with emojis
+   ```bash
+   git commit -m "✨ feat(blob): add new skin"
+   ```
+
+3. **Push to your fork** and create PR to `dev`
+   ```bash
+   git push origin feature/your-feature
+   ```
+   - PR title: Clear description
+   - PR body: Reference issues, describe changes
+   - Target: `dev` branch (not `main`)
+
+4. **Review and merge**
+   - Maintainers review your PR
+   - Address feedback
+   - PR merged to `dev` after approval
+
+5. **Release process**
+   - When ready for release, `dev` is merged to `main`
+   - Version bumped in package.json
+   - CHANGELOG updated
+   - Tag created (v2.1.0, etc.)
+   - Deployed to kwami.io
+
+**For detailed contribution guidelines, see [CONTRIBUTING.md](./CONTRIBUTING.md)**
+
 ## 🎮 Interactive Playground
 
-Kwami includes a fully-featured interactive playground for testing and experimentation:
+Kwami includes a fully-featured interactive playground deployed at [kwami.io](https://kwami.io):
+
+**To run locally:**
 
 ```bash
 npm run playground

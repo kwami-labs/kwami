@@ -7,6 +7,38 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### 🚀 Deployment & Branch Strategy
+
+**Live Deployment**
+- Kwami Playground is now live at [kwami.io](https://kwami.io)
+- Deployed from the protected `main` branch
+- Automatic deployment on release tags
+
+**Git Workflow**
+- Introduced professional branching strategy:
+  - 🔒 **main** - Production branch (protected)
+    - Deployed to kwami.io
+    - Requires PR review
+    - Tagged with versions (v2.0.0, v2.1.0, etc.)
+  - 🔧 **dev** - Development integration branch
+    - Main branch for feature development
+    - All feature PRs target `dev`, NOT `main`
+    - Merged to `main` for releases
+  - 🌿 **feature/** - Feature branches
+    - Created from `dev`
+    - PR to `dev` for review
+
+**Release Process**
+- Features are developed on branches and PRed to `dev`
+- When ready for release:
+  1. `dev` is merged to `main` in a release PR
+  2. Version is bumped (package.json, tags)
+  3. CHANGELOG is finalized
+  4. Released to kwami.io
+  5. `main` merged back to `dev`
+
+**For contributors**: All PRs should target `dev`, not `main`. See [CONTRIBUTING.md](./CONTRIBUTING.md) for details.
+
 ### ✨ Added
 
 #### 🌈 Enhanced Playground UI - Dual Sidebar Layout & Background Controls
