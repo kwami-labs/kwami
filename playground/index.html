@@ -50,9 +50,9 @@
       <canvas id="kwami-canvas"></canvas>
       
       <!-- State Indicator (Below Blob) -->
-      <div id="state-indicator" class="state-indicator">
+      <!-- <div id="state-indicator" class="state-indicator">
         <span id="state-text">IDLE</span>
-      </div>
+      </div> -->
 
       <!-- Messages Area (Below Blob) -->
       <div id="messages-container">
@@ -453,28 +453,17 @@
               <input type="color" id="bg-color-3" value="#f093fb">
             </div>
           </div>
-          <div class="input-group">
-            <label>Angle (°)</label>
+          <div class="slider-control">
+            <label>Angle <span class="value-display" id="bg-gradient-angle-value">90</span>°</label>
             <input type="range" id="bg-gradient-angle" min="0" max="360" step="1" value="90">
-            <span id="bg-gradient-angle-value">90</span>°
           </div>
-          <div class="input-group">
-            <label>Color Stop 1 (%)</label>
-            <input type="range" id="bg-gradient-stop1" min="0" max="100" step="1" value="0">
-            <span id="bg-gradient-stop1-value">0</span>%
+          <div class="slider-control">
+            <label>Color Stop 1 <span class="value-display" id="bg-gradient-stop1-value">50</span>%</label>
+            <input type="range" id="bg-gradient-stop1" min="0" max="100" step="1" value="50">
           </div>
-          <div class="input-group">
-            <label>Color Stop 2 (%)</label>
+          <div class="slider-control">
+            <label>Color Stop 2 <span class="value-display" id="bg-gradient-stop2-value">100</span>%</label>
             <input type="range" id="bg-gradient-stop2" min="0" max="100" step="1" value="100">
-            <span id="bg-gradient-stop2-value">100</span>%
-          </div>
-          <div class="input-group">
-            <label>Direction</label>
-            <select id="bg-direction">
-              <option value="vertical">Vertical</option>
-              <option value="horizontal">Horizontal</option>
-              <option value="radial">Radial</option>
-            </select>
           </div>
         </div>
 
@@ -660,16 +649,28 @@
           <div class="parameter-group-title">Frequency Modulation</div>
           <p class="parameter-info">Boost how strongly each frequency band pushes the blob. <span style="display:block;color:#999;font-size:11px;">The blob remembers your settings per skin.</span></p>
           <div class="slider-control">
-            <label>Bass Movement <span class="value-display" id="audio-bass-spike-value">0.45</span></label>
-            <input type="range" id="audio-bass-spike" min="0" max="1" step="0.05" value="0.45">
+            <label>Bass Movement <span class="value-display" id="audio-bass-spike-value">0.65</span></label>
+            <input type="range" id="audio-bass-spike" min="0" max="1" step="0.05" value="0.65">
           </div>
           <div class="slider-control">
-            <label>Mid Flow <span class="value-display" id="audio-mid-spike-value">0.35</span></label>
-            <input type="range" id="audio-mid-spike" min="0" max="1" step="0.05" value="0.35">
+            <label>Mid Flow <span class="value-display" id="audio-mid-spike-value">0.50</span></label>
+            <input type="range" id="audio-mid-spike" min="0" max="1" step="0.05" value="0.50">
           </div>
           <div class="slider-control">
-            <label>High Detail <span class="value-display" id="audio-high-spike-value">0.30</span></label>
-            <input type="range" id="audio-high-spike" min="0" max="1" step="0.05" value="0.30">
+            <label>High Detail <span class="value-display" id="audio-high-spike-value">0.38</span></label>
+            <input type="range" id="audio-high-spike" min="0" max="1" step="0.05" value="0.38">
+          </div>
+          <div class="slider-control">
+            <label>Audio Reactivity <span class="value-display" id="audio-reactivity-value">1.90</span></label>
+            <input type="range" id="audio-reactivity" min="0.5" max="3" step="0.05" value="1.90">
+          </div>
+          <div class="slider-control">
+            <label>Sensitivity Threshold <span class="value-display" id="audio-sensitivity-value">0.08</span></label>
+            <input type="range" id="audio-sensitivity" min="0.01" max="0.3" step="0.005" value="0.08">
+          </div>
+          <div class="slider-control">
+            <label>Breathing (Idle) <span class="value-display" id="audio-breathing-value">0.04</span></label>
+            <input type="range" id="audio-breathing" min="0" max="0.1" step="0.005" value="0.04">
           </div>
         </div>
 
@@ -684,16 +685,16 @@
             </label>
           </div>
           <div class="slider-control">
-            <label>Mid → Speed <span class="value-display" id="audio-mid-time-value">0.2</span></label>
-            <input type="range" id="audio-mid-time" min="0" max="2" step="0.1" value="0.2">
+            <label>Mid → Speed <span class="value-display" id="audio-mid-time-value">0.10</span></label>
+            <input type="range" id="audio-mid-time" min="0" max="2" step="0.05" value="0.10">
           </div>
           <div class="slider-control">
-            <label>High → Speed <span class="value-display" id="audio-high-time-value">0.3</span></label>
-            <input type="range" id="audio-high-time" min="0" max="2" step="0.1" value="0.3">
+            <label>High → Speed <span class="value-display" id="audio-high-time-value">0.18</span></label>
+            <input type="range" id="audio-high-time" min="0" max="2" step="0.05" value="0.18">
           </div>
           <div class="slider-control">
-            <label>Ultra → Speed <span class="value-display" id="audio-ultra-time-value">0.15</span></label>
-            <input type="range" id="audio-ultra-time" min="0" max="2" step="0.1" value="0.15">
+            <label>Ultra → Speed <span class="value-display" id="audio-ultra-time-value">0.08</span></label>
+            <input type="range" id="audio-ultra-time" min="0" max="2" step="0.05" value="0.08">
           </div>
         </div>
 
@@ -710,8 +711,8 @@
             </select>
           </div>
           <div class="slider-control">
-            <label>Smoothing <span class="value-display" id="smoothing-value">0.7</span></label>
-            <input type="range" id="smoothing" min="0" max="1" step="0.05" value="0.7">
+            <label>Smoothing <span class="value-display" id="smoothing-value">0.35</span></label>
+            <input type="range" id="smoothing" min="0" max="1" step="0.05" value="0.35">
           </div>
         </div>
 

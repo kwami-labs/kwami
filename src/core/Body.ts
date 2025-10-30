@@ -30,7 +30,26 @@ interface BackgroundState {
   color?: string;
   colors?: string[];
   direction?: BackgroundDirection;
+  angle?: number;
+  stops?: number[];
   opacity: number;
+}
+
+interface BackgroundGradientOptions {
+  direction?: BackgroundDirection;
+  angle?: number;
+  stops?: number[];
+  opacity?: number;
+}
+
+interface BlobImageTransparencyOptions {
+  colors?: string[];
+  type?: 'gradient' | 'solid';
+  direction?: BackgroundDirection;
+  angle?: number;
+  stops?: number[];
+  opacity?: number;
+  mode?: 'overlay' | 'glass';
 }
 
 const DEFAULT_BACKGROUND_STATE: BackgroundState = {
@@ -250,13 +269,50 @@ export class KwamiBody {
    */
   setBackgroundGradient(
     colors: string[],
-    direction: BackgroundDirection = 'vertical',
-    opacity: number = 1,
+    optionsOrDirection?: BackgroundGradientOptions | BackgroundDirection | number,
+    opacityOrOptions?: number | BackgroundGradientOptions,
   ): void {
+    let direction: BackgroundDirection = 'vertical';
+    let angle: number | undefined;
+    let stops: number[] | undefined;
+    let opacity = 1;
+
+    const mergeOptions = (options?: BackgroundGradientOptions | null) => {
+      if (!options) return;
+      if (options.direction) direction = options.direction;
+      if (typeof options.angle === 'number' && Number.isFinite(options.angle)) {
+        angle = options.angle;
+      }
+      if (Array.isArray(options.stops)) {
+        stops = options.stops.slice();
+      }
+      if (typeof options.opacity === 'number' && Number.isFinite(options.opacity)) {
+        opacity = options.opacity;
+      }
+    };
+
+    if (typeof optionsOrDirection === 'string') {
+      direction = optionsOrDirection;
+    } else if (typeof optionsOrDirection === 'number') {
+      opacity = optionsOrDirection;
+    } else if (optionsOrDirection && typeof optionsOrDirection === 'object') {
+      mergeOptions(optionsOrDirection);
+    }
+
+    if (typeof opacityOrOptions === 'number') {
+      opacity = opacityOrOptions;
+    } else if (opacityOrOptions && typeof opacityOrOptions === 'object') {
+      mergeOptions(opacityOrOptions);
+    }
+
+    const sanitizedStops = this.sanitizeStops(colors.length, stops);
+
     this.backgroundState = {
       type: 'gradient',
       colors,
       direction,
+      angle,
+      stops: sanitizedStops,
       opacity,
     };
     this.applyBackgroundState();
@@ -275,7 +331,7 @@ export class KwamiBody {
    */
   setBlobImageTransparencyMode(
     enabled: boolean,
-    colors?: string[],
+    optionsOrColors?: BlobImageTransparencyOptions | string[],
     type: 'gradient' | 'solid' = 'gradient',
     direction: BackgroundDirection = 'vertical',
     opacity: number = 1,
@@ -288,30 +344,64 @@ export class KwamiBody {
       return;
     }
 
-    if (type === 'solid' && colors && colors.length > 0) {
-      this.backgroundState = {
-        type: 'solid',
-        color: colors[0],
-        colors: [colors[0]],
-        direction: 'vertical',
-        opacity,
-      };
-    } else if (type === 'gradient' && colors && colors.length > 0) {
-      this.backgroundState = {
-        type: 'gradient',
-        colors,
+    let options: BlobImageTransparencyOptions = {};
+
+    if (Array.isArray(optionsOrColors)) {
+      options = {
+        colors: optionsOrColors,
+        type,
         direction,
         opacity,
+        mode,
+      };
+    } else if (optionsOrColors && typeof optionsOrColors === 'object') {
+      options = { ...optionsOrColors };
+      options.type = options.type ?? type;
+      options.direction = options.direction ?? direction;
+      if (options.opacity === undefined) options.opacity = opacity;
+      options.mode = options.mode ?? mode;
+    } else {
+      options = { type, direction, opacity, mode };
+    }
+
+    const finalType = options.type ?? 'gradient';
+    const finalColors = options.colors;
+    const finalOpacity = options.opacity ?? opacity;
+    const finalMode = options.mode ?? mode;
+    const finalDirection = options.direction ?? direction;
+    const finalAngle = options.angle;
+    const finalStops = options.stops;
+
+    if (finalType === 'solid' && finalColors && finalColors.length > 0) {
+      this.backgroundState = {
+        type: 'solid',
+        color: finalColors[0],
+        colors: [finalColors[0]],
+        direction: 'vertical',
+        opacity: finalOpacity,
+      };
+    } else if (finalType === 'gradient' && finalColors && finalColors.length > 0) {
+      this.backgroundState = {
+        type: 'gradient',
+        colors: finalColors,
+        direction: finalDirection,
+        angle: finalAngle ?? this.backgroundState.angle,
+        stops: this.sanitizeStops(finalColors.length, finalStops),
+        opacity: finalOpacity,
       };
     } else {
       this.backgroundState = {
         ...this.backgroundState,
-        opacity,
-        direction: this.backgroundState.direction ?? direction,
+        opacity: finalOpacity,
+        direction: finalDirection ?? this.backgroundState.direction,
+        angle: finalAngle ?? this.backgroundState.angle,
+        stops: finalStops
+          ? this.sanitizeStops(this.backgroundState.colors?.length ?? 0, finalStops)
+          : this.backgroundState.stops,
       };
     }
 
-    this.blobImageMode = mode;
+    this.blobImageMode = finalMode;
     this.applyBackgroundState();
     this.updateBlobBackgroundTextureForMode();
   }
@@ -413,6 +503,8 @@ export class KwamiBody {
         state.colors,
         state.direction ?? 'vertical',
         state.opacity,
+        state.angle,
+        state.stops,
       );
     }
   }
@@ -479,6 +571,8 @@ export class KwamiBody {
         state.colors,
         state.direction ?? 'vertical',
         state.opacity,
+        state.angle,
+        state.stops,
       );
     } else {
       material.map = null;
@@ -511,6 +605,8 @@ export class KwamiBody {
         type: 'gradient',
         colors: config.gradient.colors,
         direction: config.gradient.direction ?? 'vertical',
+        angle: config.gradient.angle,
+        stops: this.sanitizeStops(config.gradient.colors.length, config.gradient.stops),
         opacity,
       };
     }
@@ -588,7 +684,9 @@ export class KwamiBody {
   private createGradientTexture(
     colors: string[],
     direction: BackgroundDirection,
-    opacity: number = 1
+    opacity: number = 1,
+    angle?: number,
+    stops?: number[],
   ): CanvasTexture {
     const canvas = document.createElement('canvas');
     canvas.width = 512;

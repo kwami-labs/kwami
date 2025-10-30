@@ -664,8 +664,8 @@ button:disabled {
 .slider-control .slider-checkbox {
   display: flex;
   align-items: center;
-  gap: 8px;
-  margin-top: 6px;
+  gap: 4px;
+  margin-top: 4px;
   font-size: 12px;
   color: #666;
 }

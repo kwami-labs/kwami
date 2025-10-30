@@ -31,6 +31,8 @@ export interface SceneBackgroundConfig {
     colors: string[]; // Array of hex colors
     direction?: 'vertical' | 'horizontal' | 'radial' | 'diagonal';
     opacity?: number;
+    angle?: number; // Angle in degrees for linear gradients
+    stops?: number[]; // Normalized stop positions (0-1) matching colors length
   };
 }
 

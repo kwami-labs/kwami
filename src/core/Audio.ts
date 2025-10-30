@@ -48,7 +48,7 @@ export class KwamiAudio {
       // Higher FFT size = better frequency resolution
       analyser.fftSize = 2048; // 1024 frequency bins
       // Lower smoothing = more responsive to quick changes
-      analyser.smoothingTimeConstant = 0.7; // 0-1 (0 = no smoothing, 1 = max)
+      analyser.smoothingTimeConstant = 0.35; // Faster response for natural dynamics
       // Min/max decibels for dynamic range
       analyser.minDecibels = -90;
       analyser.maxDecibels = -10;
@@ -255,7 +255,7 @@ export class KwamiAudio {
     if (!this.analyser && this.audioContext) {
       this.analyser = this.audioContext.createAnalyser();
       this.analyser.fftSize = 2048;
-      this.analyser.smoothingTimeConstant = 0.7;
+      this.analyser.smoothingTimeConstant = 0.35;
       this.analyser.minDecibels = -90;
       this.analyser.maxDecibels = -10;
       this.analyser.connect(this.audioContext.destination);

@@ -189,8 +189,9 @@ const DEFAULT_VALUES = {
 const DEFAULT_BACKGROUND = {
   type: 'gradient',
   colors: ['#667eea', '#764ba2', '#f093fb'],
-  direction: 'vertical',
-  opacity: 1.0
+  opacity: 1.0,
+  angle: 90,
+  stops: [0, 0.5, 1]
 };
 
 const BACKGROUND_IMAGES = [
@@ -262,9 +263,20 @@ window.randomizeBackground = function() {
   document.getElementById('bg-color-2').value = randomColor();
   document.getElementById('bg-color-3').value = randomColor();
   
-  // Random direction
-  const directions = ['vertical', 'horizontal', 'radial'];
-  document.getElementById('bg-direction').value = directions[Math.floor(Math.random() * directions.length)];
+  // Randomize gradient angle and stops
+  const angle = Math.floor(Math.random() * 361);
+  const stop1 = Math.floor(Math.random() * 81) + 10; // 10-90
+  const stop2 = Math.floor(Math.random() * (101 - stop1)) + stop1; // Ensure stop2 >= stop1
+  
+  const angleSlider = document.getElementById('bg-gradient-angle');
+  const stop1Slider = document.getElementById('bg-gradient-stop1');
+  const stop2Slider = document.getElementById('bg-gradient-stop2');
+  if (angleSlider) angleSlider.value = String(angle);
+  if (stop1Slider) stop1Slider.value = String(stop1);
+  if (stop2Slider) stop2Slider.value = String(Math.min(stop2, 100));
+  updateValueDisplay('bg-gradient-angle-value', angle, 0);
+  updateValueDisplay('bg-gradient-stop1-value', stop1, 0);
+  updateValueDisplay('bg-gradient-stop2-value', Math.min(stop2, 100), 0);
   
   // Opacity pattern: 1, 1, <1, 1, 1, <1, ...
   let opacity;
@@ -289,7 +301,8 @@ function setBackgroundImage(imageName) {
   if (!bgImageElement) return;
   
   if (imageName && imageName !== '') {
-    bgImageElement.style.backgroundImage = `url('assets/${imageName}')`;
+    // Use absolute path from root for proper asset resolution in both dev and production
+    bgImageElement.style.backgroundImage = `url('./${imageName}')`;
     updateStatus(`🖼️ Background image set to ${imageName}`);
   } else {
     bgImageElement.style.backgroundImage = 'none';
@@ -299,7 +312,7 @@ function setBackgroundImage(imageName) {
   currentBackgroundImage = imageName || '';
 
   if (window.kwami && window.kwami.body && typeof window.kwami.body.setBlobBackgroundImage === 'function') {
-    const imagePath = currentBackgroundImage ? `assets/${currentBackgroundImage}` : null;
+    const imagePath = currentBackgroundImage ? `./${currentBackgroundImage}` : null;
     window.kwami.body.setBlobBackgroundImage(imagePath);
   }
 }
@@ -1386,6 +1399,9 @@ function updateAllControlsFromBlob() {
     ultraTime: audioConfig.ultraTime,
     enabled: audioConfig.enabled,
     timeEnabled: audioConfig.timeEnabled,
+    reactivity: audioConfig.reactivity ?? 1.9,
+    sensitivity: audioConfig.sensitivity ?? 0.075,
+    breathing: audioConfig.breathing ?? 0.035,
   };
   const bassSlider = document.getElementById('audio-bass-spike');
   if (bassSlider) {
@@ -1401,6 +1417,24 @@ function updateAllControlsFromBlob() {
   if (highSlider) {
     highSlider.value = audioConfig.highSpike.toString();
     updateValueDisplay('audio-high-spike-value', audioConfig.highSpike, 2);
+  }
+  const reactivitySlider = document.getElementById('audio-reactivity');
+  if (reactivitySlider) {
+    const reactivityValue = audioConfig.reactivity ?? window.audioEffects.reactivity;
+    reactivitySlider.value = reactivityValue.toString();
+    updateValueDisplay('audio-reactivity-value', reactivityValue, 2);
+  }
+  const sensitivitySlider = document.getElementById('audio-sensitivity');
+  if (sensitivitySlider) {
+    const sensitivityValue = audioConfig.sensitivity ?? window.audioEffects.sensitivity;
+    sensitivitySlider.value = sensitivityValue.toString();
+    updateValueDisplay('audio-sensitivity-value', sensitivityValue, 2);
+  }
+  const breathingSlider = document.getElementById('audio-breathing');
+  if (breathingSlider) {
+    const breathingValue = audioConfig.breathing ?? window.audioEffects.breathing;
+    breathingSlider.value = breathingValue.toString();
+    updateValueDisplay('audio-breathing-value', breathingValue, 2);
   }
   const midTimeSlider = document.getElementById('audio-mid-time');
   if (midTimeSlider) {
@@ -1666,46 +1700,78 @@ function applyBackground() {
   const type = document.getElementById('bg-type').value;
   const opacity = parseFloat(document.getElementById('bg-opacity').value);
 
+  const parseSliderValue = (id, fallback) => {
+    const element = document.getElementById(id);
+    if (!element) return fallback;
+    const parsed = parseFloat(element.value);
+    return Number.isFinite(parsed) ? parsed : fallback;
+  };
+
+  const clampPercent = (value) => Math.max(0, Math.min(100, value));
+
+  let gradientSettings = null;
+
   if (type === 'transparent') {
     window.kwami.body.setBackgroundTransparent();
   } else if (type === 'solid') {
     const color = document.getElementById('bg-solid-color').value;
     window.kwami.body.setBackgroundColor(color, opacity);
   } else if (type === 'gradient') {
-    const color1 = document.getElementById('bg-color-1').value;
-    const color2 = document.getElementById('bg-color-2').value;
-    const color3 = document.getElementById('bg-color-3').value;
-    const direction = document.getElementById('bg-direction').value;
-    const angle = parseInt(document.getElementById('bg-gradient-angle')?.value || '90', 10);
-    const stop1 = parseInt(document.getElementById('bg-gradient-stop1')?.value || '0', 10);
-    const stop2 = parseInt(document.getElementById('bg-gradient-stop2')?.value || '100', 10);
-    window.kwami.body.setBackgroundGradient([color1, color2, color3], direction, opacity, { angle, stops: [stop1, stop2] });
+    const colors = [
+      document.getElementById('bg-color-1').value,
+      document.getElementById('bg-color-2').value,
+      document.getElementById('bg-color-3').value,
+    ];
+
+    const defaultStops = DEFAULT_BACKGROUND.stops || [0, 0.5, 1];
+    const angle = parseSliderValue('bg-gradient-angle', DEFAULT_BACKGROUND.angle ?? 90);
+    const stop1Percent = clampPercent(parseSliderValue(
+      'bg-gradient-stop1',
+      (defaultStops[1] ?? 0.5) * 100
+    ));
+    const stop2Percent = clampPercent(parseSliderValue(
+      'bg-gradient-stop2',
+      (defaultStops[2] ?? 1) * 100
+    ));
+
+    const gradientStops = [0, stop1Percent / 100, stop2Percent / 100];
+    for (let i = 1; i < gradientStops.length; i++) {
+      if (gradientStops[i] < gradientStops[i - 1]) {
+        gradientStops[i] = gradientStops[i - 1];
+      }
+    }
+
+    gradientSettings = {
+      colors,
+      angle,
+      stops: gradientStops,
+    };
+
+    window.kwami.body.setBackgroundGradient(colors, {
+      angle,
+      stops: gradientStops,
+      opacity,
+    });
   }
 
   if (blobImageTransparencyEnabled && type !== 'transparent') {
     if (type === 'solid') {
       const color = document.getElementById('bg-solid-color').value;
-      window.kwami.body.setBlobImageTransparencyMode(
-        true,
-        [color],
-        'solid',
-        'vertical',
+      window.kwami.body.setBlobImageTransparencyMode(true, {
+        type: 'solid',
+        colors: [color],
         opacity,
-        blobImageTransparencyMode,
-      );
-    } else if (type === 'gradient') {
-      const color1 = document.getElementById('bg-color-1').value;
-      const color2 = document.getElementById('bg-color-2').value;
-      const color3 = document.getElementById('bg-color-3').value;
-      const direction = document.getElementById('bg-direction').value;
-      window.kwami.body.setBlobImageTransparencyMode(
-        true,
-        [color1, color2, color3],
-        'gradient',
-        direction,
+        mode: blobImageTransparencyMode,
+      });
+    } else if (type === 'gradient' && gradientSettings) {
+      window.kwami.body.setBlobImageTransparencyMode(true, {
+        type: 'gradient',
+        colors: gradientSettings.colors,
+        angle: gradientSettings.angle,
+        stops: gradientSettings.stops,
         opacity,
-        blobImageTransparencyMode,
-      );
+        mode: blobImageTransparencyMode,
+      });
     }
   } else {
     window.kwami.body.setBlobImageTransparencyMode(false);
@@ -1734,8 +1800,20 @@ window.resetBackground = function() {
   document.getElementById('bg-color-1').value = DEFAULT_BACKGROUND.colors[0];
   document.getElementById('bg-color-2').value = DEFAULT_BACKGROUND.colors[1];
   document.getElementById('bg-color-3').value = DEFAULT_BACKGROUND.colors[2];
-  document.getElementById('bg-direction').value = DEFAULT_BACKGROUND.direction;
   document.getElementById('bg-opacity').value = DEFAULT_BACKGROUND.opacity;
+  const defaultStops = DEFAULT_BACKGROUND.stops || [0, 0.5, 1];
+  const defaultAngle = DEFAULT_BACKGROUND.angle ?? 90;
+  const defaultStop1Percent = Math.round((defaultStops[1] ?? 0.5) * 100);
+  const defaultStop2Percent = Math.round((defaultStops[2] ?? 1) * 100);
+  const angleSlider = document.getElementById('bg-gradient-angle');
+  const stop1Slider = document.getElementById('bg-gradient-stop1');
+  const stop2Slider = document.getElementById('bg-gradient-stop2');
+  if (angleSlider) angleSlider.value = String(defaultAngle);
+  if (stop1Slider) stop1Slider.value = String(defaultStop1Percent);
+  if (stop2Slider) stop2Slider.value = String(defaultStop2Percent);
+  updateValueDisplay('bg-gradient-angle-value', defaultAngle, 0);
+  updateValueDisplay('bg-gradient-stop1-value', defaultStop1Percent, 0);
+  updateValueDisplay('bg-gradient-stop2-value', defaultStop2Percent, 0);
   document.getElementById('bg-solid-color').value = DEFAULT_BACKGROUND.colors[0];
   updateValueDisplay('bg-opacity-value', DEFAULT_BACKGROUND.opacity, 2);
   
@@ -1782,9 +1860,22 @@ function initializeBackgroundControls() {
         blobTransparencyModeWrapper.style.display = blobImageTransparencyEnabled ? 'flex' : 'none';
       }
 
+      if (blobImageTransparencyEnabled) {
+        const opacitySlider = document.getElementById('blob-opacity');
+        if (opacitySlider) {
+          opacitySlider.value = '0.8';
+          updateValueDisplay('blob-opacity-value', 0.8, 2);
+        }
+
+        const kwamiBlob = window.kwami?.body?.blob;
+        if (kwamiBlob && typeof kwamiBlob.setOpacity === 'function') {
+          kwamiBlob.setOpacity(0.8);
+        }
+      }
+
       // Re-apply background with new mode
       applyBackground();
-      
+
       // Update status
       if (blobImageTransparencyEnabled) {
         const message = blobImageTransparencyMode === 'glass'
@@ -1807,25 +1898,20 @@ function initializeBackgroundControls() {
           ? '🪟 Glass window mode enabled - blob reveals the background image'
           : '🖼️ Overlay mode enabled - image fills the blob interior';
         updateStatus(message);
-
-        if (blobImageTransparencyMode === 'overlay' && currentBackgroundImage) {
-          window.kwami.body.setBlobBackgroundImage(`assets/${currentBackgroundImage}`);
-        }
       }
     });
   }
-  
+
   // Background type selector
   const bgTypeSelect = document.getElementById('bg-type');
   if (bgTypeSelect) {
     bgTypeSelect.addEventListener('change', (e) => {
       const type = e.target.value;
-      
-      // Show/hide controls based on type
+
       const gradientControls = document.getElementById('gradient-controls');
       const solidControls = document.getElementById('solid-controls');
       const opacityControl = document.getElementById('opacity-control');
-      
+
       if (type === 'gradient') {
         gradientControls.style.display = 'block';
         solidControls.style.display = 'none';
@@ -1838,18 +1924,18 @@ function initializeBackgroundControls() {
         gradientControls.style.display = 'none';
         solidControls.style.display = 'none';
         opacityControl.style.display = 'none';
-        
+
         // Auto-select a random background image if none is selected
         const bgImageSelect = document.getElementById('bg-image');
         if (bgImageSelect && (!bgImageSelect.value || bgImageSelect.value === '')) {
           window.randomizeBackgroundImage();
         }
       }
-      
+
       applyBackground();
     });
   }
-  
+
   // Opacity slider - apply in real-time
   const opacitySlider = document.getElementById('bg-opacity');
   if (opacitySlider) {
@@ -1858,27 +1944,48 @@ function initializeBackgroundControls() {
       applyBackground();
     });
   }
-  
+
   // Gradient color pickers - apply in real-time
-  ['1', '2', '3'].forEach(num => {
+  ['1', '2', '3'].forEach((num) => {
     const colorPicker = document.getElementById(`bg-color-${num}`);
     if (colorPicker) {
       colorPicker.addEventListener('input', applyBackground);
     }
   });
-  
-  // Gradient direction selector
-  const directionSelect = document.getElementById('bg-direction');
-  if (directionSelect) {
-    directionSelect.addEventListener('change', applyBackground);
+
+  // Angle slider event
+  const angleSlider = document.getElementById('bg-gradient-angle');
+  if (angleSlider) {
+    angleSlider.addEventListener('input', (e) => {
+      updateValueDisplay('bg-gradient-angle-value', e.target.value, 0);
+      applyBackground();
+    });
   }
-  
+
+  // Stop1 slider event
+  const stop1Slider = document.getElementById('bg-gradient-stop1');
+  if (stop1Slider) {
+    stop1Slider.addEventListener('input', (e) => {
+      updateValueDisplay('bg-gradient-stop1-value', e.target.value, 0);
+      applyBackground();
+    });
+  }
+
+  // Stop2 slider event
+  const stop2Slider = document.getElementById('bg-gradient-stop2');
+  if (stop2Slider) {
+    stop2Slider.addEventListener('input', (e) => {
+      updateValueDisplay('bg-gradient-stop2-value', e.target.value, 0);
+      applyBackground();
+    });
+  }
+
   // Solid color picker - apply in real-time
   const solidColorPicker = document.getElementById('bg-solid-color');
   if (solidColorPicker) {
     solidColorPicker.addEventListener('input', applyBackground);
   }
-  
+
   // Background image selector
   const bgImageSelect = document.getElementById('bg-image');
   if (bgImageSelect) {
@@ -1886,41 +1993,47 @@ function initializeBackgroundControls() {
       setBackgroundImage(e.target.value);
     });
   }
-  
+
   // Set initial values
-  document.getElementById('bg-color-1').value = DEFAULT_BACKGROUND.colors[0];
-  document.getElementById('bg-color-2').value = DEFAULT_BACKGROUND.colors[1];
-  document.getElementById('bg-color-3').value = DEFAULT_BACKGROUND.colors[2];
-  document.getElementById('bg-direction').value = DEFAULT_BACKGROUND.direction;
-  document.getElementById('bg-type').value = DEFAULT_BACKGROUND.type;
-  document.getElementById('bg-opacity').value = DEFAULT_BACKGROUND.opacity;
-  // Angle slider event
-  const angleSlider = document.getElementById('bg-gradient-angle');
-  const angleValue = document.getElementById('bg-gradient-angle-value');
-  if (angleSlider && angleValue) {
-    angleSlider.addEventListener('input', (e) => {
-      angleValue.textContent = e.target.value;
-      applyBackground();
-    });
+  const defaultStops = DEFAULT_BACKGROUND.stops || [0, 0.5, 1];
+  const defaultAngle = DEFAULT_BACKGROUND.angle ?? 90;
+  const defaultStop1Percent = Math.round((defaultStops[1] ?? 0.5) * 100);
+  const defaultStop2Percent = Math.round((defaultStops[2] ?? 1) * 100);
+
+  const color1Input = document.getElementById('bg-color-1');
+  const color2Input = document.getElementById('bg-color-2');
+  const color3Input = document.getElementById('bg-color-3');
+  if (color1Input) color1Input.value = DEFAULT_BACKGROUND.colors[0];
+  if (color2Input) color2Input.value = DEFAULT_BACKGROUND.colors[1];
+  if (color3Input) color3Input.value = DEFAULT_BACKGROUND.colors[2];
+
+  if (angleSlider) {
+    angleSlider.value = String(defaultAngle);
+    updateValueDisplay('bg-gradient-angle-value', defaultAngle, 0);
   }
-  // Stop1 slider event
-  const stop1Slider = document.getElementById('bg-gradient-stop1');
-  const stop1Value = document.getElementById('bg-gradient-stop1-value');
-  if (stop1Slider && stop1Value) {
-    stop1Slider.addEventListener('input', (e) => {
-      stop1Value.textContent = e.target.value;
-      applyBackground();
-    });
+  if (stop1Slider) {
+    stop1Slider.value = String(defaultStop1Percent);
+    updateValueDisplay('bg-gradient-stop1-value', defaultStop1Percent, 0);
   }
-  // Stop2 slider event
-  const stop2Slider = document.getElementById('bg-gradient-stop2');
-  const stop2Value = document.getElementById('bg-gradient-stop2-value');
-  if (stop2Slider && stop2Value) {
-    stop2Slider.addEventListener('input', (e) => {
-      stop2Value.textContent = e.target.value;
-      applyBackground();
-    });
+  if (stop2Slider) {
+    stop2Slider.value = String(defaultStop2Percent);
+    updateValueDisplay('bg-gradient-stop2-value', defaultStop2Percent, 0);
   }
+
+  if (bgTypeSelect) {
+    bgTypeSelect.value = DEFAULT_BACKGROUND.type;
+  }
+  if (opacitySlider) {
+    opacitySlider.value = DEFAULT_BACKGROUND.opacity.toString();
+    updateValueDisplay('bg-opacity-value', DEFAULT_BACKGROUND.opacity, 2);
+  }
+
+  const solidColorInput = document.getElementById('bg-solid-color');
+  if (solidColorInput) {
+    solidColorInput.value = DEFAULT_BACKGROUND.colors[0];
+  }
+
+  applyBackground();
 }
 
 // Camera position control functions
@@ -2005,14 +2118,17 @@ window.testListening = function() {
 
 // Store audio effect parameters globally
 window.audioEffects = {
-  bassSpike: 0.45,
-  midSpike: 0.35,
-  highSpike: 0.30,
-  midTime: 0.2,
-  highTime: 0.3,
-  ultraTime: 0.15,
+  bassSpike: 0.65,
+  midSpike: 0.5,
+  highSpike: 0.38,
+  midTime: 0.1,
+  highTime: 0.18,
+  ultraTime: 0.08,
   enabled: true,
-  timeEnabled: false  // Disabled by default to prevent chaotic movement
+  timeEnabled: false,  // Disabled by default to prevent chaotic movement
+  reactivity: 1.9,
+  sensitivity: 0.075,
+  breathing: 0.035,
 };
 
 // Initialize audio effect controls
@@ -2058,15 +2174,54 @@ function initializeAudioEffects() {
       }
     });
   }
+
+  const audioReactivity = document.getElementById('audio-reactivity');
+  if (audioReactivity) {
+    audioReactivity.value = window.audioEffects.reactivity.toString();
+    updateValueDisplay('audio-reactivity-value', audioReactivity.value, 2);
+    audioReactivity.addEventListener('input', (e) => {
+      window.audioEffects.reactivity = parseFloat(e.target.value);
+      updateValueDisplay('audio-reactivity-value', e.target.value, 2);
+      if (window.kwami && window.kwami.body.blob) {
+        window.kwami.body.blob.audioEffects.reactivity = window.audioEffects.reactivity;
+      }
+    });
+  }
+
+  const audioSensitivity = document.getElementById('audio-sensitivity');
+  if (audioSensitivity) {
+    audioSensitivity.value = window.audioEffects.sensitivity.toString();
+    updateValueDisplay('audio-sensitivity-value', audioSensitivity.value, 2);
+    audioSensitivity.addEventListener('input', (e) => {
+      window.audioEffects.sensitivity = parseFloat(e.target.value);
+      updateValueDisplay('audio-sensitivity-value', e.target.value, 2);
+      if (window.kwami && window.kwami.body.blob) {
+        window.kwami.body.blob.audioEffects.sensitivity = window.audioEffects.sensitivity;
+      }
+    });
+  }
+
+  const audioBreathing = document.getElementById('audio-breathing');
+  if (audioBreathing) {
+    audioBreathing.value = window.audioEffects.breathing.toString();
+    updateValueDisplay('audio-breathing-value', audioBreathing.value, 2);
+    audioBreathing.addEventListener('input', (e) => {
+      window.audioEffects.breathing = parseFloat(e.target.value);
+      updateValueDisplay('audio-breathing-value', e.target.value, 2);
+      if (window.kwami && window.kwami.body.blob) {
+        window.kwami.body.blob.audioEffects.breathing = window.audioEffects.breathing;
+      }
+    });
+  }
   
   // Mid → Time
   const audioMidTime = document.getElementById('audio-mid-time');
   if (audioMidTime) {
     audioMidTime.value = window.audioEffects.midTime.toString();
-    updateValueDisplay('audio-mid-time-value', audioMidTime.value, 1);
+    updateValueDisplay('audio-mid-time-value', audioMidTime.value, 2);
     audioMidTime.addEventListener('input', (e) => {
       window.audioEffects.midTime = parseFloat(e.target.value);
-      updateValueDisplay('audio-mid-time-value', e.target.value, 1);
+      updateValueDisplay('audio-mid-time-value', e.target.value, 2);
       if (window.kwami && window.kwami.body.blob) {
         window.kwami.body.blob.audioEffects.midTime = window.audioEffects.midTime;
       }
@@ -2077,10 +2232,10 @@ function initializeAudioEffects() {
   const audioHighTime = document.getElementById('audio-high-time');
   if (audioHighTime) {
     audioHighTime.value = window.audioEffects.highTime.toString();
-    updateValueDisplay('audio-high-time-value', audioHighTime.value, 1);
+    updateValueDisplay('audio-high-time-value', audioHighTime.value, 2);
     audioHighTime.addEventListener('input', (e) => {
       window.audioEffects.highTime = parseFloat(e.target.value);
-      updateValueDisplay('audio-high-time-value', e.target.value, 1);
+      updateValueDisplay('audio-high-time-value', e.target.value, 2);
       if (window.kwami && window.kwami.body.blob) {
         window.kwami.body.blob.audioEffects.highTime = window.audioEffects.highTime;
       }
@@ -2091,10 +2246,10 @@ function initializeAudioEffects() {
   const audioUltraTime = document.getElementById('audio-ultra-time');
   if (audioUltraTime) {
     audioUltraTime.value = window.audioEffects.ultraTime.toString();
-    updateValueDisplay('audio-ultra-time-value', audioUltraTime.value, 1);
+    updateValueDisplay('audio-ultra-time-value', audioUltraTime.value, 2);
     audioUltraTime.addEventListener('input', (e) => {
       window.audioEffects.ultraTime = parseFloat(e.target.value);
-      updateValueDisplay('audio-ultra-time-value', e.target.value, 1);
+      updateValueDisplay('audio-ultra-time-value', e.target.value, 2);
       if (window.kwami && window.kwami.body.blob) {
         window.kwami.body.blob.audioEffects.ultraTime = window.audioEffects.ultraTime;
       }
@@ -2118,6 +2273,14 @@ function initializeAudioEffects() {
   // Smoothing slider
   const smoothingSlider = document.getElementById('smoothing');
   if (smoothingSlider) {
+    smoothingSlider.value = '0.35';
+    updateValueDisplay('smoothing-value', smoothingSlider.value, 2);
+    if (window.kwami && window.kwami.body.audio) {
+      const analyser = window.kwami.body.audio.getAnalyser();
+      if (analyser) {
+        analyser.smoothingTimeConstant = parseFloat(smoothingSlider.value);
+      }
+    }
     smoothingSlider.addEventListener('input', (e) => {
       const smoothing = parseFloat(e.target.value);
       updateValueDisplay('smoothing-value', smoothing, 2);
