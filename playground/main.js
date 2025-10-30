@@ -861,8 +861,15 @@ try {
   updateAllControlsFromBlob();
 
   updateStatus('✅ Kwami initialized with random appearance!');
-  updateStateIndicator(window.kwami.getState());
+  
+  // Update state indicator if method exists
+  if (window.kwami && typeof window.kwami.getState === 'function') {
+    updateStateIndicator(window.kwami.getState());
+  } else {
+    updateStateIndicator('idle');
+  }
 } catch (error) {
+  console.error('Kwami initialization error:', error);
   showError('Failed to initialize Kwami: ' + error.message);
 }
 
@@ -2102,8 +2109,69 @@ function updateStateIndicator(state) {
   const indicator = document.getElementById('state-indicator');
   const stateText = document.getElementById('state-text');
   
-  indicator.className = 'state-indicator state-' + state;
-  stateText.textContent = state.toUpperCase();
+  // Add null checks to prevent errors if elements don't exist
+  if (indicator) {
+    indicator.className = 'state-indicator state-' + state;
+  }
+  if (stateText) {
+    stateText.textContent = state.toUpperCase();
+  }
 }
 
 // Legacy background block removed
+
+function initializeCameraControls() {
+  const camera = window.kwami.body.getCamera();
+
+  const cameraXSlider = document.getElementById('camera-x');
+  if (cameraXSlider) {
+    cameraXSlider.addEventListener('input', (e) => {
+      const value = parseFloat(e.target.value);
+      camera.position.x = value;
+      camera.lookAt(0, 0, 0);
+      updateValueDisplay('camera-x-value', value, 1);
+      if (window.kwami?.body?.isBlobImageTransparencyMode?.()) {
+        window.kwami.body.refreshBlobImageTransparencyMode();
+      }
+    });
+  }
+
+  const cameraYSlider = document.getElementById('camera-y');
+  if (cameraYSlider) {
+    cameraYSlider.addEventListener('input', (e) => {
+      const value = parseFloat(e.target.value);
+      camera.position.y = value;
+      camera.lookAt(0, 0, 0);
+      updateValueDisplay('camera-y-value', value, 1);
+      if (window.kwami?.body?.isBlobImageTransparencyMode?.()) {
+        window.kwami.body.refreshBlobImageTransparencyMode();
+      }
+    });
+  }
+
+  const cameraZSlider = document.getElementById('camera-z');
+  if (cameraZSlider) {
+    cameraZSlider.addEventListener('input', (e) => {
+      const value = parseFloat(e.target.value);
+      camera.position.z = value;
+      camera.lookAt(0, 0, 0);
+      updateValueDisplay('camera-z-value', value, 1);
+      if (window.kwami?.body?.isBlobImageTransparencyMode?.()) {
+        window.kwami.body.refreshBlobImageTransparencyMode();
+      }
+    });
+  }
+
+  if (cameraXSlider) {
+    cameraXSlider.value = camera.position.x.toString();
+    updateValueDisplay('camera-x-value', camera.position.x, 1);
+  }
+  if (cameraYSlider) {
+    cameraYSlider.value = camera.position.y.toString();
+    updateValueDisplay('camera-y-value', camera.position.y, 1);
+  }
+  if (cameraZSlider) {
+    cameraZSlider.value = camera.position.z.toString();
+    updateValueDisplay('camera-z-value', camera.position.z, 1);
+  }
+}
