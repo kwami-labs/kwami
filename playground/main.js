@@ -280,9 +280,9 @@ function resolveMediaPath(value) {
   }
   const sanitized = value.replace(/^\/+/, '');
   if (sanitized.startsWith('assets/')) {
-    return sanitized;
+    return `/${sanitized}`;
   }
-  return `assets/${sanitized}`;
+  return `/assets/${sanitized}`;
 }
 
 function getMediaOptions(type) {
