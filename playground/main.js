@@ -302,7 +302,7 @@ function setBackgroundImage(imageName) {
   
   if (imageName && imageName !== '') {
     // Use absolute path from root for proper asset resolution in both dev and production
-    bgImageElement.style.backgroundImage = `url('./${imageName}')`;
+    bgImageElement.style.backgroundImage = `url('/${imageName}')`;
     updateStatus(`🖼️ Background image set to ${imageName}`);
   } else {
     bgImageElement.style.backgroundImage = 'none';
@@ -312,7 +312,7 @@ function setBackgroundImage(imageName) {
   currentBackgroundImage = imageName || '';
 
   if (window.kwami && window.kwami.body && typeof window.kwami.body.setBlobBackgroundImage === 'function') {
-    const imagePath = currentBackgroundImage ? `./${currentBackgroundImage}` : null;
+    const imagePath = currentBackgroundImage ? `/${currentBackgroundImage}` : null;
     window.kwami.body.setBlobBackgroundImage(imagePath);
   }
 }
