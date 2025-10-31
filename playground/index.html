@@ -60,6 +60,9 @@
         <div id="status" class="message"></div>
         <div id="error" class="message error-message"></div>
       </div>
+
+      <!-- Version Display -->
+      <div id="version-display">v2.1.0</div>
       </div>
 
     <!-- Right Sidebar -->
@@ -79,11 +82,18 @@
 
       <!-- Authentication -->
       <div class="section">
-        <div class="section-title">🔑 Authentication</div>
+        <div class="section-title">🧠 Mind (AI Configuration)</div>
         
         <div class="input-group">
-          <label>API Key</label>
-          <input type="password" id="api-key" placeholder="Enter ElevenLabs API Key">
+          <label>ElevenLabs API Key (Required)</label>
+          <input type="password" id="api-key" placeholder="Enter your ElevenLabs API Key">
+          <small style="display: block; color: #888; margin-top: 2px;">Get from elevenlabs.io/settings/api-keys</small>
+        </div>
+        
+        <div class="input-group">
+          <label>Agent ID (Required for Conversations)</label>
+          <input type="text" id="agent-id" placeholder="Enter your ElevenLabs Agent ID">
+          <small style="display: block; color: #888; margin-top: 2px;">Create at elevenlabs.io/app/conversational-ai</small>
         </div>
 
         <button onclick="initializeMind()" id="init-btn">Initialize AI Agent</button>
@@ -238,15 +248,11 @@
       <div class="section">
         <div class="section-title">💬 Conversational AI</div>
         
-        <div class="input-group">
-          <label>Agent ID (Required for Conversations)</label>
-          <input type="text" id="agent-id" placeholder="Enter your ElevenLabs Agent ID">
-          <small style="display: block; color: #888; margin-top: 2px;">Get your agent ID from elevenlabs.io dashboard</small>
-        </div>
-        
-        <!-- Container for embedded conversation iframe -->
-        <div id="elevenlabs-embed-container" style="display: none; margin-top: 15px; border-radius: 12px; overflow: hidden; background: #1a1a1a;">
-          <!-- Iframe will be inserted here dynamically -->
+        <!-- Conversation status container -->
+        <div id="conversation-status-container" style="display: none; margin-top: 15px; padding: 15px; border-radius: 12px; background: #1a1a1a; border: 1px solid #333;">
+          <div id="conversation-status-message" style="color: #888; font-size: 14px;">
+            <!-- Status messages will appear here -->
+          </div>
         </div>
 
         <div class="input-group">
@@ -455,33 +461,33 @@
               <label>Image Presets</label>
               <select id="bg-media-image">
                 <option value="">None</option>
-                <option value="assets/alaska.jpeg">Alaska</option>
-                <option value="assets/binary-reality.jpg">Binary Reality</option>
-                <option value="assets/black-candle.jpg">Black Candle</option>
-                <option value="assets/black-hole.jpg">Black Hole</option>
-                <option value="assets/black-sea.jpg">Black Sea</option>
-                <option value="assets/black-windows.jpg">Black Windows</option>
-                <option value="assets/black.jpg">Black</option>
-                <option value="assets/colors.jpeg">Colors</option>
-                <option value="assets/galaxy.jpg">Galaxy</option>
-                <option value="assets/galaxy2.jpg">Galaxy 2</option>
-                <option value="assets/galaxy3.jpg">Galaxy 3</option>
-                <option value="assets/galaxy4.jpg">Galaxy 4</option>
-                <option value="assets/gargantua.jpg">Gargantua</option>
-                <option value="assets/interstellar.png">Interstellar</option>
-                <option value="assets/islan.jpg">Island</option>
-                <option value="assets/lake.jpg">Lake</option>
-                <option value="assets/mountain.jpeg">Mountain</option>
-                <option value="assets/paisaje.jpg">Paisaje</option>
-                <option value="assets/pik.jpg">Pik</option>
-                <option value="assets/planet.jpg">Planet</option>
-                <option value="assets/planet2.jpg">Planet 2</option>
-                <option value="assets/planet3.jpg">Planet 3</option>
-                <option value="assets/sahara.jpeg">Sahara</option>
-                <option value="assets/skinet.png">Skinet</option>
-                <option value="assets/skynet.png">Skynet</option>
-                <option value="assets/universe.jpg">Universe</option>
-                <option value="assets/white-tree.jpg">White Tree</option>
+                <option value="src/assets/img/alaska.jpeg">Alaska</option>
+                <option value="src/assets/img/binary-reality.jpg">Binary Reality</option>
+                <option value="src/assets/img/black-candle.jpg">Black Candle</option>
+                <option value="src/assets/img/black-hole.jpg">Black Hole</option>
+                <option value="src/assets/img/black-sea.jpg">Black Sea</option>
+                <option value="src/assets/img/black-windows.jpg">Black Windows</option>
+                <option value="src/assets/img/black.jpg">Black</option>
+                <option value="src/assets/img/colors.jpeg">Colors</option>
+                <option value="src/assets/img/galaxy.jpg">Galaxy</option>
+                <option value="src/assets/img/galaxy2.jpg">Galaxy 2</option>
+                <option value="src/assets/img/galaxy3.jpg">Galaxy 3</option>
+                <option value="src/assets/img/galaxy4.jpg">Galaxy 4</option>
+                <option value="src/assets/img/gargantua.jpg">Gargantua</option>
+                <option value="src/assets/img/interstellar.png">Interstellar</option>
+                <option value="src/assets/img/islan.jpg">Island</option>
+                <option value="src/assets/img/lake.jpg">Lake</option>
+                <option value="src/assets/img/mountain.jpeg">Mountain</option>
+                <option value="src/assets/img/paisaje.jpg">Paisaje</option>
+                <option value="src/assets/img/pik.jpg">Pik</option>
+                <option value="src/assets/img/planet.jpg">Planet</option>
+                <option value="src/assets/img/planet2.jpg">Planet 2</option>
+                <option value="src/assets/img/planet3.jpg">Planet 3</option>
+                <option value="src/assets/img/sahara.jpeg">Sahara</option>
+                <option value="src/assets/img/skinet.png">Skinet</option>
+                <option value="src/assets/img/skynet.png">Skynet</option>
+                <option value="src/assets/img/universe.jpg">Universe</option>
+                <option value="src/assets/img/white-tree.jpg">White Tree</option>
               </select>
             </div>
             <div class="button-row">
@@ -495,6 +501,7 @@
               <label>Video Presets</label>
               <select id="bg-media-video">
                 <option value="">Select a video...</option>
+                <option value="src/assets/vid/stars.mp4">Stars (Local)</option>
                 <option value="https://storage.coverr.co/videos/coverr-blue-particles-background-1581083411/1080p.mp4">Blue Particles</option>
                 <option value="https://storage.coverr.co/videos/coverr-purple-nebula-1584717401/1080p.mp4">Purple Nebula</option>
                 <option value="https://storage.coverr.co/videos/coverr-journey-through-space-1570107498/1080p.mp4">Space Journey</option>

@@ -119,6 +119,7 @@ export interface AdvancedTTSOptions {
  */
 export interface ConversationalAISettings {
   agentId?: string; // ElevenLabs agent ID
+  customUrl?: string; // Custom URL for the agent (overrides automatic URL generation)
   firstMessage?: string; // Agent's opening greeting
   maxDuration?: number; // Maximum conversation length (seconds)
   allowInterruption?: boolean; // Let users interrupt the agent mid-speech

@@ -55,8 +55,6 @@ export class KwamiMind {
   private currentAudioStream: MediaStream | null = null;
   private mediaRecorder: MediaRecorder | null = null;
   private pronunciationDictionary: Map<string, string> = new Map();
-  private conversationWindow: Window | null = null;
-  private windowCheckInterval: any = null;
   
   // Conversational AI WebSocket properties
   private conversationWebSocket: WebSocket | null = null;
@@ -76,8 +74,10 @@ export class KwamiMind {
     this.audio = audio;
     this.config = config || {};
     
-    // Get API key from config or environment
-    const apiKey = this.config.apiKey || (typeof process !== 'undefined' && process.env?.ELEVEN_LABS_KEY);
+    // Get API key from config
+    // Note: For browser environments, the API key must be provided via config
+    // Environment variables are only available in Node.js environments
+    const apiKey = this.config.apiKey;
     
     if (apiKey) {
       this.client = new ElevenLabsClient({ apiKey });
@@ -215,14 +215,68 @@ export class KwamiMind {
       throw new Error('Agent ID is required. Please enter your ElevenLabs agent ID in the Mind menu.');
     }
 
-    console.log(`🤖 Starting real conversation with Agent ID: ${agentId}`);
-    
-    // ElevenLabs provides a share URL for each agent
-    const shareUrl = `https://elevenlabs.io/app/conversational-ai/share/${agentId}`;
+    console.log(`🤖 Starting conversation with Agent ID: ${agentId}`);
     
     try {
       // Store callbacks
       this.conversationCallbacks = callbacks || {};
+      
+      // First, get a signed URL for the WebSocket connection
+      console.log('🔑 Getting signed URL from ElevenLabs...');
+      console.log('Agent ID:', agentId);
+      console.log('API Key:', this.config.apiKey ? '✓ Present' : '✗ Missing');
+      
+      const signedUrlEndpoint = `https://api.elevenlabs.io/v1/convai/conversation/get_signed_url?agent_id=${agentId}`;
+      console.log('Requesting:', signedUrlEndpoint);
+      
+      const signedUrlResponse = await fetch(signedUrlEndpoint, {
+        method: 'GET',
+        headers: {
+          'xi-api-key': this.config.apiKey!,
+          'Content-Type': 'application/json'
+        }
+      });
+      
+      console.log('Response status:', signedUrlResponse.status);
+      console.log('Response headers:', Object.fromEntries(signedUrlResponse.headers.entries()));
+      
+      if (!signedUrlResponse.ok) {
+        let errorDetails = '';
+        try {
+          const errorJson = await signedUrlResponse.json();
+          errorDetails = JSON.stringify(errorJson, null, 2);
+        } catch {
+          errorDetails = await signedUrlResponse.text();
+        }
+        
+        console.error('Failed to get signed URL:', {
+          status: signedUrlResponse.status,
+          statusText: signedUrlResponse.statusText,
+          error: errorDetails
+        });
+        
+        if (signedUrlResponse.status === 404) {
+          throw new Error(`Agent not found: ${agentId}. Please check your agent ID is correct.`);
+        } else if (signedUrlResponse.status === 401) {
+          throw new Error('Invalid API key. Please check your ElevenLabs API key.');
+        } else if (signedUrlResponse.status === 403) {
+          throw new Error('Access forbidden. Check your agent permissions and API key.');
+        }
+        
+        throw new Error(`Failed to get signed URL: ${signedUrlResponse.status} - ${errorDetails}`);
+      }
+      
+      const signedUrlData = await signedUrlResponse.json();
+      console.log('Signed URL response:', JSON.stringify(signedUrlData, null, 2));
+      
+      const signedUrl = signedUrlData.signed_url || signedUrlData.url;
+      
+      if (!signedUrl) {
+        console.error('No signed URL in response:', signedUrlData);
+        throw new Error('No signed URL received from ElevenLabs. Response: ' + JSON.stringify(signedUrlData));
+      }
+      
+      console.log('✅ Got signed URL, requesting microphone access...');
       
       // Request microphone access
       const stream = await navigator.mediaDevices.getUserMedia({ 
@@ -234,104 +288,97 @@ export class KwamiMind {
         } 
       });
       this.currentAudioStream = stream;
-
+      
+      // Set up audio context for processing
+      this.audioContext = new AudioContext({ sampleRate: 16000 });
+      this.mediaStreamSource = this.audioContext.createMediaStreamSource(stream);
+      
+      // Create script processor for audio chunks
+      const scriptProcessor = this.audioContext.createScriptProcessor(4096, 1, 1);
+      this.mediaStreamSource.connect(scriptProcessor);
+      scriptProcessor.connect(this.audioContext.destination);
+      
+      // Connect to the signed WebSocket URL
+      console.log('🔌 Connecting to ElevenLabs conversation WebSocket...');
+      this.conversationWebSocket = new WebSocket(signedUrl);
+      
+      // Set up WebSocket event handlers
+      this.setupWebSocketHandlers();
+      
+      // Wait for WebSocket to open
+      await new Promise<void>((resolve, reject) => {
+        const timeout = setTimeout(() => {
+          reject(new Error('WebSocket connection timeout'));
+        }, 10000);
+        
+        this.conversationWebSocket!.onopen = () => {
+          clearTimeout(timeout);
+          console.log('✅ WebSocket connected successfully!');
+          
+          // The conversation should start automatically once connected
+          // No need to send initialization - the signed URL handles auth
+          
+          resolve();
+        };
+        
+        this.conversationWebSocket!.onerror = (error) => {
+          clearTimeout(timeout);
+          console.error('WebSocket error:', error);
+          reject(new Error('Failed to connect to ElevenLabs conversation. Please check your agent is active.'));
+        };
+      });
+      
+      // Don't start streaming immediately - wait for initialization
+      let audioPacketCount = 0;
+      let isConversationReady = false;
+      
+      // Store the script processor for later
+      (this as any).audioProcessor = scriptProcessor;
+      
+      scriptProcessor.onaudioprocess = (event) => {
+        // Only send audio after conversation is initialized
+        if (!isConversationReady || !this.conversationActive || !this.conversationWebSocket || 
+            this.conversationWebSocket.readyState !== WebSocket.OPEN) {
+          return;
+        }
+        
+        // Convert Float32Array to PCM16
+        const float32 = event.inputBuffer.getChannelData(0);
+        const pcm16 = this.float32ToPCM16(float32);
+        
+        // Send audio data as binary
+        try {
+          this.conversationWebSocket.send(pcm16.buffer);
+          audioPacketCount++;
+          
+          // Log every 100th packet to avoid spam
+          if (audioPacketCount % 100 === 0) {
+            console.log(`Sent ${audioPacketCount} audio packets (${pcm16.byteLength} bytes each)`);
+          }
+        } catch (error) {
+          console.error('Error sending audio data:', error);
+        }
+      };
+      
+      // Mark conversation as ready after WebSocket connects and initialization
+      // This will be set to true when we receive the conversation_initiation_metadata message
+      (this as any).setConversationReady = () => {
+        isConversationReady = true;
+        console.log('🎤 Audio streaming enabled');
+      };
+      
       this.conversationActive = true;
       
-      // Option 1: Try to embed in an iframe (if container exists)
-      const embedContainer = document.getElementById('elevenlabs-embed-container');
-      if (embedContainer && !document.getElementById('elevenlabs-conversation-iframe')) {
-        const iframe = document.createElement('iframe');
-        iframe.src = shareUrl;
-        iframe.width = '100%';
-        iframe.height = '600';
-        iframe.style.border = 'none';
-        iframe.style.borderRadius = '12px';
-        iframe.id = 'elevenlabs-conversation-iframe';
-        iframe.allow = 'microphone';
-        embedContainer.appendChild(iframe);
-        
-        console.log('✅ Embedded conversation started in iframe');
-        
-        // Notify callbacks
-        if (callbacks?.onAgentResponse) {
-          callbacks.onAgentResponse('AI agent loaded! Speak naturally to have a conversation.');
-        }
-        if (callbacks?.onTurnEnd) {
-          callbacks.onTurnEnd();
-        }
-        
-        // Stream already initialized earlier
-        
-        return; // Exit early if iframe works
-      }
-      
-      // Option 2: Open in a popup window
-      if (!this.conversationWindow || this.conversationWindow.closed) {
-        this.conversationWindow = window.open(
-          shareUrl,
-          'ElevenLabs_Conversation',
-          'width=400,height=600,resizable=yes,scrollbars=yes'
-        );
-        
-        if (this.conversationWindow) {
-          console.log('✅ Conversation window opened! Talk to your AI agent in the popup.');
-          
-          // Monitor window status
-          this.windowCheckInterval = setInterval(() => {
-            if (!this.conversationWindow || this.conversationWindow.closed) {
-              clearInterval(this.windowCheckInterval);
-              this.windowCheckInterval = null;
-              this.stopConversation();
-            }
-          }, 1000);
-          
-          // Notify callbacks
-          if (callbacks?.onAgentResponse) {
-            callbacks.onAgentResponse('AI agent opened in a new window! Speak there to have a conversation.');
-          }
-          if (callbacks?.onTurnEnd) {
-            callbacks.onTurnEnd();
-          }
-          
-          // Keep microphone stream for visual feedback
-          const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-          this.currentAudioStream = stream;
-          
-          return; // Exit early if popup works
-        } else {
-          console.warn('Could not open popup window. Check your popup blocker.');
-        }
-      }
-      
-      // Fallback: Provide instructions if neither option works
-      
-      // If we get here, provide manual instructions
-      const fallbackUrl = `https://elevenlabs.io/app/conversational-ai/share/${agentId}`;
-      console.log('🔗 Direct link to your AI agent:', fallbackUrl);
-      console.log('Copy and paste this URL in a new tab to start the conversation.');
-      
-      // Stream already initialized earlier at the beginning
-      
+      // Notify success
       if (callbacks?.onAgentResponse) {
-        callbacks.onAgentResponse(`Open this link to talk to your AI agent: ${fallbackUrl}`);
+        callbacks.onAgentResponse('🎙️ Conversation started! Speak naturally to talk with your AI agent through Kwami.');
       }
       if (callbacks?.onTurnEnd) {
         callbacks.onTurnEnd();
       }
       
-      // FUTURE: When ElevenLabs WebSocket API is available, uncomment below:
-      /*
-      const agentId = this.config.conversational?.agentId;
-      if (!agentId) {
-        throw new Error('Agent ID required. Get one from ElevenLabs dashboard.');
-      }
-
-      // Connect to ElevenLabs WebSocket
-      const wsUrl = `wss://api.elevenlabs.io/v1/convai/conversation`;
-      this.conversationWebSocket = new WebSocket(wsUrl);
-      // ... rest of WebSocket implementation
-      */
-
+      console.log('🎤 Microphone active, WebSocket connected. You can now speak!');
+      
     } catch (error) {
       console.error('Error starting conversation:', error);
       this.cleanupConversation();
@@ -340,22 +387,99 @@ export class KwamiMind {
   }
 
   /**
+   * Convert Float32Array audio to PCM16 format for WebSocket transmission
+   */
+  private float32ToPCM16(float32: Float32Array): Int16Array {
+    const length = float32.length;
+    const pcm16 = new Int16Array(length);
+    
+    for (let i = 0; i < length; i++) {
+      // Clamp the float value between -1 and 1
+      let sample = Math.max(-1, Math.min(1, float32[i]));
+      // Convert to 16-bit PCM
+      pcm16[i] = sample < 0 ? sample * 0x8000 : sample * 0x7FFF;
+    }
+    
+    return pcm16;
+  }
+  
+  /**
+   * Convert PCM16 audio data to WAV format for playback
+   */
+  private pcm16ToWav(pcmData: ArrayBuffer): Blob {
+    const pcm16 = new Int16Array(pcmData);
+    const length = pcm16.length * 2; // 2 bytes per sample
+    const arrayBuffer = new ArrayBuffer(44 + length);
+    const view = new DataView(arrayBuffer);
+    
+    // WAV header
+    const writeString = (offset: number, string: string) => {
+      for (let i = 0; i < string.length; i++) {
+        view.setUint8(offset + i, string.charCodeAt(i));
+      }
+    };
+    
+    // RIFF chunk descriptor
+    writeString(0, 'RIFF');
+    view.setUint32(4, 36 + length, true);
+    writeString(8, 'WAVE');
+    
+    // fmt sub-chunk
+    writeString(12, 'fmt ');
+    view.setUint32(16, 16, true); // Subchunk1Size
+    view.setUint16(20, 1, true); // AudioFormat (PCM)
+    view.setUint16(22, 1, true); // NumChannels (mono)
+    view.setUint32(24, 16000, true); // SampleRate
+    view.setUint32(28, 16000 * 2, true); // ByteRate
+    view.setUint16(32, 2, true); // BlockAlign
+    view.setUint16(34, 16, true); // BitsPerSample
+    
+    // data sub-chunk
+    writeString(36, 'data');
+    view.setUint32(40, length, true);
+    
+    // Copy PCM data
+    const outputData = new Int16Array(arrayBuffer, 44);
+    outputData.set(pcm16);
+    
+    return new Blob([arrayBuffer], { type: 'audio/wav' });
+  }
+  
+  /**
    * Set up WebSocket event handlers for conversation
    */
   private setupWebSocketHandlers(): void {
     if (!this.conversationWebSocket) return;
 
     this.conversationWebSocket.onmessage = async (event) => {
+      // Log all incoming messages for debugging
+      console.log('WebSocket message received:', {
+        type: event.data instanceof ArrayBuffer ? 'binary' : 'text',
+        size: event.data instanceof ArrayBuffer ? event.data.byteLength : event.data.length
+      });
+      
       if (event.data instanceof ArrayBuffer) {
         // This is audio data from the agent
+        console.log('Received audio data, size:', event.data.byteLength);
         await this.handleAgentAudio(event.data);
+      } else if (event.data instanceof Blob) {
+        // Convert Blob to ArrayBuffer if needed
+        const arrayBuffer = await event.data.arrayBuffer();
+        console.log('Received audio blob, converted size:', arrayBuffer.byteLength);
+        await this.handleAgentAudio(arrayBuffer);
       } else {
         // This is a text message (JSON)
         try {
-          const message = JSON.parse(event.data);
+          const message = typeof event.data === 'string' ? JSON.parse(event.data) : event.data;
+          console.log('Received JSON message:', message);
           this.handleWebSocketMessage(message);
         } catch (error) {
-          console.error('Error parsing WebSocket message:', error);
+          // Might be a string message that's not JSON
+          console.log('Received text message:', event.data);
+          // Check if it's a simple text response
+          if (typeof event.data === 'string') {
+            this.conversationCallbacks.onAgentResponse?.(event.data);
+          }
         }
       }
     };
@@ -366,10 +490,47 @@ export class KwamiMind {
       this.stopConversation();
     };
 
-    this.conversationWebSocket.onclose = () => {
-      console.log('WebSocket connection closed');
+    this.conversationWebSocket.onclose = (event) => {
+      console.log('WebSocket connection closed:', {
+        code: event.code,
+        reason: event.reason,
+        wasClean: event.wasClean
+      });
+      
+      // Interpret close codes
+      let closeReason = 'Unknown reason';
+      switch (event.code) {
+        case 1000: closeReason = 'Normal closure'; break;
+        case 1001: closeReason = 'Going away'; break;
+        case 1002: closeReason = 'Protocol error'; break;
+        case 1003: closeReason = 'Unsupported data'; break;
+        case 1006: closeReason = 'Abnormal closure (no close frame)'; break;
+        case 1007: closeReason = 'Invalid frame payload data'; break;
+        case 1008: closeReason = 'Policy violation'; break;
+        case 1009: closeReason = 'Message too big'; break;
+        case 1010: closeReason = 'Mandatory extension'; break;
+        case 1011: closeReason = 'Internal server error'; break;
+        case 4000: closeReason = 'Bad request'; break;
+        case 4001: closeReason = 'Unauthorized'; break;
+        case 4002: closeReason = 'Bad gateway'; break;
+        case 4003: closeReason = 'Forbidden'; break;
+        case 4004: closeReason = 'Not found'; break;
+        case 4008: closeReason = 'Request timeout'; break;
+        case 4009: closeReason = 'Conflict'; break;
+      }
+      
+      console.error(`WebSocket closed: ${closeReason} (${event.code})`);
+      if (event.reason) {
+        console.error('Close reason from server:', event.reason);
+      }
+      
       this.conversationActive = false;
       this.cleanupConversation();
+      
+      // Notify callbacks about the closure
+      if (this.conversationCallbacks.onError) {
+        this.conversationCallbacks.onError(new Error(`Connection closed: ${closeReason}`));
+      }
     };
   }
 
@@ -419,6 +580,35 @@ export class KwamiMind {
         console.log('Conversation ended');
         this.stopConversation();
         break;
+        
+      case 'conversation_initiation_metadata':
+        // Conversation initialized successfully
+        console.log('✅ Conversation initialized:', {
+          conversationId: message.conversation_initiation_metadata_event?.conversation_id,
+          audioFormat: message.conversation_initiation_metadata_event?.user_input_audio_format,
+          agentFormat: message.conversation_initiation_metadata_event?.agent_output_audio_format
+        });
+        
+        // Enable audio streaming now that conversation is ready
+        if ((this as any).setConversationReady) {
+          (this as any).setConversationReady();
+        }
+        
+        // Conversation is ready
+        if (this.conversationCallbacks.onAgentResponse) {
+          this.conversationCallbacks.onAgentResponse('🎙️ Connected! Start speaking...');
+        }
+        break;
+        
+      case 'ping':
+        // Keep-alive ping from server
+        if (this.conversationWebSocket?.readyState === WebSocket.OPEN) {
+          this.conversationWebSocket.send(JSON.stringify({ type: 'pong' }));
+        }
+        break;
+        
+      default:
+        console.log('Unhandled message type:', message.type, message);
     }
   }
 
@@ -427,18 +617,17 @@ export class KwamiMind {
    */
   private async handleAgentAudio(audioData: ArrayBuffer): Promise<void> {
     try {
-      // Convert ArrayBuffer to Blob
-      const audioBlob = new Blob([audioData], { type: 'audio/pcm' });
-      
-      // Create a URL for the audio blob
-      const audioUrl = URL.createObjectURL(audioBlob);
+      // Convert PCM audio data to playable format
+      // ElevenLabs sends audio as PCM16, we need to convert to WAV for playback
+      const wavBlob = this.pcm16ToWav(audioData);
+      const audioUrl = URL.createObjectURL(wavBlob);
       
       // Load and play through KwamiAudio for visualization
       this.audio.loadAudioSource(audioUrl);
       await this.audio.play();
       
-      // Clean up the URL after a delay
-      setTimeout(() => URL.revokeObjectURL(audioUrl), 5000);
+      // Clean up the URL after playback
+      setTimeout(() => URL.revokeObjectURL(audioUrl), 10000);
     } catch (error) {
       console.error('Error playing agent audio:', error);
     }
@@ -556,18 +745,6 @@ export class KwamiMind {
 
     console.log('Stopping conversation...');
     this.conversationActive = false; // Set this immediately to prevent further processing
-    
-    // Close conversation window if open
-    if (this.conversationWindow && !this.conversationWindow.closed) {
-      this.conversationWindow.close();
-      this.conversationWindow = null;
-    }
-    
-    // Clear window check interval
-    if (this.windowCheckInterval) {
-      clearInterval(this.windowCheckInterval);
-      this.windowCheckInterval = null;
-    }
     
     // Remove iframe if exists
     const iframe = document.getElementById('elevenlabs-conversation-iframe');

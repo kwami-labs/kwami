@@ -409,7 +409,68 @@ export class KwamiBody {
     const stop1 = Math.floor(Math.random() * 51);
     const stop2 = 50 + Math.floor(Math.random() * 51);
     
-    this.setBackgroundGradient(colors, { angle, stops: [0, stop1 / 100, stop2 / 100] });
+    // Randomly choose between linear, radial, or random (3 spheres)
+    const styles = ['linear', 'radial', 'random'];
+    const style = styles[Math.floor(Math.random() * styles.length)];
+    
+    if (style === 'random') {
+      // Create 3 color spheres placed randomly in the background
+      this.setBackgroundSpheres(colors);
+    } else if (style === 'radial') {
+      // Use radial gradient
+      this.setBackgroundGradient(colors, { direction: 'radial', stops: [0, stop1 / 100, stop2 / 100] });
+    } else {
+      // Use linear gradient with random angle
+      this.setBackgroundGradient(colors, { angle, stops: [0, stop1 / 100, stop2 / 100] });
+    }
+  }
+
+  /**
+   * Create a background with 3 randomly placed color spheres
+   * @param colors - Array of 3 colors for the spheres
+   */
+  setBackgroundSpheres(colors: string[]): void {
+    const canvas = document.createElement('canvas');
+    canvas.width = 512;
+    canvas.height = 512;
+    const ctx = canvas.getContext('2d')!;
+    
+    // Fill with a base color (first color with low opacity)
+    ctx.fillStyle = colors[0];
+    ctx.globalAlpha = 0.3;
+    ctx.fillRect(0, 0, 512, 512);
+    ctx.globalAlpha = 1.0;
+    
+    // Create 3 radial gradients at random positions
+    for (let i = 0; i < 3; i++) {
+      const color = colors[i % colors.length];
+      const x = Math.random() * 512;
+      const y = Math.random() * 512;
+      const radius = 150 + Math.random() * 200; // Random size between 150-350
+      
+      const gradient = ctx.createRadialGradient(x, y, 0, x, y, radius);
+      gradient.addColorStop(0, color);
+      gradient.addColorStop(0.5, color + '80'); // Semi-transparent
+      gradient.addColorStop(1, color + '00'); // Fully transparent
+      
+      ctx.fillStyle = gradient;
+      ctx.fillRect(0, 0, 512, 512);
+    }
+    
+    const texture = new CanvasTexture(canvas);
+    texture.needsUpdate = true;
+    
+    this.backgroundState = {
+      type: 'gradient',
+      colors,
+      direction: 'vertical',
+      opacity: 1,
+    };
+    
+    // Apply the custom texture directly to the scene
+    if (this.blobImageMode === 'none') {
+      this.scene.background = texture;
+    }
   }
 
   /**

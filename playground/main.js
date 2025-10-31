@@ -195,33 +195,33 @@ const DEFAULT_BACKGROUND = {
 };
 
 const BACKGROUND_IMAGES = [
-  'assets/alaska.jpeg',
-  'assets/binary-reality.jpg',
-  'assets/black-candle.jpg',
-  'assets/black-hole.jpg',
-  'assets/black-sea.jpg',
-  'assets/black-windows.jpg',
-  'assets/black.jpg',
-  'assets/colors.jpeg',
-  'assets/galaxy.jpg',
-  'assets/galaxy2.jpg',
-  'assets/galaxy3.jpg',
-  'assets/galaxy4.jpg',
-  'assets/gargantua.jpg',
-  'assets/interstellar.png',
-  'assets/islan.jpg',
-  'assets/lake.jpg',
-  'assets/mountain.jpeg',
-  'assets/paisaje.jpg',
-  'assets/pik.jpg',
-  'assets/planet.jpg',
-  'assets/planet2.jpg',
-  'assets/planet3.jpg',
-  'assets/sahara.jpeg',
-  'assets/skinet.png',
-  'assets/skynet.png',
-  'assets/universe.jpg',
-  'assets/white-tree.jpg'
+  'src/assets/img/alaska.jpeg',
+  'src/assets/img/binary-reality.jpg',
+  'src/assets/img/black-candle.jpg',
+  'src/assets/img/black-hole.jpg',
+  'src/assets/img/black-sea.jpg',
+  'src/assets/img/black-windows.jpg',
+  'src/assets/img/black.jpg',
+  'src/assets/img/colors.jpeg',
+  'src/assets/img/galaxy.jpg',
+  'src/assets/img/galaxy2.jpg',
+  'src/assets/img/galaxy3.jpg',
+  'src/assets/img/galaxy4.jpg',
+  'src/assets/img/gargantua.jpg',
+  'src/assets/img/interstellar.png',
+  'src/assets/img/islan.jpg',
+  'src/assets/img/lake.jpg',
+  'src/assets/img/mountain.jpeg',
+  'src/assets/img/paisaje.jpg',
+  'src/assets/img/pik.jpg',
+  'src/assets/img/planet.jpg',
+  'src/assets/img/planet2.jpg',
+  'src/assets/img/planet3.jpg',
+  'src/assets/img/sahara.jpeg',
+  'src/assets/img/skinet.png',
+  'src/assets/img/skynet.png',
+  'src/assets/img/universe.jpg',
+  'src/assets/img/white-tree.jpg'
 ];
 
 // Counter for background randomization clicks
@@ -275,13 +275,21 @@ function randomizeGradientLayout({ updateInputs = false } = {}) {
 
 function resolveMediaPath(value) {
   if (!value) return '';
+  // If it's a URL, return as-is
   if (/^(https?:)?\/\//i.test(value)) {
     return value;
   }
+  // If it starts with src/assets/, return as-is (new path structure)
+  if (value.startsWith('src/assets/')) {
+    return value;
+  }
+  // Remove leading slashes
   const sanitized = value.replace(/^\/+/, '');
+  // If it already has assets/ prefix (old format), return as-is
   if (sanitized.startsWith('assets/')) {
     return sanitized;
   }
+  // Otherwise add assets/ prefix (legacy support)
   return `assets/${sanitized}`;
 }
 
@@ -322,6 +330,12 @@ function setBackgroundImage(imageValue, { silent = false } = {}) {
     videoElement.removeAttribute('src');
     videoElement.load();
     videoElement.style.display = 'none';
+    
+    // Make Three.js background transparent so HTML background shows through
+    if (window.kwami?.body) {
+      window.kwami.body.setBackgroundTransparent();
+    }
+    
     if (!silent) updateStatus('🖼️ Background image applied!');
   } else {
     bgImageElement.style.backgroundImage = 'none';
@@ -352,6 +366,12 @@ function setBackgroundVideo(videoValue, { silent = false } = {}) {
     videoElement.style.display = 'block';
     videoElement.load();
     videoElement.play().catch(() => {});
+    
+    // Make Three.js background transparent so HTML background shows through
+    if (window.kwami?.body) {
+      window.kwami.body.setBackgroundTransparent();
+    }
+    
     if (!silent) updateStatus('🎞️ Background video applied!');
   } else {
     videoElement.pause();
@@ -414,33 +434,65 @@ function setMediaType(type, { silent = false } = {}) {
 
 window.randomizeBackground = function() {
   if (window.kwami && window.kwami.body) {
-    // Use the library method to randomize background
-    window.kwami.body.randomizeBackground();
-    
-    // Update UI to reflect changes
+    // Generate random colors
     const randomColor = () => '#' + Math.floor(Math.random() * 16777215).toString(16).padStart(6, '0');
+    const colors = [randomColor(), randomColor(), randomColor()];
     
     backgroundRandomizeClickCount++;
     
-  document.getElementById('bg-color-1').value = randomColor();
-  document.getElementById('bg-color-2').value = randomColor();
-  document.getElementById('bg-color-3').value = randomColor();
-  
-    randomizeGradientLayout({ updateInputs: true });
-  
-  let opacity;
-  if (backgroundRandomizeClickCount % 3 === 0) {
-    opacity = (Math.random() * 0.6 + 0.3).toFixed(2);
+    // Update color pickers in UI
+    document.getElementById('bg-color-1').value = colors[0];
+    document.getElementById('bg-color-2').value = colors[1];
+    document.getElementById('bg-color-3').value = colors[2];
+    
+    // Randomize gradient parameters
+    const layoutParams = randomizeGradientLayout({ updateInputs: true });
+    
+    // Randomly choose gradient style
+    const styles = ['linear', 'radial', 'random'];
+    const selectedStyle = styles[Math.floor(Math.random() * styles.length)];
+    
+    // Update the gradient style selector in UI
+    const gradientStyleSelect = document.getElementById('bg-gradient-style');
+    if (gradientStyleSelect) {
+      gradientStyleSelect.value = selectedStyle;
+    }
+    
+    // Apply the gradient with the chosen style
+    if (selectedStyle === 'random') {
+      window.kwami.body.setBackgroundSpheres(colors);
+    } else if (selectedStyle === 'radial') {
+      window.kwami.body.setBackgroundGradient(colors, { 
+        direction: 'radial', 
+        stops: layoutParams.stops 
+      });
+    } else {
+      window.kwami.body.setBackgroundGradient(colors, { 
+        angle: layoutParams.angle, 
+        stops: layoutParams.stops 
+      });
+    }
+    
+    // Randomly adjust opacity every 3rd click
+    let opacity;
+    if (backgroundRandomizeClickCount % 3 === 0) {
+      opacity = (Math.random() * 0.6 + 0.3).toFixed(2);
       window.kwami.body.setBackgroundOpacity(parseFloat(opacity));
-  } else {
-    opacity = '1.00';
-  }
-  
+    } else {
+      opacity = '1.00';
+    }
+    
     const opacitySlider = document.getElementById('bg-opacity');
     if (opacitySlider) opacitySlider.value = opacity;
-  updateValueDisplay('bg-opacity-value', opacity, 2);
-  
-    updateStatus('🎲 Gradient randomized!');
+    updateValueDisplay('bg-opacity-value', opacity, 2);
+    
+    // Show which style was chosen
+    const styleNames = {
+      'linear': 'Linear',
+      'radial': 'Radial',
+      'random': 'Random Spheres'
+    };
+    updateStatus(`🎲 ${styleNames[selectedStyle]} gradient randomized!`);
   }
 };
 
@@ -498,6 +550,26 @@ function applyBackground() {
   const stop2Percent = Math.max(stop1Percent, Math.min(100, Number.isFinite(stop2PercentRaw) ? stop2PercentRaw : DEFAULT_BACKGROUND.stops[2] * 100));
 
   const gradientStyle = document.getElementById('bg-gradient-style')?.value ?? DEFAULT_BACKGROUND.style;
+  
+  // Handle the three gradient styles: linear, radial, and random (3 spheres)
+  if (gradientStyle === 'random') {
+    // For random style, create 3 color spheres with the selected colors
+    window.kwami.body.setBackgroundSpheres(colors);
+    
+    // Update the UI to show it applied
+    if (blobImageTransparencyEnabled) {
+      window.kwami.body.setBlobImageTransparencyMode(true, {
+        type: 'gradient',
+        colors,
+        direction: 'vertical',
+        stops: [0, stop1Percent / 100, stop2Percent / 100],
+        opacity,
+        mode: blobImageTransparencyMode,
+      });
+    }
+    return;
+  }
+  
   const direction = gradientStyle === 'radial' ? 'radial' : 'vertical';
   const angle = gradientStyle === 'radial' ? 0 : angleDegrees;
   const stops = [0, stop1Percent / 100, stop2Percent / 100];
@@ -640,9 +712,6 @@ function initializeBackgroundControls() {
   const gradientStyleSelect = document.getElementById('bg-gradient-style');
   if (gradientStyleSelect) {
     gradientStyleSelect.addEventListener('change', (e) => {
-      if (e.target.value === 'random') {
-        randomizeGradientLayout({ updateInputs: true });
-      }
       applyBackground();
     });
   }
@@ -845,10 +914,7 @@ try {
   updateValueDisplay('camera-y-value', DEFAULT_CAMERA_POSITION.y, 1);
   updateValueDisplay('camera-z-value', DEFAULT_CAMERA_POSITION.z, 1);
   
-  // Randomize gradient background (colors, direction, opacity)
-  window.randomizeBackground();
-  
-  // Set random background image
+  // Set random background image (this will make the scene transparent)
   const randomImage = BACKGROUND_IMAGES[Math.floor(Math.random() * BACKGROUND_IMAGES.length)];
   const imageSelect = document.getElementById('bg-media-image');
   if (imageSelect) {
@@ -856,6 +922,12 @@ try {
   }
   setMediaType('image', { silent: true });
   setBackgroundImage(randomImage, { silent: true });
+  
+  // Also randomize gradient colors in UI (but don't apply yet since image is showing)
+  const randomColor = () => '#' + Math.floor(Math.random() * 16777215).toString(16).padStart(6, '0');
+  document.getElementById('bg-color-1').value = randomColor();
+  document.getElementById('bg-color-2').value = randomColor();
+  document.getElementById('bg-color-3').value = randomColor();
   
   // Update all UI controls to reflect random blob state
   updateAllControlsFromBlob();
@@ -886,6 +958,7 @@ window.mindConfig = {
 // Initialize Mind
 window.initializeMind = async function() {
   const apiKey = document.getElementById('api-key').value.trim();
+  const agentId = document.getElementById('agent-id').value.trim();
   let voiceId = document.getElementById('voice-id').value.trim();
   
   // Check if custom voice ID is selected
@@ -901,13 +974,22 @@ window.initializeMind = async function() {
     showError('Please enter your ElevenLabs API Key');
     return;
   }
+  
+  if (!agentId) {
+    showError('Please enter your ElevenLabs Agent ID for conversations');
+    return;
+  }
 
   try {
-    updateStatus('🔄 Initializing Mind...');
+    updateStatus('🔄 Initializing Mind with WebSocket support...');
     
     // Update Mind configuration
     window.kwami.mind.setVoiceId(voiceId);
     window.kwami.mind.config.apiKey = apiKey;
+    window.kwami.mind.config.conversational = {
+      agentId: agentId,
+      firstMessage: 'Hello! How can I help you today?'
+    };
     
     // Apply model
     const model = document.getElementById('voice-model').value;
@@ -1137,7 +1219,7 @@ window.startConversation = async function() {
   const allowInterruption = document.getElementById('conversation-interruption').checked;
   
   try {
-    updateStatus('🔄 Starting conversation...');
+    updateStatus('🔄 Starting WebSocket conversation...');
     updateConversationButtonState(false); // Disable buttons during start
     
     // Update conversation config
@@ -1165,6 +1247,15 @@ window.startConversation = async function() {
     const callbacks = window.conversationCallbacks || {
       onAgentResponse: (text) => {
         console.log('Agent:', text);
+        
+        // Update status message
+        const statusMessage = document.getElementById('conversation-status-message');
+        if (statusMessage) {
+          // Format multi-line messages properly
+          const formattedText = text.replace(/\n/g, '<br>');
+          statusMessage.innerHTML = formattedText;
+        }
+        
         if (transcriptArea) {
           const entry = document.createElement('div');
           entry.style.cssText = 'margin: 5px 0; padding: 5px; background: #e3e8ff; border-radius: 4px;';
@@ -1207,13 +1298,15 @@ window.startConversation = async function() {
     
     updateConversationButtonState(true);
     
-    // Show embed container if iframe was created
-    const embedContainer = document.getElementById('elevenlabs-embed-container');
-    if (embedContainer && embedContainer.querySelector('iframe')) {
-      embedContainer.style.display = 'block';
+    // Show conversation status
+    const statusContainer = document.getElementById('conversation-status-container');
+    const statusMessage = document.getElementById('conversation-status-message');
+    if (statusContainer && statusMessage) {
+      statusContainer.style.display = 'block';
+      statusMessage.innerHTML = '🎙️ Conversation active - Check the popup window to talk with your AI agent';
     }
     
-    updateStatus('✅ Conversation started! Talk naturally with your AI agent. (Double-click Kwami to stop)');
+    updateStatus('✅ Conversation started! Check the popup window. (Double-click Kwami to stop)');
   } catch (error) {
     showError('Failed to start conversation: ' + error.message);
     updateConversationButtonState(false);
@@ -1229,10 +1322,10 @@ window.stopConversation = async function() {
     
     await window.kwami.mind.stopConversation();
     
-    // Hide embed container
-    const embedContainer = document.getElementById('elevenlabs-embed-container');
-    if (embedContainer) {
-      embedContainer.style.display = 'none';
+    // Hide status container
+    const statusContainer = document.getElementById('conversation-status-container');
+    if (statusContainer) {
+      statusContainer.style.display = 'none';
     }
     
     updateConversationButtonState(false);
@@ -2102,8 +2195,11 @@ function updateStateIndicator(state) {
   const indicator = document.getElementById('state-indicator');
   const stateText = document.getElementById('state-text');
   
-  indicator.className = 'state-indicator state-' + state;
-  stateText.textContent = state.toUpperCase();
+  // Only update if elements exist (they're commented out in HTML currently)
+  if (indicator && stateText) {
+    indicator.className = 'state-indicator state-' + state;
+    stateText.textContent = state.toUpperCase();
+  }
 }
 
 // Legacy background block removed

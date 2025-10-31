@@ -7,6 +7,100 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [2.1.0] - 2025-10-31
+
+### ✨ Added
+
+#### 🎨 Playground Version Display
+- Added version number display at bottom center of playground
+- Styled in soft gray (rgba(160, 160, 160, 0.6)) for subtle visibility
+- Monospace font with letter spacing for technical aesthetic
+- Non-intrusive positioning with pointer-events disabled
+
+#### 🔧 Enhanced Mind Class - WebSocket Conversational AI
+- **WebSocket-based real-time conversations** with ElevenLabs Conversational API
+- **startConversation()** - Initialize WebSocket conversation with callbacks
+- **stopConversation()** - Gracefully end conversation and cleanup resources
+- **isConversationActive()** - Check conversation status
+- **Enhanced error handling** with detailed status messages and UI feedback
+- **Connection status indicators** for WebSocket lifecycle (connecting, connected, error, closed)
+- **Audio streaming support** for real-time voice synthesis
+- **Microphone integration** for speech-to-text input
+- **Event callbacks system** for transcript, turn, and error events
+- **Automatic state management** synchronized with Kwami body animations
+
+#### 📚 Comprehensive Documentation
+- **ELEVENLABS_AGENT_URL_FORMATS.md** - Guide to ElevenLabs agent URL formats and iframe integration
+- **ELEVENLABS_CONVERSATION_API.md** - Complete WebSocket API reference and implementation guide
+- **ELEVENLABS_IFRAME_FIX.md** - Solutions for iframe integration issues
+- **GRADIENT_ENHANCEMENTS.md** - Documentation for gradient angle and color stop controls
+- **WEBSOCKET_CONVERSATION_GUIDE.md** - Step-by-step guide for implementing WebSocket conversations
+
+#### 🎛️ Body Class Enhancements
+- **setState()** method for programmatic state management (idle, listening, thinking, speaking)
+- **getState()** method to query current animation state
+- **State synchronization** with Mind class for seamless AI interactions
+- **Enhanced type safety** with proper state enum types
+- **Improved audio-reactive animations** with state-aware modulation
+
+### 🔄 Changed
+
+#### Mind Class Refactoring
+- **Complete overhaul** of conversation handling from demo mode to production-ready WebSocket implementation
+- **Improved initialization flow** with better validation and error messages
+- **Enhanced callback system** supporting multiple event types (transcript, turn, status, error)
+- **Better resource cleanup** preventing memory leaks in long conversations
+- **Simplified API** for starting/stopping conversations
+
+#### Playground UI Improvements
+- **Conversation controls** now properly reflect WebSocket connection status
+- **Real-time status updates** during conversation lifecycle
+- **Better error messages** with actionable troubleshooting steps
+- **Gradient controls enhancement** with angle slider and color stop adjustments
+- **State indicator improvements** for clearer visual feedback
+
+### 🐛 Bug Fixes
+
+#### Recent Fixes (Oct 30-31, 2025)
+- **Fixed shininess behavior** in blob shaders - proper specular highlight rendering
+- **Fixed image paths** for playground assets - corrected paths for production builds
+- **Fixed state indicator** initialization error - proper DOM element handling
+- **Fixed background images** - absolute paths for dev and production compatibility
+- **Fixed Vite bundling** - proper configuration for background image assets
+- **Removed unused assets** - cleaned up textures/index.ts file
+
+#### Core Functionality
+- **Fixed WebSocket connection** handling with proper error recovery
+- **Fixed audio streaming** synchronization with conversation state
+- **Fixed state transitions** when switching between conversation modes
+- **Fixed memory leaks** in conversation cleanup
+- **Fixed microphone permissions** handling with better user feedback
+
+### 🔧 Technical Improvements
+
+#### Architecture
+- **Refactored playground functionality** into core library classes for better reusability
+- **Enhanced type definitions** for conversation callbacks and state management
+- **Improved separation of concerns** between Mind, Body, and Soul classes
+- **Better error propagation** from WebSocket to UI layer
+
+#### Performance
+- **Optimized WebSocket message handling** for lower latency
+- **Improved animation frame scheduling** during conversations
+- **Reduced bundle size** by removing unused texture imports
+- **Better asset loading** with Vite configuration optimization
+
+#### Developer Experience
+- **5 new documentation files** with comprehensive guides
+- **Improved TypeScript types** for better IDE support
+- **Enhanced error messages** with debugging information
+- **Better code organization** in Mind and Body classes
+
+### 📦 Dependencies
+- No new dependencies added
+- Optimized existing ElevenLabs SDK usage for WebSocket API
+- Improved Three.js integration for state-aware animations
+
 ### 🚀 Deployment & Branch Strategy
 
 **Live Deployment**
