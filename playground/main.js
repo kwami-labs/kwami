@@ -280,9 +280,9 @@ function resolveMediaPath(value) {
   }
   const sanitized = value.replace(/^\/+/, '');
   if (sanitized.startsWith('assets/')) {
-    return `/${sanitized}`;
+    return sanitized;
   }
-  return `/assets/${sanitized}`;
+  return `assets/${sanitized}`;
 }
 
 function getMediaOptions(type) {
@@ -422,24 +422,24 @@ window.randomizeBackground = function() {
     
     backgroundRandomizeClickCount++;
     
-    document.getElementById('bg-color-1').value = randomColor();
-    document.getElementById('bg-color-2').value = randomColor();
-    document.getElementById('bg-color-3').value = randomColor();
-    
+  document.getElementById('bg-color-1').value = randomColor();
+  document.getElementById('bg-color-2').value = randomColor();
+  document.getElementById('bg-color-3').value = randomColor();
+  
     randomizeGradientLayout({ updateInputs: true });
-    
-    let opacity;
-    if (backgroundRandomizeClickCount % 3 === 0) {
-      opacity = (Math.random() * 0.6 + 0.3).toFixed(2);
+  
+  let opacity;
+  if (backgroundRandomizeClickCount % 3 === 0) {
+    opacity = (Math.random() * 0.6 + 0.3).toFixed(2);
       window.kwami.body.setBackgroundOpacity(parseFloat(opacity));
-    } else {
-      opacity = '1.00';
-    }
-    
+  } else {
+    opacity = '1.00';
+  }
+  
     const opacitySlider = document.getElementById('bg-opacity');
     if (opacitySlider) opacitySlider.value = opacity;
-    updateValueDisplay('bg-opacity-value', opacity, 2);
-    
+  updateValueDisplay('bg-opacity-value', opacity, 2);
+  
     updateStatus('🎲 Gradient randomized!');
   }
 };
@@ -602,7 +602,7 @@ function initializeBackgroundControls() {
           ? '🪟 Glass window mode enabled - blob reveals the background image'
           : '🖼️ Overlay mode enabled - image fills the blob interior';
         updateStatus(message);
-      } else {
+  } else {
         updateStatus('🎨 Normal background mode');
       }
     });
@@ -861,15 +861,8 @@ try {
   updateAllControlsFromBlob();
 
   updateStatus('✅ Kwami initialized with random appearance!');
-  
-  // Update state indicator if method exists
-  if (window.kwami && typeof window.kwami.getState === 'function') {
-    updateStateIndicator(window.kwami.getState());
-  } else {
-    updateStateIndicator('idle');
-  }
+  updateStateIndicator(window.kwami.getState());
 } catch (error) {
-  console.error('Kwami initialization error:', error);
   showError('Failed to initialize Kwami: ' + error.message);
 }
 
@@ -1590,8 +1583,8 @@ window.exportGLB = function() {
 window.randomizeBlob = function() {
   if (window.kwami && window.kwami.body) {
     window.kwami.body.randomizeBlob();
-    updateAllControlsFromBlob();
-    updateStatus('🎲 Blob randomized!');
+  updateAllControlsFromBlob();
+  updateStatus('🎲 Blob randomized!');
   }
 };
 
@@ -1600,8 +1593,8 @@ window.resetToDefaults = function() {
   if (window.kwami && window.kwami.body) {
     // Reset blob to defaults
     window.kwami.body.resetBlobToDefaults();
-    
-    // Reset camera position
+  
+  // Reset camera position
     window.kwami.body.resetCameraPosition();
     
     // Update camera UI
@@ -1612,10 +1605,10 @@ window.resetToDefaults = function() {
     updateValueDisplay('camera-x-value', pos.x, 1);
     updateValueDisplay('camera-y-value', pos.y, 1);
     updateValueDisplay('camera-z-value', pos.z, 1);
-    
-    // Update UI
-    updateAllControlsFromBlob();
-    updateStatus('🔄 Reset to defaults!');
+  
+  // Update UI
+  updateAllControlsFromBlob();
+  updateStatus('🔄 Reset to defaults!');
   }
 };
 
@@ -2109,20 +2102,15 @@ function updateStateIndicator(state) {
   const indicator = document.getElementById('state-indicator');
   const stateText = document.getElementById('state-text');
   
-  // Add null checks to prevent errors if elements don't exist
-  if (indicator) {
-    indicator.className = 'state-indicator state-' + state;
-  }
-  if (stateText) {
-    stateText.textContent = state.toUpperCase();
-  }
+  indicator.className = 'state-indicator state-' + state;
+  stateText.textContent = state.toUpperCase();
 }
 
 // Legacy background block removed
 
 function initializeCameraControls() {
   const camera = window.kwami.body.getCamera();
-
+  
   const cameraXSlider = document.getElementById('camera-x');
   if (cameraXSlider) {
     cameraXSlider.addEventListener('input', (e) => {
@@ -2135,7 +2123,7 @@ function initializeCameraControls() {
       }
     });
   }
-
+  
   const cameraYSlider = document.getElementById('camera-y');
   if (cameraYSlider) {
     cameraYSlider.addEventListener('input', (e) => {
@@ -2148,7 +2136,7 @@ function initializeCameraControls() {
       }
     });
   }
-
+  
   const cameraZSlider = document.getElementById('camera-z');
   if (cameraZSlider) {
     cameraZSlider.addEventListener('input', (e) => {
@@ -2161,17 +2149,17 @@ function initializeCameraControls() {
       }
     });
   }
-
+  
   if (cameraXSlider) {
     cameraXSlider.value = camera.position.x.toString();
-    updateValueDisplay('camera-x-value', camera.position.x, 1);
-  }
+      updateValueDisplay('camera-x-value', camera.position.x, 1);
+    }
   if (cameraYSlider) {
     cameraYSlider.value = camera.position.y.toString();
-    updateValueDisplay('camera-y-value', camera.position.y, 1);
-  }
+      updateValueDisplay('camera-y-value', camera.position.y, 1);
+    }
   if (cameraZSlider) {
     cameraZSlider.value = camera.position.z.toString();
-    updateValueDisplay('camera-z-value', camera.position.z, 1);
-  }
+      updateValueDisplay('camera-z-value', camera.position.z, 1);
+    }
 }

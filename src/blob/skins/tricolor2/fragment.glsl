@@ -16,7 +16,15 @@ void main(){
   vec3 lightDir=normalize(lightPosition-vPosition);
   vec3 viewDir=normalize(-vPosition);
   vec3 reflectDir=reflect(-lightDir,vNormal);
-  float spec=pow(max(dot(viewDir,reflectDir),0.),shininess);
+  // Only calculate specular if shininess > 0
+  float spec = 0.0;
+  if(shininess > 0.0) {
+    // Scale shininess to be more intuitive (0-200 range)
+    // Lower values = less shine, higher values = more shine
+    float adjustedShininess = max(1.0, shininess);
+    float specIntensity = shininess / 200.0; // Normalize intensity
+    spec = pow(max(dot(viewDir,reflectDir),0.),adjustedShininess) * specIntensity;
+  }
   vec3 specular=specular_color*spec;
   
   // Normalize Y position to range [0, 1] based on blob radius
