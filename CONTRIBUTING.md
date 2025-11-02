@@ -263,10 +263,10 @@ We follow semantic commit messages:
    - Update README.md if adding features
    - Update CHANGELOG.md with your changes
    - Add/update JSDoc comments
-   - **Sync version**: If bumping version, update both:
-     - `package.json` version field
-     - `src/core/Kwami.ts` `getVersion()` method
-     - (Playground version display updates automatically)
+   - **Version updates** (for maintainers only):
+     - Only update `package.json` version field
+     - Run `npm run sync-version` (or happens automatically on `npm run build`)
+     - Kwami.ts and playground version display update automatically
 
 4. **Check code quality**
    ```bash

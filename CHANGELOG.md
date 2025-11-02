@@ -7,6 +7,21 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [2.2.1] - 2025-11-02
+
+### 🔧 Changed
+
+#### Automated Version Management
+- **Single source of truth for versioning** - `package.json` is now the only place to update version
+- **Automated version sync** - Created `scripts/sync-version.js` to automatically sync version from package.json to Kwami.ts
+- **Integrated into build process** - `prebuild` script now runs version sync automatically
+- **Developer experience improvement** - No more manual version updates in multiple files
+- **Reduced human error** - Prevents version mismatch between package.json and Kwami.getVersion()
+
+### 📚 Documentation
+- Updated contribution workflow to reflect automated version management
+- Version updates now only require changing package.json
+
 ## [2.2.0] - 2025-11-02
 
 ### ✨ Added
