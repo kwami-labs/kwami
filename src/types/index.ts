@@ -23,14 +23,32 @@ export interface AudioConfig {
 /**
  * Scene background configuration
  */
+export type BackgroundMediaFit = 'cover' | 'contain' | 'stretch';
+
 export interface SceneBackgroundConfig {
-  type?: 'transparent' | 'solid' | 'gradient';
+  type?: 'transparent' | 'solid' | 'gradient' | 'image' | 'video';
   color?: string; // For solid background
   opacity?: number; // Opacity for solid/gradient background
   gradient?: {
     colors: string[]; // Array of hex colors
     direction?: 'vertical' | 'horizontal' | 'radial' | 'diagonal';
     opacity?: number;
+    angle?: number; // Angle in degrees for linear gradients
+    stops?: number[]; // Normalized stop positions (0-1) matching colors length
+  };
+  image?: {
+    url: string;
+    fit?: BackgroundMediaFit;
+    opacity?: number;
+  };
+  video?: {
+    url: string;
+    fit?: BackgroundMediaFit;
+    opacity?: number;
+    autoplay?: boolean;
+    loop?: boolean;
+    muted?: boolean;
+    playbackRate?: number;
   };
 }
 
@@ -117,6 +135,7 @@ export interface AdvancedTTSOptions {
  */
 export interface ConversationalAISettings {
   agentId?: string; // ElevenLabs agent ID
+  customUrl?: string; // Custom URL for the agent (overrides automatic URL generation)
   firstMessage?: string; // Agent's opening greeting
   maxDuration?: number; // Maximum conversation length (seconds)
   allowInterruption?: boolean; // Let users interrupt the agent mid-speech

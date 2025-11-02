@@ -232,4 +232,70 @@ export class KwamiSoul {
   createSnapshot(): SoulConfig {
     return { ...this.config };
   }
+
+  /**
+   * Load a preset personality
+   * 
+   * @param preset - Preset name: 'friendly', 'professional', 'playful'
+   */
+  loadPresetPersonality(preset: 'friendly' | 'professional' | 'playful'): void {
+    const presets: Record<string, SoulConfig> = {
+      friendly: {
+        name: 'Kaya',
+        personality: 'A warm and empathetic AI companion who loves to help and learn',
+        systemPrompt: 'You are Kaya, a warm and friendly AI assistant. Be helpful, supportive, and show genuine interest in conversations.',
+        traits: ['empathetic', 'curious', 'patient', 'encouraging'],
+        conversationStyle: 'casual and warm',
+        responseLength: 'medium',
+        emotionalTone: 'warm'
+      },
+      professional: {
+        name: 'Nexus',
+        personality: 'A knowledgeable and efficient AI assistant focused on productivity',
+        systemPrompt: 'You are Nexus, a professional AI assistant. Provide clear, accurate, and actionable information.',
+        traits: ['knowledgeable', 'efficient', 'precise', 'reliable'],
+        conversationStyle: 'formal and informative',
+        responseLength: 'medium',
+        emotionalTone: 'neutral'
+      },
+      playful: {
+        name: 'Spark',
+        personality: 'A creative and energetic AI buddy who makes everything fun',
+        systemPrompt: 'You are Spark, a playful and creative AI companion. Be enthusiastic, imaginative, and bring joy to interactions.',
+        traits: ['creative', 'energetic', 'humorous', 'imaginative'],
+        conversationStyle: 'playful and animated',
+        responseLength: 'short',
+        emotionalTone: 'enthusiastic'
+      }
+    };
+
+    const presetConfig = presets[preset];
+    if (presetConfig) {
+      this.setPersonality(presetConfig);
+    }
+  }
+
+  /**
+   * Update the full configuration
+   * 
+   * @param config - New configuration to merge with existing
+   */
+  updateConfig(config: Partial<SoulConfig>): void {
+    this.config = { ...this.config, ...config };
+  }
+
+  /**
+   * Import configuration from JSON string
+   * 
+   * @param jsonString - JSON string containing soul configuration
+   */
+  importFromJSON(jsonString: string): void {
+    try {
+      const config = JSON.parse(jsonString);
+      this.setPersonality(config);
+    } catch (error) {
+      console.error('Failed to import Soul configuration:', error);
+      throw error;
+    }
+  }
 }

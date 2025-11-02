@@ -6,7 +6,7 @@
 
 body {
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-  background: #1a1a1a;
+  background: #ffffff;
   min-height: 100vh;
   overflow: hidden;
 }
@@ -24,19 +24,27 @@ body {
   padding: 50px 30px 30px;
   overflow-y: auto;
   position: relative;
-  transition: transform 0.3s ease, opacity 0.3s ease;
+  flex-shrink: 0;
+  transition: transform 0.3s ease, opacity 0.3s ease, width 0.3s ease, padding 0.3s ease, box-shadow 0.3s ease;
+}
+
+#left-sidebar.hidden,
+#right-sidebar.hidden {
+  opacity: 0;
+  pointer-events: none;
+  width: 0;
+  padding: 0;
+  overflow: hidden;
+  box-shadow: none;
 }
 
 #left-sidebar.hidden {
   transform: translateX(-100%);
-  opacity: 0;
-  pointer-events: none;
 }
 
 #right-sidebar.hidden {
   transform: translateX(100%);
   opacity: 0;
-  pointer-events: none;
 }
 
 #left-sidebar {
@@ -53,17 +61,45 @@ body {
   background: #1a1a1a;
 }
 
-#background-image {
+#background-media,
+#background-gradient {
   position: absolute;
   top: 0;
   left: 0;
   width: 100%;
   height: 100%;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+
+#background-media {
+  z-index: 0;
   background-size: cover;
   background-position: center;
   background-repeat: no-repeat;
-  z-index: 0;
-  transition: background-image 0.3s ease;
+  opacity: 0;
+}
+
+#background-media[data-active="image"],
+#background-media[data-active="video"] {
+  opacity: 1;
+}
+
+#background-media-video {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: none;
+}
+
+#background-gradient {
+  z-index: 1;
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+  mix-blend-mode: normal;
+  opacity: 0;
 }
 
 #canvas-overlay {
@@ -72,7 +108,7 @@ body {
   left: 0;
   width: 100%;
   height: 100%;
-  z-index: 1;
+  z-index: 2;
   pointer-events: none;
   display: none;
   transition: opacity 0.3s ease;
@@ -87,7 +123,8 @@ canvas {
   height: 100%;
   display: block;
   position: relative;
-  z-index: 2;
+  z-index: 3;
+  background: transparent;
 }
 
 /* Double-click hint on canvas hover when conversation is ready */
@@ -115,6 +152,11 @@ canvas.conversation-ready {
 
 #canvas-container.conversation-ready:hover::after {
   opacity: 1;
+}
+
+#preview-btn {
+  margin-top: -20px;
+  margin-bottom: 40px;
 }
 
 /* Menu Toggle Button */
@@ -664,8 +706,8 @@ button:disabled {
 .slider-control .slider-checkbox {
   display: flex;
   align-items: center;
-  gap: 8px;
-  margin-top: 6px;
+  gap: 4px;
+  margin-top: 4px;
   font-size: 12px;
   color: #666;
 }
@@ -841,4 +883,64 @@ input[type="checkbox"] {
     opacity: 1;
     transform: translateY(0);
   }
+}
+
+.media-tabs {
+  display: flex;
+  gap: 8px;
+}
+
+.media-tab {
+  flex: 1;
+  padding: 6px 10px;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.04);
+  color: inherit;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.media-tab:hover {
+  background: rgba(255, 255, 255, 0.08);
+}
+
+.media-tab.active {
+  background: rgba(102, 126, 234, 0.25);
+  border-color: rgba(102, 126, 234, 0.6);
+  color: #fff;
+}
+
+.media-controls {
+  margin-top: 12px;
+}
+
+.button-row {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.button-row .button-secondary {
+  flex: 1;
+  min-width: 120px;
+}
+
+/* Version Display */
+#version-display {
+  position: absolute;
+  bottom: 10px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 5;
+  color: rgba(160, 160, 160, 0.6);
+  font-size: 11px;
+  font-weight: 500;
+  letter-spacing: 0.5px;
+  pointer-events: none;
+  user-select: none;
+  font-family: 'Courier New', monospace;
 }

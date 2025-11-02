@@ -44,21 +44,28 @@
         <input type="range" id="volume-slider" min="0" max="100" value="80" title="Volume">
         <span id="volume-icon">🔊</span>
       </div>
+
+      <div id="background-media" data-active="none">
+        <video id="background-media-video" autoplay muted loop playsinline></video>
+      </div>
+      <div id="background-gradient"></div>
       
-      <div id="background-image"></div>
       <div id="canvas-overlay"></div>
       <canvas id="kwami-canvas"></canvas>
       
       <!-- State Indicator (Below Blob) -->
-      <div id="state-indicator" class="state-indicator">
+      <!-- <div id="state-indicator" class="state-indicator">
         <span id="state-text">IDLE</span>
-      </div>
+      </div> -->
 
       <!-- Messages Area (Below Blob) -->
       <div id="messages-container">
         <div id="status" class="message"></div>
         <div id="error" class="message error-message"></div>
       </div>
+
+      <!-- Version Display (dynamically populated) -->
+      <div id="version-display"></div>
       </div>
 
     <!-- Right Sidebar -->
@@ -78,11 +85,18 @@
 
       <!-- Authentication -->
       <div class="section">
-        <div class="section-title">🔑 Authentication</div>
+        <div class="section-title">🧠 Mind (AI Configuration)</div>
         
         <div class="input-group">
-          <label>API Key</label>
-          <input type="password" id="api-key" placeholder="Enter ElevenLabs API Key">
+          <label>ElevenLabs API Key (Required)</label>
+          <input type="password" id="api-key" placeholder="Enter your ElevenLabs API Key">
+          <small style="display: block; color: #888; margin-top: 2px;">Get from elevenlabs.io/settings/api-keys</small>
+        </div>
+        
+        <div class="input-group">
+          <label>Agent ID (Required for Conversations)</label>
+          <input type="text" id="agent-id" placeholder="Enter your ElevenLabs Agent ID">
+          <small style="display: block; color: #888; margin-top: 2px;">Create at elevenlabs.io/app/conversational-ai</small>
         </div>
 
         <button onclick="initializeMind()" id="init-btn">Initialize AI Agent</button>
@@ -118,6 +132,17 @@
           </select>
         </div>
 
+        <div class="input-group">
+          <label>Model</label>
+          <select id="voice-model">
+            <option value="eleven_multilingual_v2" selected>Eleven Multilingual v2 (Recommended)</option>
+            <option value="eleven_turbo_v2">Eleven Turbo v2 (Fastest)</option>
+            <option value="eleven_turbo_v2_5">Eleven Turbo v2.5 (Balanced)</option>
+            <option value="eleven_monolingual_v1">Eleven Monolingual v1 (English Only)</option>
+            <option value="eleven_multilingual_v1">Eleven Multilingual v1 (Legacy)</option>
+          </select>
+        </div>
+
         <div class="input-group" id="custom-voice-container" style="display: none;">
           <label>Custom Voice ID</label>
           <input type="text" id="custom-voice-id" placeholder="Enter custom voice ID">
@@ -129,17 +154,6 @@
             <!-- Dynamically populated -->
           </select>
           <button class="button-secondary" onclick="selectUserVoice()" style="margin-top: 5px;">Use Selected Voice</button>
-        </div>
-
-        <div class="input-group">
-          <label>Model</label>
-          <select id="voice-model">
-            <option value="eleven_multilingual_v2" selected>Eleven Multilingual v2 (Recommended)</option>
-            <option value="eleven_turbo_v2">Eleven Turbo v2 (Fastest)</option>
-            <option value="eleven_turbo_v2_5">Eleven Turbo v2.5 (Balanced)</option>
-            <option value="eleven_monolingual_v1">Eleven Monolingual v1 (English Only)</option>
-            <option value="eleven_multilingual_v1">Eleven Multilingual v1 (Legacy)</option>
-          </select>
         </div>
 
         <div class="input-group">
@@ -163,6 +177,8 @@
           </select>
         </div>
       </div>
+
+      <button onclick="previewVoice()" id="preview-btn" disabled class="button-secondary">👂 Preview Voice</button>
 
       <!-- Voice Settings (Fine-tuning) -->
       <div class="section">
@@ -237,15 +253,11 @@
       <div class="section">
         <div class="section-title">💬 Conversational AI</div>
         
-        <div class="input-group">
-          <label>Agent ID (Required for Conversations)</label>
-          <input type="text" id="agent-id" placeholder="Enter your ElevenLabs Agent ID">
-          <small style="display: block; color: #888; margin-top: 2px;">Get your agent ID from elevenlabs.io dashboard</small>
-        </div>
-        
-        <!-- Container for embedded conversation iframe -->
-        <div id="elevenlabs-embed-container" style="display: none; margin-top: 15px; border-radius: 12px; overflow: hidden; background: #1a1a1a;">
-          <!-- Iframe will be inserted here dynamically -->
+        <!-- Conversation status container -->
+        <div id="conversation-status-container" style="display: none; margin-top: 15px; padding: 15px; border-radius: 12px; background: #1a1a1a; border: 1px solid #333;">
+          <div id="conversation-status-message" style="color: #888; font-size: 14px;">
+            <!-- Status messages will appear here -->
+          </div>
         </div>
 
         <div class="input-group">
@@ -336,7 +348,6 @@
         </div>
 
         <button onclick="speak()" id="speak-btn" disabled>🎤 Speak Text</button>
-        <button onclick="previewVoice()" id="preview-btn" disabled class="button-secondary">👂 Preview Voice</button>
         
         <div id="generation-status" style="margin-top: 10px; display: none;">
           <small style="color: #888;">Status: <span id="generation-status-text">Ready</span></small>
@@ -383,62 +394,42 @@
       <h2>🎨 Body</h2>
       <p class="subtitle">Visual Configuration</p>
 
-      <!-- Background -->
       <div class="section">
         <div class="section-title">🌈 Background</div>
         
-        <div class="input-group">
-          <label>Canvas Background</label>
-          <select id="bg-type">
-            <option value="gradient">Gradient</option>
-            <option value="solid">Solid Color</option>
-            <option value="transparent">Transparent</option>
-          </select>
-        </div>
+        <div class="parameter-group">
+          <div class="parameter-group-title">Canvas Gradient</div>
 
-        <div id="opacity-control">
           <div class="slider-control">
             <label>Opacity <span class="value-display" id="bg-opacity-value">1.0</span></label>
             <input type="range" id="bg-opacity" min="0" max="1" step="0.01" value="1">
           </div>
-        </div>
 
-        <div class="input-group">
-          <label>Background Image</label>
-          <select id="bg-image">
-            <option value="">None</option>
-            <option value="alaska.jpeg">Alaska</option>
-            <option value="binary-reality.jpg">Binary Reality</option>
-            <option value="black-candle.jpg">Black Candle</option>
-            <option value="black-hole.jpg">Black Hole</option>
-            <option value="black-sea.jpg">Black Sea</option>
-            <option value="black-windows.jpg">Black Windows</option>
-            <option value="black.jpg">Black</option>
-            <option value="colors.jpeg">Colors</option>
-            <option value="galaxy.jpg">Galaxy</option>
-            <option value="galaxy2.jpg">Galaxy 2</option>
-            <option value="galaxy3.jpg">Galaxy 3</option>
-            <option value="galaxy4.jpg">Galaxy 4</option>
-            <option value="gargantua.jpg">Gargantua</option>
-            <option value="interstellar.png">Interstellar</option>
-            <option value="islan.jpg">Island</option>
-            <option value="lake.jpg">Lake</option>
-            <option value="mountain.jpeg">Mountain</option>
-            <option value="paisaje.jpg">Paisaje</option>
-            <option value="pik.jpg">Pik</option>
-            <option value="planet.jpg">Planet</option>
-            <option value="planet2.jpg">Planet 2</option>
-            <option value="planet3.jpg">Planet 3</option>
-            <option value="sahara.jpeg">Sahara</option>
-            <option value="skinet.png">Skinet</option>
-            <option value="skynet.png">Skynet</option>
-            <option value="universe.jpg">Universe</option>
-            <option value="white-tree.jpg">White Tree</option>
-          </select>
-        </div>
+          <div class="slider-control">
+            <label>Angle <span class="value-display" id="bg-gradient-angle-value">90</span>°</label>
+            <input type="range" id="bg-gradient-angle" min="0" max="360" step="1" value="90">
+          </div>
 
-        <div id="gradient-controls">
-          <div class="parameter-group">
+          <div class="slider-control">
+            <label>Color Stop 1 <span class="value-display" id="bg-gradient-stop1-value">50</span>%</label>
+            <input type="range" id="bg-gradient-stop1" min="0" max="100" step="1" value="50">
+          </div>
+
+          <div class="slider-control">
+            <label>Color Stop 2 <span class="value-display" id="bg-gradient-stop2-value">100</span>%</label>
+            <input type="range" id="bg-gradient-stop2" min="0" max="100" step="1" value="100">
+          </div>
+
+          <div class="input-group">
+            <label>Gradient Layout</label>
+            <select id="bg-gradient-style">
+              <option value="linear">Linear</option>
+              <option value="radial">Radial</option>
+              <option value="random">Random</option>
+            </select>
+          </div>
+
+          <div class="parameter-group gradient-color-group">
             <div class="parameter-group-title">Gradient Colors</div>
             <div class="color-control">
               <label>Color 1</label>
@@ -454,26 +445,78 @@
             </div>
           </div>
 
+          <button class="button-secondary" onclick="randomizeBackground()">🎲 Random Gradient</button>
+        </div>
+
+        <div class="parameter-group">
+          <div class="parameter-group-title">Media Overlay</div>
+
           <div class="input-group">
-            <label>Direction</label>
-            <select id="bg-direction">
-              <option value="vertical">Vertical</option>
-              <option value="horizontal">Horizontal</option>
-              <option value="radial">Radial</option>
-            </select>
+            <label>Media Source</label>
+            <div class="media-tabs" id="bg-media-tabs">
+              <button type="button" class="media-tab active" data-media="none">None</button>
+              <button type="button" class="media-tab" data-media="image">Image</button>
+              <button type="button" class="media-tab" data-media="video">Video</button>
+            </div>
+          </div>
+
+          <div id="media-image-controls" class="media-controls" style="display: none;">
+            <div class="input-group">
+              <label>Image Presets</label>
+              <select id="bg-media-image">
+                <option value="">None</option>
+                <option value="src/assets/img/alaska.jpeg">Alaska</option>
+                <option value="src/assets/img/binary-reality.jpg">Binary Reality</option>
+                <option value="src/assets/img/black-candle.jpg">Black Candle</option>
+                <option value="src/assets/img/black-hole.jpg">Black Hole</option>
+                <option value="src/assets/img/black-sea.jpg">Black Sea</option>
+                <option value="src/assets/img/black-windows.jpg">Black Windows</option>
+                <option value="src/assets/img/black.jpg">Black</option>
+                <option value="src/assets/img/colors.jpeg">Colors</option>
+                <option value="src/assets/img/galaxy.jpg">Galaxy</option>
+                <option value="src/assets/img/galaxy2.jpg">Galaxy 2</option>
+                <option value="src/assets/img/galaxy3.jpg">Galaxy 3</option>
+                <option value="src/assets/img/galaxy4.jpg">Galaxy 4</option>
+                <option value="src/assets/img/gargantua.jpg">Gargantua</option>
+                <option value="src/assets/img/interstellar.png">Interstellar</option>
+                <option value="src/assets/img/islan.jpg">Island</option>
+                <option value="src/assets/img/lake.jpg">Lake</option>
+                <option value="src/assets/img/mountain.jpeg">Mountain</option>
+                <option value="src/assets/img/paisaje.jpg">Paisaje</option>
+                <option value="src/assets/img/pik.jpg">Pik</option>
+                <option value="src/assets/img/planet.jpg">Planet</option>
+                <option value="src/assets/img/planet2.jpg">Planet 2</option>
+                <option value="src/assets/img/planet3.jpg">Planet 3</option>
+                <option value="src/assets/img/sahara.jpeg">Sahara</option>
+                <option value="src/assets/img/skinet.png">Skinet</option>
+                <option value="src/assets/img/skynet.png">Skynet</option>
+                <option value="src/assets/img/universe.jpg">Universe</option>
+                <option value="src/assets/img/white-tree.jpg">White Tree</option>
+              </select>
+            </div>
+            <div class="button-row">
+              <button class="button-secondary" type="button" onclick="randomizeMediaSelection('image')">🎴 Random Image</button>
+              <button class="button-secondary" type="button" onclick="clearMediaSelection('image')">🚫 Clear Image</button>
+            </div>
+          </div>
+
+          <div id="media-video-controls" class="media-controls" style="display: none;">
+            <div class="input-group">
+              <label>Video Presets</label>
+              <select id="bg-media-video">
+                <option value="">Select a video...</option>
+                <option value="src/assets/vid/stars.mp4">Stars (Local)</option>
+                <option value="https://storage.coverr.co/videos/coverr-blue-particles-background-1581083411/1080p.mp4">Blue Particles</option>
+                <option value="https://storage.coverr.co/videos/coverr-purple-nebula-1584717401/1080p.mp4">Purple Nebula</option>
+                <option value="https://storage.coverr.co/videos/coverr-journey-through-space-1570107498/1080p.mp4">Space Journey</option>
+              </select>
+            </div>
+            <div class="button-row">
+              <button class="button-secondary" type="button" onclick="randomizeMediaSelection('video')">🎥 Random Video</button>
+              <button class="button-secondary" type="button" onclick="clearMediaSelection('video')">🚫 Clear Video</button>
+            </div>
           </div>
         </div>
-
-        <div id="solid-controls" style="display: none;">
-          <div class="color-control">
-            <label>Background Color</label>
-            <input type="color" id="bg-solid-color" value="#667eea">
-          </div>
-        </div>
-
-
-        <button class="button-secondary" onclick="randomizeBackground()">🎲 Randomize Background</button>
-        <button class="button-secondary" onclick="randomizeBackgroundImage()">🖼️ Random Image</button>
       </div>
 
       <!-- Geometry & Motion -->
@@ -646,16 +689,28 @@
           <div class="parameter-group-title">Frequency Modulation</div>
           <p class="parameter-info">Boost how strongly each frequency band pushes the blob. <span style="display:block;color:#999;font-size:11px;">The blob remembers your settings per skin.</span></p>
           <div class="slider-control">
-            <label>Bass Movement <span class="value-display" id="audio-bass-spike-value">0.45</span></label>
-            <input type="range" id="audio-bass-spike" min="0" max="1" step="0.05" value="0.45">
+            <label>Bass Movement <span class="value-display" id="audio-bass-spike-value">0.65</span></label>
+            <input type="range" id="audio-bass-spike" min="0" max="1" step="0.05" value="0.65">
           </div>
           <div class="slider-control">
-            <label>Mid Flow <span class="value-display" id="audio-mid-spike-value">0.35</span></label>
-            <input type="range" id="audio-mid-spike" min="0" max="1" step="0.05" value="0.35">
+            <label>Mid Flow <span class="value-display" id="audio-mid-spike-value">0.50</span></label>
+            <input type="range" id="audio-mid-spike" min="0" max="1" step="0.05" value="0.50">
           </div>
           <div class="slider-control">
-            <label>High Detail <span class="value-display" id="audio-high-spike-value">0.30</span></label>
-            <input type="range" id="audio-high-spike" min="0" max="1" step="0.05" value="0.30">
+            <label>High Detail <span class="value-display" id="audio-high-spike-value">0.38</span></label>
+            <input type="range" id="audio-high-spike" min="0" max="1" step="0.05" value="0.38">
+          </div>
+          <div class="slider-control">
+            <label>Audio Reactivity <span class="value-display" id="audio-reactivity-value">1.90</span></label>
+            <input type="range" id="audio-reactivity" min="0.5" max="3" step="0.05" value="1.90">
+          </div>
+          <div class="slider-control">
+            <label>Sensitivity Threshold <span class="value-display" id="audio-sensitivity-value">0.08</span></label>
+            <input type="range" id="audio-sensitivity" min="0.01" max="0.3" step="0.005" value="0.08">
+          </div>
+          <div class="slider-control">
+            <label>Breathing (Idle) <span class="value-display" id="audio-breathing-value">0.04</span></label>
+            <input type="range" id="audio-breathing" min="0" max="0.1" step="0.005" value="0.04">
           </div>
         </div>
 
@@ -670,16 +725,16 @@
             </label>
           </div>
           <div class="slider-control">
-            <label>Mid → Speed <span class="value-display" id="audio-mid-time-value">0.2</span></label>
-            <input type="range" id="audio-mid-time" min="0" max="2" step="0.1" value="0.2">
+            <label>Mid → Speed <span class="value-display" id="audio-mid-time-value">0.10</span></label>
+            <input type="range" id="audio-mid-time" min="0" max="2" step="0.05" value="0.10">
           </div>
           <div class="slider-control">
-            <label>High → Speed <span class="value-display" id="audio-high-time-value">0.3</span></label>
-            <input type="range" id="audio-high-time" min="0" max="2" step="0.1" value="0.3">
+            <label>High → Speed <span class="value-display" id="audio-high-time-value">0.18</span></label>
+            <input type="range" id="audio-high-time" min="0" max="2" step="0.05" value="0.18">
           </div>
           <div class="slider-control">
-            <label>Ultra → Speed <span class="value-display" id="audio-ultra-time-value">0.15</span></label>
-            <input type="range" id="audio-ultra-time" min="0" max="2" step="0.1" value="0.15">
+            <label>Ultra → Speed <span class="value-display" id="audio-ultra-time-value">0.08</span></label>
+            <input type="range" id="audio-ultra-time" min="0" max="2" step="0.05" value="0.08">
           </div>
         </div>
 
@@ -696,8 +751,8 @@
             </select>
           </div>
           <div class="slider-control">
-            <label>Smoothing <span class="value-display" id="smoothing-value">0.7</span></label>
-            <input type="range" id="smoothing" min="0" max="1" step="0.05" value="0.7">
+            <label>Smoothing <span class="value-display" id="smoothing-value">0.35</span></label>
+            <input type="range" id="smoothing" min="0" max="1" step="0.05" value="0.35">
           </div>
         </div>
 

@@ -77,14 +77,17 @@ export class Blob {
   
   // Audio effect parameters (configurable from playground)
   public audioEffects = {
-    bassSpike: 0.45,
-    midSpike: 0.35,
-    highSpike: 0.30,
-    midTime: 0.2,
-    highTime: 0.3,
-    ultraTime: 0.15,
+    bassSpike: 0.65,
+    midSpike: 0.5,
+    highSpike: 0.38,
+    midTime: 0.1,
+    highTime: 0.18,
+    ultraTime: 0.08,
     enabled: true,
-    timeEnabled: false  // Disabled by default to prevent chaotic movement
+    timeEnabled: false,  // Disabled by default to prevent chaotic movement
+    reactivity: 1.9,
+    sensitivity: 0.075,
+    breathing: 0.035,
   };
   public colors = { x: '#ff0000', y: '#00ff00', z: '#0000ff' };
   public opacity = 1;
@@ -262,7 +265,7 @@ export class Blob {
           ? (Date.now() - this.thinkingStartTime) / this.thinkingDuration // 0 to 1 over duration
           : 0;
         
-        animateBlob(
+        const audioDriven = animateBlob(
           this.mesh,
           frequencyData,
           analyser,
@@ -279,6 +282,18 @@ export class Blob {
           thinkingProgress,
           this.audioEffects,
         );
+
+        // Suspend rotation updates when audio is actively driving the blob
+        if (!audioDriven) {
+          this.mesh.rotation.x += this.rotation.x;
+          this.mesh.rotation.y += this.rotation.y;
+          this.mesh.rotation.z += this.rotation.z;
+        }
+      } else {
+        // If no analyser is present fall back to base rotation
+        this.mesh.rotation.x += this.rotation.x;
+        this.mesh.rotation.y += this.rotation.y;
+        this.mesh.rotation.z += this.rotation.z;
       }
 
       // Clean up expired touch points
@@ -286,11 +301,6 @@ export class Blob {
       this.touchPoints = this.touchPoints.filter(
         tp => (currentTime - tp.startTime) < tp.duration
       );
-
-      // Apply rotation
-      this.mesh.rotation.x += this.rotation.x;
-      this.mesh.rotation.y += this.rotation.y;
-      this.mesh.rotation.z += this.rotation.z;
 
       // Render
       this.options.renderer.render(this.options.scene, this.options.camera);

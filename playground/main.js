@@ -15,6 +15,318 @@ const sectionLabels = {
   soul: '✨ Soul'
 };
 
+let menusCollapsed = false;
+
+function applySidebarVisibility() {
+  const leftSidebar = document.getElementById('left-sidebar');
+  const rightSidebar = document.getElementById('right-sidebar');
+
+  [leftSidebar, rightSidebar].forEach((sidebar) => {
+    if (!sidebar) return;
+    sidebar.classList.toggle('hidden', menusCollapsed);
+    sidebar.setAttribute('aria-hidden', menusCollapsed ? 'true' : 'false');
+  });
+}
+
+function updateMenuToggleButton() {
+  const icon = document.getElementById('menu-toggle-icon');
+  const toggleButton = document.getElementById('menu-toggle-btn');
+
+  if (icon) {
+    icon.textContent = menusCollapsed ? '☰' : '✕';
+  }
+
+  if (toggleButton) {
+    toggleButton.setAttribute('aria-expanded', String(!menusCollapsed));
+    toggleButton.setAttribute('aria-pressed', String(!menusCollapsed));
+    toggleButton.setAttribute('title', menusCollapsed ? 'Show Sidebars' : 'Hide Sidebars');
+  }
+}
+
+window.toggleMenus = function() {
+  menusCollapsed = !menusCollapsed;
+  applySidebarVisibility();
+  updateMenuToggleButton();
+};
+
+const audioPlayerState = {
+  initialized: false,
+  displayName: 'No audio loaded',
+  lastVolume: 0.8,
+};
+
+const githubStarState = {
+  initialized: false,
+  lastFetchedAt: 0,
+};
+
+function getKwamiAudio() {
+  return window.kwami?.body?.audio;
+}
+
+function initializeAudioPlayer() {
+  if (audioPlayerState.initialized) {
+    return;
+  }
+
+  const fileInput = document.getElementById('audio-file');
+  const uploadButton = document.getElementById('upload-audio-btn');
+  const playPauseButton = document.getElementById('play-pause-btn');
+  const volumeSlider = document.getElementById('volume-slider');
+  const volumeIcon = document.getElementById('volume-icon');
+  const audioName = document.getElementById('audio-name');
+  const audioTime = document.getElementById('audio-time');
+
+  if (!fileInput || !uploadButton || !playPauseButton || !volumeSlider || !volumeIcon || !audioName || !audioTime) {
+    console.warn('Audio player elements missing; skipping initialization');
+    return;
+  }
+
+  const kwamiAudio = getKwamiAudio();
+  const audioElement = kwamiAudio?.getAudioElement?.();
+
+  if (!kwamiAudio || !audioElement) {
+    console.warn('Kwami audio instance not available; skipping audio player initialization');
+    return;
+  }
+
+  const deriveNameFromSrc = (src) => {
+    if (!src) {
+      return '';
+    }
+
+    if (audioPlayerState.displayName && audioPlayerState.displayName !== 'No audio loaded') {
+      return audioPlayerState.displayName;
+    }
+
+    if (src.startsWith('blob:')) {
+      return 'Uploaded Audio';
+    }
+
+    try {
+      const url = new URL(src, window.location.href);
+      const pathname = url.pathname || '';
+      const filename = pathname.substring(pathname.lastIndexOf('/') + 1);
+      return filename ? decodeURIComponent(filename) : url.host || 'Audio Track';
+    } catch (error) {
+      const sanitized = src.split('?')[0];
+      const filename = sanitized.substring(sanitized.lastIndexOf('/') + 1);
+      return filename || 'Audio Track';
+    }
+  };
+
+  const setDisplayName = (name) => {
+    audioPlayerState.displayName = name;
+    audioName.textContent = name;
+  };
+
+  const updateTimeDisplay = () => {
+    const current = kwamiAudio.formatTime(kwamiAudio.getCurrentTime());
+    const duration = kwamiAudio.formatTime(kwamiAudio.getDuration());
+    audioTime.textContent = `${current} / ${duration}`;
+  };
+
+  const updatePlayPauseState = () => {
+    const hasSource = Boolean(audioElement.src);
+    playPauseButton.disabled = !hasSource;
+    if (kwamiAudio.isPlaying()) {
+      playPauseButton.textContent = '⏸';
+      playPauseButton.title = 'Pause';
+    } else {
+      playPauseButton.textContent = '▶️';
+      playPauseButton.title = hasSource ? 'Play' : 'No audio loaded';
+    }
+  };
+
+  const updateVolumeUI = (volume) => {
+    const normalized = Math.max(0, Math.min(1, Number.isFinite(volume) ? volume : 0));
+    volumeSlider.value = String(Math.round(normalized * 100));
+
+    let icon = '🔊';
+    if (normalized === 0) {
+      icon = '🔇';
+    } else if (normalized < 0.34) {
+      icon = '🔈';
+    } else if (normalized < 0.67) {
+      icon = '🔉';
+    }
+
+    volumeIcon.textContent = icon;
+  };
+
+  uploadButton.addEventListener('click', () => {
+    fileInput.click();
+  });
+
+  fileInput.addEventListener('change', async (event) => {
+    const target = event.target;
+    const file = target?.files?.[0];
+    if (!file) {
+      return;
+    }
+
+    try {
+      await kwamiAudio.loadAudioFile(file);
+      setDisplayName(file.name);
+      updateTimeDisplay();
+      updatePlayPauseState();
+      updateStatus(`🎵 Loaded "${file.name}"`);
+    } catch (error) {
+      console.error('Failed to load audio file:', error);
+      showError('Failed to load audio file. Please try another file.');
+    } finally {
+      target.value = '';
+    }
+  });
+
+  playPauseButton.addEventListener('click', async () => {
+    if (playPauseButton.disabled) {
+      return;
+    }
+
+    try {
+      await kwamiAudio.togglePlayPause();
+    } catch (error) {
+      console.error('Failed to toggle audio playback:', error);
+      showError('Unable to play audio. Please check the file format.');
+    }
+  });
+
+  volumeSlider.addEventListener('input', (event) => {
+    const sliderValue = Number(event.target?.value ?? 80);
+    const volume = Math.max(0, Math.min(100, sliderValue)) / 100;
+    kwamiAudio.setVolume(volume);
+
+    if (volume > 0) {
+      audioPlayerState.lastVolume = volume;
+    }
+
+    updateVolumeUI(volume);
+  });
+
+  volumeIcon.addEventListener('click', () => {
+    if (audioElement.volume === 0) {
+      const restoreVolume = audioPlayerState.lastVolume || 0.8;
+      kwamiAudio.setVolume(restoreVolume);
+      updateVolumeUI(restoreVolume);
+    } else {
+      audioPlayerState.lastVolume = audioElement.volume;
+      kwamiAudio.setVolume(0);
+      updateVolumeUI(0);
+    }
+  });
+
+  audioElement.addEventListener('timeupdate', updateTimeDisplay);
+  audioElement.addEventListener('loadedmetadata', updateTimeDisplay);
+  audioElement.addEventListener('play', updatePlayPauseState);
+  audioElement.addEventListener('pause', updatePlayPauseState);
+  audioElement.addEventListener('ended', () => {
+    kwamiAudio.setCurrentTime(0);
+    updateTimeDisplay();
+    updatePlayPauseState();
+  });
+  audioElement.addEventListener('volumechange', () => {
+    const volume = audioElement.volume;
+    if (volume > 0) {
+      audioPlayerState.lastVolume = volume;
+    }
+    updateVolumeUI(volume);
+  });
+  audioElement.addEventListener('error', (event) => {
+    console.error('Audio element error:', event);
+    showError('Audio playback error occurred.');
+    updatePlayPauseState();
+  });
+
+  const initialName = deriveNameFromSrc(audioElement.src);
+  setDisplayName(initialName || 'No audio loaded');
+  updateTimeDisplay();
+  updatePlayPauseState();
+
+  const sliderInitialValue = Number(volumeSlider.value ?? 80);
+  let initialVolume = Math.max(0, Math.min(100, sliderInitialValue)) / 100;
+  if (!Number.isFinite(initialVolume)) {
+    initialVolume = 0.8;
+  }
+
+  kwamiAudio.setVolume(initialVolume);
+  audioPlayerState.lastVolume = initialVolume;
+  updateVolumeUI(initialVolume);
+
+  audioPlayerState.initialized = true;
+}
+
+async function fetchGitHubStars() {
+  const now = Date.now();
+  if (now - githubStarState.lastFetchedAt < 5 * 60 * 1000) {
+    // Skip refetching within 5 minutes
+    return;
+  }
+
+  const starCountElement = document.getElementById('star-count');
+  if (!starCountElement) {
+    console.warn('Star count element not found; skipping fetch');
+    return;
+  }
+
+  starCountElement.textContent = '…';
+
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), 8000);
+
+  try {
+    const response = await fetch('https://api.github.com/repos/alexcolls/kwami', {
+      headers: {
+        Accept: 'application/vnd.github+json',
+        'User-Agent': 'kwami-playground',
+      },
+      signal: controller.signal,
+    });
+
+    if (!response.ok) {
+      throw new Error(`GitHub API responded with ${response.status}`);
+    }
+
+    const data = await response.json();
+    const stars = data?.stargazers_count;
+
+    if (typeof stars === 'number' && Number.isFinite(stars)) {
+      starCountElement.textContent = stars.toLocaleString();
+      githubStarState.lastFetchedAt = now;
+    } else {
+      throw new Error('Invalid star count in response');
+    }
+  } catch (error) {
+    console.warn('Failed to fetch GitHub stars:', error);
+    starCountElement.textContent = 'N/A';
+    starCountElement.title = 'Unable to fetch star count';
+  } finally {
+    clearTimeout(timeoutId);
+  }
+}
+
+function initializeGitHubStarButton() {
+  if (githubStarState.initialized) {
+    return;
+  }
+
+  const starButton = document.getElementById('github-star-btn');
+  const starCountElement = document.getElementById('star-count');
+
+  if (!starButton || !starCountElement) {
+    console.warn('GitHub star button elements missing; skipping initialization');
+    return;
+  }
+
+  starButton.addEventListener('mouseenter', fetchGitHubStars, { once: true });
+  starButton.addEventListener('focus', fetchGitHubStars, { once: true });
+  fetchGitHubStars().catch(() => {
+    // Errors handled inside fetchGitHubStars
+  });
+
+  githubStarState.initialized = true;
+}
+
 // Initialize sidebars
 function initializeSidebars() {
   renderSidebar('left', sidebarState.left);
@@ -187,41 +499,62 @@ const DEFAULT_VALUES = {
 
 // Default background settings
 const DEFAULT_BACKGROUND = {
-  type: 'gradient',
   colors: ['#667eea', '#764ba2', '#f093fb'],
-  direction: 'vertical',
-  opacity: 1.0
+  opacity: 1.0,
+  angle: 90,
+  stops: [0, 0.5, 1],
+  style: 'linear',
 };
 
 const BACKGROUND_IMAGES = [
-  'alaska.jpeg',
-  'binary-reality.jpg',
-  'black-candle.jpg',
-  'black-hole.jpg',
-  'black-sea.jpg',
-  'black-windows.jpg',
-  'black.jpg',
-  'colors.jpeg',
-  'galaxy.jpg',
-  'galaxy2.jpg',
-  'galaxy3.jpg',
-  'galaxy4.jpg',
-  'gargantua.jpg',
-  'interstellar.png',
-  'islan.jpg',
-  'lake.jpg',
-  'mountain.jpeg',
-  'paisaje.jpg',
-  'pik.jpg',
-  'planet.jpg',
-  'planet2.jpg',
-  'planet3.jpg',
-  'sahara.jpeg',
-  'skinet.png',
-  'skynet.png',
-  'universe.jpg',
-  'white-tree.jpg'
+  'src/assets/img/alaska.jpeg',
+  'src/assets/img/binary-reality.jpg',
+  'src/assets/img/black-candle.jpg',
+  'src/assets/img/black-hole.jpg',
+  'src/assets/img/black-sea.jpg',
+  'src/assets/img/black-windows.jpg',
+  'src/assets/img/black.jpg',
+  'src/assets/img/colors.jpeg',
+  'src/assets/img/galaxy.jpg',
+  'src/assets/img/galaxy2.jpg',
+  'src/assets/img/galaxy3.jpg',
+  'src/assets/img/galaxy4.jpg',
+  'src/assets/img/gargantua.jpg',
+  'src/assets/img/interstellar.png',
+  'src/assets/img/islan.jpg',
+  'src/assets/img/lake.jpg',
+  'src/assets/img/mountain.jpeg',
+  'src/assets/img/paisaje.jpg',
+  'src/assets/img/pik.jpg',
+  'src/assets/img/planet.jpg',
+  'src/assets/img/planet2.jpg',
+  'src/assets/img/planet3.jpg',
+  'src/assets/img/sahara.jpeg',
+  'src/assets/img/skinet.png',
+  'src/assets/img/skynet.png',
+  'src/assets/img/universe.jpg',
+  'src/assets/img/white-tree.jpg'
 ];
+
+const imageModules = import.meta.glob('../src/assets/img/*', { as: 'url', eager: true });
+const videoModules = import.meta.glob('../src/assets/vid/*', { as: 'url', eager: true });
+
+function buildAssetMap(modules) {
+  const map = {};
+  Object.entries(modules).forEach(([path, url]) => {
+    const normalized = path.replace(/^\.\.\//, '');
+    const filename = normalized.split('/').pop();
+    map[path] = url;
+    map[normalized] = url;
+    if (filename) {
+      map[filename] = url;
+    }
+  });
+  return map;
+}
+
+const IMAGE_ASSET_MAP = buildAssetMap(imageModules);
+const VIDEO_ASSET_MAP = buildAssetMap(videoModules);
 
 // Counter for background randomization clicks
 let backgroundRandomizeClickCount = 0;
@@ -230,6 +563,8 @@ let backgroundRandomizeClickCount = 0;
 let blobImageTransparencyEnabled = false;
 let blobImageTransparencyMode = 'overlay';
 let currentBackgroundImage = '';
+let currentBackgroundVideo = '';
+let currentMediaType = 'none';
 
 // Default camera position
 const DEFAULT_CAMERA_POSITION = {
@@ -242,83 +577,651 @@ const DEFAULT_CAMERA_POSITION = {
 // Background Functions (defined early for initialization)
 // ============================================================================
 
-window.randomizeBackground = function() {
-  // Random color generator
-  const randomColor = () => '#' + Math.floor(Math.random()*16777215).toString(16).padStart(6, '0');
-  
-  // Increment click counter
-  backgroundRandomizeClickCount++;
-  
-  // Always use gradient
-  document.getElementById('bg-type').value = 'gradient';
-  
-  // Show gradient controls
-  document.getElementById('gradient-controls').style.display = 'block';
-  document.getElementById('solid-controls').style.display = 'none';
-  document.getElementById('opacity-control').style.display = 'block';
-  
-  // Randomize gradient colors
-  document.getElementById('bg-color-1').value = randomColor();
-  document.getElementById('bg-color-2').value = randomColor();
-  document.getElementById('bg-color-3').value = randomColor();
-  
-  // Random direction
-  const directions = ['vertical', 'horizontal', 'radial'];
-  document.getElementById('bg-direction').value = directions[Math.floor(Math.random() * directions.length)];
-  
-  // Opacity pattern: 1, 1, <1, 1, 1, <1, ...
-  let opacity;
-  if (backgroundRandomizeClickCount % 3 === 0) {
-    // Every third click: random opacity less than 1.0 (between 0.3 and 0.9)
-    opacity = (Math.random() * 0.6 + 0.3).toFixed(2);
-  } else {
-    // First and second clicks: full opacity
-    opacity = '1.00';
-  }
-  
-  document.getElementById('bg-opacity').value = opacity;
-  updateValueDisplay('bg-opacity-value', opacity, 2);
-  
-  applyBackground();
-  updateStatus('🎲 Background randomized!');
-};
+function randomizeGradientLayout({ updateInputs = false } = {}) {
+  const angle = Math.floor(Math.random() * 361);
+  const stop1Percent = Math.floor(Math.random() * 81) + 10;
+  const stop2PercentRaw = Math.floor(Math.random() * (101 - stop1Percent)) + stop1Percent;
+  const stop2Percent = Math.min(stop2PercentRaw, 100);
 
-// Set background image
-function setBackgroundImage(imageName) {
-  const bgImageElement = document.getElementById('background-image');
-  if (!bgImageElement) return;
-  
-  if (imageName && imageName !== '') {
-    bgImageElement.style.backgroundImage = `url('assets/${imageName}')`;
-    updateStatus(`🖼️ Background image set to ${imageName}`);
-  } else {
-    bgImageElement.style.backgroundImage = 'none';
-    updateStatus('Background image removed');
+  if (updateInputs) {
+    const angleSlider = document.getElementById('bg-gradient-angle');
+    if (angleSlider) angleSlider.value = String(angle);
+    updateValueDisplay('bg-gradient-angle-value', angle, 0);
+
+    const stop1Slider = document.getElementById('bg-gradient-stop1');
+    if (stop1Slider) stop1Slider.value = String(stop1Percent);
+    updateValueDisplay('bg-gradient-stop1-value', stop1Percent, 0);
+
+    const stop2Slider = document.getElementById('bg-gradient-stop2');
+    if (stop2Slider) stop2Slider.value = String(stop2Percent);
+    updateValueDisplay('bg-gradient-stop2-value', stop2Percent, 0);
   }
 
-  currentBackgroundImage = imageName || '';
+  return {
+    angle,
+    stop1Percent,
+    stop2Percent,
+    stops: [0, stop1Percent / 100, stop2Percent / 100],
+  };
+}
 
-  if (window.kwami && window.kwami.body && typeof window.kwami.body.setBlobBackgroundImage === 'function') {
-    const imagePath = currentBackgroundImage ? `assets/${currentBackgroundImage}` : null;
-    window.kwami.body.setBlobBackgroundImage(imagePath);
+function resolveAsset(map, rawValue) {
+  if (!rawValue) return null;
+
+  const variants = [rawValue];
+  variants.push(rawValue.replace(/^\.\/+/, ''));
+  variants.push(rawValue.replace(/^\/+/, ''));
+  variants.push(rawValue.replace(/^\.\.\//, ''));
+
+  const filename = rawValue.split('/').pop();
+  if (filename) {
+    variants.push(filename);
+  }
+
+  for (const candidate of variants) {
+    if (map[candidate]) {
+      return map[candidate];
+    }
+  }
+
+  return null;
+}
+
+function resolveMediaPath(value) {
+  if (!value) return '';
+  if (/^(https?:)?\/\//i.test(value)) {
+    return value;
+  }
+
+  const imageAsset = resolveAsset(IMAGE_ASSET_MAP, value);
+  if (imageAsset) return imageAsset;
+
+  const videoAsset = resolveAsset(VIDEO_ASSET_MAP, value);
+  if (videoAsset) return videoAsset;
+
+  return value;
+}
+
+function getMediaOptions(type) {
+  const selectId = type === 'video' ? 'bg-media-video' : 'bg-media-image';
+  const select = document.getElementById(selectId);
+  if (!select) return [];
+  return Array.from(select.options)
+    .map((option) => option.value)
+    .filter((value) => value && value.trim() !== '');
+}
+
+function updateMediaTabs(activeType) {
+  const tabs = document.querySelectorAll('#bg-media-tabs .media-tab');
+  tabs.forEach((tab) => {
+    tab.classList.toggle('active', tab.dataset.media === activeType);
+  });
+}
+
+function showMediaControls(activeType) {
+  const imageControls = document.getElementById('media-image-controls');
+  const videoControls = document.getElementById('media-video-controls');
+  if (imageControls) imageControls.style.display = activeType === 'image' ? 'block' : 'none';
+  if (videoControls) videoControls.style.display = activeType === 'video' ? 'block' : 'none';
+}
+
+function getBackgroundElements() {
+  return {
+    mediaContainer: document.getElementById('background-media'),
+    videoElement: document.getElementById('background-media-video'),
+    gradientElement: document.getElementById('background-gradient'),
+  };
+}
+
+function generateRandomSpheresTexture(colors) {
+  const canvas = document.createElement('canvas');
+  canvas.width = 512;
+  canvas.height = 512;
+  const ctx = canvas.getContext('2d');
+  if (!ctx) {
+    return null;
+  }
+
+  ctx.fillStyle = colors[0];
+  ctx.globalAlpha = 0.35;
+  ctx.fillRect(0, 0, 512, 512);
+  ctx.globalAlpha = 1;
+
+  for (let i = 0; i < 3; i++) {
+    const color = colors[i % colors.length];
+    const x = Math.random() * 512;
+    const y = Math.random() * 512;
+    const radius = 150 + Math.random() * 200;
+
+    const gradient = ctx.createRadialGradient(x, y, 0, x, y, radius);
+    gradient.addColorStop(0, color);
+    gradient.addColorStop(0.45, `${color}90`);
+    gradient.addColorStop(1, `${color}00`);
+
+    ctx.fillStyle = gradient;
+    ctx.fillRect(0, 0, 512, 512);
+  }
+
+  return canvas.toDataURL('image/png');
+}
+
+function updateGradientOverlay({ colors, stops, angle, style, opacity }) {
+  const { gradientElement } = getBackgroundElements();
+  if (!gradientElement) return;
+
+  if (!colors || opacity <= 0) {
+    gradientElement.style.opacity = '0';
+    gradientElement.style.backgroundImage = 'none';
+    gradientElement.style.display = 'none';
+    return;
+  }
+
+  let backgroundImage = '';
+  const percentStops = Array.isArray(stops)
+    ? stops.map((stop, index) => {
+        if (!Number.isFinite(stop)) {
+          return index === 0 ? 0 : index === 1 ? 50 : 100;
+        }
+        return Math.round(Math.max(0, Math.min(1, stop)) * 100);
+      })
+    : [0, 50, 100];
+
+  if (style === 'random') {
+    const dataUrl = generateRandomSpheresTexture(colors);
+    if (dataUrl) {
+      backgroundImage = `url(${dataUrl})`;
+    } else {
+      backgroundImage = `linear-gradient(${angle}deg, ${colors[0]}, ${colors[1]}, ${colors[2]})`;
+    }
+  } else if (style === 'radial') {
+    backgroundImage = `radial-gradient(circle, ${colors[0]} ${percentStops[0]}%, ${colors[1]} ${percentStops[1]}%, ${colors[2]} ${percentStops[2]}%)`;
+  } else {
+    backgroundImage = `linear-gradient(${angle}deg, ${colors[0]} ${percentStops[0]}%, ${colors[1]} ${percentStops[1]}%, ${colors[2]} ${percentStops[2]}%)`;
+  }
+
+  gradientElement.style.backgroundImage = backgroundImage;
+  gradientElement.style.opacity = `${opacity}`;
+  gradientElement.style.display = 'block';
+}
+
+function setBackgroundImage(imageValue, { silent = false } = {}) {
+  const resolved = imageValue ? resolveMediaPath(imageValue) : '';
+  const { mediaContainer, videoElement } = getBackgroundElements();
+  if (!mediaContainer || !videoElement) return;
+
+  videoElement.pause();
+  videoElement.removeAttribute('src');
+  videoElement.load();
+  videoElement.style.display = 'none';
+
+  if (resolved) {
+    mediaContainer.style.backgroundImage = `url('${resolved}')`;
+    mediaContainer.dataset.active = 'image';
+    mediaContainer.style.opacity = '1';
+    currentBackgroundImage = imageValue || '';
+    currentBackgroundVideo = '';
+    window.kwami?.body?.clearBackgroundMedia?.();
+    window.kwami?.body?.setBackgroundTransparent?.();
+    if (!silent) updateStatus('🖼️ Background image applied!');
+  } else {
+    mediaContainer.style.backgroundImage = '';
+    mediaContainer.dataset.active = 'none';
+    mediaContainer.style.opacity = '0';
+    currentBackgroundImage = '';
+    if (!silent) updateStatus('Background image removed');
+  }
+
+  window.kwami?.body?.clearBackgroundMedia?.();
+}
+
+function setBackgroundVideo(videoValue, { silent = false } = {}) {
+  const resolved = videoValue ? resolveMediaPath(videoValue) : '';
+  const { mediaContainer, videoElement } = getBackgroundElements();
+  if (!mediaContainer || !videoElement) return;
+
+  mediaContainer.style.backgroundImage = '';
+
+  if (resolved) {
+    if (videoElement.src !== resolved) {
+      videoElement.src = resolved;
+    }
+    videoElement.style.display = 'block';
+    videoElement.load();
+    videoElement.play().catch(() => {});
+    mediaContainer.dataset.active = 'video';
+    mediaContainer.style.opacity = '1';
+    currentBackgroundVideo = videoValue || '';
+    currentBackgroundImage = '';
+    window.kwami?.body?.clearBackgroundMedia?.();
+    window.kwami?.body?.setBackgroundTransparent?.();
+    if (!silent) updateStatus('🎞️ Background video applied!');
+  } else {
+    videoElement.pause();
+    videoElement.removeAttribute('src');
+    videoElement.load();
+    videoElement.style.display = 'none';
+    mediaContainer.dataset.active = 'none';
+    mediaContainer.style.opacity = '0';
+    currentBackgroundVideo = '';
+    if (!silent) updateStatus('Background video removed');
+  }
+
+  window.kwami?.body?.clearBackgroundMedia?.();
+}
+
+function setMediaType(type, { silent = false } = {}) {
+  currentMediaType = type;
+  updateMediaTabs(type);
+  showMediaControls(type);
+
+  if (type === 'none') {
+    const imageSelect = document.getElementById('bg-media-image');
+    if (imageSelect) imageSelect.value = '';
+    const videoSelect = document.getElementById('bg-media-video');
+    if (videoSelect) videoSelect.value = '';
+    setBackgroundVideo('', { silent: true });
+    setBackgroundImage('', { silent: true });
+    if (!silent) updateStatus('🧹 Background media cleared');
+    return;
+  }
+
+  if (type === 'image') {
+    const videoSelect = document.getElementById('bg-media-video');
+    if (videoSelect) videoSelect.value = '';
+    setBackgroundVideo('', { silent: true });
+    const imageSelect = document.getElementById('bg-media-image');
+    const selected = imageSelect?.value;
+    if (selected) {
+      setBackgroundImage(selected, { silent: true });
+    } else {
+      setBackgroundImage('', { silent: true });
+    }
+  }
+
+  if (type === 'video') {
+    const imageSelect = document.getElementById('bg-media-image');
+    if (imageSelect) imageSelect.value = '';
+    setBackgroundImage('', { silent: true });
+    const videoSelect = document.getElementById('bg-media-video');
+    const selected = videoSelect?.value;
+    if (selected) {
+      setBackgroundVideo(selected, { silent: true });
+    } else {
+      setBackgroundVideo('', { silent: true });
+    }
   }
 }
 
-// Randomize background image
-window.randomizeBackgroundImage = function() {
-  const randomImage = BACKGROUND_IMAGES[Math.floor(Math.random() * BACKGROUND_IMAGES.length)];
-  
-  // Set the select dropdown value
-  const bgImageSelect = document.getElementById('bg-image');
-  if (bgImageSelect) {
-    bgImageSelect.value = randomImage;
+window.randomizeBackground = function() {
+  if (window.kwami && window.kwami.body) {
+    // Generate random colors
+    const randomColor = () => '#' + Math.floor(Math.random() * 16777215).toString(16).padStart(6, '0');
+    const colors = [randomColor(), randomColor(), randomColor()];
+    
+    backgroundRandomizeClickCount++;
+    
+    // Update color pickers in UI
+    document.getElementById('bg-color-1').value = colors[0];
+    document.getElementById('bg-color-2').value = colors[1];
+    document.getElementById('bg-color-3').value = colors[2];
+    
+    // Randomize gradient parameters
+    const layoutParams = randomizeGradientLayout({ updateInputs: true });
+    
+    // Randomly choose gradient style
+    const styles = ['linear', 'radial', 'random'];
+    const selectedStyle = styles[Math.floor(Math.random() * styles.length)];
+    
+    // Update the gradient style selector in UI
+    const gradientStyleSelect = document.getElementById('bg-gradient-style');
+    if (gradientStyleSelect) {
+      gradientStyleSelect.value = selectedStyle;
+    }
+    
+    updateGradientOverlay({
+      colors,
+      stops: layoutParams.stops,
+      angle: selectedStyle === 'radial' ? 0 : layoutParams.angle,
+      style: selectedStyle,
+      opacity: 1,
+    });
+ 
+    // Randomly adjust opacity every 3rd click
+    let opacity;
+    if (backgroundRandomizeClickCount % 3 === 0) {
+      opacity = (Math.random() * 0.6 + 0.3).toFixed(2);
+    } else {
+      opacity = '1.00';
+    }
+ 
+    const opacitySlider = document.getElementById('bg-opacity');
+    if (opacitySlider) opacitySlider.value = opacity;
+    updateValueDisplay('bg-opacity-value', opacity, 2);
+ 
+    const opacityValue = parseFloat(opacity);
+    if (selectedStyle === 'random') {
+      updateGradientOverlay({ colors, stops: layoutParams.stops, angle: layoutParams.angle, style: selectedStyle, opacity: opacityValue });
+    } else {
+      updateGradientOverlay({ colors, stops: layoutParams.stops, angle: selectedStyle === 'radial' ? 0 : layoutParams.angle, style: selectedStyle, opacity: opacityValue });
+    }
+ 
+    // Show which style was chosen
+    const styleNames = {
+      'linear': 'Linear',
+      'radial': 'Radial',
+      'random': 'Random Spheres'
+    };
+    updateStatus(`🎲 ${styleNames[selectedStyle]} gradient randomized!`);
   }
-  
-  setBackgroundImage(randomImage);
 };
+
+window.randomizeMediaSelection = function(type) {
+  const options = getMediaOptions(type);
+  if (!options.length) {
+    updateStatus(type === 'image'
+      ? '⚠️ Add image assets to randomize the background.'
+      : '⚠️ Add video sources to randomize the background.');
+    return;
+  }
+
+  const value = options[Math.floor(Math.random() * options.length)];
+
+  if (type === 'image') {
+    const imageSelect = document.getElementById('bg-media-image');
+    if (imageSelect) imageSelect.value = value;
+    setMediaType('image');
+    setBackgroundImage(value);
+  } else {
+    const videoSelect = document.getElementById('bg-media-video');
+    if (videoSelect) videoSelect.value = value;
+    setMediaType('video');
+    setBackgroundVideo(value);
+  }
+};
+
+window.clearMediaSelection = function(type) {
+  if (type === 'image') {
+    const imageSelect = document.getElementById('bg-media-image');
+    if (imageSelect) imageSelect.value = '';
+    setBackgroundImage('');
+  } else if (type === 'video') {
+    const videoSelect = document.getElementById('bg-media-video');
+    if (videoSelect) videoSelect.value = '';
+    setBackgroundVideo('');
+  }
+  setMediaType('none');
+};
+
+function applyBackground() {
+  const opacity = parseFloat(document.getElementById('bg-opacity')?.value ?? DEFAULT_BACKGROUND.opacity);
+
+  const colors = [
+    document.getElementById('bg-color-1')?.value ?? DEFAULT_BACKGROUND.colors[0],
+    document.getElementById('bg-color-2')?.value ?? DEFAULT_BACKGROUND.colors[1],
+    document.getElementById('bg-color-3')?.value ?? DEFAULT_BACKGROUND.colors[2],
+  ];
+
+  const angleDegrees = parseFloat(document.getElementById('bg-gradient-angle')?.value ?? DEFAULT_BACKGROUND.angle);
+  const stop1PercentRaw = parseFloat(document.getElementById('bg-gradient-stop1')?.value ?? DEFAULT_BACKGROUND.stops[1] * 100);
+  const stop2PercentRaw = parseFloat(document.getElementById('bg-gradient-stop2')?.value ?? DEFAULT_BACKGROUND.stops[2] * 100);
+
+  const stop1Percent = Math.max(0, Math.min(100, Number.isFinite(stop1PercentRaw) ? stop1PercentRaw : DEFAULT_BACKGROUND.stops[1] * 100));
+  const stop2Percent = Math.max(stop1Percent, Math.min(100, Number.isFinite(stop2PercentRaw) ? stop2PercentRaw : DEFAULT_BACKGROUND.stops[2] * 100));
+
+  const gradientStyle = document.getElementById('bg-gradient-style')?.value ?? DEFAULT_BACKGROUND.style;
+  
+  // Handle the three gradient styles: linear, radial, and random (3 spheres)
+  if (gradientStyle === 'random') {
+    updateGradientOverlay({ colors, stops: [0, stop1Percent / 100, stop2Percent / 100], angle: angleDegrees, style: 'random', opacity });
+  } else {
+    const direction = gradientStyle === 'radial' ? 'radial' : 'linear';
+    const stops = [0, stop1Percent / 100, stop2Percent / 100];
+    const overlayAngle = direction === 'linear' ? angleDegrees : 0;
+
+    updateGradientOverlay({
+      colors,
+      stops,
+      angle: overlayAngle,
+      style: gradientStyle,
+      opacity,
+    });
+  }
+
+  if (blobImageTransparencyEnabled) {
+    window.kwami.body.setBlobImageTransparencyMode(true, {
+      type: gradientStyle === 'radial' ? 'gradient' : 'gradient',
+      colors,
+      direction: gradientStyle === 'radial' ? 'radial' : 'vertical',
+      angle: gradientStyle === 'radial' ? undefined : angleDegrees,
+      stops: [0, stop1Percent / 100, stop2Percent / 100],
+      opacity,
+      mode: blobImageTransparencyMode,
+    });
+  } else {
+    window.kwami.body.setBlobImageTransparencyMode(false);
+  }
+}
+
+window.resetBackground = function() {
+  blobImageTransparencyEnabled = false;
+  blobImageTransparencyMode = 'overlay';
+
+  const blobImageTransparencyCheckbox = document.getElementById('blob-image-transparency');
+  if (blobImageTransparencyCheckbox) blobImageTransparencyCheckbox.checked = false;
+
+  const blobTransparencyModeSelect = document.getElementById('blob-transparency-mode');
+  if (blobTransparencyModeSelect) blobTransparencyModeSelect.value = 'overlay';
+
+  const blobTransparencyModeWrapper = document.getElementById('blob-transparency-mode-wrapper');
+  if (blobTransparencyModeWrapper) blobTransparencyModeWrapper.style.display = 'none';
+
+  const colorInputs = [
+    document.getElementById('bg-color-1'),
+    document.getElementById('bg-color-2'),
+    document.getElementById('bg-color-3'),
+  ];
+  colorInputs.forEach((input, index) => {
+    if (input) input.value = DEFAULT_BACKGROUND.colors[index];
+  });
+
+  const angleSlider = document.getElementById('bg-gradient-angle');
+  if (angleSlider) angleSlider.value = String(DEFAULT_BACKGROUND.angle);
+  updateValueDisplay('bg-gradient-angle-value', DEFAULT_BACKGROUND.angle, 0);
+
+  const stop1Slider = document.getElementById('bg-gradient-stop1');
+  if (stop1Slider) stop1Slider.value = String(DEFAULT_BACKGROUND.stops[1] * 100);
+  updateValueDisplay('bg-gradient-stop1-value', DEFAULT_BACKGROUND.stops[1] * 100, 0);
+
+  const stop2Slider = document.getElementById('bg-gradient-stop2');
+  if (stop2Slider) stop2Slider.value = String(DEFAULT_BACKGROUND.stops[2] * 100);
+  updateValueDisplay('bg-gradient-stop2-value', DEFAULT_BACKGROUND.stops[2] * 100, 0);
+
+  const gradientStyleSelect = document.getElementById('bg-gradient-style');
+  if (gradientStyleSelect) gradientStyleSelect.value = DEFAULT_BACKGROUND.style;
+
+  const opacitySlider = document.getElementById('bg-opacity');
+  if (opacitySlider) opacitySlider.value = DEFAULT_BACKGROUND.opacity;
+  updateValueDisplay('bg-opacity-value', DEFAULT_BACKGROUND.opacity, 2);
+
+  setMediaType('none', { silent: true });
+  applyBackground();
+  updateStatus('🔄 Background reset to defaults!');
+};
+
+function initializeBackgroundControls() {
+  const blobImageTransparencyCheckbox = document.getElementById('blob-image-transparency');
+  const blobTransparencyModeWrapper = document.getElementById('blob-transparency-mode-wrapper');
+  const blobTransparencyModeSelect = document.getElementById('blob-transparency-mode');
+
+  if (blobImageTransparencyCheckbox) {
+    blobImageTransparencyCheckbox.addEventListener('change', (e) => {
+      blobImageTransparencyEnabled = e.target.checked;
+      if (blobTransparencyModeWrapper) {
+        blobTransparencyModeWrapper.style.display = blobImageTransparencyEnabled ? 'flex' : 'none';
+      }
+
+      if (blobImageTransparencyEnabled) {
+        const opacitySlider = document.getElementById('blob-opacity');
+        if (opacitySlider) {
+          opacitySlider.value = '0.8';
+          updateValueDisplay('blob-opacity-value', 0.8, 2);
+        }
+
+        const kwamiBlob = window.kwami?.body?.blob;
+        if (kwamiBlob && typeof kwamiBlob.setOpacity === 'function') {
+          kwamiBlob.setOpacity(0.8);
+        }
+      }
+
+      applyBackground();
+
+      if (blobImageTransparencyEnabled) {
+        const message = blobImageTransparencyMode === 'glass'
+          ? '🪟 Glass window mode enabled - blob reveals the background image'
+          : '🖼️ Overlay mode enabled - image fills the blob interior';
+        updateStatus(message);
+  } else {
+        updateStatus('🎨 Normal background mode');
+      }
+    });
+  }
+
+  if (blobTransparencyModeSelect) {
+    blobTransparencyModeSelect.addEventListener('change', (e) => {
+      blobImageTransparencyMode = e.target.value;
+
+      if (blobImageTransparencyEnabled) {
+        applyBackground();
+        const message = blobImageTransparencyMode === 'glass'
+          ? '🪟 Glass window mode enabled - blob reveals the background image'
+          : '🖼️ Overlay mode enabled - image fills the blob interior';
+        updateStatus(message);
+      }
+    });
+  }
+
+  const opacitySlider = document.getElementById('bg-opacity');
+  if (opacitySlider) {
+    opacitySlider.addEventListener('input', (e) => {
+      updateValueDisplay('bg-opacity-value', e.target.value, 2);
+      applyBackground();
+    });
+  }
+
+  ['1', '2', '3'].forEach((num) => {
+    const colorPicker = document.getElementById(`bg-color-${num}`);
+    if (colorPicker) {
+      colorPicker.addEventListener('input', applyBackground);
+    }
+  });
+
+  const gradientStyleSelect = document.getElementById('bg-gradient-style');
+  if (gradientStyleSelect) {
+    gradientStyleSelect.addEventListener('change', (e) => {
+      applyBackground();
+    });
+  }
+
+  const angleSlider = document.getElementById('bg-gradient-angle');
+  if (angleSlider) {
+    angleSlider.addEventListener('input', (e) => {
+      updateValueDisplay('bg-gradient-angle-value', e.target.value, 0);
+      applyBackground();
+    });
+  }
+
+  const stop1Slider = document.getElementById('bg-gradient-stop1');
+  if (stop1Slider) {
+    stop1Slider.addEventListener('input', (e) => {
+      const value = Math.min(100, Math.max(0, parseFloat(e.target.value)));
+      stop1Slider.value = String(value);
+      updateValueDisplay('bg-gradient-stop1-value', value, 0);
+      applyBackground();
+    });
+  }
+
+  const stop2Slider = document.getElementById('bg-gradient-stop2');
+  if (stop2Slider) {
+    stop2Slider.addEventListener('input', (e) => {
+      const value = Math.min(100, Math.max(0, parseFloat(e.target.value)));
+      stop2Slider.value = String(value);
+      updateValueDisplay('bg-gradient-stop2-value', value, 0);
+      applyBackground();
+    });
+  }
+
+  const mediaTabs = document.querySelectorAll('#bg-media-tabs .media-tab');
+  mediaTabs.forEach((tab) => {
+    tab.addEventListener('click', () => {
+      setMediaType(tab.dataset.media);
+    });
+  });
+
+  const imageSelect = document.getElementById('bg-media-image');
+  if (imageSelect) {
+    imageSelect.addEventListener('change', (e) => {
+      if (e.target.value) {
+        setMediaType('image');
+        setBackgroundImage(e.target.value);
+      } else if (currentMediaType === 'image') {
+        clearMediaSelection('image');
+      }
+    });
+  }
+
+  const videoSelect = document.getElementById('bg-media-video');
+  if (videoSelect) {
+    videoSelect.addEventListener('change', (e) => {
+      if (e.target.value) {
+        setMediaType('video');
+        setBackgroundVideo(e.target.value);
+      } else if (currentMediaType === 'video') {
+        clearMediaSelection('video');
+      }
+    });
+  }
+
+  const defaultAngle = DEFAULT_BACKGROUND.angle;
+  const defaultStop1Percent = Math.round(DEFAULT_BACKGROUND.stops[1] * 100);
+  const defaultStop2Percent = Math.round(DEFAULT_BACKGROUND.stops[2] * 100);
+
+  const color1Input = document.getElementById('bg-color-1');
+  const color2Input = document.getElementById('bg-color-2');
+  const color3Input = document.getElementById('bg-color-3');
+  if (color1Input) color1Input.value = DEFAULT_BACKGROUND.colors[0];
+  if (color2Input) color2Input.value = DEFAULT_BACKGROUND.colors[1];
+  if (color3Input) color3Input.value = DEFAULT_BACKGROUND.colors[2];
+
+  if (angleSlider) {
+    angleSlider.value = String(defaultAngle);
+    updateValueDisplay('bg-gradient-angle-value', defaultAngle, 0);
+  }
+  if (stop1Slider) {
+    stop1Slider.value = String(defaultStop1Percent);
+    updateValueDisplay('bg-gradient-stop1-value', defaultStop1Percent, 0);
+  }
+  if (stop2Slider) {
+    stop2Slider.value = String(defaultStop2Percent);
+    updateValueDisplay('bg-gradient-stop2-value', defaultStop2Percent, 0);
+  }
+
+  if (gradientStyleSelect) {
+    gradientStyleSelect.value = DEFAULT_BACKGROUND.style;
+  }
+  if (opacitySlider) {
+    opacitySlider.value = DEFAULT_BACKGROUND.opacity.toString();
+    updateValueDisplay('bg-opacity-value', DEFAULT_BACKGROUND.opacity, 2);
+  }
+
+  setMediaType('none', { silent: true });
+  applyBackground();
+}
 
 // Initialize sidebars first
 initializeSidebars();
+applySidebarVisibility();
+updateMenuToggleButton();
+initializeGitHubStarButton();
 
 // Initialize Mind controls since Mind is on the left by default
 setTimeout(() => {
@@ -348,13 +1251,27 @@ try {
     }
   });
   
+  window.kwami.body.setBackgroundTransparent();
+  window.kwami.body.clearBackgroundMedia?.();
+  
   // Set initial scale after initialization
   window.kwami.body.blob.setScale(DEFAULT_VALUES.scale);
+
+  // Update version display dynamically
+  const versionDisplay = document.getElementById('version-display');
+  if (versionDisplay) {
+    versionDisplay.textContent = `v${Kwami.getVersion()}`;
+  }
+
+  initializeAudioPlayer();
 
   // Create conversation callbacks for blob interaction
   const conversationCallbacks = {
     onAgentResponse: (text) => {
-      updateStatus('🤖 Agent is speaking...');
+      // Don't update status for connection messages
+      if (!text.includes('🎙️ Connected') && !text.includes('🎙️ Conversation started')) {
+        updateStatus('🤖 Agent is speaking...');
+      }
       const transcriptDiv = document.getElementById('conversation-transcript');
       if (transcriptDiv) {
         const entry = document.createElement('div');
@@ -378,9 +1295,17 @@ try {
     },
     onTurnStart: () => {
       updateStatus('🎙️ Agent is speaking...');
+      // Ensure blob is in speaking state for proper animation
+      if (window.kwami) {
+        window.kwami.setState('speaking');
+      }
     },
     onTurnEnd: () => {
       updateStatus('👂 Listening for your response...');
+      // Return to listening state
+      if (window.kwami) {
+        window.kwami.setState('listening');
+      }
     },
     onError: (error) => {
       showError('Conversation error: ' + error.message);
@@ -420,16 +1345,20 @@ try {
   updateValueDisplay('camera-y-value', DEFAULT_CAMERA_POSITION.y, 1);
   updateValueDisplay('camera-z-value', DEFAULT_CAMERA_POSITION.z, 1);
   
-  // Randomize gradient background (colors, direction, opacity)
-  window.randomizeBackground();
-  
-  // Set random background image
+  // Set random background image (this will make the scene transparent)
   const randomImage = BACKGROUND_IMAGES[Math.floor(Math.random() * BACKGROUND_IMAGES.length)];
-  const bgImageSelect = document.getElementById('bg-image');
-  if (bgImageSelect) {
-    bgImageSelect.value = randomImage;
+  const imageSelect = document.getElementById('bg-media-image');
+  if (imageSelect) {
+    imageSelect.value = randomImage;
   }
-  setBackgroundImage(randomImage);
+  setMediaType('image', { silent: true });
+  setBackgroundImage(randomImage, { silent: true });
+  
+  // Also randomize gradient colors in UI (but don't apply yet since image is showing)
+  const randomColor = () => '#' + Math.floor(Math.random() * 16777215).toString(16).padStart(6, '0');
+  document.getElementById('bg-color-1').value = randomColor();
+  document.getElementById('bg-color-2').value = randomColor();
+  document.getElementById('bg-color-3').value = randomColor();
   
   // Update all UI controls to reflect random blob state
   updateAllControlsFromBlob();
@@ -460,6 +1389,7 @@ window.mindConfig = {
 // Initialize Mind
 window.initializeMind = async function() {
   const apiKey = document.getElementById('api-key').value.trim();
+  const agentId = document.getElementById('agent-id').value.trim();
   let voiceId = document.getElementById('voice-id').value.trim();
   
   // Check if custom voice ID is selected
@@ -475,13 +1405,22 @@ window.initializeMind = async function() {
     showError('Please enter your ElevenLabs API Key');
     return;
   }
+  
+  if (!agentId) {
+    showError('Please enter your ElevenLabs Agent ID for conversations');
+    return;
+  }
 
   try {
-    updateStatus('🔄 Initializing Mind...');
+    updateStatus('🔄 Initializing Mind with WebSocket support...');
     
     // Update Mind configuration
     window.kwami.mind.setVoiceId(voiceId);
     window.kwami.mind.config.apiKey = apiKey;
+    window.kwami.mind.config.conversational = {
+      agentId: agentId,
+      firstMessage: 'Hello! How can I help you today?'
+    };
     
     // Apply model
     const model = document.getElementById('voice-model').value;
@@ -638,6 +1577,14 @@ window.applyVoicePreset = function(preset) {
   updateStatus(`✅ Applied ${presetNames[preset]} preset!`);
 };
 
+// Alternative implementation using library method
+window.applyVoicePresetV2 = function(preset) {
+  if (window.kwami && window.kwami.mind) {
+    window.kwami.mind.applyVoicePreset(preset);
+    updateStatus(`✅ Applied ${preset} voice preset`);
+  }
+};
+
 // Preview Voice
 window.previewVoice = async function() {
   const previewText = "Hello! This is a preview of my voice. How do I sound?";
@@ -703,7 +1650,7 @@ window.startConversation = async function() {
   const allowInterruption = document.getElementById('conversation-interruption').checked;
   
   try {
-    updateStatus('🔄 Starting conversation...');
+    updateStatus('🔄 Starting WebSocket conversation...');
     updateConversationButtonState(false); // Disable buttons during start
     
     // Update conversation config
@@ -731,6 +1678,15 @@ window.startConversation = async function() {
     const callbacks = window.conversationCallbacks || {
       onAgentResponse: (text) => {
         console.log('Agent:', text);
+        
+        // Update status message
+        const statusMessage = document.getElementById('conversation-status-message');
+        if (statusMessage) {
+          // Format multi-line messages properly
+          const formattedText = text.replace(/\n/g, '<br>');
+          statusMessage.innerHTML = formattedText;
+        }
+        
         if (transcriptArea) {
           const entry = document.createElement('div');
           entry.style.cssText = 'margin: 5px 0; padding: 5px; background: #e3e8ff; border-radius: 4px;';
@@ -773,13 +1729,15 @@ window.startConversation = async function() {
     
     updateConversationButtonState(true);
     
-    // Show embed container if iframe was created
-    const embedContainer = document.getElementById('elevenlabs-embed-container');
-    if (embedContainer && embedContainer.querySelector('iframe')) {
-      embedContainer.style.display = 'block';
+    // Show conversation status
+    const statusContainer = document.getElementById('conversation-status-container');
+    const statusMessage = document.getElementById('conversation-status-message');
+    if (statusContainer && statusMessage) {
+      statusContainer.style.display = 'block';
+      statusMessage.innerHTML = '🎙️ Conversation active - Speak naturally, your voice is being captured!';
     }
     
-    updateStatus('✅ Conversation started! Talk naturally with your AI agent. (Double-click Kwami to stop)');
+    updateStatus('✅ Conversation started! Speak to interact with the agent. (Double-click Kwami to stop)');
   } catch (error) {
     showError('Failed to start conversation: ' + error.message);
     updateConversationButtonState(false);
@@ -788,17 +1746,18 @@ window.startConversation = async function() {
 
 // Stop Conversation
 window.stopConversation = async function() {
-  if (!window.kwami || !window.kwami.mind) return;
+  if (!window.kwami) return;
   
   try {
     updateStatus('🔄 Stopping conversation...');
     
-    await window.kwami.mind.stopConversation();
+    // Use Kwami's stopConversation which properly sets state to idle
+    await window.kwami.stopConversation();
     
-    // Hide embed container
-    const embedContainer = document.getElementById('elevenlabs-embed-container');
-    if (embedContainer) {
-      embedContainer.style.display = 'none';
+    // Hide status container
+    const statusContainer = document.getElementById('conversation-status-container');
+    if (statusContainer) {
+      statusContainer.style.display = 'none';
     }
     
     updateConversationButtonState(false);
@@ -1064,10 +2023,21 @@ window.loadPersonality = async function(type) {
   try {
     updateStatus(`🔄 Loading ${type} personality...`);
     
-    await window.kwami.soul.loadPersonality(`/assets/personalities/${type}.json`);
+    // Use the library's preset method instead of loading JSON files
+    window.kwami.soul.loadPresetPersonality(type);
     
     const name = window.kwami.soul.getName();
     document.getElementById('personality-name').textContent = name;
+    
+    // Update Soul UI if visible
+    const soulName = document.getElementById('soul-name');
+    if (soulName) soulName.value = name;
+    
+    const soulPersonality = document.getElementById('soul-personality');
+    if (soulPersonality) {
+      const config = window.kwami.soul.getConfig();
+      soulPersonality.value = config.personality || '';
+    }
     
     updateStatus(`✅ Loaded ${name} personality!`);
   } catch (error) {
@@ -1126,8 +2096,8 @@ window.speak = async function() {
 
 // Export GLB
 window.exportGLB = function() {
-  if (window.kwami && window.kwami.body && window.kwami.body.blob) {
-    window.kwami.body.blob.exportGLTF();
+  if (window.kwami && window.kwami.body) {
+    window.kwami.body.exportAsGLB();
     updateStatus('💾 Downloading GLB file...');
   } else {
     showError('Kwami not initialized yet!');
@@ -1136,56 +2106,35 @@ window.exportGLB = function() {
 
 // Randomize Blob
 window.randomizeBlob = function() {
-  // Save current skin and scale
-  const currentSkin = window.kwami.body.blob.currentSkin;
-  const currentScale = 4.0;
-  
-  // Randomize the blob
-  window.kwami.body.blob.setRandomBlob();
-  
-  // Restore scale to 4
-  window.kwami.body.blob.setScale(currentScale);
-  
-  // Restore the skin
-  window.kwami.body.blob.setSkin(currentSkin);
-  
-  // Don't randomize camera - keep it at current position
-  // User can manually adjust camera with sliders or mouse controls
-  
+  if (window.kwami && window.kwami.body) {
+    window.kwami.body.randomizeBlob();
   updateAllControlsFromBlob();
   updateStatus('🎲 Blob randomized!');
+  }
 };
 
 // Reset to Defaults
 window.resetToDefaults = function() {
-  const blob = window.kwami.body.blob;
-  
-  // Apply defaults
-  blob.setSpikes(DEFAULT_VALUES.spikes.x, DEFAULT_VALUES.spikes.y, DEFAULT_VALUES.spikes.z);
-  blob.setTime(DEFAULT_VALUES.time.x, DEFAULT_VALUES.time.y, DEFAULT_VALUES.time.z);
-  blob.setRotation(DEFAULT_VALUES.rotation.x, DEFAULT_VALUES.rotation.y, DEFAULT_VALUES.rotation.z);
-  blob.setColors(DEFAULT_VALUES.colors.x, DEFAULT_VALUES.colors.y, DEFAULT_VALUES.colors.z);
-  blob.setScale(DEFAULT_VALUES.scale);
-  blob.setResolution(DEFAULT_VALUES.resolution);
-  blob.setShininess(DEFAULT_VALUES.shininess);
-  blob.setWireframe(DEFAULT_VALUES.wireframe);
-  blob.setSkin(DEFAULT_VALUES.skin);
-  blob.setOpacity(DEFAULT_VALUES.opacity);
+  if (window.kwami && window.kwami.body) {
+    // Reset blob to defaults
+    window.kwami.body.resetBlobToDefaults();
   
   // Reset camera position
-  const camera = window.kwami.body.getCamera();
-  camera.position.set(DEFAULT_CAMERA_POSITION.x, DEFAULT_CAMERA_POSITION.y, DEFAULT_CAMERA_POSITION.z);
-  camera.lookAt(0, 0, 0);
-  document.getElementById('camera-x').value = DEFAULT_CAMERA_POSITION.x;
-  document.getElementById('camera-y').value = DEFAULT_CAMERA_POSITION.y;
-  document.getElementById('camera-z').value = DEFAULT_CAMERA_POSITION.z;
-  updateValueDisplay('camera-x-value', DEFAULT_CAMERA_POSITION.x, 1);
-  updateValueDisplay('camera-y-value', DEFAULT_CAMERA_POSITION.y, 1);
-  updateValueDisplay('camera-z-value', DEFAULT_CAMERA_POSITION.z, 1);
+    window.kwami.body.resetCameraPosition();
+    
+    // Update camera UI
+    const pos = window.kwami.body.getCameraPosition();
+    document.getElementById('camera-x').value = pos.x;
+    document.getElementById('camera-y').value = pos.y;
+    document.getElementById('camera-z').value = pos.z;
+    updateValueDisplay('camera-x-value', pos.x, 1);
+    updateValueDisplay('camera-y-value', pos.y, 1);
+    updateValueDisplay('camera-z-value', pos.z, 1);
   
   // Update UI
   updateAllControlsFromBlob();
   updateStatus('🔄 Reset to defaults!');
+  }
 };
 
 // Export Scene as GLB
@@ -1386,6 +2335,9 @@ function updateAllControlsFromBlob() {
     ultraTime: audioConfig.ultraTime,
     enabled: audioConfig.enabled,
     timeEnabled: audioConfig.timeEnabled,
+    reactivity: audioConfig.reactivity ?? 1.9,
+    sensitivity: audioConfig.sensitivity ?? 0.075,
+    breathing: audioConfig.breathing ?? 0.035,
   };
   const bassSlider = document.getElementById('audio-bass-spike');
   if (bassSlider) {
@@ -1401,6 +2353,24 @@ function updateAllControlsFromBlob() {
   if (highSlider) {
     highSlider.value = audioConfig.highSpike.toString();
     updateValueDisplay('audio-high-spike-value', audioConfig.highSpike, 2);
+  }
+  const reactivitySlider = document.getElementById('audio-reactivity');
+  if (reactivitySlider) {
+    const reactivityValue = audioConfig.reactivity ?? window.audioEffects.reactivity;
+    reactivitySlider.value = reactivityValue.toString();
+    updateValueDisplay('audio-reactivity-value', reactivityValue, 2);
+  }
+  const sensitivitySlider = document.getElementById('audio-sensitivity');
+  if (sensitivitySlider) {
+    const sensitivityValue = audioConfig.sensitivity ?? window.audioEffects.sensitivity;
+    sensitivitySlider.value = sensitivityValue.toString();
+    updateValueDisplay('audio-sensitivity-value', sensitivityValue, 2);
+  }
+  const breathingSlider = document.getElementById('audio-breathing');
+  if (breathingSlider) {
+    const breathingValue = audioConfig.breathing ?? window.audioEffects.breathing;
+    breathingSlider.value = breathingValue.toString();
+    updateValueDisplay('audio-breathing-value', breathingValue, 2);
   }
   const midTimeSlider = document.getElementById('audio-mid-time');
   if (midTimeSlider) {
@@ -1657,253 +2627,24 @@ function updateStateIndicator(state) {
   const indicator = document.getElementById('state-indicator');
   const stateText = document.getElementById('state-text');
   
-  indicator.className = 'state-indicator state-' + state;
-  stateText.textContent = state.toUpperCase();
-}
-
-// Background control functions (using Canvas API)
-function applyBackground() {
-  const type = document.getElementById('bg-type').value;
-  const opacity = parseFloat(document.getElementById('bg-opacity').value);
-
-  if (type === 'transparent') {
-    window.kwami.body.setBackgroundTransparent();
-  } else if (type === 'solid') {
-    const color = document.getElementById('bg-solid-color').value;
-    window.kwami.body.setBackgroundColor(color, opacity);
-  } else if (type === 'gradient') {
-    const color1 = document.getElementById('bg-color-1').value;
-    const color2 = document.getElementById('bg-color-2').value;
-    const color3 = document.getElementById('bg-color-3').value;
-    const direction = document.getElementById('bg-direction').value;
-    window.kwami.body.setBackgroundGradient([color1, color2, color3], direction, opacity);
-  }
-
-  if (blobImageTransparencyEnabled && type !== 'transparent') {
-    if (type === 'solid') {
-      const color = document.getElementById('bg-solid-color').value;
-      window.kwami.body.setBlobImageTransparencyMode(
-        true,
-        [color],
-        'solid',
-        'vertical',
-        opacity,
-        blobImageTransparencyMode,
-      );
-    } else if (type === 'gradient') {
-      const color1 = document.getElementById('bg-color-1').value;
-      const color2 = document.getElementById('bg-color-2').value;
-      const color3 = document.getElementById('bg-color-3').value;
-      const direction = document.getElementById('bg-direction').value;
-      window.kwami.body.setBlobImageTransparencyMode(
-        true,
-        [color1, color2, color3],
-        'gradient',
-        direction,
-        opacity,
-        blobImageTransparencyMode,
-      );
-    }
-  } else {
-    window.kwami.body.setBlobImageTransparencyMode(false);
+  // Only update if elements exist (they're commented out in HTML currently)
+  if (indicator && stateText) {
+    indicator.className = 'state-indicator state-' + state;
+    stateText.textContent = state.toUpperCase();
   }
 }
 
-window.resetBackground = function() {
-  // Reset blob transparency mode
-  blobImageTransparencyEnabled = false;
-  blobImageTransparencyMode = 'overlay';
-  const blobImageTransparencyCheckbox = document.getElementById('blob-image-transparency');
-  if (blobImageTransparencyCheckbox) {
-    blobImageTransparencyCheckbox.checked = false;
-  }
-  const blobTransparencyModeSelect = document.getElementById('blob-transparency-mode');
-  if (blobTransparencyModeSelect) {
-    blobTransparencyModeSelect.value = 'overlay';
-  }
-  const blobTransparencyModeWrapper = document.getElementById('blob-transparency-mode-wrapper');
-  if (blobTransparencyModeWrapper) {
-    blobTransparencyModeWrapper.style.display = 'none';
-  }
-  
-  // Reset to default values
-  document.getElementById('bg-type').value = DEFAULT_BACKGROUND.type;
-  document.getElementById('bg-color-1').value = DEFAULT_BACKGROUND.colors[0];
-  document.getElementById('bg-color-2').value = DEFAULT_BACKGROUND.colors[1];
-  document.getElementById('bg-color-3').value = DEFAULT_BACKGROUND.colors[2];
-  document.getElementById('bg-direction').value = DEFAULT_BACKGROUND.direction;
-  document.getElementById('bg-opacity').value = DEFAULT_BACKGROUND.opacity;
-  document.getElementById('bg-solid-color').value = DEFAULT_BACKGROUND.colors[0];
-  updateValueDisplay('bg-opacity-value', DEFAULT_BACKGROUND.opacity, 2);
-  
-  // Show/hide appropriate controls
-  const gradientControls = document.getElementById('gradient-controls');
-  const solidControls = document.getElementById('solid-controls');
-  const opacityControl = document.getElementById('opacity-control');
-  
-  if (DEFAULT_BACKGROUND.type === 'gradient') {
-    gradientControls.style.display = 'block';
-    solidControls.style.display = 'none';
-    opacityControl.style.display = 'block';
-  } else if (DEFAULT_BACKGROUND.type === 'solid') {
-    gradientControls.style.display = 'none';
-    solidControls.style.display = 'block';
-    opacityControl.style.display = 'block';
-  } else {
-    gradientControls.style.display = 'none';
-    solidControls.style.display = 'none';
-    opacityControl.style.display = 'none';
-  }
-  
-  // Reset background image
-  const bgImageSelect = document.getElementById('bg-image');
-  if (bgImageSelect) {
-    bgImageSelect.value = '';
-  }
-  setBackgroundImage('');
-  
-  applyBackground();
-  updateStatus('🔄 Background reset to defaults!');
-};
+// Legacy background block removed
 
-function initializeBackgroundControls() {
-  // Blob image transparency checkbox
-  const blobImageTransparencyCheckbox = document.getElementById('blob-image-transparency');
-  const blobTransparencyModeWrapper = document.getElementById('blob-transparency-mode-wrapper');
-  const blobTransparencyModeSelect = document.getElementById('blob-transparency-mode');
-
-  if (blobImageTransparencyCheckbox) {
-    blobImageTransparencyCheckbox.addEventListener('change', (e) => {
-      blobImageTransparencyEnabled = e.target.checked;
-      if (blobTransparencyModeWrapper) {
-        blobTransparencyModeWrapper.style.display = blobImageTransparencyEnabled ? 'flex' : 'none';
-      }
-
-      // Re-apply background with new mode
-      applyBackground();
-      
-      // Update status
-      if (blobImageTransparencyEnabled) {
-        const message = blobImageTransparencyMode === 'glass'
-          ? '🪟 Glass window mode enabled - blob reveals the background image'
-          : '🖼️ Overlay mode enabled - image fills the blob interior';
-        updateStatus(message);
-      } else {
-        updateStatus('🎨 Normal background mode');
-      }
-    });
-  }
-
-  if (blobTransparencyModeSelect) {
-    blobTransparencyModeSelect.addEventListener('change', (e) => {
-      blobImageTransparencyMode = e.target.value;
-
-      if (blobImageTransparencyEnabled) {
-        applyBackground();
-        const message = blobImageTransparencyMode === 'glass'
-          ? '🪟 Glass window mode enabled - blob reveals the background image'
-          : '🖼️ Overlay mode enabled - image fills the blob interior';
-        updateStatus(message);
-
-        if (blobImageTransparencyMode === 'overlay' && currentBackgroundImage) {
-          window.kwami.body.setBlobBackgroundImage(`assets/${currentBackgroundImage}`);
-        }
-      }
-    });
-  }
-  
-  // Background type selector
-  const bgTypeSelect = document.getElementById('bg-type');
-  if (bgTypeSelect) {
-    bgTypeSelect.addEventListener('change', (e) => {
-      const type = e.target.value;
-      
-      // Show/hide controls based on type
-      const gradientControls = document.getElementById('gradient-controls');
-      const solidControls = document.getElementById('solid-controls');
-      const opacityControl = document.getElementById('opacity-control');
-      
-      if (type === 'gradient') {
-        gradientControls.style.display = 'block';
-        solidControls.style.display = 'none';
-        opacityControl.style.display = 'block';
-      } else if (type === 'solid') {
-        gradientControls.style.display = 'none';
-        solidControls.style.display = 'block';
-        opacityControl.style.display = 'block';
-      } else if (type === 'transparent') {
-        gradientControls.style.display = 'none';
-        solidControls.style.display = 'none';
-        opacityControl.style.display = 'none';
-        
-        // Auto-select a random background image if none is selected
-        const bgImageSelect = document.getElementById('bg-image');
-        if (bgImageSelect && (!bgImageSelect.value || bgImageSelect.value === '')) {
-          window.randomizeBackgroundImage();
-        }
-      }
-      
-      applyBackground();
-    });
-  }
-  
-  // Opacity slider - apply in real-time
-  const opacitySlider = document.getElementById('bg-opacity');
-  if (opacitySlider) {
-    opacitySlider.addEventListener('input', (e) => {
-      updateValueDisplay('bg-opacity-value', e.target.value, 2);
-      applyBackground();
-    });
-  }
-  
-  // Gradient color pickers - apply in real-time
-  ['1', '2', '3'].forEach(num => {
-    const colorPicker = document.getElementById(`bg-color-${num}`);
-    if (colorPicker) {
-      colorPicker.addEventListener('input', applyBackground);
-    }
-  });
-  
-  // Gradient direction selector
-  const directionSelect = document.getElementById('bg-direction');
-  if (directionSelect) {
-    directionSelect.addEventListener('change', applyBackground);
-  }
-  
-  // Solid color picker - apply in real-time
-  const solidColorPicker = document.getElementById('bg-solid-color');
-  if (solidColorPicker) {
-    solidColorPicker.addEventListener('input', applyBackground);
-  }
-  
-  // Background image selector
-  const bgImageSelect = document.getElementById('bg-image');
-  if (bgImageSelect) {
-    bgImageSelect.addEventListener('change', (e) => {
-      setBackgroundImage(e.target.value);
-    });
-  }
-  
-  // Set initial values
-  document.getElementById('bg-color-1').value = DEFAULT_BACKGROUND.colors[0];
-  document.getElementById('bg-color-2').value = DEFAULT_BACKGROUND.colors[1];
-  document.getElementById('bg-color-3').value = DEFAULT_BACKGROUND.colors[2];
-  document.getElementById('bg-direction').value = DEFAULT_BACKGROUND.direction;
-  document.getElementById('bg-type').value = DEFAULT_BACKGROUND.type;
-  document.getElementById('bg-opacity').value = DEFAULT_BACKGROUND.opacity;
-}
-
-// Camera position control functions
 function initializeCameraControls() {
   const camera = window.kwami.body.getCamera();
   
-  // Camera X position
   const cameraXSlider = document.getElementById('camera-x');
   if (cameraXSlider) {
     cameraXSlider.addEventListener('input', (e) => {
       const value = parseFloat(e.target.value);
       camera.position.x = value;
-      camera.lookAt(0, 0, 0); // Always look at the blob center
+      camera.lookAt(0, 0, 0);
       updateValueDisplay('camera-x-value', value, 1);
       if (window.kwami?.body?.isBlobImageTransparencyMode?.()) {
         window.kwami.body.refreshBlobImageTransparencyMode();
@@ -1911,13 +2652,12 @@ function initializeCameraControls() {
     });
   }
   
-  // Camera Y position
   const cameraYSlider = document.getElementById('camera-y');
   if (cameraYSlider) {
     cameraYSlider.addEventListener('input', (e) => {
       const value = parseFloat(e.target.value);
       camera.position.y = value;
-      camera.lookAt(0, 0, 0); // Always look at the blob center
+      camera.lookAt(0, 0, 0);
       updateValueDisplay('camera-y-value', value, 1);
       if (window.kwami?.body?.isBlobImageTransparencyMode?.()) {
         window.kwami.body.refreshBlobImageTransparencyMode();
@@ -1925,13 +2665,12 @@ function initializeCameraControls() {
     });
   }
   
-  // Camera Z position
   const cameraZSlider = document.getElementById('camera-z');
   if (cameraZSlider) {
     cameraZSlider.addEventListener('input', (e) => {
       const value = parseFloat(e.target.value);
       camera.position.z = value;
-      camera.lookAt(0, 0, 0); // Always look at the blob center
+      camera.lookAt(0, 0, 0);
       updateValueDisplay('camera-z-value', value, 1);
       if (window.kwami?.body?.isBlobImageTransparencyMode?.()) {
         window.kwami.body.refreshBlobImageTransparencyMode();
@@ -1939,445 +2678,16 @@ function initializeCameraControls() {
     });
   }
   
-  // Set initial values
-  document.getElementById('camera-x').value = DEFAULT_CAMERA_POSITION.x;
-  document.getElementById('camera-y').value = DEFAULT_CAMERA_POSITION.y;
-  document.getElementById('camera-z').value = DEFAULT_CAMERA_POSITION.z;
-}
-
-
-// Test thinking mode function
-window.testThinking = function() {
-  if (window.kwami) {
-    window.kwami.body.startThinking();
-    updateStatus('🤔 Started thinking mode (10 seconds)');
-  }
-};
-
-// Test listening mode function
-window.testListening = function() {
-  if (window.kwami && window.kwami.body.blob) {
-    if (window.kwami.body.blob.isListening) {
-      window.kwami.body.blob.stopListening();
-      updateStatus('🔇 Stopped listening mode');
-    } else {
-      window.kwami.body.blob.startListening();
-      updateStatus('👂 Started listening mode');
-    }
-  } else {
-    showError('Kwami not initialized yet!');
-  }
-};
-
-// ============================================================================
-// Audio Effects Configuration
-// ============================================================================
-
-// Store audio effect parameters globally
-window.audioEffects = {
-  bassSpike: 0.45,
-  midSpike: 0.35,
-  highSpike: 0.30,
-  midTime: 0.2,
-  highTime: 0.3,
-  ultraTime: 0.15,
-  enabled: true,
-  timeEnabled: false  // Disabled by default to prevent chaotic movement
-};
-
-// Initialize audio effect controls
-function initializeAudioEffects() {
-  // Bass → Spikes
-  const audioBassSpike = document.getElementById('audio-bass-spike');
-  if (audioBassSpike) {
-    audioBassSpike.value = window.audioEffects.bassSpike.toString();
-    updateValueDisplay('audio-bass-spike-value', audioBassSpike.value, 2);
-    audioBassSpike.addEventListener('input', (e) => {
-      window.audioEffects.bassSpike = parseFloat(e.target.value);
-      updateValueDisplay('audio-bass-spike-value', e.target.value, 2);
-      if (window.kwami && window.kwami.body.blob) {
-        window.kwami.body.blob.audioEffects.bassSpike = window.audioEffects.bassSpike;
-      }
-    });
-  }
-  
-  // Mid → Spikes
-  const audioMidSpike = document.getElementById('audio-mid-spike');
-  if (audioMidSpike) {
-    audioMidSpike.value = window.audioEffects.midSpike.toString();
-    updateValueDisplay('audio-mid-spike-value', audioMidSpike.value, 2);
-    audioMidSpike.addEventListener('input', (e) => {
-      window.audioEffects.midSpike = parseFloat(e.target.value);
-      updateValueDisplay('audio-mid-spike-value', e.target.value, 2);
-      if (window.kwami && window.kwami.body.blob) {
-        window.kwami.body.blob.audioEffects.midSpike = window.audioEffects.midSpike;
-      }
-    });
-  }
-  
-  // High → Spikes
-  const audioHighSpike = document.getElementById('audio-high-spike');
-  if (audioHighSpike) {
-    audioHighSpike.value = window.audioEffects.highSpike.toString();
-    updateValueDisplay('audio-high-spike-value', audioHighSpike.value, 2);
-    audioHighSpike.addEventListener('input', (e) => {
-      window.audioEffects.highSpike = parseFloat(e.target.value);
-      updateValueDisplay('audio-high-spike-value', e.target.value, 2);
-      if (window.kwami && window.kwami.body.blob) {
-        window.kwami.body.blob.audioEffects.highSpike = window.audioEffects.highSpike;
-      }
-    });
-  }
-  
-  // Mid → Time
-  const audioMidTime = document.getElementById('audio-mid-time');
-  if (audioMidTime) {
-    audioMidTime.value = window.audioEffects.midTime.toString();
-    updateValueDisplay('audio-mid-time-value', audioMidTime.value, 1);
-    audioMidTime.addEventListener('input', (e) => {
-      window.audioEffects.midTime = parseFloat(e.target.value);
-      updateValueDisplay('audio-mid-time-value', e.target.value, 1);
-      if (window.kwami && window.kwami.body.blob) {
-        window.kwami.body.blob.audioEffects.midTime = window.audioEffects.midTime;
-      }
-    });
-  }
-  
-  // High → Time
-  const audioHighTime = document.getElementById('audio-high-time');
-  if (audioHighTime) {
-    audioHighTime.value = window.audioEffects.highTime.toString();
-    updateValueDisplay('audio-high-time-value', audioHighTime.value, 1);
-    audioHighTime.addEventListener('input', (e) => {
-      window.audioEffects.highTime = parseFloat(e.target.value);
-      updateValueDisplay('audio-high-time-value', e.target.value, 1);
-      if (window.kwami && window.kwami.body.blob) {
-        window.kwami.body.blob.audioEffects.highTime = window.audioEffects.highTime;
-      }
-    });
-  }
-  
-  // Ultra → Time
-  const audioUltraTime = document.getElementById('audio-ultra-time');
-  if (audioUltraTime) {
-    audioUltraTime.value = window.audioEffects.ultraTime.toString();
-    updateValueDisplay('audio-ultra-time-value', audioUltraTime.value, 1);
-    audioUltraTime.addEventListener('input', (e) => {
-      window.audioEffects.ultraTime = parseFloat(e.target.value);
-      updateValueDisplay('audio-ultra-time-value', e.target.value, 1);
-      if (window.kwami && window.kwami.body.blob) {
-        window.kwami.body.blob.audioEffects.ultraTime = window.audioEffects.ultraTime;
-      }
-    });
-  }
-  
-  // FFT Size selector
-  const fftSizeSelect = document.getElementById('fft-size');
-  if (fftSizeSelect) {
-    fftSizeSelect.addEventListener('change', (e) => {
-      const fftSize = parseInt(e.target.value);
-      if (window.kwami && window.kwami.body.audio) {
-        const analyser = window.kwami.body.audio.getAnalyser();
-        if (analyser) {
-          analyser.fftSize = fftSize;
-        }
-      }
-    });
-  }
-  
-  // Smoothing slider
-  const smoothingSlider = document.getElementById('smoothing');
-  if (smoothingSlider) {
-    smoothingSlider.addEventListener('input', (e) => {
-      const smoothing = parseFloat(e.target.value);
-      updateValueDisplay('smoothing-value', smoothing, 2);
-      if (window.kwami && window.kwami.body.audio) {
-        const analyser = window.kwami.body.audio.getAnalyser();
-        if (analyser) {
-          analyser.smoothingTimeConstant = smoothing;
-        }
-      }
-    });
-  }
-  
-  // Audio Reactive toggle
-  const audioReactiveToggle = document.getElementById('audio-reactive');
-  if (audioReactiveToggle) {
-    audioReactiveToggle.checked = window.audioEffects.enabled;
-    audioReactiveToggle.addEventListener('change', (e) => {
-      window.audioEffects.enabled = e.target.checked;
-      if (window.kwami && window.kwami.body.blob) {
-        window.kwami.body.blob.audioEffects.enabled = window.audioEffects.enabled;
-      }
-      updateStatus(e.target.checked ? '🎵 Audio reactivity enabled' : '🔇 Audio reactivity disabled');
-    });
-  }
-  
-  // Time Modulation toggle
-  const audioTimeToggle = document.getElementById('audio-time-enabled');
-  if (audioTimeToggle) {
-    audioTimeToggle.checked = window.audioEffects.timeEnabled;
-    audioTimeToggle.addEventListener('change', (e) => {
-      window.audioEffects.timeEnabled = e.target.checked;
-      if (window.kwami && window.kwami.body.blob) {
-        window.kwami.body.blob.audioEffects.timeEnabled = window.audioEffects.timeEnabled;
-      }
-      updateStatus(e.target.checked ? '⏱️ Time modulation enabled' : '⏱️ Time modulation disabled');
-    });
-  }
-}
-
-// Initialize audio effects when DOM is ready
-if (document.readyState === 'loading') {
-  document.addEventListener('DOMContentLoaded', initializeAudioEffects);
-} else {
-  initializeAudioEffects();
-}
-
-// ============================================================================
-// GitHub Star Count
-// ============================================================================
-
-async function fetchGitHubStars() {
-  try {
-    const response = await fetch('https://api.github.com/repos/alexcolls/kwami');
-    const data = await response.json();
-    const starCount = data.stargazers_count || 0;
-    
-    const starCountElement = document.getElementById('star-count');
-    if (starCountElement) {
-      starCountElement.textContent = starCount.toLocaleString();
-    }
-  } catch (error) {
-    console.error('Failed to fetch GitHub stars:', error);
-    const starCountElement = document.getElementById('star-count');
-    if (starCountElement) {
-      starCountElement.textContent = '★';
-    }
-  }
-}
-
-// Fetch star count when page loads
-if (document.readyState === 'loading') {
-  document.addEventListener('DOMContentLoaded', fetchGitHubStars);
-} else {
-  fetchGitHubStars();
-}
-
-// ============================================================================
-// Menu Toggle
-// ============================================================================
-
-let menusVisible = true;
-
-window.toggleMenus = function() {
-  const leftSidebar = document.getElementById('left-sidebar');
-  const rightSidebar = document.getElementById('right-sidebar');
-  const toggleIcon = document.getElementById('menu-toggle-icon');
-  const audioPlayer = document.getElementById('audio-player');
-
-  menusVisible = !menusVisible;
-
-  if (menusVisible) {
-    leftSidebar.classList.remove('hidden');
-    rightSidebar.classList.remove('hidden');
-    audioPlayer.classList.remove('hidden');
-    toggleIcon.textContent = '☰';
-  } else {
-    leftSidebar.classList.add('hidden');
-    rightSidebar.classList.add('hidden');
-    audioPlayer.classList.add('hidden');
-    toggleIcon.textContent = '☰';
-  }
-};
-
-// Monitor state changes, camera position, and listening/thinking modes
-setInterval(() => {
-  if (window.kwami) {
-    // Update state with listening/thinking indicators
-    const state = window.kwami.getState();
-    const isListening = window.kwami.body.isListening();
-    const isThinking = window.kwami.body.isThinking();
-    
-    if (isThinking) {
-      updateStateIndicator('thinking');
-      // Show thinking status
-      const stateText = document.getElementById('state-text');
-      if (stateText && !stateText.textContent.includes('🤔')) {
-        stateText.textContent = '🤔 THINKING';
-      }
-    } else if (isListening) {
-      updateStateIndicator('listening');
-      // Show listening status
-      const stateText = document.getElementById('state-text');
-      if (stateText && !stateText.textContent.includes('🎤')) {
-        stateText.textContent = '🎤 LISTENING';
-      }
-    } else {
-      updateStateIndicator(state);
-    }
-    
-    // Update camera position display
-    const camera = window.kwami.body.getCamera();
-    const currentX = parseFloat(document.getElementById('camera-x').value);
-    const currentY = parseFloat(document.getElementById('camera-y').value);
-    const currentZ = parseFloat(document.getElementById('camera-z').value);
-    
-    // Only update if values have changed (to avoid slider jumping while user is dragging)
-    if (Math.abs(camera.position.x - currentX) > 0.1) {
-      document.getElementById('camera-x').value = camera.position.x;
+  if (cameraXSlider) {
+    cameraXSlider.value = camera.position.x.toString();
       updateValueDisplay('camera-x-value', camera.position.x, 1);
     }
-    if (Math.abs(camera.position.y - currentY) > 0.1) {
-      document.getElementById('camera-y').value = camera.position.y;
+  if (cameraYSlider) {
+    cameraYSlider.value = camera.position.y.toString();
       updateValueDisplay('camera-y-value', camera.position.y, 1);
     }
-    if (Math.abs(camera.position.z - currentZ) > 0.1) {
-      document.getElementById('camera-z').value = camera.position.z;
+  if (cameraZSlider) {
+    cameraZSlider.value = camera.position.z.toString();
       updateValueDisplay('camera-z-value', camera.position.z, 1);
     }
-  }
-}, 100);
-
-// ============================================================================
-// Audio Player
-// ============================================================================
-
-let audioPlayerElement = null;
-let isAudioPlaying = false;
-
-// Initialize audio player
-function initializeAudioPlayer() {
-  const uploadBtn = document.getElementById('upload-audio-btn');
-  const audioFileInput = document.getElementById('audio-file');
-  const playPauseBtn = document.getElementById('play-pause-btn');
-  const volumeSlider = document.getElementById('volume-slider');
-  
-  // Upload button click
-  uploadBtn.addEventListener('click', () => {
-    audioFileInput.click();
-  });
-  
-  // File selection
-  audioFileInput.addEventListener('change', (e) => {
-    const file = e.target.files[0];
-    if (file) {
-      loadAudioFile(file);
-    }
-  });
-  
-  // Play/Pause button
-  playPauseBtn.addEventListener('click', () => {
-    if (!audioPlayerElement) return;
-    
-    if (isAudioPlaying) {
-      pauseAudio();
-    } else {
-      playAudio();
-    }
-  });
-  
-  // Volume control
-  volumeSlider.addEventListener('input', (e) => {
-    const volume = e.target.value / 100;
-    if (window.kwami && window.kwami.body.audio) {
-      window.kwami.body.audio.setVolume(volume);
-    }
-    
-    // Update volume icon
-    const volumeIcon = document.getElementById('volume-icon');
-    if (volume === 0) {
-      volumeIcon.textContent = '🔇';
-    } else if (volume < 0.5) {
-      volumeIcon.textContent = '🔉';
-    } else {
-      volumeIcon.textContent = '🔊';
-    }
-  });
-}
-
-// Load audio file
-async function loadAudioFile(file) {
-  try {
-    const arrayBuffer = await file.arrayBuffer();
-    
-    if (window.kwami && window.kwami.body.audio) {
-      // Load audio into Kwami's audio system
-      await window.kwami.body.audio.loadAudio(arrayBuffer);
-      
-      // Get the audio element from Kwami
-      audioPlayerElement = window.kwami.body.audio.getAudioElement();
-      
-      // Update UI
-      document.getElementById('audio-name').textContent = file.name;
-      document.getElementById('play-pause-btn').disabled = false;
-      
-      // Add time update listener
-      audioPlayerElement.addEventListener('timeupdate', updateAudioTime);
-      audioPlayerElement.addEventListener('ended', onAudioEnded);
-      
-      // Update total duration
-      audioPlayerElement.addEventListener('loadedmetadata', () => {
-        updateAudioTime();
-      });
-      
-      updateStatus(`✅ Loaded: ${file.name}`);
-    } else {
-      showError('Kwami not initialized. Please initialize first.');
-    }
-  } catch (error) {
-    showError(`Failed to load audio: ${error.message}`);
-    console.error('Audio load error:', error);
-  }
-}
-
-// Play audio
-function playAudio() {
-  if (!audioPlayerElement || !window.kwami) return;
-  
-  window.kwami.body.audio.play();
-  isAudioPlaying = true;
-  document.getElementById('play-pause-btn').textContent = '⏸️';
-  updateStatus('🎵 Playing audio');
-}
-
-// Pause audio
-function pauseAudio() {
-  if (!audioPlayerElement || !window.kwami) return;
-  
-  window.kwami.body.audio.pause();
-  isAudioPlaying = false;
-  document.getElementById('play-pause-btn').textContent = '▶️';
-  updateStatus('⏸️ Audio paused');
-}
-
-// Update audio time display
-function updateAudioTime() {
-  if (!audioPlayerElement) return;
-  
-  const current = audioPlayerElement.currentTime;
-  const duration = audioPlayerElement.duration || 0;
-  
-  const formatTime = (seconds) => {
-    const mins = Math.floor(seconds / 60);
-    const secs = Math.floor(seconds % 60);
-    return `${mins}:${secs.toString().padStart(2, '0')}`;
-  };
-  
-  document.getElementById('audio-time').textContent = 
-    `${formatTime(current)} / ${formatTime(duration)}`;
-}
-
-// Handle audio end
-function onAudioEnded() {
-  isAudioPlaying = false;
-  document.getElementById('play-pause-btn').textContent = '▶️';
-  updateStatus('✅ Audio finished');
-}
-
-// Initialize audio player when DOM is ready
-if (document.readyState === 'loading') {
-  document.addEventListener('DOMContentLoaded', initializeAudioPlayer);
-} else {
-  initializeAudioPlayer();
 }

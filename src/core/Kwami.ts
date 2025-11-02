@@ -33,6 +33,14 @@ export class Kwami {
 
   private state: KwamiState = 'idle';
 
+  /**
+   * Get the current version of Kwami
+   * @returns The version string (e.g., "2.2.0")
+   */
+  static getVersion(): string {
+    return '2.2.1';
+  }
+
   constructor(canvas: HTMLCanvasElement, config?: KwamiConfig) {
     // Initialize the body (visual representation)
     this.body = new KwamiBody(canvas, config?.body);

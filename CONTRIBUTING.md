@@ -140,26 +140,41 @@ Help improve the codebase:
 
 ## 📝 Making Changes
 
+## 🌿 Branch Strategy
+
+### Production & Development Branches
+
+We use a professional git workflow with protected branches:
+
+- 🔒 **main** - Production branch (deployed to kwami.io)
+  - Protected - requires PR review
+  - Only receives releases from `dev`
+  - Tagged with version numbers (v2.0.0, v2.1.0, etc.)
+
+- 🔧 **dev** - Development/integration branch
+  - Main branch for feature development
+  - **All feature PRs target this branch, NOT main**
+  - Testing and review happens here
+  - Merged to `main` for releases
+
 ### Create a Branch
 
-Use descriptive branch names:
+Always create feature branches from `dev`:
 
 ```bash
-# Feature branches
-git checkout -b feature/blob-skin-improvements
-git checkout -b feature/add-waveform-visualization
+# First, ensure you're on dev
+git checkout dev
+git pull origin dev
 
-# Bug fix branches
-git checkout -b fix/scale-slider-not-working
-git checkout -b fix/memory-leak-on-resize
+# Then create your feature branch
+git checkout -b feature/your-feature-name
 
-# Documentation branches
-git checkout -b docs/add-custom-shader-guide
-git checkout -b docs/update-api-reference
-
-# Refactor branches
-git checkout -b refactor/animation-system
-git checkout -b refactor/simplify-audio-handling
+# Or use these naming patterns:
+git checkout -b feature/blob-skin-improvements      # New features
+git checkout -b fix/scale-slider-not-working       # Bug fixes
+git checkout -b docs/add-custom-shader-guide       # Documentation
+git checkout -b refactor/animation-system          # Refactoring
+git checkout -b perf/optimize-audio-processing     # Performance
 ```
 
 ### Keep Your Branch Updated
@@ -167,11 +182,13 @@ git checkout -b refactor/simplify-audio-handling
 Before making a pull request:
 
 ```bash
-git fetch upstream
-git rebase upstream/main
+git fetch origin
+git rebase origin/dev
 # or
-git merge upstream/main
+git merge origin/dev
 ```
+
+**Important**: Rebase on `dev`, not `main`!
 
 ## 💾 Commit Guidelines
 
@@ -220,9 +237,23 @@ We follow semantic commit messages:
 
 ## 🔄 Pull Request Process
 
+### Branch Target
+
+**🚨 All PRs should target the `dev` branch, NOT `main`**
+
+- `dev` is the integration branch for features
+- `main` is production (deployed to kwami.io)
+- Only maintainers merge `dev` → `main` for releases
+
 ### Before Submitting
 
-1. **Test your changes**
+1. **Ensure you're on dev**
+   ```bash
+   git fetch origin
+   git rebase origin/dev  # Update your branch
+   ```
+
+2. **Test your changes**
    ```bash
    npm run build
    npm run playground  # Test manually
@@ -232,8 +263,12 @@ We follow semantic commit messages:
    - Update README.md if adding features
    - Update CHANGELOG.md with your changes
    - Add/update JSDoc comments
+   - **Version updates** (for maintainers only):
+     - Only update `package.json` version field
+     - Run `npm run sync-version` (or happens automatically on `npm run build`)
+     - Kwami.ts and playground version display update automatically
 
-3. **Check code quality**
+4. **Check code quality**
    ```bash
    npm run lint  # If available
    ```
@@ -251,6 +286,7 @@ We follow semantic commit messages:
    - Describe your changes in the description
    - Include before/after if visual changes
    - Link to playground or example if applicable
+   - **⚠️ IMPORTANT: Set target branch to `dev`, NOT `main`**
 
 ### PR Description Template
 
@@ -276,19 +312,34 @@ Related to #456
 [Add before/after images]
 
 ## Checklist
+- [ ] Branched from `dev`
+- [ ] PR targets `dev` (not `main`)
 - [ ] Code follows style guidelines
 - [ ] Documentation updated
 - [ ] CHANGELOG.md updated
 - [ ] No breaking changes introduced
 - [ ] Tested locally
+- [ ] Rebased/merged with latest `dev`
 ```
 
 ### Review Process
 
-- Maintainers will review your PR
+- Maintainers will review your PR on `dev`
 - We may request changes or clarifications
 - Address feedback in additional commits
-- Once approved, your PR will be merged! 🎉
+- Once approved, your PR will be merged to `dev`! 🎉
+- Later, `dev` will be merged to `main` for release
+
+### Release Process
+
+When it's time for a release:
+
+1. `dev` is merged to `main` in a release PR
+2. Version is bumped (v2.0.0 → v2.1.0)
+3. CHANGELOG is finalized
+4. Tag is created
+5. Deployed to kwami.io
+6. `main` is merged back to `dev`
 
 ## 🎯 Coding Standards
 
