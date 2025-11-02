@@ -32,8 +32,13 @@
         <span id="star-count">...</span>
       </a>
       
+      <button id="audio-toggle-btn" class="audio-toggle-btn" type="button" aria-controls="audio-player" aria-expanded="false" aria-pressed="false" title="Show audio player">
+        <span class="audio-toggle-icon">🎧</span>
+      </button>
+
       <!-- Audio Player -->
-      <div id="audio-player">
+      <div id="audio-player" class="hidden">
+        <button id="audio-close-btn" class="audio-close-btn" type="button" title="Close audio player">✕</button>
         <input type="file" id="audio-file" accept="audio/*" style="display: none;">
         <button id="upload-audio-btn" class="player-btn" title="Upload Audio">📁</button>
         <button id="play-pause-btn" class="player-btn" disabled title="Play/Pause">▶️</button>

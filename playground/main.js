@@ -53,6 +53,7 @@ const audioPlayerState = {
   initialized: false,
   displayName: 'No audio loaded',
   lastVolume: 0.8,
+  visible: false, // Start hidden
 };
 
 const githubStarState = {
@@ -67,6 +68,49 @@ function getKwamiAudio() {
 function initializeAudioPlayer() {
   if (audioPlayerState.initialized) {
     return;
+  }
+
+  const audioPlayerContainer = document.getElementById('audio-player');
+  if (!audioPlayerContainer) {
+    console.warn('Audio player container missing; skipping initialization');
+    return;
+  }
+
+  const toggleButton = document.getElementById('audio-toggle-btn');
+  const closeButton = document.getElementById('audio-close-btn');
+
+  const setAudioPlayerVisibility = (visible) => {
+    audioPlayerState.visible = visible;
+    audioPlayerContainer.classList.toggle('hidden', !visible);
+    toggleButton.classList.toggle('hidden', visible);
+
+    if (toggleButton) {
+      toggleButton.setAttribute('aria-expanded', String(visible));
+      toggleButton.setAttribute('aria-pressed', String(visible));
+      const label = visible ? 'Hide audio player' : 'Show audio player';
+      toggleButton.setAttribute('aria-label', label);
+      toggleButton.setAttribute('title', label);
+    }
+  };
+
+  setAudioPlayerVisibility(audioPlayerState.visible);
+
+  // Headphones button opens the player
+  if (toggleButton) {
+    toggleButton.addEventListener('click', () => {
+      setAudioPlayerVisibility(true);
+    });
+  } else {
+    console.warn('Audio toggle button missing; audio player visibility toggle unavailable');
+  }
+
+  // Close button (X) inside player closes it
+  if (closeButton) {
+    closeButton.addEventListener('click', () => {
+      setAudioPlayerVisibility(false);
+    });
+  } else {
+    console.warn('Audio close button missing');
   }
 
   const fileInput = document.getElementById('audio-file');
