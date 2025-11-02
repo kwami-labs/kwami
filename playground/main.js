@@ -20,18 +20,12 @@ let menusCollapsed = false;
 function applySidebarVisibility() {
   const leftSidebar = document.getElementById('left-sidebar');
   const rightSidebar = document.getElementById('right-sidebar');
-  const audioPlayer = document.getElementById('audio-player');
 
   [leftSidebar, rightSidebar].forEach((sidebar) => {
     if (!sidebar) return;
     sidebar.classList.toggle('hidden', menusCollapsed);
     sidebar.setAttribute('aria-hidden', menusCollapsed ? 'true' : 'false');
   });
-
-  if (audioPlayer) {
-    audioPlayer.classList.toggle('hidden', menusCollapsed);
-    audioPlayer.setAttribute('aria-hidden', menusCollapsed ? 'true' : 'false');
-  }
 }
 
 function updateMenuToggleButton() {

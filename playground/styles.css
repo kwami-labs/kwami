@@ -275,7 +275,7 @@ canvas.conversation-ready {
 #audio-player.hidden {
   opacity: 0;
   pointer-events: none;
-  transform: translateX(-50%) translateY(-60px);
+  transform: translateX(-50%) translateY(-20px);
 }
 
 .player-btn {
