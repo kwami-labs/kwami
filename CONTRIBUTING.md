@@ -259,10 +259,14 @@ We follow semantic commit messages:
    npm run playground  # Test manually
    ```
 
-3. **Update documentation**
+2. **Update documentation**
    - Update README.md if adding features
    - Update CHANGELOG.md with your changes
    - Add/update JSDoc comments
+   - **Sync version**: If bumping version, update both:
+     - `package.json` version field
+     - `src/core/Kwami.ts` `getVersion()` method
+     - (Playground version display updates automatically)
 
 4. **Check code quality**
    ```bash

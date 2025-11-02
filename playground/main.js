@@ -49,6 +49,284 @@ window.toggleMenus = function() {
   updateMenuToggleButton();
 };
 
+const audioPlayerState = {
+  initialized: false,
+  displayName: 'No audio loaded',
+  lastVolume: 0.8,
+};
+
+const githubStarState = {
+  initialized: false,
+  lastFetchedAt: 0,
+};
+
+function getKwamiAudio() {
+  return window.kwami?.body?.audio;
+}
+
+function initializeAudioPlayer() {
+  if (audioPlayerState.initialized) {
+    return;
+  }
+
+  const fileInput = document.getElementById('audio-file');
+  const uploadButton = document.getElementById('upload-audio-btn');
+  const playPauseButton = document.getElementById('play-pause-btn');
+  const volumeSlider = document.getElementById('volume-slider');
+  const volumeIcon = document.getElementById('volume-icon');
+  const audioName = document.getElementById('audio-name');
+  const audioTime = document.getElementById('audio-time');
+
+  if (!fileInput || !uploadButton || !playPauseButton || !volumeSlider || !volumeIcon || !audioName || !audioTime) {
+    console.warn('Audio player elements missing; skipping initialization');
+    return;
+  }
+
+  const kwamiAudio = getKwamiAudio();
+  const audioElement = kwamiAudio?.getAudioElement?.();
+
+  if (!kwamiAudio || !audioElement) {
+    console.warn('Kwami audio instance not available; skipping audio player initialization');
+    return;
+  }
+
+  const deriveNameFromSrc = (src) => {
+    if (!src) {
+      return '';
+    }
+
+    if (audioPlayerState.displayName && audioPlayerState.displayName !== 'No audio loaded') {
+      return audioPlayerState.displayName;
+    }
+
+    if (src.startsWith('blob:')) {
+      return 'Uploaded Audio';
+    }
+
+    try {
+      const url = new URL(src, window.location.href);
+      const pathname = url.pathname || '';
+      const filename = pathname.substring(pathname.lastIndexOf('/') + 1);
+      return filename ? decodeURIComponent(filename) : url.host || 'Audio Track';
+    } catch (error) {
+      const sanitized = src.split('?')[0];
+      const filename = sanitized.substring(sanitized.lastIndexOf('/') + 1);
+      return filename || 'Audio Track';
+    }
+  };
+
+  const setDisplayName = (name) => {
+    audioPlayerState.displayName = name;
+    audioName.textContent = name;
+  };
+
+  const updateTimeDisplay = () => {
+    const current = kwamiAudio.formatTime(kwamiAudio.getCurrentTime());
+    const duration = kwamiAudio.formatTime(kwamiAudio.getDuration());
+    audioTime.textContent = `${current} / ${duration}`;
+  };
+
+  const updatePlayPauseState = () => {
+    const hasSource = Boolean(audioElement.src);
+    playPauseButton.disabled = !hasSource;
+    if (kwamiAudio.isPlaying()) {
+      playPauseButton.textContent = '⏸';
+      playPauseButton.title = 'Pause';
+    } else {
+      playPauseButton.textContent = '▶️';
+      playPauseButton.title = hasSource ? 'Play' : 'No audio loaded';
+    }
+  };
+
+  const updateVolumeUI = (volume) => {
+    const normalized = Math.max(0, Math.min(1, Number.isFinite(volume) ? volume : 0));
+    volumeSlider.value = String(Math.round(normalized * 100));
+
+    let icon = '🔊';
+    if (normalized === 0) {
+      icon = '🔇';
+    } else if (normalized < 0.34) {
+      icon = '🔈';
+    } else if (normalized < 0.67) {
+      icon = '🔉';
+    }
+
+    volumeIcon.textContent = icon;
+  };
+
+  uploadButton.addEventListener('click', () => {
+    fileInput.click();
+  });
+
+  fileInput.addEventListener('change', async (event) => {
+    const target = event.target;
+    const file = target?.files?.[0];
+    if (!file) {
+      return;
+    }
+
+    try {
+      await kwamiAudio.loadAudioFile(file);
+      setDisplayName(file.name);
+      updateTimeDisplay();
+      updatePlayPauseState();
+      updateStatus(`🎵 Loaded "${file.name}"`);
+    } catch (error) {
+      console.error('Failed to load audio file:', error);
+      showError('Failed to load audio file. Please try another file.');
+    } finally {
+      target.value = '';
+    }
+  });
+
+  playPauseButton.addEventListener('click', async () => {
+    if (playPauseButton.disabled) {
+      return;
+    }
+
+    try {
+      await kwamiAudio.togglePlayPause();
+    } catch (error) {
+      console.error('Failed to toggle audio playback:', error);
+      showError('Unable to play audio. Please check the file format.');
+    }
+  });
+
+  volumeSlider.addEventListener('input', (event) => {
+    const sliderValue = Number(event.target?.value ?? 80);
+    const volume = Math.max(0, Math.min(100, sliderValue)) / 100;
+    kwamiAudio.setVolume(volume);
+
+    if (volume > 0) {
+      audioPlayerState.lastVolume = volume;
+    }
+
+    updateVolumeUI(volume);
+  });
+
+  volumeIcon.addEventListener('click', () => {
+    if (audioElement.volume === 0) {
+      const restoreVolume = audioPlayerState.lastVolume || 0.8;
+      kwamiAudio.setVolume(restoreVolume);
+      updateVolumeUI(restoreVolume);
+    } else {
+      audioPlayerState.lastVolume = audioElement.volume;
+      kwamiAudio.setVolume(0);
+      updateVolumeUI(0);
+    }
+  });
+
+  audioElement.addEventListener('timeupdate', updateTimeDisplay);
+  audioElement.addEventListener('loadedmetadata', updateTimeDisplay);
+  audioElement.addEventListener('play', updatePlayPauseState);
+  audioElement.addEventListener('pause', updatePlayPauseState);
+  audioElement.addEventListener('ended', () => {
+    kwamiAudio.setCurrentTime(0);
+    updateTimeDisplay();
+    updatePlayPauseState();
+  });
+  audioElement.addEventListener('volumechange', () => {
+    const volume = audioElement.volume;
+    if (volume > 0) {
+      audioPlayerState.lastVolume = volume;
+    }
+    updateVolumeUI(volume);
+  });
+  audioElement.addEventListener('error', (event) => {
+    console.error('Audio element error:', event);
+    showError('Audio playback error occurred.');
+    updatePlayPauseState();
+  });
+
+  const initialName = deriveNameFromSrc(audioElement.src);
+  setDisplayName(initialName || 'No audio loaded');
+  updateTimeDisplay();
+  updatePlayPauseState();
+
+  const sliderInitialValue = Number(volumeSlider.value ?? 80);
+  let initialVolume = Math.max(0, Math.min(100, sliderInitialValue)) / 100;
+  if (!Number.isFinite(initialVolume)) {
+    initialVolume = 0.8;
+  }
+
+  kwamiAudio.setVolume(initialVolume);
+  audioPlayerState.lastVolume = initialVolume;
+  updateVolumeUI(initialVolume);
+
+  audioPlayerState.initialized = true;
+}
+
+async function fetchGitHubStars() {
+  const now = Date.now();
+  if (now - githubStarState.lastFetchedAt < 5 * 60 * 1000) {
+    // Skip refetching within 5 minutes
+    return;
+  }
+
+  const starCountElement = document.getElementById('star-count');
+  if (!starCountElement) {
+    console.warn('Star count element not found; skipping fetch');
+    return;
+  }
+
+  starCountElement.textContent = '…';
+
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), 8000);
+
+  try {
+    const response = await fetch('https://api.github.com/repos/alexcolls/kwami', {
+      headers: {
+        Accept: 'application/vnd.github+json',
+        'User-Agent': 'kwami-playground',
+      },
+      signal: controller.signal,
+    });
+
+    if (!response.ok) {
+      throw new Error(`GitHub API responded with ${response.status}`);
+    }
+
+    const data = await response.json();
+    const stars = data?.stargazers_count;
+
+    if (typeof stars === 'number' && Number.isFinite(stars)) {
+      starCountElement.textContent = stars.toLocaleString();
+      githubStarState.lastFetchedAt = now;
+    } else {
+      throw new Error('Invalid star count in response');
+    }
+  } catch (error) {
+    console.warn('Failed to fetch GitHub stars:', error);
+    starCountElement.textContent = 'N/A';
+    starCountElement.title = 'Unable to fetch star count';
+  } finally {
+    clearTimeout(timeoutId);
+  }
+}
+
+function initializeGitHubStarButton() {
+  if (githubStarState.initialized) {
+    return;
+  }
+
+  const starButton = document.getElementById('github-star-btn');
+  const starCountElement = document.getElementById('star-count');
+
+  if (!starButton || !starCountElement) {
+    console.warn('GitHub star button elements missing; skipping initialization');
+    return;
+  }
+
+  starButton.addEventListener('mouseenter', fetchGitHubStars, { once: true });
+  starButton.addEventListener('focus', fetchGitHubStars, { once: true });
+  fetchGitHubStars().catch(() => {
+    // Errors handled inside fetchGitHubStars
+  });
+
+  githubStarState.initialized = true;
+}
+
 // Initialize sidebars
 function initializeSidebars() {
   renderSidebar('left', sidebarState.left);
@@ -943,6 +1221,7 @@ function initializeBackgroundControls() {
 initializeSidebars();
 applySidebarVisibility();
 updateMenuToggleButton();
+initializeGitHubStarButton();
 
 // Initialize Mind controls since Mind is on the left by default
 setTimeout(() => {
@@ -977,6 +1256,14 @@ try {
   
   // Set initial scale after initialization
   window.kwami.body.blob.setScale(DEFAULT_VALUES.scale);
+
+  // Update version display dynamically
+  const versionDisplay = document.getElementById('version-display');
+  if (versionDisplay) {
+    versionDisplay.textContent = `v${Kwami.getVersion()}`;
+  }
+
+  initializeAudioPlayer();
 
   // Create conversation callbacks for blob interaction
   const conversationCallbacks = {
