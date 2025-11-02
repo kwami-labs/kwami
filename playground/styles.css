@@ -53,29 +53,45 @@ body {
   background: #1a1a1a;
 }
 
-#background-video {
+#background-media,
+#background-gradient {
   position: absolute;
   top: 0;
   left: 0;
   width: 100%;
   height: 100%;
-  object-fit: cover;
-  z-index: 0;
-  display: none;
-  background: #000;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 0.3s ease;
 }
 
-#background-image {
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
+#background-media {
+  z-index: 0;
   background-size: cover;
   background-position: center;
   background-repeat: no-repeat;
+  opacity: 0;
+}
+
+#background-media[data-active="image"],
+#background-media[data-active="video"] {
+  opacity: 1;
+}
+
+#background-media-video {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: none;
+}
+
+#background-gradient {
   z-index: 1;
-  transition: background-image 0.3s ease;
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+  mix-blend-mode: normal;
+  opacity: 0;
 }
 
 #canvas-overlay {
@@ -128,6 +144,11 @@ canvas.conversation-ready {
 
 #canvas-container.conversation-ready:hover::after {
   opacity: 1;
+}
+
+#preview-btn {
+  margin-top: -20px;
+  margin-bottom: 40px;
 }
 
 /* Menu Toggle Button */

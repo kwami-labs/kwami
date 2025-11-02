@@ -7,6 +7,38 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [2.2.0] - 2025-11-02
+
+### ✨ Added
+
+#### 🔧 Background Image Controls
+- Enhanced background management with image support
+- Debug documentation for background image implementation
+- Improved asset handling for playground backgrounds
+
+#### 🎨 Playground Enhancements
+- Updated HTML structure for better organization
+- Enhanced CSS styling with improved responsive design
+- Refined JavaScript event handlers and controls
+- Better integration of body controls with state management
+
+### 🔄 Changed
+
+#### Type System Improvements
+- Enhanced TypeScript type definitions in `src/types/index.ts`
+- Better type safety for Body class configurations
+- Improved type inference for background configurations
+
+#### Core Improvements
+- Refined Body.ts implementation with better type handling
+- Enhanced background state management
+- Improved playground control synchronization
+
+### 📚 Documentation
+- Added BACKGROUND_IMAGE_DEBUG.md for troubleshooting
+- Enhanced inline code documentation
+- Updated playground UI documentation
+
 ## [2.1.0] - 2025-10-31
 
 ### ✨ Added

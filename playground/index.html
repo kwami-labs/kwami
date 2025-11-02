@@ -44,9 +44,12 @@
         <input type="range" id="volume-slider" min="0" max="100" value="80" title="Volume">
         <span id="volume-icon">🔊</span>
       </div>
+
+      <div id="background-media" data-active="none">
+        <video id="background-media-video" autoplay muted loop playsinline></video>
+      </div>
+      <div id="background-gradient"></div>
       
-      <video id="background-video" autoplay muted loop playsinline></video>
-      <div id="background-image"></div>
       <div id="canvas-overlay"></div>
       <canvas id="kwami-canvas"></canvas>
       
@@ -129,6 +132,17 @@
           </select>
         </div>
 
+        <div class="input-group">
+          <label>Model</label>
+          <select id="voice-model">
+            <option value="eleven_multilingual_v2" selected>Eleven Multilingual v2 (Recommended)</option>
+            <option value="eleven_turbo_v2">Eleven Turbo v2 (Fastest)</option>
+            <option value="eleven_turbo_v2_5">Eleven Turbo v2.5 (Balanced)</option>
+            <option value="eleven_monolingual_v1">Eleven Monolingual v1 (English Only)</option>
+            <option value="eleven_multilingual_v1">Eleven Multilingual v1 (Legacy)</option>
+          </select>
+        </div>
+
         <div class="input-group" id="custom-voice-container" style="display: none;">
           <label>Custom Voice ID</label>
           <input type="text" id="custom-voice-id" placeholder="Enter custom voice ID">
@@ -140,17 +154,6 @@
             <!-- Dynamically populated -->
           </select>
           <button class="button-secondary" onclick="selectUserVoice()" style="margin-top: 5px;">Use Selected Voice</button>
-        </div>
-
-        <div class="input-group">
-          <label>Model</label>
-          <select id="voice-model">
-            <option value="eleven_multilingual_v2" selected>Eleven Multilingual v2 (Recommended)</option>
-            <option value="eleven_turbo_v2">Eleven Turbo v2 (Fastest)</option>
-            <option value="eleven_turbo_v2_5">Eleven Turbo v2.5 (Balanced)</option>
-            <option value="eleven_monolingual_v1">Eleven Monolingual v1 (English Only)</option>
-            <option value="eleven_multilingual_v1">Eleven Multilingual v1 (Legacy)</option>
-          </select>
         </div>
 
         <div class="input-group">
@@ -174,6 +177,8 @@
           </select>
         </div>
       </div>
+
+      <button onclick="previewVoice()" id="preview-btn" disabled class="button-secondary">👂 Preview Voice</button>
 
       <!-- Voice Settings (Fine-tuning) -->
       <div class="section">
@@ -343,7 +348,6 @@
         </div>
 
         <button onclick="speak()" id="speak-btn" disabled>🎤 Speak Text</button>
-        <button onclick="previewVoice()" id="preview-btn" disabled class="button-secondary">👂 Preview Voice</button>
         
         <div id="generation-status" style="margin-top: 10px; display: none;">
           <small style="color: #888;">Status: <span id="generation-status-text">Ready</span></small>

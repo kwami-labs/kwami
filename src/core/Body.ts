@@ -12,18 +12,22 @@ import {
   Vector3,
   TextureLoader,
   Texture,
+  VideoTexture,
   SRGBColorSpace,
   AlwaysStencilFunc,
   NotEqualStencilFunc,
   KeepStencilOp,
+  LinearFilter,
 } from 'three';
 import { KwamiAudio } from './Audio';
 import { Blob } from '../blob/Blob.js';
 import { setupScene } from '../scene/setup.js';
-import type { BodyConfig, BlobSkinType, SceneBackgroundConfig } from '../types/index';
+import type { BackgroundMediaFit, BodyConfig, BlobSkinType, SceneBackgroundConfig } from '../types/index';
 
 type BackgroundDirection = 'vertical' | 'horizontal' | 'radial' | 'diagonal';
 type BlobImageMode = 'none' | 'overlay' | 'glass';
+
+type BackgroundMediaType = 'image' | 'video';
 
 interface BackgroundState {
   type: 'transparent' | 'solid' | 'gradient';
@@ -33,6 +37,27 @@ interface BackgroundState {
   angle?: number;
   stops?: number[];
   opacity: number;
+  imageUrl?: string;
+  imageFit?: BackgroundMediaFit;
+  videoUrl?: string;
+  videoFit?: BackgroundMediaFit;
+  videoAutoplay?: boolean;
+  videoLoop?: boolean;
+  videoMuted?: boolean;
+  videoPlaybackRate?: number;
+}
+
+interface BackgroundMediaState {
+  type: BackgroundMediaType;
+  opacity: number;
+  imageUrl?: string;
+  imageFit?: BackgroundMediaFit;
+  videoUrl?: string;
+  videoFit?: BackgroundMediaFit;
+  videoAutoplay?: boolean;
+  videoLoop?: boolean;
+  videoMuted?: boolean;
+  videoPlaybackRate?: number;
 }
 
 interface BackgroundGradientOptions {
@@ -40,6 +65,18 @@ interface BackgroundGradientOptions {
   angle?: number;
   stops?: number[];
   opacity?: number;
+}
+
+interface BackgroundImageOptions {
+  fit?: BackgroundMediaFit;
+  opacity?: number;
+}
+
+interface BackgroundVideoOptions extends BackgroundImageOptions {
+  autoplay?: boolean;
+  loop?: boolean;
+  muted?: boolean;
+  playbackRate?: number;
 }
 
 interface BlobImageTransparencyOptions {
@@ -57,6 +94,10 @@ const DEFAULT_BACKGROUND_STATE: BackgroundState = {
   opacity: 1,
 };
 
+const MEDIA_PLANE_DISTANCE = 80;
+const GRADIENT_PLANE_DISTANCE = 60;
+const BACKGROUND_PLANE_BASE_SIZE = 200;
+
 /**
  * KwamiBody - Manages the 3D visual representation of Kwami
  * Handles the THREE.js scene, renderer, camera, and the blob mesh
@@ -67,13 +108,22 @@ export class KwamiBody {
   private camera: PerspectiveCamera;
   private scene: Scene;
   private resizeObserver?: ResizeObserver;
-  private backgroundPlane: Mesh | null = null;
-  private backgroundPlaneTexture: CanvasTexture | null = null;
+  private backgroundPlane: Mesh | null = null; // Gradient/overlay plane
+  private backgroundPlaneTexture: Texture | null = null;
+  private backgroundMediaPlane: Mesh | null = null;
+  private backgroundMediaTexture: Texture | null = null;
   private blobImageMode: BlobImageMode = 'none';
   private backgroundTexture: Texture | null = null;
   private currentBackgroundImageUrl: string | null = null;
+  private currentMediaImageUrl: string | null = null;
+  private currentVideoUrl: string | null = null;
+  private backgroundVideoElement: HTMLVideoElement | null = null;
+  private backgroundVideoTexture: VideoTexture | null = null;
+  private backgroundMediaAspect: number | null = null;
+  private backgroundMediaFit: BackgroundMediaFit = 'cover';
   private readonly textureLoader = new TextureLoader();
   private backgroundState: BackgroundState = { ...DEFAULT_BACKGROUND_STATE };
+  private backgroundMediaState: BackgroundMediaState | null = null;
 
   public audio: KwamiAudio;
   public blob: Blob;
@@ -314,7 +364,14 @@ export class KwamiBody {
    * @param config - Background configuration
    */
   setBackground(config: SceneBackgroundConfig): void {
-    this.backgroundState = this.mapConfigToBackgroundState(config);
+    const { baseState, mediaState } = this.mapConfigToBackgroundState(config);
+    this.backgroundState = baseState;
+    this.backgroundMediaState = mediaState;
+    if (!mediaState) {
+      this.disposeVideoBackground();
+      this.backgroundMediaAspect = null;
+      this.backgroundMediaFit = 'cover';
+    }
     this.applyBackgroundState();
   }
 
@@ -388,6 +445,48 @@ export class KwamiBody {
       stops: sanitizedStops,
       opacity,
     };
+    this.applyBackgroundState();
+  }
+
+  setBackgroundImage(url: string, options: BackgroundImageOptions = {}): void {
+    if (!url) {
+      this.clearBackgroundMedia();
+      return;
+    }
+
+    this.backgroundMediaState = {
+      type: 'image',
+      opacity: options.opacity ?? 1,
+      imageUrl: url,
+      imageFit: options.fit ?? 'cover',
+    };
+    this.applyBackgroundState();
+  }
+
+  setBackgroundVideo(url: string, options: BackgroundVideoOptions = {}): void {
+    if (!url) {
+      this.clearBackgroundMedia();
+      return;
+    }
+
+    this.backgroundMediaState = {
+      type: 'video',
+      opacity: options.opacity ?? 1,
+      videoUrl: url,
+      videoFit: options.fit ?? 'cover',
+      videoAutoplay: options.autoplay ?? true,
+      videoLoop: options.loop ?? true,
+      videoMuted: options.muted ?? true,
+      videoPlaybackRate: options.playbackRate ?? 1,
+    };
+    this.applyBackgroundState();
+  }
+
+  clearBackgroundMedia(): void {
+    this.backgroundMediaState = null;
+    this.disposeBackgroundMediaPlane();
+    this.backgroundMediaAspect = null;
+    this.backgroundMediaFit = 'cover';
     this.applyBackgroundState();
   }
 
@@ -618,29 +717,48 @@ export class KwamiBody {
   }
 
   refreshBlobImageTransparencyMode(): void {
-    if (this.blobImageMode === 'none') return;
+    const requiresPlane = this.blobImageMode !== 'none' || this.backgroundMediaState !== null;
+    if (!requiresPlane) return;
     this.updateBackgroundPlaneTransform();
   }
 
   private applyBackgroundState(): void {
     const state = this.backgroundState;
+    const mediaState = this.backgroundMediaState;
 
-    if (this.blobImageMode === 'none') {
-      this.blob.setGlassMode(false);
-      this.disposeBackgroundPlane();
-      this.applyStateToSceneBackground(state);
-      return;
+    const hasMedia = mediaState !== null;
+    const gradientOverlayActive = hasMedia && state.type !== 'transparent';
+    const requiresGradientPlane = gradientOverlayActive || this.blobImageMode !== 'none';
+
+    if (hasMedia) {
+      const mediaPlane = this.ensureBackgroundMediaPlane();
+      const mediaMaterial = mediaPlane.material as MeshBasicMaterial;
+      this.configureMediaPlaneMaterial(mediaMaterial, mediaState!);
+      this.updateMediaPlaneTexture(mediaState!, mediaMaterial);
+      mediaPlane.visible = true;
+    } else {
+      this.disposeBackgroundMediaPlane();
     }
 
-    this.scene.background = null;
-    const plane = this.ensureBackgroundPlane();
-    const material = plane.material as MeshBasicMaterial;
+    if (requiresGradientPlane) {
+      const gradientPlane = this.ensureBackgroundPlane();
+      const gradientMaterial = gradientPlane.material as MeshBasicMaterial;
+      this.configureGradientPlaneMaterial(gradientMaterial, this.blobImageMode !== 'none', gradientOverlayActive);
+      this.updateGradientPlaneTexture(state, gradientMaterial, gradientOverlayActive);
+      gradientMaterial.opacity = gradientOverlayActive ? state.opacity : 1;
+      gradientMaterial.needsUpdate = true;
+      gradientPlane.visible = gradientOverlayActive || this.blobImageMode !== 'none';
+    } else {
+      this.disposeBackgroundPlane();
+    }
 
-    this.configureBackgroundPlaneMaterial(material);
-    this.updateBackgroundPlaneTexture(state);
-
-    material.opacity = state.opacity;
-    material.needsUpdate = true;
+    if (!hasMedia && this.blobImageMode === 'none') {
+      this.applyStateToSceneBackground(state);
+    } else if (!hasMedia && this.blobImageMode !== 'none') {
+      this.scene.background = null;
+    } else {
+      this.scene.background = null;
+    }
 
     this.updateBackgroundPlaneTransform();
   }
@@ -681,23 +799,45 @@ export class KwamiBody {
       });
       material.stencilWrite = false;
       this.backgroundPlane = new Mesh(geometry, material);
+      this.backgroundPlane.name = 'KwamiBackgroundPlane';
       this.scene.add(this.backgroundPlane);
     }
 
     return this.backgroundPlane;
   }
 
-  private configureBackgroundPlaneMaterial(material: MeshBasicMaterial): void {
+  private ensureBackgroundMediaPlane(): Mesh {
+    if (!this.backgroundMediaPlane) {
+      const geometry = new PlaneGeometry(200, 200);
+      const material = new MeshBasicMaterial({
+        transparent: true,
+        depthWrite: false,
+        depthTest: false,
+      });
+      material.stencilWrite = false;
+      this.backgroundMediaPlane = new Mesh(geometry, material);
+      this.backgroundMediaPlane.name = 'KwamiMediaPlane';
+      this.scene.add(this.backgroundMediaPlane);
+    }
+
+    return this.backgroundMediaPlane;
+  }
+
+  private configureGradientPlaneMaterial(
+    material: MeshBasicMaterial,
+    enableBlobGlass: boolean,
+    overlayActive: boolean,
+  ): void {
     material.depthWrite = false;
-    material.depthTest = false;
-    material.transparent = true;
+    material.depthTest = true;
+    material.transparent = overlayActive || enableBlobGlass;
     material.stencilFuncMask = 0xff;
     material.stencilWriteMask = 0x00;
     material.stencilFail = KeepStencilOp;
     material.stencilZFail = KeepStencilOp;
     material.stencilZPass = KeepStencilOp;
 
-    if (this.blobImageMode === 'glass') {
+    if (enableBlobGlass && this.blobImageMode === 'glass') {
       this.blob.setGlassMode(true);
       material.stencilWrite = true;
       material.stencilFunc = NotEqualStencilFunc;
@@ -711,24 +851,50 @@ export class KwamiBody {
       material.stencilFunc = AlwaysStencilFunc;
       material.stencilRef = 0;
       if (this.backgroundPlane) {
-        this.backgroundPlane.renderOrder = -1;
+        this.backgroundPlane.renderOrder = overlayActive ? -500 : -1;
       }
     }
   }
 
-  private updateBackgroundPlaneTexture(state: BackgroundState): void {
+  private configureMediaPlaneMaterial(material: MeshBasicMaterial, mediaState: BackgroundMediaState): void {
+    material.depthWrite = true;
+    material.depthTest = true;
+    material.transparent = mediaState.opacity < 1;
+    material.opacity = mediaState.opacity;
+    material.stencilWrite = false;
+    material.stencilFunc = AlwaysStencilFunc;
+    material.stencilRef = 0;
+    material.stencilFail = KeepStencilOp;
+    material.stencilZFail = KeepStencilOp;
+    material.stencilZPass = KeepStencilOp;
+
+    if (this.backgroundMediaPlane) {
+      this.backgroundMediaPlane.renderOrder = -1000;
+    }
+  }
+
+  private updateGradientPlaneTexture(
+    state: BackgroundState,
+    material: MeshBasicMaterial,
+    overlayActive: boolean,
+  ): void {
     if (!this.backgroundPlane) return;
 
-    const material = this.backgroundPlane.material as MeshBasicMaterial;
-
-    if (this.backgroundPlaneTexture) {
-      this.backgroundPlaneTexture.dispose();
-      this.backgroundPlaneTexture = null;
+    if (state.type === 'solid' && state.color) {
+      if (this.backgroundPlaneTexture) {
+        this.backgroundPlaneTexture.dispose();
+      }
+      this.backgroundPlaneTexture = this.createSolidColorTexture(state.color, state.opacity);
+      this.backgroundPlaneTexture.needsUpdate = true;
+      material.map = this.backgroundPlaneTexture;
+      material.needsUpdate = true;
+      return;
     }
 
-    if (state.type === 'solid' && state.color) {
-      this.backgroundPlaneTexture = this.createSolidColorTexture(state.color, state.opacity);
-    } else if (state.type === 'gradient' && state.colors) {
+    if (state.type === 'gradient' && state.colors) {
+      if (this.backgroundPlaneTexture) {
+        this.backgroundPlaneTexture.dispose();
+      }
       this.backgroundPlaneTexture = this.createGradientTexture(
         state.colors,
         state.direction ?? 'vertical',
@@ -736,44 +902,113 @@ export class KwamiBody {
         state.angle,
         state.stops,
       );
-    } else {
-      material.map = null;
+      this.backgroundPlaneTexture.needsUpdate = true;
+      material.map = this.backgroundPlaneTexture;
+      material.needsUpdate = true;
       return;
     }
 
-    this.backgroundPlaneTexture.needsUpdate = true;
-    material.map = this.backgroundPlaneTexture;
+    if (!overlayActive && this.blobImageMode === 'none') {
+      if (material.map) {
+        material.map.dispose();
+      }
+      material.map = null;
+      material.needsUpdate = true;
+    }
   }
 
-  private mapConfigToBackgroundState(config?: SceneBackgroundConfig): BackgroundState {
-    if (!config || !config.type || config.type === 'transparent') {
-      return { ...DEFAULT_BACKGROUND_STATE, opacity: config?.opacity ?? 1 };
+  private updateMediaPlaneTexture(mediaState: BackgroundMediaState, material: MeshBasicMaterial): void {
+    material.opacity = mediaState.opacity;
+    material.transparent = mediaState.opacity < 1;
+
+    if (mediaState.type !== 'video') {
+      this.disposeVideoBackground();
+    }
+
+    if (mediaState.type === 'image' && mediaState.imageUrl) {
+      this.backgroundMediaFit = mediaState.imageFit ?? 'cover';
+      this.loadMediaImageTexture(mediaState.imageUrl, material);
+      return;
+    }
+
+    if (mediaState.type === 'video' && mediaState.videoUrl) {
+      this.backgroundMediaFit = mediaState.videoFit ?? 'cover';
+      this.setupVideoBackground(mediaState, material);
+      return;
+    }
+
+    if (material.map && material.map !== this.backgroundVideoTexture) {
+      material.map.dispose();
+    }
+    material.map = null;
+    material.needsUpdate = true;
+  }
+
+  private mapConfigToBackgroundState(
+    config?: SceneBackgroundConfig,
+  ): { baseState: BackgroundState; mediaState: BackgroundMediaState | null } {
+    const defaultBase: BackgroundState = { ...DEFAULT_BACKGROUND_STATE, opacity: config?.opacity ?? 1 };
+    let baseState: BackgroundState = defaultBase;
+    let mediaState: BackgroundMediaState | null = null;
+
+    if (!config || config.type === 'transparent') {
+      return { baseState: defaultBase, mediaState: null };
     }
 
     if (config.type === 'solid' && config.color) {
-      const opacity = config.opacity ?? 1;
-      return {
+      baseState = {
         type: 'solid',
         color: config.color,
         colors: [config.color],
         direction: 'vertical',
-        opacity,
+        opacity: config.opacity ?? 1,
       };
     }
 
-    if (config.type === 'gradient' && config.gradient) {
-      const opacity = config.gradient.opacity ?? config.opacity ?? 1;
-      return {
+    const gradientConfig =
+      config.type === 'gradient'
+        ? config.gradient
+        : config.gradient && config.gradient.colors?.length
+        ? config.gradient
+        : undefined;
+
+    if (gradientConfig) {
+      const opacity = gradientConfig.opacity ?? config.opacity ?? 1;
+      baseState = {
         type: 'gradient',
-        colors: config.gradient.colors,
-        direction: config.gradient.direction ?? 'vertical',
-        angle: config.gradient.angle,
-        stops: this.sanitizeStops(config.gradient.colors.length, config.gradient.stops),
+        colors: gradientConfig.colors,
+        direction: gradientConfig.direction ?? 'vertical',
+        angle: gradientConfig.angle,
+        stops: this.sanitizeStops(gradientConfig.colors.length, gradientConfig.stops),
         opacity,
       };
     }
 
-    return { ...DEFAULT_BACKGROUND_STATE };
+    const imageConfig = config.image;
+    if (imageConfig?.url) {
+      mediaState = {
+        type: 'image',
+        opacity: imageConfig.opacity ?? config.opacity ?? 1,
+        imageUrl: imageConfig.url,
+        imageFit: imageConfig.fit ?? 'cover',
+      };
+    }
+
+    const videoConfig = config.video;
+    if (videoConfig?.url) {
+      mediaState = {
+        type: 'video',
+        opacity: videoConfig.opacity ?? config.opacity ?? 1,
+        videoUrl: videoConfig.url,
+        videoFit: videoConfig.fit ?? 'cover',
+        videoAutoplay: videoConfig.autoplay ?? true,
+        videoLoop: videoConfig.loop ?? true,
+        videoMuted: videoConfig.muted ?? true,
+        videoPlaybackRate: videoConfig.playbackRate ?? 1,
+      };
+    }
+
+    return { baseState, mediaState };
   }
 
   private disposeBackgroundPlane(): void {
@@ -801,6 +1036,40 @@ export class KwamiBody {
     }
   }
 
+  private disposeBackgroundMediaPlane(): void {
+    if (!this.backgroundMediaPlane) {
+      if (this.backgroundMediaTexture) {
+        this.backgroundMediaTexture.dispose();
+        this.backgroundMediaTexture = null;
+      }
+      this.disposeVideoBackground();
+      this.backgroundMediaAspect = null;
+      this.currentMediaImageUrl = null;
+      return;
+    }
+
+    const material = this.backgroundMediaPlane.material as MeshBasicMaterial;
+    if (material.map) {
+      if (material.map !== this.backgroundVideoTexture) {
+        material.map.dispose();
+      }
+      material.map = null;
+    }
+    material.dispose();
+    this.backgroundMediaPlane.geometry.dispose();
+    this.scene.remove(this.backgroundMediaPlane);
+    this.backgroundMediaPlane = null;
+
+    if (this.backgroundMediaTexture) {
+      this.backgroundMediaTexture.dispose();
+      this.backgroundMediaTexture = null;
+    }
+
+    this.disposeVideoBackground();
+    this.backgroundMediaAspect = null;
+    this.currentMediaImageUrl = null;
+  }
+
   private updateBlobBackgroundTextureForMode(): void {
     if (this.blobImageMode === 'overlay' && this.backgroundTexture) {
       this.blob.setBackgroundTexture(this.backgroundTexture);
@@ -810,20 +1079,83 @@ export class KwamiBody {
   }
 
   private updateBackgroundPlaneTransform(): void {
-    if (!this.backgroundPlane) return;
+    if (!this.backgroundPlane && !this.backgroundMediaPlane) return;
 
     const cameraDirection = new Vector3();
     this.camera.getWorldDirection(cameraDirection);
 
-    const planePosition = this.camera.position.clone().add(cameraDirection.multiplyScalar(50));
-    this.backgroundPlane.position.copy(planePosition);
-    this.backgroundPlane.quaternion.copy(this.camera.quaternion);
+    const fovRadians = (this.camera.fov * Math.PI) / 180;
+
+    if (this.backgroundMediaPlane) {
+      const mediaDirection = cameraDirection.clone().multiplyScalar(MEDIA_PLANE_DISTANCE);
+      const mediaPosition = this.camera.position.clone().add(mediaDirection);
+      this.backgroundMediaPlane.position.copy(mediaPosition);
+      this.backgroundMediaPlane.quaternion.copy(this.camera.quaternion);
+
+      const mediaViewportHeight = 2 * Math.tan(fovRadians / 2) * MEDIA_PLANE_DISTANCE;
+      const mediaViewportWidth = mediaViewportHeight * this.camera.aspect;
+
+      let planeWidth = mediaViewportWidth;
+      let planeHeight = mediaViewportHeight;
+
+      if (this.backgroundMediaAspect) {
+        const mediaAspect = this.backgroundMediaAspect;
+        const viewportAspect = mediaViewportWidth / mediaViewportHeight;
+
+        if (this.backgroundMediaFit === 'cover') {
+          if (mediaAspect > viewportAspect) {
+            planeWidth = mediaViewportHeight * mediaAspect;
+            planeHeight = mediaViewportHeight;
+          } else {
+            planeWidth = mediaViewportWidth;
+            planeHeight = mediaViewportWidth / mediaAspect;
+          }
+        } else if (this.backgroundMediaFit === 'contain') {
+          if (mediaAspect > viewportAspect) {
+            planeWidth = mediaViewportWidth;
+            planeHeight = mediaViewportWidth / mediaAspect;
+          } else {
+            planeWidth = mediaViewportHeight * mediaAspect;
+            planeHeight = mediaViewportHeight;
+          }
+        } else {
+          planeWidth = mediaViewportWidth;
+          planeHeight = mediaViewportHeight;
+        }
+      }
+
+      this.backgroundMediaPlane.scale.set(
+        planeWidth / BACKGROUND_PLANE_BASE_SIZE,
+        planeHeight / BACKGROUND_PLANE_BASE_SIZE,
+        1,
+      );
+    }
+
+    if (this.backgroundPlane) {
+      const gradientDirection = cameraDirection.clone().multiplyScalar(GRADIENT_PLANE_DISTANCE);
+      const gradientPosition = this.camera.position.clone().add(gradientDirection);
+      this.backgroundPlane.position.copy(gradientPosition);
+      this.backgroundPlane.quaternion.copy(this.camera.quaternion);
+
+      const gradientViewportHeight = 2 * Math.tan(fovRadians / 2) * GRADIENT_PLANE_DISTANCE;
+      const gradientViewportWidth = gradientViewportHeight * this.camera.aspect;
+
+      this.backgroundPlane.scale.set(
+        gradientViewportWidth / BACKGROUND_PLANE_BASE_SIZE,
+        gradientViewportHeight / BACKGROUND_PLANE_BASE_SIZE,
+        1,
+      );
+    }
   }
 
   /**
    * Get current background type
    */
   getBackgroundType(): 'transparent' | 'color' | 'texture' {
+    if (this.backgroundMediaState) {
+      return 'texture';
+    }
+
     if (this.blobImageMode !== 'none') {
       if (this.backgroundState.type === 'solid') return 'color';
       if (this.backgroundState.type === 'gradient') return 'texture';
@@ -954,6 +1286,205 @@ export class KwamiBody {
   }
 
   /**
+   * Load a texture for the background plane from an image URL
+   * @private
+   */
+  private loadMediaImageTexture(url: string, material: MeshBasicMaterial): void {
+    this.currentMediaImageUrl = url;
+
+    if (material.map && material.map !== this.backgroundVideoTexture && material.map !== this.backgroundMediaTexture) {
+      material.map.dispose();
+    }
+    material.map = null;
+    material.needsUpdate = true;
+
+    if (this.backgroundMediaTexture) {
+      this.backgroundMediaTexture.dispose();
+      this.backgroundMediaTexture = null;
+    }
+
+    this.textureLoader.load(
+      url,
+      (texture) => {
+        if (this.currentMediaImageUrl !== url) {
+          texture.dispose();
+          return;
+        }
+
+        texture.colorSpace = SRGBColorSpace;
+        texture.needsUpdate = true;
+
+        if (this.backgroundMediaTexture) {
+          this.backgroundMediaTexture.dispose();
+        }
+
+        this.backgroundMediaTexture = texture;
+        this.backgroundMediaAspect = this.getTextureAspect(texture);
+
+        material.map = texture;
+        material.needsUpdate = true;
+
+        this.updateBackgroundPlaneTransform();
+      },
+      undefined,
+      (error) => {
+        if (this.currentMediaImageUrl === url) {
+          console.error('Failed to load background image:', error);
+          if (this.backgroundMediaTexture) {
+            this.backgroundMediaTexture.dispose();
+            this.backgroundMediaTexture = null;
+          }
+          this.backgroundMediaAspect = null;
+          material.map = null;
+          material.needsUpdate = true;
+        }
+      },
+    );
+  }
+
+  /**
+   * Setup a video texture for the background plane
+   * @private
+   */
+  private setupVideoBackground(mediaState: BackgroundMediaState, material: MeshBasicMaterial): void {
+    const url = mediaState.videoUrl;
+    if (!url) return;
+
+    this.backgroundMediaFit = mediaState.videoFit ?? 'cover';
+
+    if (this.currentVideoUrl === url && this.backgroundVideoTexture && this.backgroundVideoElement) {
+      this.syncVideoPlaybackOptions(this.backgroundVideoElement, mediaState);
+      material.map = this.backgroundVideoTexture;
+      material.needsUpdate = true;
+      this.backgroundMediaAspect = this.backgroundMediaAspect ?? this.getVideoAspect(this.backgroundVideoElement);
+      this.updateBackgroundPlaneTransform();
+      return;
+    }
+
+    this.disposeVideoBackground();
+
+    const video = document.createElement('video');
+    video.crossOrigin = 'anonymous';
+    video.muted = mediaState.videoMuted ?? true;
+    video.loop = mediaState.videoLoop ?? true;
+    video.autoplay = mediaState.videoAutoplay ?? true;
+    video.playsInline = true;
+    video.controls = false;
+    video.preload = 'auto';
+    video.src = url;
+    video.playbackRate = mediaState.videoPlaybackRate ?? 1;
+
+    this.currentVideoUrl = url;
+    this.backgroundVideoElement = video;
+    material.map = null;
+    material.needsUpdate = true;
+
+    const handleLoadedMetadata = () => {
+      if (this.currentVideoUrl !== url || !this.backgroundVideoElement) {
+        return;
+      }
+
+      const texture = new VideoTexture(video);
+      texture.colorSpace = SRGBColorSpace;
+      texture.minFilter = LinearFilter;
+      texture.magFilter = LinearFilter;
+      texture.generateMipmaps = false;
+
+      this.backgroundVideoTexture = texture;
+      this.backgroundMediaAspect = this.getVideoAspect(video);
+
+      material.map = texture;
+      material.needsUpdate = true;
+
+      this.updateBackgroundPlaneTransform();
+
+      if (mediaState.videoAutoplay ?? true) {
+        video.play().catch(() => {});
+      }
+    };
+
+    const handleError = (event: Event) => {
+      if (this.currentVideoUrl === url) {
+        console.error('Failed to load background video:', event);
+        this.disposeVideoBackground();
+        material.map = null;
+        material.needsUpdate = true;
+      }
+    };
+
+    video.addEventListener('loadedmetadata', handleLoadedMetadata, { once: true });
+    video.addEventListener('error', handleError, { once: true });
+
+    video.load();
+
+    if (video.autoplay) {
+      video.play().catch(() => {});
+    }
+  }
+
+  private syncVideoPlaybackOptions(video: HTMLVideoElement, mediaState: BackgroundMediaState): void {
+    video.loop = mediaState.videoLoop ?? true;
+    video.muted = mediaState.videoMuted ?? true;
+    video.playbackRate = mediaState.videoPlaybackRate ?? 1;
+
+    if (mediaState.videoAutoplay ?? true) {
+      video.play().catch(() => {});
+    }
+  }
+
+  private disposeVideoBackground(): void {
+    if (this.backgroundVideoTexture) {
+      const texture = this.backgroundVideoTexture;
+      if (this.backgroundMediaPlane) {
+        const material = this.backgroundMediaPlane.material as MeshBasicMaterial;
+        if (material.map === texture) {
+          material.map = null;
+          material.needsUpdate = true;
+        }
+      }
+
+      texture.dispose();
+      this.backgroundVideoTexture = null;
+    }
+
+    if (this.backgroundVideoElement) {
+      try {
+        this.backgroundVideoElement.pause();
+      } catch (error) {
+        // Ignore pause errors
+      }
+      this.backgroundVideoElement.removeAttribute('src');
+      this.backgroundVideoElement.load();
+      this.backgroundVideoElement = null;
+    }
+
+    this.currentVideoUrl = null;
+    this.backgroundMediaAspect = null;
+  }
+
+  private getTextureAspect(texture: Texture): number | null {
+    const image: any = texture.image;
+    if (!image) return null;
+
+    if (typeof image.width === 'number' && typeof image.height === 'number' && image.height !== 0) {
+      return image.width / image.height;
+    }
+
+    if (typeof image.videoWidth === 'number' && typeof image.videoHeight === 'number' && image.videoHeight !== 0) {
+      return image.videoWidth / image.videoHeight;
+    }
+
+    return null;
+  }
+
+  private getVideoAspect(video: HTMLVideoElement): number | null {
+    if (video.videoWidth && video.videoHeight) {
+      return video.videoWidth / video.videoHeight;
+    }
+    return null;
+  }
+
+  /**
    * Cleanup and dispose all resources
    */
   dispose(): void {
@@ -964,11 +1495,13 @@ export class KwamiBody {
     this.blobImageMode = 'none';
     this.blob.setGlassMode(false);
     this.disposeBackgroundPlane();
+    this.disposeBackgroundMediaPlane();
     if (this.backgroundTexture) {
       this.backgroundTexture.dispose();
       this.backgroundTexture = null;
     }
     this.blob.setBackgroundTexture(null);
+    this.backgroundMediaState = null;
 
     this.blob.dispose();
     this.audio.dispose();

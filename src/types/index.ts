@@ -23,8 +23,10 @@ export interface AudioConfig {
 /**
  * Scene background configuration
  */
+export type BackgroundMediaFit = 'cover' | 'contain' | 'stretch';
+
 export interface SceneBackgroundConfig {
-  type?: 'transparent' | 'solid' | 'gradient';
+  type?: 'transparent' | 'solid' | 'gradient' | 'image' | 'video';
   color?: string; // For solid background
   opacity?: number; // Opacity for solid/gradient background
   gradient?: {
@@ -33,6 +35,20 @@ export interface SceneBackgroundConfig {
     opacity?: number;
     angle?: number; // Angle in degrees for linear gradients
     stops?: number[]; // Normalized stop positions (0-1) matching colors length
+  };
+  image?: {
+    url: string;
+    fit?: BackgroundMediaFit;
+    opacity?: number;
+  };
+  video?: {
+    url: string;
+    fit?: BackgroundMediaFit;
+    opacity?: number;
+    autoplay?: boolean;
+    loop?: boolean;
+    muted?: boolean;
+    playbackRate?: number;
   };
 }
 

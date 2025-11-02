@@ -2,73 +2,63 @@
 
 ## Quick Test Steps
 
-### 1. Check if the image file loads
-Open browser console (F12) and run:
+### 1. Verify that the asset resolves through Vite
 ```javascript
-fetch('src/assets/img/alaska.jpeg').then(r => console.log('Image exists:', r.ok))
+// Should print a bundled URL when the asset exists
+resolveMediaPath('src/assets/img/alaska.jpeg');
+resolveMediaPath('src/assets/vid/stars.mp4');
 ```
 
-### 2. Check if background-image element exists
+### 2. Apply the background through Kwami core
 ```javascript
-const bgImg = document.getElementById('background-image');
-console.log('Element exists:', !!bgImg);
-console.log('Display style:', bgImg?.style.display);
-console.log('Background image:', bgImg?.style.backgroundImage);
+// Image
+const url = resolveMediaPath('src/assets/img/galaxy.jpg');
+window.kwami?.body?.setBackgroundImage(url);
+console.log('Background type:', window.kwami?.body?.getBackgroundType());
+
+// Video
+const videoUrl = resolveMediaPath('src/assets/vid/stars.mp4');
+window.kwami?.body?.setBackgroundVideo(videoUrl, { muted: true });
+console.log('Background type:', window.kwami?.body?.getBackgroundType());
 ```
 
-### 3. Check if Three.js background is transparent
+### 3. Inspect the Three.js scene state
 ```javascript
-console.log('Scene background:', window.kwami?.body?.getScene()?.background);
-// Should be null when image is active
+const scene = window.kwami?.body?.getScene();
+console.log('Scene background:', scene?.background); // Should stay null for media backgrounds
 ```
 
-### 4. Manual test - Force display image
-Run in console:
+### 4. Confirm the background plane exists
 ```javascript
-const bgImg = document.getElementById('background-image');
-bgImg.style.display = 'block';
-bgImg.style.backgroundImage = "url('src/assets/img/galaxy.jpg')";
-bgImg.style.zIndex = '1';
-console.log('Forced image display');
+const plane = scene?.children.find(node => node.name === 'KwamiBackgroundPlane');
+console.log('Background plane found:', !!plane);
 ```
 
-### 5. Check CSS z-index layers
+### 5. Check renderer transparency support
 ```javascript
-const layers = {
-  video: window.getComputedStyle(document.getElementById('background-video')).zIndex,
-  image: window.getComputedStyle(document.getElementById('background-image')).zIndex,
-  canvas: window.getComputedStyle(document.getElementById('kwami-canvas')).zIndex
-};
-console.log('Z-index layers:', layers);
-```
-
-### 6. Check renderer alpha
-```javascript
-console.log('Renderer has alpha:', window.kwami?.body?.renderer?.getContextAttributes()?.alpha);
+console.log('Renderer has alpha:', window.kwami?.body?.getRenderer()?.getContextAttributes()?.alpha);
 ```
 
 ## Expected Values
-- `background-image` display: `'block'` when image is selected
-- `background-image` z-index: `1`
-- `canvas` z-index: `3`
-- Scene background: `null` when image is active
-- Renderer alpha: `true`
+- `kwami.body.getBackgroundType()` returns `'texture'` for both images and videos
+- `scene.background` remains `null` when media backgrounds are active (the plane renders the media)
+- Renderer alpha is `true`
+- Camera plane scales with viewport to honor the selected `fit` option (`cover` by default)
 
 ## Common Issues
 
-### Issue: Canvas has opaque background
-**Solution**: Canvas CSS should have `background: transparent`
+### Issue: Asset URL resolves to `undefined`
+**Solution**: Ensure the file lives under `src/assets/img` or `src/assets/vid` so Vite's glob import can bundle it.
 
-### Issue: Scene background covers image
-**Solution**: Call `setBackgroundTransparent()` when image is set
+### Issue: Media does not appear after calling `setBackgroundImage`
+**Solution**: Confirm that the resolved URL loads (open it in a new tab) and that `kwami.body` has been created before invoking the method.
 
-### Issue: Wrong z-index order
-**Expected order** (bottom to top):
-1. background-video (z-index: 0)
-2. background-image (z-index: 1)
-3. canvas-overlay (z-index: 2)
-4. canvas (z-index: 3)
+### Issue: Video fails to autoplay
+**Solution**: Videos are muted by default; verify the source allows cross-origin usage and that browser autoplay policies permit muted playback.
 
-### Issue: File path incorrect
-**Check**: Files should be at `src/assets/img/*.jpeg` not `assets/*.jpeg`
+### Issue: Canvas displays opaque color instead of media
+**Solution**: Call `kwami.body.clearBackgroundMedia()` followed by `kwami.body.setBackgroundImage(...)` to reset the internal background state.
+
+### Issue: Gradient controls overwrite media backgrounds
+**Solution**: Set `Media Source` back to `None` in the playground before adjusting gradient sliders so the gradient system can take over again.
 
