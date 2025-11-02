@@ -24,19 +24,27 @@ body {
   padding: 50px 30px 30px;
   overflow-y: auto;
   position: relative;
-  transition: transform 0.3s ease, opacity 0.3s ease;
+  flex-shrink: 0;
+  transition: transform 0.3s ease, opacity 0.3s ease, width 0.3s ease, padding 0.3s ease, box-shadow 0.3s ease;
+}
+
+#left-sidebar.hidden,
+#right-sidebar.hidden {
+  opacity: 0;
+  pointer-events: none;
+  width: 0;
+  padding: 0;
+  overflow: hidden;
+  box-shadow: none;
 }
 
 #left-sidebar.hidden {
   transform: translateX(-100%);
-  opacity: 0;
-  pointer-events: none;
 }
 
 #right-sidebar.hidden {
   transform: translateX(100%);
   opacity: 0;
-  pointer-events: none;
 }
 
 #left-sidebar {

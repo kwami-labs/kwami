@@ -15,6 +15,40 @@ const sectionLabels = {
   soul: '✨ Soul'
 };
 
+let menusCollapsed = false;
+
+function applySidebarVisibility() {
+  const leftSidebar = document.getElementById('left-sidebar');
+  const rightSidebar = document.getElementById('right-sidebar');
+
+  [leftSidebar, rightSidebar].forEach((sidebar) => {
+    if (!sidebar) return;
+    sidebar.classList.toggle('hidden', menusCollapsed);
+    sidebar.setAttribute('aria-hidden', menusCollapsed ? 'true' : 'false');
+  });
+}
+
+function updateMenuToggleButton() {
+  const icon = document.getElementById('menu-toggle-icon');
+  const toggleButton = document.getElementById('menu-toggle-btn');
+
+  if (icon) {
+    icon.textContent = menusCollapsed ? '☰' : '✕';
+  }
+
+  if (toggleButton) {
+    toggleButton.setAttribute('aria-expanded', String(!menusCollapsed));
+    toggleButton.setAttribute('aria-pressed', String(!menusCollapsed));
+    toggleButton.setAttribute('title', menusCollapsed ? 'Show Sidebars' : 'Hide Sidebars');
+  }
+}
+
+window.toggleMenus = function() {
+  menusCollapsed = !menusCollapsed;
+  applySidebarVisibility();
+  updateMenuToggleButton();
+};
+
 // Initialize sidebars
 function initializeSidebars() {
   renderSidebar('left', sidebarState.left);
@@ -907,6 +941,8 @@ function initializeBackgroundControls() {
 
 // Initialize sidebars first
 initializeSidebars();
+applySidebarVisibility();
+updateMenuToggleButton();
 
 // Initialize Mind controls since Mind is on the left by default
 setTimeout(() => {
