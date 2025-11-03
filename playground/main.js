@@ -463,10 +463,10 @@ function updateSwapButtons() {
   const rightBtn = document.getElementById('right-swap-text');
   
   if (leftBtn) {
-    leftBtn.textContent = `→ ${sectionLabels[sidebarState.hidden]}`;
+    leftBtn.textContent = `${sectionLabels[sidebarState.hidden]}`;
   }
   if (rightBtn) {
-    rightBtn.textContent = `${sectionLabels[sidebarState.hidden]} ←`;
+    rightBtn.textContent = `${sectionLabels[sidebarState.hidden]}`;
   }
 }
 
