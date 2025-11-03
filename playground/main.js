@@ -996,6 +996,85 @@ window.clearMediaSelection = function(type) {
   setMediaType('none');
 };
 
+// Blob Texture Functions (independent from background)
+let currentBlobMediaType = 'none';
+
+function getBlobMediaOptions(type) {
+  const selectId = type === 'video' ? 'blob-media-video' : 'blob-media-image';
+  const select = document.getElementById(selectId);
+  if (!select) return [];
+  return Array.from(select.options)
+    .map((option) => option.value)
+    .filter((value) => value && value.trim() !== '');
+}
+
+function updateBlobMediaTabs(activeType) {
+  const tabs = document.querySelectorAll('#blob-media-tabs .media-tab');
+  tabs.forEach((tab) => {
+    tab.classList.toggle('active', tab.dataset.media === activeType);
+  });
+}
+
+function showBlobMediaControls(activeType) {
+  const imageControls = document.getElementById('blob-media-image-controls');
+  const videoControls = document.getElementById('blob-media-video-controls');
+  if (imageControls) imageControls.style.display = activeType === 'image' ? 'block' : 'none';
+  if (videoControls) videoControls.style.display = activeType === 'video' ? 'block' : 'none';
+}
+
+function setBlobMediaType(type) {
+  currentBlobMediaType = type;
+  updateBlobMediaTabs(type);
+  showBlobMediaControls(type);
+
+  if (type === 'none') {
+    const imageSelect = document.getElementById('blob-media-image');
+    if (imageSelect) imageSelect.value = '';
+    const videoSelect = document.getElementById('blob-media-video');
+    if (videoSelect) videoSelect.value = '';
+    // TODO: Clear blob texture when implemented in core
+    updateStatus('🧽 Blob texture cleared');
+    return;
+  }
+}
+
+window.randomizeBlobMedia = function(type) {
+  const options = getBlobMediaOptions(type);
+  if (!options.length) {
+    updateStatus(type === 'image'
+      ? '⚠️ No image options available for blob texture.'
+      : '⚠️ No video options available for blob texture.');
+    return;
+  }
+
+  const value = options[Math.floor(Math.random() * options.length)];
+
+  if (type === 'image') {
+    const imageSelect = document.getElementById('blob-media-image');
+    if (imageSelect) imageSelect.value = value;
+    setBlobMediaType('image');
+    // TODO: Apply to blob texture when implemented in core
+    updateStatus(`🎴 Random blob texture: ${value.split('/').pop()}`);
+  } else {
+    const videoSelect = document.getElementById('blob-media-video');
+    if (videoSelect) videoSelect.value = value;
+    setBlobMediaType('video');
+    // TODO: Apply to blob texture when implemented in core
+    updateStatus(`🎥 Random blob video texture: ${value.split('/').pop()}`);
+  }
+};
+
+window.clearBlobMedia = function(type) {
+  if (type === 'image') {
+    const imageSelect = document.getElementById('blob-media-image');
+    if (imageSelect) imageSelect.value = '';
+  } else if (type === 'video') {
+    const videoSelect = document.getElementById('blob-media-video');
+    if (videoSelect) videoSelect.value = '';
+  }
+  setBlobMediaType('none');
+};
+
 function applyBackground() {
   const opacity = parseFloat(document.getElementById('bg-opacity')?.value ?? DEFAULT_BACKGROUND.opacity);
 
@@ -2636,6 +2715,43 @@ function initializeBodyControls() {
       updateValueDisplay('thinking-duration-value', value, 0);
     });
   }
+
+  // Blob Media Tabs (independent from background)
+  const blobMediaTabs = document.querySelectorAll('#blob-media-tabs .media-tab');
+  blobMediaTabs.forEach((tab) => {
+    tab.addEventListener('click', () => {
+      setBlobMediaType(tab.dataset.media);
+    });
+  });
+
+  const blobImageSelect = document.getElementById('blob-media-image');
+  if (blobImageSelect) {
+    blobImageSelect.addEventListener('change', (e) => {
+      if (e.target.value) {
+        setBlobMediaType('image');
+        // TODO: Apply blob texture when core supports it
+        updateStatus(`🎴 Blob texture: ${e.target.value.split('/').pop()}`);
+      } else {
+        window.clearBlobMedia('image');
+      }
+    });
+  }
+
+  const blobVideoSelect = document.getElementById('blob-media-video');
+  if (blobVideoSelect) {
+    blobVideoSelect.addEventListener('change', (e) => {
+      if (e.target.value) {
+        setBlobMediaType('video');
+        // TODO: Apply blob video texture when core supports it
+        updateStatus(`🎥 Blob video: ${e.target.value.split('/').pop()}`);
+      } else {
+        window.clearBlobMedia('video');
+      }
+    });
+  }
+
+  // Initialize blob media to none
+  setBlobMediaType('none');
 }
 
 // Helper functions

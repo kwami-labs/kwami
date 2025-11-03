@@ -577,14 +577,6 @@
             <input type="range" id="rotation-z" min="0" max="0.01" step="0.001" value="0">
           </div>
         </div>
-
-        <div class="parameter-group">
-          <div class="parameter-group-title">Mesh Detail</div>
-          <div class="slider-control">
-            <label>Resolution <span class="value-display" id="resolution-value">180</span></label>
-            <input type="range" id="resolution" min="120" max="220" step="1" value="180">
-          </div>
-        </div>
       </div>
 
       <!-- Scale & Camera -->
@@ -648,26 +640,111 @@
             <input type="color" id="color-z" value="#6600ff">
           </div>
         </div>
+      </div>
+
+      <!-- Blob Texture (Independent from Background) -->
+      <div class="section">
+        <div class="section-title">🎨 Blob Texture</div>
+        <p class="parameter-info" style="margin-bottom: 15px;">Apply images or videos directly to the blob surface (independent from background)</p>
 
         <div class="parameter-group">
-          <div class="parameter-group-title">Material</div>
+          <div class="parameter-group-title">Texture Source</div>
+
+          <div class="input-group">
+            <label>Media Type</label>
+            <div class="media-tabs" id="blob-media-tabs">
+              <button type="button" class="media-tab active" data-media="none">None</button>
+              <button type="button" class="media-tab" data-media="image">Image</button>
+              <button type="button" class="media-tab" data-media="video">Video</button>
+            </div>
+          </div>
+
+          <div id="blob-media-image-controls" class="media-controls" style="display: none;">
+            <div class="input-group">
+              <label>Image Presets</label>
+              <select id="blob-media-image">
+                <option value="">None</option>
+                <option value="src/assets/img/alaska.jpeg">Alaska</option>
+                <option value="src/assets/img/binary-reality.jpg">Binary Reality</option>
+                <option value="src/assets/img/black-candle.jpg">Black Candle</option>
+                <option value="src/assets/img/black-hole.jpg">Black Hole</option>
+                <option value="src/assets/img/black-sea.jpg">Black Sea</option>
+                <option value="src/assets/img/black-windows.jpg">Black Windows</option>
+                <option value="src/assets/img/black.jpg">Black</option>
+                <option value="src/assets/img/colors.jpeg">Colors</option>
+                <option value="src/assets/img/galaxy.jpg">Galaxy</option>
+                <option value="src/assets/img/galaxy2.jpg">Galaxy 2</option>
+                <option value="src/assets/img/galaxy3.jpg">Galaxy 3</option>
+                <option value="src/assets/img/galaxy4.jpg">Galaxy 4</option>
+                <option value="src/assets/img/gargantua.jpg">Gargantua</option>
+                <option value="src/assets/img/interstellar.png">Interstellar</option>
+                <option value="src/assets/img/islan.jpg">Island</option>
+                <option value="src/assets/img/lake.jpg">Lake</option>
+                <option value="src/assets/img/mountain.jpeg">Mountain</option>
+                <option value="src/assets/img/paisaje.jpg">Paisaje</option>
+                <option value="src/assets/img/pik.jpg">Pik</option>
+                <option value="src/assets/img/planet.jpg">Planet</option>
+                <option value="src/assets/img/planet2.jpg">Planet 2</option>
+                <option value="src/assets/img/planet3.jpg">Planet 3</option>
+                <option value="src/assets/img/sahara.jpeg">Sahara</option>
+                <option value="src/assets/img/skinet.png">Skinet</option>
+                <option value="src/assets/img/skynet.png">Skynet</option>
+                <option value="src/assets/img/universe.jpg">Universe</option>
+                <option value="src/assets/img/white-tree.jpg">White Tree</option>
+              </select>
+            </div>
+            <div class="button-row">
+              <button class="button-secondary" type="button" onclick="randomizeBlobMedia('image')">🎴 Random Image</button>
+              <button class="button-secondary" type="button" onclick="clearBlobMedia('image')">🚫 Clear</button>
+            </div>
+          </div>
+
+          <div id="blob-media-video-controls" class="media-controls" style="display: none;">
+            <div class="input-group">
+              <label>Video Presets</label>
+              <select id="blob-media-video">
+                <option value="">None</option>
+                <option value="src/assets/vid/stars.mp4">Stars (Local)</option>
+                <option value="https://storage.coverr.co/videos/coverr-blue-particles-background-1581083411/1080p.mp4">Blue Particles</option>
+                <option value="https://storage.coverr.co/videos/coverr-purple-nebula-1584717401/1080p.mp4">Purple Nebula</option>
+                <option value="https://storage.coverr.co/videos/coverr-journey-through-space-1570107498/1080p.mp4">Space Journey</option>
+              </select>
+            </div>
+            <div class="button-row">
+              <button class="button-secondary" type="button" onclick="randomizeBlobMedia('video')">🎥 Random Video</button>
+              <button class="button-secondary" type="button" onclick="clearBlobMedia('video')">🚫 Clear</button>
+            </div>
+          </div>
+        </div>
+
+        <div class="parameter-group">
+          <div class="parameter-group-title">Texture Blending</div>
           <div class="slider-control">
             <label>Opacity <span class="value-display" id="blob-opacity-value">1.00</span></label>
             <input type="range" id="blob-opacity" min="0" max="1" step="0.01" value="1">
-            <label class="slider-checkbox">
-              <input type="checkbox" id="blob-image-transparency">
-              Enable Blob Transparency
-            </label>
-            <div class="slider-select" id="blob-transparency-mode-wrapper" style="display: none;">
-              <label for="blob-transparency-mode">Transparency Mode</label>
-              <select id="blob-transparency-mode">
-                <option value="overlay">Image Fill (inside the blob)</option>
-                <option value="glass">Glass Window (image behind the blob)</option>
-              </select>
-              <small class="checkbox-hint">Pick how the blob interacts with the background image</small>
-            </div>
-            <small class="checkbox-hint">Toggle to blend the blob with the background image</small>
           </div>
+          <label class="slider-checkbox">
+            <input type="checkbox" id="blob-image-transparency">
+            Enable Texture Transparency
+          </label>
+          <div class="slider-select" id="blob-transparency-mode-wrapper" style="display: none;">
+            <label for="blob-transparency-mode">Blending Mode</label>
+            <select id="blob-transparency-mode">
+              <option value="overlay">Texture Fill (inside blob)</option>
+              <option value="glass">Glass Effect (see-through)</option>
+            </select>
+            <small class="checkbox-hint">How texture interacts with the blob</small>
+          </div>
+          <small class="checkbox-hint">Blend texture with blob colors</small>
+        </div>
+      </div>
+
+      <!-- Material Properties -->
+      <div class="section">
+        <div class="section-title">✨ Material Properties</div>
+
+        <div class="parameter-group">
+          <div class="parameter-group-title">Surface Quality</div>
           <div class="slider-control">
             <label>Shininess <span class="value-display" id="shininess-value">50</span></label>
             <input type="range" id="shininess" min="1" max="200" step="1" value="50">
@@ -676,11 +753,25 @@
             <label>Light Intensity <span class="value-display" id="light-intensity-value">0</span></label>
             <input type="range" id="light-intensity" min="0" max="5" step="0.1" value="0">
           </div>
+        </div>
+
+        <div class="parameter-group">
+          <div class="parameter-group-title">Mesh Detail</div>
+          <div class="slider-control">
+            <label>Resolution <span class="value-display" id="resolution-value">180</span></label>
+            <input type="range" id="resolution" min="120" max="220" step="1" value="180">
+            <small class="checkbox-hint">Higher = smoother surface, lower = faceted look</small>
+          </div>
+        </div>
+
+        <div class="parameter-group">
+          <div class="parameter-group-title">Rendering Mode</div>
           <div class="input-group">
             <label>
               <input type="checkbox" id="wireframe">
               Wireframe Mode
             </label>
+            <small class="checkbox-hint">Show the mesh structure</small>
           </div>
         </div>
       </div>
