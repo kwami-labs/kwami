@@ -1028,6 +1028,38 @@ input[type="checkbox"] {
   font-family: 'Courier New', monospace;
 }
 
+/* Agent Management - Disabled State */
+.disabled-section {
+  opacity: 0.5;
+  pointer-events: none;
+  position: relative;
+}
+
+.disabled-section::after {
+  content: '🔒 API Key Required';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  background: rgba(26, 26, 26, 0.95);
+  color: #888;
+  padding: 8px 16px;
+  border-radius: 8px;
+  border: 1px solid #333;
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+  pointer-events: none;
+  z-index: 10;
+}
+
+.disabled-section:hover::after {
+  opacity: 1;
+}
+
 /* Agent Management - Agent Cards */
 .agents-list {
   display: flex;

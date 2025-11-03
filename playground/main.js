@@ -603,8 +603,8 @@ const VIDEO_ASSET_MAP = buildAssetMap(videoModules);
 // Counter for background randomization clicks
 let backgroundRandomizeClickCount = 0;
 
-// Remember previous background opacity when enabling glass (to restore on disable)
-let prevBgOpacityForGlass = null;
+// Remember previous blob opacity when enabling glass (to restore on disable)
+let prevBlobOpacityForGlass = null;
 let currentBackgroundImage = '';
 let currentBackgroundVideo = '';
 let currentMediaType = 'none';
@@ -1117,33 +1117,33 @@ function initializeBackgroundControls() {
     glassCheckbox.addEventListener('change', (e) => {
       if (!window.kwami || !window.kwami.body) return;
 
-      // Get current background opacity from Body API (not DOM)
-      const currentOpacity = window.kwami.body.getBackgroundOpacity?.() ?? 1;
+      // Read current blob opacity
+      const currentBlobOpacity = window.kwami.body.blob.getOpacity?.() ?? 1;
 
       if (e.target.checked) {
         // Do NOT change gradient configuration; only enable glass mode
         window.kwami.body.setBlobImageTransparencyMode(true, { mode: 'glass' });
 
-        // If opacity was 1, drop to 0.8 for nicer glass effect and remember to restore later
-        if (currentOpacity >= 1) {
-          prevBgOpacityForGlass = currentOpacity;
-          window.kwami.body.setBackgroundOpacity(0.8);
-          const bgOpacitySlider = document.getElementById('bg-opacity');
-          if (bgOpacitySlider) bgOpacitySlider.value = '0.80';
-          updateValueDisplay('bg-opacity-value', 0.8, 2);
+        // If blob opacity was 1, drop to 0.8 for nicer glass effect and remember to restore later
+        if (currentBlobOpacity >= 1) {
+          prevBlobOpacityForGlass = currentBlobOpacity;
+          window.kwami.body.blob.setOpacity(0.8);
+          const blobOpacitySlider = document.getElementById('blob-opacity');
+          if (blobOpacitySlider) blobOpacitySlider.value = '0.80';
+          updateValueDisplay('blob-opacity-value', 0.8, 2);
         }
         updateStatus('🪟 Glass transparency enabled');
       } else {
         // Disable glass mode without touching gradient params
         window.kwami.body.setBlobImageTransparencyMode(false);
 
-        // Restore previous opacity if we changed it
-        if (prevBgOpacityForGlass !== null) {
-          window.kwami.body.setBackgroundOpacity(prevBgOpacityForGlass);
-          const bgOpacitySlider = document.getElementById('bg-opacity');
-          if (bgOpacitySlider) bgOpacitySlider.value = String(prevBgOpacityForGlass);
-          updateValueDisplay('bg-opacity-value', prevBgOpacityForGlass, 2);
-          prevBgOpacityForGlass = null;
+        // Restore previous blob opacity if we changed it
+        if (prevBlobOpacityForGlass !== null) {
+          window.kwami.body.blob.setOpacity(prevBlobOpacityForGlass);
+          const blobOpacitySlider = document.getElementById('blob-opacity');
+          if (blobOpacitySlider) blobOpacitySlider.value = String(prevBlobOpacityForGlass);
+          updateValueDisplay('blob-opacity-value', prevBlobOpacityForGlass, 2);
+          prevBlobOpacityForGlass = null;
         }
         updateStatus('🎨 Glass transparency disabled');
       }

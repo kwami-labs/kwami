@@ -92,6 +92,9 @@
       <!-- API Key (Required First) -->
       <div class="section">
         <div class="section-title">🔑 API Authentication</div>
+        <p style="color: #ffa500; font-size: 14px; margin: 10px 0; font-weight: 500;">
+          ⚠️ Enter your API key to unlock all agent features below
+        </p>
         
         <div class="input-group">
           <label>ElevenLabs API Key (Required)</label>
@@ -106,7 +109,7 @@
       </div>
 
       <!-- Agent Creation (Primary Feature) -->
-      <div class="section" id="agent-creation-section" style="display: none;">
+      <div class="section disabled-section" id="agent-creation-section">
         <div class="section-title">✨ Create New Agent</div>
         <p style="color: #888; font-size: 14px; margin-bottom: 15px;">
           Create a conversational AI agent with custom personality and voice
@@ -190,14 +193,14 @@
           </div>
         </div>
         
-        <button onclick="createNewAgent()" id="create-agent-btn">✨ Create Agent</button>
+        <button onclick="createNewAgent()" id="create-agent-btn" disabled>✨ Create Agent</button>
         <div id="agent-creation-status" style="margin-top: 10px; display: none;"></div>
       </div>
 
       <!-- My Agents List -->
-      <div class="section" id="agents-list-section" style="display: none;">
+      <div class="section disabled-section" id="agents-list-section">
         <div class="section-title">📋 My Agents</div>
-        <button class="button-secondary" onclick="refreshAgentsList()" style="margin-bottom: 10px;">🔄 Refresh List</button>
+        <button class="button-secondary" onclick="refreshAgentsList()" id="refresh-agents-btn" disabled style="margin-bottom: 10px;">🔄 Refresh List</button>
         
         <div id="agents-list-container">
           <div id="agents-list" class="agents-list">
@@ -210,7 +213,7 @@
       </div>
 
       <!-- Selected Agent Actions -->
-      <div class="section" id="agent-actions-section" style="display: none;">
+      <div class="section disabled-section" id="agent-actions-section">
         <div class="section-title">🎯 Active Agent</div>
         
         <div id="selected-agent-info" style="padding: 15px; background: #1a1a1a; border-radius: 12px; margin-bottom: 15px;">
@@ -231,7 +234,7 @@
       </div>
 
       <!-- Agent Testing -->
-      <div class="section" id="agent-testing-section" style="display: none;">
+      <div class="section disabled-section" id="agent-testing-section">
         <div class="section-title">🧪 Test Agent</div>
         <p style="color: #888; font-size: 14px; margin-bottom: 15px;">
           Test your agent with simulated conversations before going live
@@ -254,7 +257,7 @@
       </div>
 
       <!-- Cost Calculator -->
-      <div class="section" id="cost-calculator-section" style="display: none;">
+      <div class="section disabled-section" id="cost-calculator-section">
         <div class="section-title">💰 Cost Calculator</div>
         <p style="color: #888; font-size: 14px; margin-bottom: 15px;">
           Estimate token usage and costs for your agent
@@ -292,7 +295,7 @@
       </div>
 
       <!-- Agent Link -->
-      <div class="section" id="agent-link-section" style="display: none;">
+      <div class="section disabled-section" id="agent-link-section">
         <div class="section-title">🔗 Share Agent</div>
         
         <button onclick="getAgentShareLink()" id="get-link-btn" disabled>🔗 Get Shareable Link</button>

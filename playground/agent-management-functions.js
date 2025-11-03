@@ -3,6 +3,39 @@
 // Complete integration of ElevenLabs Agents API into Kwami Playground
 // ============================================================================
 
+// Fallback implementations if main.js hasn't loaded yet
+if (typeof window.updateStatus === 'undefined') {
+  window.updateStatus = function(message) {
+    const status = document.getElementById('status');
+    if (status) {
+      status.textContent = message;
+      if (message) {
+        setTimeout(() => {
+          if (status.textContent === message) {
+            status.textContent = '';
+          }
+        }, 5000);
+      }
+    }
+  };
+}
+
+if (typeof window.showError === 'undefined') {
+  window.showError = function(message) {
+    const error = document.getElementById('error');
+    if (error) {
+      error.textContent = message;
+      if (message) {
+        setTimeout(() => {
+          if (error.textContent === message) {
+            error.textContent = '';
+          }
+        }, 8000);
+      }
+    }
+  };
+}
+
 // Global state for agent management
 window.agentManager = {
   initialized: false,
@@ -38,13 +71,35 @@ window.initializeAgentManager = async function() {
     document.getElementById('init-agent-manager-btn').disabled = true;
     document.getElementById('init-agent-manager-btn').textContent = '✅ Initialized';
     
-    // Show agent creation and management sections
-    document.getElementById('agent-creation-section').style.display = 'block';
-    document.getElementById('agents-list-section').style.display = 'block';
-    document.getElementById('agent-actions-section').style.display = 'block';
-    document.getElementById('agent-testing-section').style.display = 'block';
-    document.getElementById('cost-calculator-section').style.display = 'block';
-    document.getElementById('agent-link-section').style.display = 'block';
+    // Enable all agent management sections by removing disabled class
+    const sections = [
+      'agent-creation-section',
+      'agents-list-section', 
+      'agent-actions-section',
+      'agent-testing-section',
+      'cost-calculator-section',
+      'agent-link-section'
+    ];
+    
+    sections.forEach(sectionId => {
+      const section = document.getElementById(sectionId);
+      if (section) {
+        section.classList.remove('disabled-section');
+      }
+    });
+    
+    // Enable all agent management buttons
+    const buttons = [
+      'create-agent-btn',
+      'refresh-agents-btn'
+    ];
+    
+    buttons.forEach(buttonId => {
+      const button = document.getElementById(buttonId);
+      if (button) {
+        button.disabled = false;
+      }
+    });
     
     // Load existing agents
     await refreshAgentsList();
