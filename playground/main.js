@@ -788,67 +788,45 @@ function updateGradientOverlay({ colors, stops, angle, style, opacity }) {
 
 function setBackgroundImage(imageValue, { silent = false } = {}) {
   const resolved = imageValue ? resolveMediaPath(imageValue) : '';
-  const { mediaContainer, videoElement } = getBackgroundElements();
-  if (!mediaContainer || !videoElement) return;
 
-  videoElement.pause();
-  videoElement.removeAttribute('src');
-  videoElement.load();
-  videoElement.style.display = 'none';
+  if (window.kwami && window.kwami.body) {
+    // Hide DOM overlays; use Three.js planes
+    const { mediaContainer, gradientElement } = getBackgroundElements();
+    if (mediaContainer) mediaContainer.style.display = 'none';
+    if (gradientElement) gradientElement.style.display = 'none';
 
-  if (resolved) {
-    mediaContainer.style.backgroundImage = `url('${resolved}')`;
-    mediaContainer.dataset.active = 'image';
-    mediaContainer.style.opacity = '1';
-    currentBackgroundImage = imageValue || '';
-    currentBackgroundVideo = '';
-    window.kwami?.body?.clearBackgroundMedia?.();
-    window.kwami?.body?.setBackgroundTransparent?.();
-    if (!silent) updateStatus('🖼️ Background image applied!');
-  } else {
-    mediaContainer.style.backgroundImage = '';
-    mediaContainer.dataset.active = 'none';
-    mediaContainer.style.opacity = '0';
-    currentBackgroundImage = '';
-    if (!silent) updateStatus('Background image removed');
+    if (resolved) {
+      window.kwami.body.setBackgroundImage(resolved, { opacity: 1 });
+      currentBackgroundImage = imageValue || '';
+      currentBackgroundVideo = '';
+      if (!silent) updateStatus('🖼️ Background image applied!');
+    } else {
+      window.kwami.body.clearBackgroundMedia();
+      currentBackgroundImage = '';
+      if (!silent) updateStatus('Background image removed');
+    }
   }
-
-  window.kwami?.body?.clearBackgroundMedia?.();
 }
 
 function setBackgroundVideo(videoValue, { silent = false } = {}) {
   const resolved = videoValue ? resolveMediaPath(videoValue) : '';
-  const { mediaContainer, videoElement } = getBackgroundElements();
-  if (!mediaContainer || !videoElement) return;
 
-  mediaContainer.style.backgroundImage = '';
+  if (window.kwami && window.kwami.body) {
+    const { mediaContainer, gradientElement } = getBackgroundElements();
+    if (mediaContainer) mediaContainer.style.display = 'none';
+    if (gradientElement) gradientElement.style.display = 'none';
 
-  if (resolved) {
-    if (videoElement.src !== resolved) {
-      videoElement.src = resolved;
+    if (resolved) {
+      window.kwami.body.setBackgroundVideo(resolved, { opacity: 1, autoplay: true, loop: true, muted: true });
+      currentBackgroundVideo = videoValue || '';
+      currentBackgroundImage = '';
+      if (!silent) updateStatus('🎞️ Background video applied!');
+    } else {
+      window.kwami.body.clearBackgroundMedia();
+      currentBackgroundVideo = '';
+      if (!silent) updateStatus('Background video removed');
     }
-    videoElement.style.display = 'block';
-    videoElement.load();
-    videoElement.play().catch(() => {});
-    mediaContainer.dataset.active = 'video';
-    mediaContainer.style.opacity = '1';
-    currentBackgroundVideo = videoValue || '';
-    currentBackgroundImage = '';
-    window.kwami?.body?.clearBackgroundMedia?.();
-    window.kwami?.body?.setBackgroundTransparent?.();
-    if (!silent) updateStatus('🎞️ Background video applied!');
-  } else {
-    videoElement.pause();
-    videoElement.removeAttribute('src');
-    videoElement.load();
-    videoElement.style.display = 'none';
-    mediaContainer.dataset.active = 'none';
-    mediaContainer.style.opacity = '0';
-    currentBackgroundVideo = '';
-    if (!silent) updateStatus('Background video removed');
   }
-
-  window.kwami?.body?.clearBackgroundMedia?.();
 }
 
 function setMediaType(type, { silent = false } = {}) {
@@ -1091,26 +1069,22 @@ function applyBackground() {
 
   const gradientStyle = document.getElementById('bg-gradient-style')?.value ?? DEFAULT_BACKGROUND.style;
   
-  // Handle the three gradient styles: linear, radial, and random (3 spheres)
-  if (gradientStyle === 'random') {
-    updateGradientOverlay({ colors, stops: [0, stop1Percent / 100, stop2Percent / 100], angle: angleDegrees, style: 'random', opacity });
-  } else {
-    const direction = gradientStyle === 'radial' ? 'radial' : 'linear';
-    const stops = [0, stop1Percent / 100, stop2Percent / 100];
-    const overlayAngle = direction === 'linear' ? angleDegrees : 0;
+  // Route background rendering through Three.js Body so glass mode can work
+  if (window.kwami && window.kwami.body) {
+    // Hide DOM overlays
+    const { gradientElement, mediaContainer } = getBackgroundElements();
+    if (gradientElement) gradientElement.style.display = 'none';
+    if (mediaContainer) mediaContainer.style.display = 'none';
 
-    updateGradientOverlay({
-      colors,
-      stops,
-      angle: overlayAngle,
-      style: gradientStyle,
-      opacity,
-    });
+    const stopsArr = [0, stop1Percent / 100, stop2Percent / 100];
+
+    if (gradientStyle === 'radial') {
+      window.kwami.body.setBackgroundGradient(colors, { direction: 'radial', stops: stopsArr, opacity });
+    } else {
+      // Linear with angle
+      window.kwami.body.setBackgroundGradient(colors, { angle: angleDegrees, stops: stopsArr, opacity });
+    }
   }
-
-  // Glass window effect removed - needs core implementation
-  // Would require modifying blob's Three.js material to act as
-  // a stencil mask or use special blending to create window effect
 }
 
 window.resetBackground = function() {
@@ -2576,6 +2550,22 @@ function initializeBodyControls() {
   if (wireframeCheckbox) {
     wireframeCheckbox.addEventListener('change', (e) => {
       blob.setWireframe(e.target.checked);
+    });
+  }
+
+  // Glass mode checkbox
+  const glassCheckbox = document.getElementById('glass-mode');
+  if (glassCheckbox) {
+    glassCheckbox.addEventListener('change', (e) => {
+      if (window.kwami && window.kwami.body) {
+        if (e.target.checked) {
+          window.kwami.body.setBlobImageTransparencyMode(true, { mode: 'glass' });
+          updateStatus('🪟 Glass mode enabled');
+        } else {
+          window.kwami.body.setBlobImageTransparencyMode(false);
+          updateStatus('🎨 Glass mode disabled');
+        }
+      }
     });
   }
   

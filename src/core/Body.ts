@@ -627,10 +627,10 @@ export class KwamiBody {
 
     const finalType = options.type ?? 'gradient';
     const finalColors = options.colors;
-    const finalOpacity = options.opacity ?? opacity;
+    const finalOpacity = options.opacity !== undefined ? options.opacity : this.backgroundState.opacity;
     const finalMode = options.mode ?? mode;
-    const finalDirection = options.direction ?? direction;
-    const finalAngle = options.angle;
+    const finalDirection = options.direction !== undefined ? options.direction : this.backgroundState.direction;
+    const finalAngle = options.angle ?? this.backgroundState.angle;
     const finalStops = options.stops;
 
     if (finalType === 'solid' && finalColors && finalColors.length > 0) {
