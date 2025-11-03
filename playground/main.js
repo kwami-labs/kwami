@@ -1185,16 +1185,13 @@ function initializeBackgroundControls() {
           kwamiBlob.setOpacity(0.8);
         }
 
-        // Enable glass mode - creates window in gradient to see background image
-        window.kwami.body.setBlobImageTransparencyMode(true, {
-          type: 'none', // Don't apply gradient to blob
-          colors: [],
-          direction: 'vertical',
-          stops: [],
-          opacity: 0.8,
-          mode: 'glass', // Glass mode = window through gradient
-        });
-        updateStatus('🪟 Glass mode - blob reveals background image through gradient');
+        // Hide gradient overlay to prevent white background
+        const gradientElement = document.getElementById('background-gradient');
+        if (gradientElement) {
+          gradientElement.style.opacity = '0';
+        }
+
+        updateStatus('🪟 Glass transparency - blob reveals background');
       } else {
         const kwamiBlob = window.kwami?.body?.blob;
         if (kwamiBlob && typeof kwamiBlob.setOpacity === 'function') {
@@ -1205,9 +1202,15 @@ function initializeBackgroundControls() {
           opacitySlider.value = '1';
           updateValueDisplay('blob-opacity-value', 1, 2);
         }
-        // Disable glass mode
-        window.kwami.body.setBlobImageTransparencyMode(false);
-        updateStatus('🎨 Glass mode disabled');
+
+        // Restore gradient overlay
+        const bgOpacity = parseFloat(document.getElementById('bg-opacity')?.value ?? 1);
+        const gradientElement = document.getElementById('background-gradient');
+        if (gradientElement) {
+          gradientElement.style.opacity = bgOpacity.toString();
+        }
+
+        updateStatus('🎨 Glass transparency disabled');
       }
     });
   }
@@ -1232,17 +1235,7 @@ function initializeBackgroundControls() {
         kwamiBlob.setOpacity(value);
       }
 
-      // If glass mode is enabled, update the window opacity
-      if (blobImageTransparencyEnabled) {
-        window.kwami.body.setBlobImageTransparencyMode(true, {
-          type: 'none',
-          colors: [],
-          direction: 'vertical',
-          stops: [],
-          opacity: value,
-          mode: 'glass',
-        });
-      }
+      // Glass mode only affects blob opacity, no extra layers
     });
   }
 
