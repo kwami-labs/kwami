@@ -114,6 +114,7 @@ Comprehensive guides for different aspects of Kwami:
 - **[QUICKSTART.md](./docs/QUICKSTART.md)** - Quick start guide for getting up and running
 - **[CONVERSATIONAL_QUICKSTART.md](./docs/CONVERSATIONAL_QUICKSTART.md)** - Quick start for conversational AI features
 - **[ELEVENLABS_INTEGRATION.md](./docs/ELEVENLABS_INTEGRATION.md)** - Complete ElevenLabs integration guide
+- **[AGENTS_API.md](./docs/AGENTS_API.md)** - Agent management API for creating and managing conversational AI agents
 - **[CONVERSATIONAL_AI.md](./docs/CONVERSATIONAL_AI.md)** - Detailed conversational AI documentation
 - **[CONVERSATION_BETA_GUIDE.md](./docs/CONVERSATION_BETA_GUIDE.md)** - Beta guide for voice conversation features
 - **[MIND_CLASS_IMPLEMENTATION.md](./docs/MIND_CLASS_IMPLEMENTATION.md)** - Technical implementation details for the Mind class
@@ -695,6 +696,7 @@ See the [Playground README](./playground/README.md) for detailed documentation.
 
 - [x] AI Mind integration (ElevenLabs TTS)
 - [x] **Complete Mind menu** with comprehensive ElevenLabs configuration (50+ options)
+- [x] **Agent Management API** - Create, manage, and test conversational AI agents programmatically
 - [x] AI Soul (personality system)
 - [x] Text-to-Speech integration
 - [x] Voice selection (20+ voices) and custom voice support

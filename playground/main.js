@@ -1185,15 +1185,13 @@ function initializeBackgroundControls() {
           kwamiBlob.setOpacity(0.8);
         }
 
-        // Enable glass mode with empty gradient (blob punches hole through gradient overlay)
-        window.kwami.body.setBlobImageTransparencyMode(true, {
-          type: 'gradient',
-          colors: ['rgba(0,0,0,0)', 'rgba(0,0,0,0)', 'rgba(0,0,0,0)'], // Transparent gradient on blob
-          direction: 'vertical',
-          stops: [0, 0.5, 1],
-          opacity: 0.8,
-          mode: 'glass', // Glass mode creates window
-        });
+        // Apply CSS mask to gradient to create hole where blob is
+        const gradientElement = document.getElementById('background-gradient');
+        if (gradientElement) {
+          // Create radial gradient mask - transparent in center (blob area), opaque outside
+          gradientElement.style.webkitMaskImage = 'radial-gradient(ellipse 200px 200px at 50% 50%, transparent 0%, transparent 40%, black 70%)';
+          gradientElement.style.maskImage = 'radial-gradient(ellipse 200px 200px at 50% 50%, transparent 0%, transparent 40%, black 70%)';
+        }
 
         updateStatus('🪟 Glass window - blob reveals background through gradient');
       } else {
@@ -1207,8 +1205,12 @@ function initializeBackgroundControls() {
           updateValueDisplay('blob-opacity-value', 1, 2);
         }
 
-        // Disable glass mode
-        window.kwami.body.setBlobImageTransparencyMode(false);
+        // Remove CSS mask from gradient
+        const gradientElement = document.getElementById('background-gradient');
+        if (gradientElement) {
+          gradientElement.style.webkitMaskImage = '';
+          gradientElement.style.maskImage = '';
+        }
 
         updateStatus('🎨 Glass transparency disabled');
       }
@@ -1235,16 +1237,17 @@ function initializeBackgroundControls() {
         kwamiBlob.setOpacity(value);
       }
 
-      // If glass mode enabled, update window opacity
+      // Update glass effect size based on opacity
       if (blobImageTransparencyEnabled) {
-        window.kwami.body.setBlobImageTransparencyMode(true, {
-          type: 'gradient',
-          colors: ['rgba(0,0,0,0)', 'rgba(0,0,0,0)', 'rgba(0,0,0,0)'],
-          direction: 'vertical',
-          stops: [0, 0.5, 1],
-          opacity: value,
-          mode: 'glass',
-        });
+        const gradientElement = document.getElementById('background-gradient');
+        if (gradientElement) {
+          // Scale the mask hole size based on opacity (less opacity = bigger hole)
+          const holeSize = 150 + (1 - value) * 100; // 150-250px
+          const fadeStart = 40; // Where transparent area ends
+          const fadeEnd = 70; // Where opaque area begins
+          gradientElement.style.webkitMaskImage = `radial-gradient(ellipse ${holeSize}px ${holeSize}px at 50% 50%, transparent 0%, transparent ${fadeStart}%, black ${fadeEnd}%)`;
+          gradientElement.style.maskImage = `radial-gradient(ellipse ${holeSize}px ${holeSize}px at 50% 50%, transparent 0%, transparent ${fadeStart}%, black ${fadeEnd}%)`;
+        }
       }
     });
   }

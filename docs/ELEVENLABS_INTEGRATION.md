@@ -274,6 +274,101 @@ import type {
 - ✅ `.env.sample` - Environment configuration template
 - ✅ `index.ts` - Updated exports
 
+## 🤖 Agent Management API
+
+The KwamiMind class now includes comprehensive agent management capabilities, allowing you to programmatically create, configure, and manage ElevenLabs conversational AI agents.
+
+### When to Use Agent Management
+
+**Use Agent Management API when you need to:**
+- Create multiple AI personalities with different configurations
+- Pre-configure agents with specific prompts, voices, and behaviors
+- Test and iterate on agent configurations before deployment
+- Share agents via public links
+- Calculate costs and token usage before going live
+- Manage agent lifecycle programmatically
+
+**Use Direct TTS/Conversations when you need:**
+- Simple text-to-speech without conversation capabilities
+- Maximum control over every interaction
+- Custom conversation flows without pre-configured agents
+
+### Quick Start: Creating an Agent
+
+```typescript
+import { KwamiMind } from '@kwami/core';
+
+const mind = new KwamiMind(audio, {
+  apiKey: process.env.ELEVEN_LABS_API_KEY
+});
+
+await mind.initialize();
+
+// Create a new conversational agent
+const agent = await mind.createAgent({
+  conversation_config: {
+    agent: {
+      prompt: {
+        prompt: "You are Kaya, a warm and empathetic AI companion.",
+        llm: "gpt-4",
+        temperature: 0.7
+      },
+      first_message: "Hello! I'm Kaya. How can I help you today?",
+      language: "en"
+    },
+    tts: {
+      model_id: "eleven_turbo_v2",
+      voice_id: "pNInz6obpgDQGcFmaJgB",
+      stability: 0.5,
+      similarity_boost: 0.75
+    }
+  }
+});
+
+console.log('Agent created:', agent.agent_id);
+
+// Test the agent
+const test = await mind.simulateConversation(agent.agent_id, {
+  conversation_history: [
+    { role: 'user', message: 'Tell me about yourself' }
+  ]
+});
+
+console.log('Agent response:', test.agent_response);
+
+// Use agent in real conversations
+mind.setAgentId(agent.agent_id);
+await mind.startConversation();
+```
+
+### Available Agent Methods
+
+All agent management methods are available directly on the `KwamiMind` class:
+
+- **`createAgent(config)`** - Create new agent with full configuration
+- **`getAgent(agentId)`** - Retrieve agent details
+- **`listAgents(options?)`** - List all agents with pagination
+- **`updateAgent(agentId, config)`** - Update agent configuration
+- **`deleteAgent(agentId)`** - Permanently delete an agent
+- **`duplicateAgent(agentId, options?)`** - Clone an existing agent
+- **`getAgentLink(agentId)`** - Get shareable public link
+- **`simulateConversation(agentId, request)`** - Test agent (non-streaming)
+- **`simulateConversationStream(agentId, request, onChunk)`** - Test with streaming
+- **`calculateLLMUsage(agentId, request?)`** - Estimate token usage and costs
+
+### Complete Documentation
+
+For comprehensive API reference, code examples, and best practices, see:
+**[📖 Agents API Documentation](./AGENTS_API.md)**
+
+The documentation includes:
+- Complete method signatures and parameters
+- Real-world code examples
+- Common workflows and patterns
+- Error handling strategies
+- Best practices for production use
+- Troubleshooting guide
+
 ## 🎯 Next Steps
 
 ### Voice Agent Conversational AI (TODO)

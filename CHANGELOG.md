@@ -7,6 +7,81 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [2.2.2] - 2025-11-03
+
+### ✨ Added
+
+#### 🤖 ElevenLabs Agents Management API
+- **Complete agent lifecycle management** - Full CRUD operations for conversational AI agents
+- **10 new Mind class methods** for agent management:
+  - `createAgent(config)` - Create new agents with full configuration
+  - `getAgent(agentId)` - Retrieve agent details and configuration
+  - `listAgents(options?)` - List all agents with pagination support
+  - `updateAgent(agentId, config)` - Update existing agent configurations
+  - `deleteAgent(agentId)` - Permanently delete agents
+  - `duplicateAgent(agentId, options?)` - Clone agents with optional modifications
+  - `getAgentLink(agentId)` - Get shareable public links for agents
+  - `simulateConversation(agentId, request)` - Test agents with simulated conversations
+  - `simulateConversationStream(agentId, request, onChunk)` - Test with streaming responses
+  - `calculateLLMUsage(agentId, request?)` - Estimate token usage and costs
+
+#### 📦 TypeScript Type Definitions
+- **New agent-related interfaces** in `src/types/index.ts`:
+  - `AgentConfig` - Agent configuration structure
+  - `AgentResponse` - Agent API response format
+  - `CreateAgentRequest` & `UpdateAgentRequest` - Agent creation/update payloads
+  - `ListAgentsOptions` & `ListAgentsResponse` - Pagination support
+  - `DuplicateAgentRequest` - Agent duplication options
+  - `ConversationMessage` - Message format for simulations
+  - `SimulateConversationRequest` & `SimulateConversationResponse` - Testing interfaces
+  - `LLMUsageRequest` & `LLMUsageResponse` - Cost calculation types
+  - `AgentLinkResponse` - Shareable link information
+- **Full type safety** for all agent management operations
+
+### 📚 Documentation
+
+#### New Documentation Files
+- **`docs/AGENTS_API.md`** - Comprehensive 1000+ line guide covering:
+  - Complete API reference with method signatures
+  - Real-world code examples for all operations
+  - Common workflows (creation, testing, deployment)
+  - Error handling patterns and best practices
+  - Troubleshooting guide
+  - Integration with existing conversation features
+
+#### Updated Documentation
+- **`docs/ELEVENLABS_INTEGRATION.md`** - Added Agent Management API section
+  - Quick start example for creating agents
+  - When to use agent management vs direct conversations
+  - Links to comprehensive documentation
+- **`README.md`** - Updated with Agents API references
+  - Added to documentation guides list
+  - Added to roadmap as completed feature
+
+### 🔧 Technical Details
+
+#### Integration
+- **Seamless SDK integration** with `@elevenlabs/elevenlabs-js` v2.20.1
+- **Consistent error handling** across all agent operations
+- **Comprehensive JSDoc comments** with examples for all methods
+- **Validation** before API calls to prevent errors
+- **Debug logging** with emoji indicators for better DX
+
+#### Architecture
+- **No breaking changes** - All additions are new methods
+- **Backward compatible** with existing Mind functionality
+- **Type-safe** - Full TypeScript support throughout
+
+### 💡 Use Cases
+
+The Agents API enables:
+- **A/B testing** different agent personalities and configurations
+- **Cost estimation** before deploying agents to production
+- **Automated testing** of agent responses and behaviors
+- **Agent templates** that can be duplicated and customized
+- **Programmatic management** of multiple agent variants
+- **Integration testing** with simulated conversations
+
 ## [2.2.1] - 2025-11-02
 
 ### 🔧 Changed
