@@ -341,7 +341,7 @@ window.refreshAgentsList = async function() {
     
     // If no agent was previously selected, select the first one
     if (!window.agentManager.selectedAgent && window.agentManager.agents.length > 0) {
-      selectAgent(window.agentManager.agents[0].agent_id);
+      window.selectAgentByIndex(0);
     }
     
     updateStatus(`✅ Loaded ${window.agentManager.agents.length} agent(s)`);
@@ -365,17 +365,18 @@ window.displayAgentsList = function displayAgentsList() {
   
   emptyMessage.style.display = 'none';
   
-  agentsList.innerHTML = window.agentManager.agents.map(agent => {
+  agentsList.innerHTML = window.agentManager.agents.map((agent, index) => {
     // Debug: log agent object to see available properties
     console.log('Agent object:', agent);
+    console.log('Agent properties:', Object.keys(agent));
     
     // Try different property names for agent ID
     const agentId = agent.agent_id || agent.id || agent.conversation_id;
-    const isSelected = window.agentManager.selectedAgent?.agent_id === agentId || window.agentManager.selectedAgent?.id === agentId;
+    const isSelected = window.agentManager.selectedAgent === agent; // Direct reference comparison
     const createdDate = agent.created_at ? new Date(agent.created_at).toLocaleDateString() : 'Unknown';
     
     return `
-      <div class="agent-card ${isSelected ? 'selected' : ''}" data-agent-id="${agentId}" onclick="window.selectAgent('${agentId}')">
+      <div class="agent-card ${isSelected ? 'selected' : ''}" data-agent-index="${index}" onclick="window.selectAgentByIndex(${index})">
         <div class="agent-card-header">
           <div class="agent-card-name">${agent.name || 'Unnamed Agent'}</div>
           <div class="agent-card-actions">
@@ -383,7 +384,7 @@ window.displayAgentsList = function displayAgentsList() {
             <button onclick="event.stopPropagation(); window.deleteAgentById('${agentId}')" title="Delete" style="color: #ff6b6b;">🗑️</button>
           </div>
         </div>
-        <div class="agent-card-id">${agentId}</div>
+        <div class="agent-card-id">${agentId || 'No ID'}</div>
         <div class="agent-card-info">
           ${agent.conversation_config?.agent?.prompt?.prompt?.substring(0, 60) || 'No prompt'}...
         </div>
@@ -393,7 +394,44 @@ window.displayAgentsList = function displayAgentsList() {
   }).join('');
 }
 
-// Select Agent
+// Select Agent by Index (more reliable)
+window.selectAgentByIndex = function(index) {
+  console.log('Selecting agent at index:', index);
+  
+  if (index < 0 || index >= window.agentManager.agents.length) {
+    console.error('Invalid agent index:', index);
+    showError('Invalid agent selection');
+    return;
+  }
+  
+  const agent = window.agentManager.agents[index];
+  console.log('Selected agent:', agent);
+  
+  window.agentManager.selectedAgent = agent;
+  
+  // Get the actual agent ID from whichever property it uses
+  const actualAgentId = agent.agent_id || agent.id || agent.conversation_id;
+  
+  // Update selected agent display
+  document.getElementById('selected-agent-name').textContent = agent.name || 'Unnamed Agent';
+  document.getElementById('selected-agent-id').textContent = `ID: ${actualAgentId || 'N/A'}`;
+  
+  // Enable action buttons
+  document.getElementById('start-agent-conversation-btn').disabled = false;
+  document.getElementById('test-agent-btn').disabled = false;
+  document.getElementById('calculate-cost-btn').disabled = false;
+  document.getElementById('get-link-btn').disabled = false;
+  
+  // Update UI to show selection
+  displayAgentsList();
+  
+  // Save to localStorage
+  localStorage.setItem('selectedAgentIndex', index);
+  
+  updateStatus(`✅ Agent selected: ${agent.name || actualAgentId}`);
+};
+
+// Select Agent (legacy - uses ID lookup)
 window.selectAgent = function(agentId) {
   console.log('Selecting agent with ID:', agentId);
   
