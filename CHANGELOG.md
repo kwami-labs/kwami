@@ -58,6 +58,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Added to documentation guides list
   - Added to roadmap as completed feature
 
+### 🐛 Fixed
+
+- Glass transparency now works as a true blob window without altering the gradient
+- Enabling glass sets blob opacity to 0.8 only if it was 1.0; restores on disable
+- Random Gradient button fixed to use Body API (linear/radial), compatible with glass
+- Background DOM overlays removed in favor of Three.js planes for proper stencil blending
+
 ### 🔧 Technical Details
 
 #### Integration
