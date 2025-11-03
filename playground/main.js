@@ -1346,8 +1346,8 @@ function initializeBackgroundControls() {
   if (gradientStyleSelect) {
     gradientStyleSelect.value = DEFAULT_BACKGROUND.style;
   }
-  if (opacitySlider) {
-    opacitySlider.value = DEFAULT_BACKGROUND.opacity.toString();
+  if (bgOpacitySlider) {
+    bgOpacitySlider.value = DEFAULT_BACKGROUND.opacity.toString();
     updateValueDisplay('bg-opacity-value', DEFAULT_BACKGROUND.opacity, 2);
   }
 
