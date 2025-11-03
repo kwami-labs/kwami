@@ -11,6 +11,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### ✨ Added
 
+- Blob surface media support (image/video) applied directly to blob skin via Body API:
+  - `setBlobSurfaceImage(url)` / `setBlobSurfaceVideo(url, opts)` / `clearBlobSurfaceMedia()`
+  - Works independently of background overlay and compatible with glass mode
+
 #### 🤖 ElevenLabs Agents Management API
 - **Complete agent lifecycle management** - Full CRUD operations for conversational AI agents
 - **10 new Mind class methods** for agent management:
@@ -64,6 +68,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Enabling glass sets blob opacity to 0.8 only if it was 1.0; restores on disable
 - Random Gradient button fixed to use Body API (linear/radial), compatible with glass
 - Background DOM overlays removed in favor of Three.js planes for proper stencil blending
+- Blob texture image/video not visible at opacity 1.0 — shader now renders surface texture regardless of alpha
 
 ### 🔧 Technical Details
 
