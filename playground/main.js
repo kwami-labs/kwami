@@ -1185,13 +1185,17 @@ function initializeBackgroundControls() {
           kwamiBlob.setOpacity(0.8);
         }
 
-        // Hide gradient overlay to prevent white background
-        const gradientElement = document.getElementById('background-gradient');
-        if (gradientElement) {
-          gradientElement.style.opacity = '0';
-        }
+        // Enable glass mode with empty gradient (blob punches hole through gradient overlay)
+        window.kwami.body.setBlobImageTransparencyMode(true, {
+          type: 'gradient',
+          colors: ['rgba(0,0,0,0)', 'rgba(0,0,0,0)', 'rgba(0,0,0,0)'], // Transparent gradient on blob
+          direction: 'vertical',
+          stops: [0, 0.5, 1],
+          opacity: 0.8,
+          mode: 'glass', // Glass mode creates window
+        });
 
-        updateStatus('🪟 Glass transparency - blob reveals background');
+        updateStatus('🪟 Glass window - blob reveals background through gradient');
       } else {
         const kwamiBlob = window.kwami?.body?.blob;
         if (kwamiBlob && typeof kwamiBlob.setOpacity === 'function') {
@@ -1203,12 +1207,8 @@ function initializeBackgroundControls() {
           updateValueDisplay('blob-opacity-value', 1, 2);
         }
 
-        // Restore gradient overlay
-        const bgOpacity = parseFloat(document.getElementById('bg-opacity')?.value ?? 1);
-        const gradientElement = document.getElementById('background-gradient');
-        if (gradientElement) {
-          gradientElement.style.opacity = bgOpacity.toString();
-        }
+        // Disable glass mode
+        window.kwami.body.setBlobImageTransparencyMode(false);
 
         updateStatus('🎨 Glass transparency disabled');
       }
@@ -1235,7 +1235,17 @@ function initializeBackgroundControls() {
         kwamiBlob.setOpacity(value);
       }
 
-      // Glass mode only affects blob opacity, no extra layers
+      // If glass mode enabled, update window opacity
+      if (blobImageTransparencyEnabled) {
+        window.kwami.body.setBlobImageTransparencyMode(true, {
+          type: 'gradient',
+          colors: ['rgba(0,0,0,0)', 'rgba(0,0,0,0)', 'rgba(0,0,0,0)'],
+          direction: 'vertical',
+          stops: [0, 0.5, 1],
+          opacity: value,
+          mode: 'glass',
+        });
+      }
     });
   }
 
