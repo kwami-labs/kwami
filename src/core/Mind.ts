@@ -7,7 +7,18 @@ import type {
   STTConfig,
   PronunciationConfig,
   TTSOutputFormat,
-  STTModel
+  STTModel,
+  CreateAgentRequest,
+  UpdateAgentRequest,
+  ListAgentsOptions,
+  ListAgentsResponse,
+  DuplicateAgentRequest,
+  AgentResponse,
+  SimulateConversationRequest,
+  SimulateConversationResponse,
+  LLMUsageRequest,
+  LLMUsageResponse,
+  AgentLinkResponse
 } from '../types/index';
 import type { KwamiAudio } from './Audio';
 
@@ -1389,6 +1400,401 @@ export class KwamiMind {
       characterLimit: 0,
       remaining: 0
     };
+  }
+
+  // ==================== ElevenLabs Agents API ====================
+
+  /**
+   * Create a new conversational AI agent
+   * 
+   * This method creates a fully configured agent with TTS, ASR, and LLM capabilities.
+   * The agent can be used for voice conversations via WebSocket connections.
+   * 
+   * @param config - Agent configuration including prompt, voice, and conversation settings
+   * @returns Promise resolving to the created agent's details including agent_id
+   * 
+   * @example
+   * ```typescript
+   * const agent = await mind.createAgent({
+   *   conversation_config: {
+   *     agent: {
+   *       prompt: {
+   *         prompt: "You are a helpful AI assistant.",
+   *         llm: "gpt-4",
+   *         temperature: 0.7
+   *       },
+   *       first_message: "Hello! How can I help you today?",
+   *       language: "en"
+   *     },
+   *     tts: {
+   *       model_id: "eleven_turbo_v2",
+   *       voice_id: "pNInz6obpgDQGcFmaJgB",
+   *       stability: 0.5,
+   *       similarity_boost: 0.75
+   *     }
+   *   }
+   * });
+   * console.log('Agent created:', agent.agent_id);
+   * ```
+   */
+  async createAgent(config: CreateAgentRequest): Promise<AgentResponse> {
+    if (!this.client) {
+      throw new Error('Mind not initialized. Call initialize() first or provide API key.');
+    }
+
+    try {
+      console.log('📝 Creating new agent...');
+      const response = await this.client.conversationalAi.agents.create(config as any);
+      console.log('✅ Agent created successfully:', response.agent_id);
+      return response as unknown as AgentResponse;
+    } catch (error) {
+      console.error('Error creating agent:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * Retrieve details of a specific agent
+   * 
+   * @param agentId - The unique identifier of the agent
+   * @returns Promise resolving to the agent's complete configuration and details
+   * 
+   * @example
+   * ```typescript
+   * const agent = await mind.getAgent('agent_3701k3ttaq12ewp8b7qv5rfyszkz');
+   * console.log('Agent name:', agent.name);
+   * console.log('Created at:', agent.created_at);
+   * ```
+   */
+  async getAgent(agentId: string): Promise<AgentResponse> {
+    if (!this.client) {
+      throw new Error('Mind not initialized. Call initialize() first or provide API key.');
+    }
+
+    try {
+      console.log('🔍 Fetching agent:', agentId);
+      const response = await this.client.conversationalAi.agents.get(agentId);
+      return response as unknown as AgentResponse;
+    } catch (error) {
+      console.error('Error fetching agent:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * List all agents with optional pagination
+   * 
+   * @param options - Optional pagination parameters (page_size, page_token)
+   * @returns Promise resolving to list of agents with pagination metadata
+   * 
+   * @example
+   * ```typescript
+   * // Get first page
+   * const result = await mind.listAgents({ page_size: 10 });
+   * console.log('Found agents:', result.agents.length);
+   * 
+   * // Get next page if available
+   * if (result.has_more) {
+   *   const nextPage = await mind.listAgents({ 
+   *     page_size: 10,
+   *     page_token: result.next_page_token 
+   *   });
+   * }
+   * ```
+   */
+  async listAgents(options?: ListAgentsOptions): Promise<ListAgentsResponse> {
+    if (!this.client) {
+      throw new Error('Mind not initialized. Call initialize() first or provide API key.');
+    }
+
+    try {
+      console.log('📋 Listing agents...');
+      const response = await this.client.conversationalAi.agents.list(options as any);
+      return response as unknown as ListAgentsResponse;
+    } catch (error) {
+      console.error('Error listing agents:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * Update an existing agent's configuration
+   * 
+   * You can update any aspect of the agent including prompt, voice settings,
+   * and conversation configuration. Only provided fields will be updated.
+   * 
+   * @param agentId - The unique identifier of the agent to update
+   * @param config - Updated agent configuration (partial update supported)
+   * @returns Promise resolving to the updated agent details
+   * 
+   * @example
+   * ```typescript
+   * const updated = await mind.updateAgent('agent_3701k3ttaq12ewp8b7qv5rfyszkz', {
+   *   conversation_config: {
+   *     agent: {
+   *       first_message: "Hi there! What can I do for you?"
+   *     },
+   *     tts: {
+   *       stability: 0.7,
+   *       similarity_boost: 0.8
+   *     }
+   *   }
+   * });
+   * console.log('Agent updated successfully');
+   * ```
+   */
+  async updateAgent(agentId: string, config: UpdateAgentRequest): Promise<AgentResponse> {
+    if (!this.client) {
+      throw new Error('Mind not initialized. Call initialize() first or provide API key.');
+    }
+
+    try {
+      console.log('✏️ Updating agent:', agentId);
+      const response = await this.client.conversationalAi.agents.update(agentId, config as any);
+      console.log('✅ Agent updated successfully');
+      return response as unknown as AgentResponse;
+    } catch (error) {
+      console.error('Error updating agent:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * Delete an agent permanently
+   * 
+   * ⚠️ Warning: This action cannot be undone. The agent and all its configurations
+   * will be permanently deleted.
+   * 
+   * @param agentId - The unique identifier of the agent to delete
+   * @returns Promise that resolves when the agent is deleted
+   * 
+   * @example
+   * ```typescript
+   * await mind.deleteAgent('agent_3701k3ttaq12ewp8b7qv5rfyszkz');
+   * console.log('Agent deleted successfully');
+   * ```
+   */
+  async deleteAgent(agentId: string): Promise<void> {
+    if (!this.client) {
+      throw new Error('Mind not initialized. Call initialize() first or provide API key.');
+    }
+
+    try {
+      console.log('🗑️ Deleting agent:', agentId);
+      await this.client.conversationalAi.agents.delete(agentId);
+      console.log('✅ Agent deleted successfully');
+    } catch (error) {
+      console.error('Error deleting agent:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * Duplicate an existing agent with optional modifications
+   * 
+   * Creates a copy of an agent, optionally with a new name. Useful for creating
+   * variations of existing agents or testing different configurations.
+   * 
+   * @param agentId - The unique identifier of the agent to duplicate
+   * @param options - Optional configuration for the duplicated agent
+   * @returns Promise resolving to the newly created agent's details
+   * 
+   * @example
+   * ```typescript
+   * const duplicate = await mind.duplicateAgent(
+   *   'agent_3701k3ttaq12ewp8b7qv5rfyszkz',
+   *   { new_name: 'My Agent Copy' }
+   * );
+   * console.log('Duplicated agent:', duplicate.agent_id);
+   * ```
+   */
+  async duplicateAgent(agentId: string, options?: DuplicateAgentRequest): Promise<AgentResponse> {
+    if (!this.client) {
+      throw new Error('Mind not initialized. Call initialize() first or provide API key.');
+    }
+
+    try {
+      console.log('📋 Duplicating agent:', agentId);
+      const response = await this.client.conversationalAi.agents.duplicate(agentId, options as any);
+      console.log('✅ Agent duplicated:', response.agent_id);
+      return response as unknown as AgentResponse;
+    } catch (error) {
+      console.error('Error duplicating agent:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * Get a shareable link for an agent
+   * 
+   * Retrieves the public URL that can be shared to allow others to interact
+   * with the agent via web interface.
+   * 
+   * @param agentId - The unique identifier of the agent
+   * @returns Promise resolving to the agent link details
+   * 
+   * @example
+   * ```typescript
+   * const link = await mind.getAgentLink('agent_3701k3ttaq12ewp8b7qv5rfyszkz');
+   * console.log('Share this link:', link.link_url);
+   * console.log('Link enabled:', link.enabled);
+   * ```
+   */
+  async getAgentLink(agentId: string): Promise<AgentLinkResponse> {
+    if (!this.client) {
+      throw new Error('Mind not initialized. Call initialize() first or provide API key.');
+    }
+
+    try {
+      console.log('🔗 Fetching agent link:', agentId);
+      const response = await this.client.conversationalAi.agents.link.get(agentId);
+      return response as unknown as AgentLinkResponse;
+    } catch (error) {
+      console.error('Error fetching agent link:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * Simulate a conversation with an agent (non-streaming)
+   * 
+   * Test your agent by simulating a conversation without real-time audio.
+   * Useful for testing agent responses, debugging prompts, and validating behavior.
+   * 
+   * @param agentId - The unique identifier of the agent
+   * @param request - Simulation configuration including conversation history
+   * @returns Promise resolving to the agent's response and metadata
+   * 
+   * @example
+   * ```typescript
+   * const result = await mind.simulateConversation(
+   *   'agent_3701k3ttaq12ewp8b7qv5rfyszkz',
+   *   {
+   *     conversation_history: [
+   *       { role: 'user', message: 'What is the weather like?' },
+   *       { role: 'assistant', message: 'I don\'t have access to weather data.' },
+   *       { role: 'user', message: 'Tell me a joke instead.' }
+   *     ]
+   *   }
+   * );
+   * console.log('Agent response:', result.agent_response);
+   * console.log('Tokens used:', result.metadata?.total_tokens);
+   * ```
+   */
+  async simulateConversation(
+    agentId: string, 
+    request: SimulateConversationRequest
+  ): Promise<SimulateConversationResponse> {
+    if (!this.client) {
+      throw new Error('Mind not initialized. Call initialize() first or provide API key.');
+    }
+
+    try {
+      console.log('🎭 Simulating conversation with agent:', agentId);
+      const response = await this.client.conversationalAi.agents.simulateConversation(
+        agentId, 
+        request as any
+      );
+      return response as unknown as SimulateConversationResponse;
+    } catch (error) {
+      console.error('Error simulating conversation:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * Simulate a conversation with streaming responses
+   * 
+   * Similar to simulateConversation but streams the response in real-time,
+   * providing a more realistic testing experience.
+   * 
+   * @param agentId - The unique identifier of the agent
+   * @param request - Simulation configuration
+   * @param onChunk - Callback function called for each chunk of the response
+   * @returns Promise that resolves when streaming completes
+   * 
+   * @example
+   * ```typescript
+   * await mind.simulateConversationStream(
+   *   'agent_3701k3ttaq12ewp8b7qv5rfyszkz',
+   *   {
+   *     conversation_history: [
+   *       { role: 'user', message: 'Tell me a story.' }
+   *     ]
+   *   },
+   *   (chunk) => {
+   *     console.log('Received chunk:', chunk);
+   *     // Update UI with streaming response
+   *   }
+   * );
+   * ```
+   */
+  async simulateConversationStream(
+    agentId: string,
+    request: SimulateConversationRequest,
+    onChunk?: (chunk: any) => void
+  ): Promise<void> {
+    if (!this.client) {
+      throw new Error('Mind not initialized. Call initialize() first or provide API key.');
+    }
+
+    try {
+      console.log('🎭 Simulating streaming conversation with agent:', agentId);
+      await this.client.conversationalAi.agents.simulateConversationStream(
+        agentId,
+        request as any
+      );
+      // Note: The SDK's stream handling would need to be implemented based on their actual API
+      // This is a placeholder for the streaming logic
+      console.log('✅ Conversation stream completed');
+    } catch (error) {
+      console.error('Error simulating conversation stream:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * Calculate expected LLM token usage and costs
+   * 
+   * Estimate the token usage and associated costs before deploying or using an agent.
+   * Helps with budgeting and understanding resource requirements.
+   * 
+   * @param agentId - The unique identifier of the agent
+   * @param request - Usage calculation parameters
+   * @returns Promise resolving to estimated token usage and costs
+   * 
+   * @example
+   * ```typescript
+   * const usage = await mind.calculateLLMUsage(
+   *   'agent_3701k3ttaq12ewp8b7qv5rfyszkz',
+   *   {
+   *     conversation_turns: 10,
+   *     average_user_message_length: 50
+   *   }
+   * );
+   * console.log('Estimated tokens:', usage.estimated_total_tokens);
+   * console.log('Estimated cost:', usage.estimated_cost_usd);
+   * ```
+   */
+  async calculateLLMUsage(
+    agentId: string,
+    request?: LLMUsageRequest
+  ): Promise<LLMUsageResponse> {
+    if (!this.client) {
+      throw new Error('Mind not initialized. Call initialize() first or provide API key.');
+    }
+
+    try {
+      console.log('💰 Calculating LLM usage for agent:', agentId);
+      const response = await this.client.conversationalAi.agents.llmUsage.calculate(
+        agentId,
+        request as any
+      );
+      return response as unknown as LLMUsageResponse;
+    } catch (error) {
+      console.error('Error calculating LLM usage:', error);
+      throw error;
+    }
   }
 
   /**

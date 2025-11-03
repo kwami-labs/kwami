@@ -331,3 +331,228 @@ export interface EventHandlers {
   onPress?: EventHandler;
   [key: string]: EventHandler | undefined;
 }
+
+// ==================== ElevenLabs Agents API Types ====================
+
+/**
+ * Agent configuration for creating or updating an agent
+ */
+export interface AgentConfig {
+  name?: string;
+  prompt?: {
+    prompt?: string;
+    llm?: string;
+    tools?: any[];
+    temperature?: number;
+    max_tokens?: number;
+  };
+  first_message?: string;
+  language?: string;
+  tts?: {
+    model_id?: string;
+    voice_id?: string;
+    stability?: number;
+    similarity_boost?: number;
+    style?: number;
+    use_speaker_boost?: boolean;
+  };
+  stt?: {
+    model?: string;
+    language?: string;
+  };
+  conversation_config?: {
+    max_duration_seconds?: number;
+    client_events?: string[];
+  };
+  platform_settings?: any;
+  secrets?: Array<{
+    name: string;
+    value: string;
+  }>;
+}
+
+/**
+ * Agent response from API
+ */
+export interface AgentResponse {
+  agent_id: string;
+  name?: string;
+  created_at?: string;
+  updated_at?: string;
+  conversation_config?: any;
+  prompt?: any;
+  tts?: any;
+  stt?: any;
+  platform_settings?: any;
+}
+
+/**
+ * Request to create a new agent
+ */
+export interface CreateAgentRequest {
+  conversation_config?: {
+    agent?: {
+      prompt?: {
+        prompt?: string;
+        llm?: string;
+        temperature?: number;
+        max_tokens?: number;
+        tools?: any[];
+      };
+      first_message?: string;
+      language?: string;
+    };
+    tts?: {
+      model_id?: string;
+      voice_id?: string;
+      agent_output_audio_format?: string;
+      stability?: number;
+      similarity_boost?: number;
+      style?: number;
+      use_speaker_boost?: boolean;
+    };
+    asr?: {
+      quality?: 'high' | 'low';
+      provider?: string;
+      user_input_audio_format?: string;
+    };
+    client_events?: string[];
+  };
+  platform_settings?: any;
+  secrets?: Array<{
+    name: string;
+    value: string;
+  }>;
+}
+
+/**
+ * Request to update an existing agent
+ */
+export interface UpdateAgentRequest {
+  conversation_config?: {
+    agent?: {
+      prompt?: {
+        prompt?: string;
+        llm?: string;
+        temperature?: number;
+        max_tokens?: number;
+        tools?: any[];
+      };
+      first_message?: string;
+      language?: string;
+    };
+    tts?: {
+      model_id?: string;
+      voice_id?: string;
+      stability?: number;
+      similarity_boost?: number;
+      style?: number;
+      use_speaker_boost?: boolean;
+    };
+    asr?: {
+      quality?: 'high' | 'low';
+      provider?: string;
+    };
+    client_events?: string[];
+  };
+  platform_settings?: any;
+  secrets?: Array<{
+    name: string;
+    value: string;
+  }>;
+}
+
+/**
+ * List agents request options
+ */
+export interface ListAgentsOptions {
+  page_size?: number;
+  page_token?: string;
+}
+
+/**
+ * List agents response with pagination
+ */
+export interface ListAgentsResponse {
+  agents: AgentResponse[];
+  next_page_token?: string;
+  has_more?: boolean;
+}
+
+/**
+ * Request to duplicate an agent
+ */
+export interface DuplicateAgentRequest {
+  new_name?: string;
+  new_agent_share_link_enabled?: boolean;
+}
+
+/**
+ * Conversation message for simulation
+ */
+export interface ConversationMessage {
+  role: 'user' | 'assistant';
+  message: string;
+}
+
+/**
+ * Request to simulate a conversation
+ */
+export interface SimulateConversationRequest {
+  conversation_history?: ConversationMessage[];
+  model_overrides?: {
+    prompt?: {
+      prompt?: string;
+      llm?: string;
+      temperature?: number;
+    };
+  };
+}
+
+/**
+ * Response from simulated conversation
+ */
+export interface SimulateConversationResponse {
+  status: 'success' | 'error';
+  agent_response?: string;
+  metadata?: {
+    prompt_tokens?: number;
+    completion_tokens?: number;
+    total_tokens?: number;
+    latency_ms?: number;
+  };
+  error?: string;
+}
+
+/**
+ * Request to calculate LLM usage
+ */
+export interface LLMUsageRequest {
+  prompt_tokens?: number;
+  conversation_turns?: number;
+  average_user_message_length?: number;
+  model_overrides?: {
+    llm?: string;
+  };
+}
+
+/**
+ * Response with LLM usage calculation
+ */
+export interface LLMUsageResponse {
+  estimated_prompt_tokens: number;
+  estimated_completion_tokens: number;
+  estimated_total_tokens: number;
+  estimated_cost_usd?: number;
+  model_used?: string;
+}
+
+/**
+ * Agent link response
+ */
+export interface AgentLinkResponse {
+  link_url: string;
+  agent_id: string;
+  enabled: boolean;
+  created_at?: string;
+}
