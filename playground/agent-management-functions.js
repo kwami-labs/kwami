@@ -477,11 +477,24 @@ window.startConversationWithAgent = async function() {
     return;
   }
   
+  const agentId = window.agentManager.selectedAgent.agent_id;
+  console.log('Starting conversation with agent ID:', agentId);
+  
+  if (!agentId) {
+    showError('Agent ID is missing. Please select a valid agent.');
+    return;
+  }
+  
   try {
+    // Initialize conversational config if it doesn't exist
+    if (!window.kwami.mind.config.conversational) {
+      window.kwami.mind.config.conversational = {};
+    }
+    
     // Set the agent ID on Mind config
-    window.kwami.mind.config.conversational = {
-      agentId: window.agentManager.selectedAgent.agent_id
-    };
+    window.kwami.mind.config.conversational.agentId = agentId;
+    
+    console.log('Mind config updated:', window.kwami.mind.config.conversational);
     
     // Use existing conversation callbacks
     await window.kwami.mind.startConversation(undefined, window.conversationCallbacks);
@@ -491,11 +504,14 @@ window.startConversationWithAgent = async function() {
     document.getElementById('stop-agent-conversation-btn').style.display = 'block';
     document.getElementById('stop-agent-conversation-btn').disabled = false;
     
-    updateStatus('🎙️ Conversation started! Speak to your agent...');
+    updateStatus(`🎙️ Conversation started with ${window.agentManager.selectedAgent.name}!`);
     
   } catch (error) {
     showError('Failed to start conversation: ' + error.message);
-    console.error(error);
+    console.error('Conversation error details:', error);
+    // Re-enable start button on error
+    document.getElementById('start-agent-conversation-btn').style.display = 'block';
+    document.getElementById('stop-agent-conversation-btn').style.display = 'none';
   }
 };
 
