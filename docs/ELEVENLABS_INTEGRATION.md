@@ -274,6 +274,44 @@ import type {
 - ✅ `.env.sample` - Environment configuration template
 - ✅ `index.ts` - Updated exports
 
+## 📊 Conversations API
+
+Track, analyze, and manage all agent conversations with comprehensive analytics:
+
+### Key Features
+- **📊 Analytics** - Track duration, costs, tokens, and performance metrics
+- **🎙️ Audio Archive** - Download and store conversation recordings
+- **🔍 Transcripts** - Access full conversation transcripts with timestamps
+- **💬 Feedback** - Collect user ratings and comments
+- **🎯 Insights** - Analyze sentiment and extract key topics
+
+### Core Methods
+```typescript
+// List all conversations
+const conversations = await kwami.mind.listConversations({
+  agent_id: 'agent_abc123',
+  status: 'done',
+  page_size: 20
+});
+
+// Get conversation details
+const conv = await kwami.mind.getConversation('conv_xyz789');
+console.log('Transcript:', conv.transcript);
+console.log('Duration:', conv.metadata.call_duration_secs);
+console.log('Cost:', conv.metadata.cost_usd);
+
+// Download audio recording
+const audioBlob = await kwami.mind.getConversationAudio('conv_xyz789');
+
+// Send user feedback
+await kwami.mind.sendConversationFeedback('conv_xyz789', {
+  feedback: 'like',
+  comment: 'Very helpful!'
+});
+```
+
+For complete documentation, see [CONVERSATIONS_API.md](./CONVERSATIONS_API.md).
+
 ## 🤖 Agent Management API
 
 The KwamiMind class now includes comprehensive agent management capabilities, allowing you to programmatically create, configure, and manage ElevenLabs conversational AI agents.

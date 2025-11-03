@@ -7,6 +7,79 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [2.2.3] - 2025-11-03
+
+### ✨ Added
+
+#### 📊 ElevenLabs Conversations API
+- **Complete conversation management system** - Track, analyze, and manage all agent conversations
+- **8 new Mind class methods** for conversation operations:
+  - `listConversations(options?)` - List all conversations with advanced filtering and pagination
+  - `getConversation(conversationId)` - Retrieve detailed conversation info including transcript and metadata
+  - `deleteConversation(conversationId)` - Permanently delete conversations
+  - `getConversationAudio(conversationId)` - Download full audio recordings
+  - `sendConversationFeedback(conversationId, feedback)` - Submit user ratings and comments
+  - `getConversationToken(agentId, participantName?)` - Generate WebRTC tokens for real-time communication
+  - `getConversationSignedUrl(agentId, options?)` - Create signed URLs for secure client-side access
+
+#### 🎙️ Conversation Features
+- **Audio Management** - Download and archive conversation recordings
+- **Analytics & Insights** - Track duration, costs, token usage, and performance metrics
+- **Transcript Access** - Full conversation transcripts with timestamps
+- **Feedback System** - Collect user feedback to improve agents
+- **Sentiment Analysis** - Analyze conversation sentiment and extract topics
+- **Secure Access** - WebRTC tokens and signed URLs for client integrations
+
+#### 📦 TypeScript Type Definitions
+- **New conversation-related interfaces** in `src/types/index.ts`:
+  - `ConversationResponse` - Complete conversation details
+  - `ConversationTranscript` - Individual message entries with timestamps
+  - `ConversationMetadata` - Duration, tokens, costs, and timing info
+  - `ConversationAnalysis` - Sentiment, topics, summaries, and action items
+  - `ListConversationsOptions` & `ListConversationsResponse` - Advanced filtering and pagination
+  - `ConversationFeedbackRequest` - User feedback structure
+  - `ConversationTokenResponse` - WebRTC token information
+  - `ConversationSignedUrlOptions` & `ConversationSignedUrlResponse` - Secure URL generation
+
+### 📚 Documentation
+
+#### New Documentation Files
+- **`docs/CONVERSATIONS_API.md`** - Comprehensive 655-line guide covering:
+  - Complete API reference for all conversation methods
+  - Detailed usage examples for each endpoint
+  - Analytics dashboard implementation
+  - Feedback collection patterns
+  - Audio archive management
+  - Best practices for pagination and caching
+  - Security considerations
+  - Error handling strategies
+
+### 🔧 Technical Details
+
+#### Implementation
+- **Direct API integration** using fetch with proper headers and error handling
+- **Comprehensive metadata tracking** including costs, tokens, and duration
+- **Pagination support** for handling large conversation datasets
+- **Advanced filtering** by agent, status, date range, and more
+- **Blob handling** for audio downloads and streaming
+- **Type-safe** implementation with full TypeScript coverage
+
+#### Architecture
+- **No breaking changes** - All additions are new methods
+- **Consistent with existing patterns** - Follows Mind class conventions
+- **Efficient resource usage** - Pagination and caching strategies included
+- **Secure by design** - No API key exposure in client code
+
+### 💡 Use Cases
+
+The Conversations API enables:
+- **Conversation Analytics** - Generate reports on agent performance and usage
+- **Quality Assurance** - Review transcripts and collect feedback
+- **Compliance & Archival** - Download and store conversation records
+- **Customer Insights** - Analyze sentiment and extract key topics
+- **Cost Management** - Track token usage and conversation costs
+- **Debugging** - Access full conversation details for troubleshooting
+
 ## [2.2.2] - 2025-11-03
 
 ### ✨ Added

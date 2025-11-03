@@ -32,19 +32,12 @@ body {
 #right-sidebar.hidden {
   opacity: 0;
   pointer-events: none;
-  width: 0;
+  width: 0 !important;
+  min-width: 0 !important;
   padding: 0;
   overflow: hidden;
   box-shadow: none;
-}
-
-#left-sidebar.hidden {
-  transform: translateX(-100%);
-}
-
-#right-sidebar.hidden {
-  transform: translateX(100%);
-  opacity: 0;
+  flex-shrink: 1 !important;
 }
 
 #left-sidebar {

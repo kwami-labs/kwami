@@ -115,6 +115,7 @@ Comprehensive guides for different aspects of Kwami:
 - **[CONVERSATIONAL_QUICKSTART.md](./docs/CONVERSATIONAL_QUICKSTART.md)** - Quick start for conversational AI features
 - **[ELEVENLABS_INTEGRATION.md](./docs/ELEVENLABS_INTEGRATION.md)** - Complete ElevenLabs integration guide
 - **[AGENTS_API.md](./docs/AGENTS_API.md)** - Agent management API for creating and managing conversational AI agents
+- **[CONVERSATIONS_API.md](./docs/CONVERSATIONS_API.md)** - Track, analyze, and manage all agent conversations with full analytics
 - **[CONVERSATIONAL_AI.md](./docs/CONVERSATIONAL_AI.md)** - Detailed conversational AI documentation
 - **[CONVERSATION_BETA_GUIDE.md](./docs/CONVERSATION_BETA_GUIDE.md)** - Beta guide for voice conversation features
 - **[MIND_CLASS_IMPLEMENTATION.md](./docs/MIND_CLASS_IMPLEMENTATION.md)** - Technical implementation details for the Mind class

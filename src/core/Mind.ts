@@ -1804,6 +1804,387 @@ export class KwamiMind {
     }
   }
 
+  // ============================================================================
+  // CONVERSATIONS API METHODS
+  // ============================================================================
+
+  /**
+   * List all conversations for the current workspace or specific agent
+   * 
+   * @param options - Optional filters and pagination parameters
+   * @returns Promise resolving to list of conversations with metadata
+   * 
+   * @example
+   * ```typescript
+   * // Get all conversations for an agent
+   * const result = await mind.listConversations({
+   *   agent_id: 'agent_3701k3ttaq12ewp8b7qv5rfyszkz',
+   *   status: 'done',
+   *   page_size: 20
+   * });
+   * 
+   * console.log('Found conversations:', result.conversations.length);
+   * result.conversations.forEach(conv => {
+   *   console.log(`ID: ${conv.conversation_id}`);
+   *   console.log(`Duration: ${conv.metadata.call_duration_secs}s`);
+   *   console.log(`Transcript:`, conv.transcript);
+   * });
+   * ```
+   */
+  async listConversations(options?: ListConversationsOptions): Promise<ListConversationsResponse> {
+    if (!this.config.apiKey) {
+      throw new Error('API key not provided.');
+    }
+
+    try {
+      console.log('📋 Listing conversations...');
+      
+      const queryParams = new URLSearchParams();
+      if (options?.agent_id) queryParams.append('agent_id', options.agent_id);
+      if (options?.status) queryParams.append('status', options.status);
+      if (options?.page_size) queryParams.append('page_size', options.page_size.toString());
+      if (options?.page_token) queryParams.append('page_token', options.page_token);
+      if (options?.sort_by) queryParams.append('sort_by', options.sort_by);
+      if (options?.sort_order) queryParams.append('sort_order', options.sort_order);
+      
+      const response = await fetch(
+        `https://api.elevenlabs.io/v1/convai/conversations?${queryParams}`,
+        {
+          headers: {
+            'xi-api-key': this.config.apiKey
+          }
+        }
+      );
+
+      if (!response.ok) {
+        throw new Error(`Failed to list conversations: ${response.statusText}`);
+      }
+
+      const data = await response.json();
+      return data as ListConversationsResponse;
+    } catch (error) {
+      console.error('Error listing conversations:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * Get detailed information about a specific conversation
+   * 
+   * @param conversationId - The unique identifier of the conversation
+   * @returns Promise resolving to conversation details including transcript and metadata
+   * 
+   * @example
+   * ```typescript
+   * const conversation = await mind.getConversation('conv_abc123');
+   * 
+   * console.log('Status:', conversation.status);
+   * console.log('Duration:', conversation.metadata.call_duration_secs, 'seconds');
+   * console.log('Cost:', conversation.metadata.cost_usd, 'USD');
+   * 
+   * // Print transcript
+   * conversation.transcript.forEach(entry => {
+   *   console.log(`[${entry.role}]: ${entry.message}`);
+   * });
+   * ```
+   */
+  async getConversation(conversationId: string): Promise<ConversationResponse> {
+    if (!this.config.apiKey) {
+      throw new Error('API key not provided.');
+    }
+
+    try {
+      console.log('🔍 Fetching conversation:', conversationId);
+      
+      const response = await fetch(
+        `https://api.elevenlabs.io/v1/convai/conversations/${conversationId}`,
+        {
+          headers: {
+            'xi-api-key': this.config.apiKey
+          }
+        }
+      );
+
+      if (!response.ok) {
+        throw new Error(`Failed to get conversation: ${response.statusText}`);
+      }
+
+      const data = await response.json();
+      return data as ConversationResponse;
+    } catch (error) {
+      console.error('Error fetching conversation:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * Delete a conversation permanently
+   * 
+   * ⚠️ Warning: This action cannot be undone. The conversation and all its data
+   * will be permanently deleted.
+   * 
+   * @param conversationId - The unique identifier of the conversation to delete
+   * @returns Promise that resolves when the conversation is deleted
+   * 
+   * @example
+   * ```typescript
+   * await mind.deleteConversation('conv_abc123');
+   * console.log('Conversation deleted successfully');
+   * ```
+   */
+  async deleteConversation(conversationId: string): Promise<void> {
+    if (!this.config.apiKey) {
+      throw new Error('API key not provided.');
+    }
+
+    try {
+      console.log('🗑️ Deleting conversation:', conversationId);
+      
+      const response = await fetch(
+        `https://api.elevenlabs.io/v1/convai/conversations/${conversationId}`,
+        {
+          method: 'DELETE',
+          headers: {
+            'xi-api-key': this.config.apiKey
+          }
+        }
+      );
+
+      if (!response.ok) {
+        throw new Error(`Failed to delete conversation: ${response.statusText}`);
+      }
+
+      console.log('✅ Conversation deleted successfully');
+    } catch (error) {
+      console.error('Error deleting conversation:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * Get the audio recording of a conversation
+   * 
+   * Downloads the full audio recording of a conversation if available.
+   * Audio is typically available for phone and voice conversations.
+   * 
+   * @param conversationId - The unique identifier of the conversation
+   * @returns Promise resolving to audio blob
+   * 
+   * @example
+   * ```typescript
+   * const audioBlob = await mind.getConversationAudio('conv_abc123');
+   * 
+   * // Create download link
+   * const url = URL.createObjectURL(audioBlob);
+   * const a = document.createElement('a');
+   * a.href = url;
+   * a.download = 'conversation.mp3';
+   * a.click();
+   * ```
+   */
+  async getConversationAudio(conversationId: string): Promise<Blob> {
+    if (!this.config.apiKey) {
+      throw new Error('API key not provided.');
+    }
+
+    try {
+      console.log('🎵 Downloading conversation audio:', conversationId);
+      
+      const response = await fetch(
+        `https://api.elevenlabs.io/v1/convai/conversations/${conversationId}/audio`,
+        {
+          headers: {
+            'xi-api-key': this.config.apiKey
+          }
+        }
+      );
+
+      if (!response.ok) {
+        throw new Error(`Failed to get conversation audio: ${response.statusText}`);
+      }
+
+      const audioBlob = await response.blob();
+      console.log('✅ Audio downloaded:', audioBlob.size, 'bytes');
+      return audioBlob;
+    } catch (error) {
+      console.error('Error fetching conversation audio:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * Send feedback for a conversation
+   * 
+   * Provide feedback (like/dislike) for a conversation to help improve the agent.
+   * This feedback is used for analytics and agent improvement.
+   * 
+   * @param conversationId - The unique identifier of the conversation
+   * @param feedback - Feedback data including rating and optional comment
+   * @returns Promise that resolves when feedback is submitted
+   * 
+   * @example
+   * ```typescript
+   * await mind.sendConversationFeedback('conv_abc123', {
+   *   feedback: 'like',
+   *   comment: 'Great conversation, very helpful!',
+   *   tags: ['helpful', 'accurate']
+   * });
+   * ```
+   */
+  async sendConversationFeedback(
+    conversationId: string,
+    feedback: ConversationFeedbackRequest
+  ): Promise<void> {
+    if (!this.config.apiKey) {
+      throw new Error('API key not provided.');
+    }
+
+    try {
+      console.log('💭 Sending feedback for conversation:', conversationId);
+      
+      const response = await fetch(
+        `https://api.elevenlabs.io/v1/convai/conversations/${conversationId}/feedback`,
+        {
+          method: 'POST',
+          headers: {
+            'xi-api-key': this.config.apiKey,
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify(feedback)
+        }
+      );
+
+      if (!response.ok) {
+        throw new Error(`Failed to send feedback: ${response.statusText}`);
+      }
+
+      console.log('✅ Feedback submitted successfully');
+    } catch (error) {
+      console.error('Error sending feedback:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * Get a WebRTC token for real-time communication
+   * 
+   * Generates a token for establishing WebRTC connections with agents.
+   * This is useful for browser-based real-time voice conversations.
+   * 
+   * @param agentId - The unique identifier of the agent
+   * @param participantName - Optional custom name for the participant
+   * @returns Promise resolving to WebRTC token
+   * 
+   * @example
+   * ```typescript
+   * const tokenData = await mind.getConversationToken(
+   *   'agent_3701k3ttaq12ewp8b7qv5rfyszkz',
+   *   'John Doe'
+   * );
+   * 
+   * // Use token to establish WebRTC connection
+   * console.log('Token:', tokenData.token);
+   * console.log('Expires at:', tokenData.expires_at);
+   * ```
+   */
+  async getConversationToken(
+    agentId: string,
+    participantName?: string
+  ): Promise<ConversationTokenResponse> {
+    if (!this.config.apiKey) {
+      throw new Error('API key not provided.');
+    }
+
+    try {
+      console.log('🔐 Getting WebRTC token for agent:', agentId);
+      
+      const queryParams = new URLSearchParams({ agent_id: agentId });
+      if (participantName) {
+        queryParams.append('participant_name', participantName);
+      }
+      
+      const response = await fetch(
+        `https://api.elevenlabs.io/v1/convai/conversation/token?${queryParams}`,
+        {
+          headers: {
+            'xi-api-key': this.config.apiKey
+          }
+        }
+      );
+
+      if (!response.ok) {
+        throw new Error(`Failed to get conversation token: ${response.statusText}`);
+      }
+
+      const data = await response.json();
+      console.log('✅ WebRTC token obtained');
+      return data as ConversationTokenResponse;
+    } catch (error) {
+      console.error('Error getting conversation token:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * Get a signed URL for secure agent conversations
+   * 
+   * Generates a signed URL that can be used to start conversations without
+   * exposing API keys. Useful for client-side integrations.
+   * 
+   * @param agentId - The unique identifier of the agent
+   * @param options - Optional configuration for the signed URL
+   * @returns Promise resolving to signed URL data
+   * 
+   * @example
+   * ```typescript
+   * const urlData = await mind.getConversationSignedUrl(
+   *   'agent_3701k3ttaq12ewp8b7qv5rfyszkz',
+   *   { include_conversation_id: true }
+   * );
+   * 
+   * // Use signed URL to start conversation
+   * const ws = new WebSocket(urlData.signed_url);
+   * console.log('Conversation ID:', urlData.conversation_id);
+   * ```
+   */
+  async getConversationSignedUrl(
+    agentId: string,
+    options?: ConversationSignedUrlOptions
+  ): Promise<ConversationSignedUrlResponse> {
+    if (!this.config.apiKey) {
+      throw new Error('API key not provided.');
+    }
+
+    try {
+      console.log('🔗 Getting signed URL for agent:', agentId);
+      
+      const queryParams = new URLSearchParams({ agent_id: agentId });
+      if (options?.include_conversation_id) {
+        queryParams.append('include_conversation_id', 'true');
+      }
+      
+      const response = await fetch(
+        `https://api.elevenlabs.io/v1/convai/conversation/get-signed-url?${queryParams}`,
+        {
+          headers: {
+            'xi-api-key': this.config.apiKey
+          }
+        }
+      );
+
+      if (!response.ok) {
+        throw new Error(`Failed to get signed URL: ${response.statusText}`);
+      }
+
+      const data = await response.json();
+      console.log('✅ Signed URL obtained');
+      return data as ConversationSignedUrlResponse;
+    } catch (error) {
+      console.error('Error getting signed URL:', error);
+      throw error;
+    }
+  }
+
   /**
    * Cleanup and dispose resources
    */
