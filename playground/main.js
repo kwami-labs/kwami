@@ -1184,7 +1184,17 @@ function initializeBackgroundControls() {
         if (kwamiBlob && typeof kwamiBlob.setOpacity === 'function') {
           kwamiBlob.setOpacity(0.8);
         }
-        updateStatus('🪟 Glass transparency enabled - blob reveals background');
+
+        // Enable glass mode - creates window in gradient to see background image
+        window.kwami.body.setBlobImageTransparencyMode(true, {
+          type: 'none', // Don't apply gradient to blob
+          colors: [],
+          direction: 'vertical',
+          stops: [],
+          opacity: 0.8,
+          mode: 'glass', // Glass mode = window through gradient
+        });
+        updateStatus('🪟 Glass mode - blob reveals background image through gradient');
       } else {
         const kwamiBlob = window.kwami?.body?.blob;
         if (kwamiBlob && typeof kwamiBlob.setOpacity === 'function') {
@@ -1195,7 +1205,9 @@ function initializeBackgroundControls() {
           opacitySlider.value = '1';
           updateValueDisplay('blob-opacity-value', 1, 2);
         }
-        updateStatus('🎨 Glass transparency disabled');
+        // Disable glass mode
+        window.kwami.body.setBlobImageTransparencyMode(false);
+        updateStatus('🎨 Glass mode disabled');
       }
     });
   }
@@ -1218,6 +1230,18 @@ function initializeBackgroundControls() {
       const kwamiBlob = window.kwami?.body?.blob;
       if (kwamiBlob && typeof kwamiBlob.setOpacity === 'function') {
         kwamiBlob.setOpacity(value);
+      }
+
+      // If glass mode is enabled, update the window opacity
+      if (blobImageTransparencyEnabled) {
+        window.kwami.body.setBlobImageTransparencyMode(true, {
+          type: 'none',
+          colors: [],
+          direction: 'vertical',
+          stops: [],
+          opacity: value,
+          mode: 'glass',
+        });
       }
     });
   }
