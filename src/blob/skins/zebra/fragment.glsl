@@ -52,7 +52,7 @@ void main(){
 
   if (useBackgroundTexture) {
     vec3 backgroundColor = texture2D(backgroundTexture, vUv).rgb;
-    finalColor = mix(finalColor, backgroundColor, 1.0 - alpha);
+    finalColor = backgroundColor;
   }
 
   gl_FragColor=vec4(finalColor,alpha);

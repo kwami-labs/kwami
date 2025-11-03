@@ -18,7 +18,14 @@ import type {
   SimulateConversationResponse,
   LLMUsageRequest,
   LLMUsageResponse,
-  AgentLinkResponse
+  AgentLinkResponse,
+  ConversationResponse,
+  ListConversationsOptions,
+  ListConversationsResponse,
+  ConversationFeedbackRequest,
+  ConversationTokenResponse,
+  ConversationSignedUrlOptions,
+  ConversationSignedUrlResponse
 } from '../types/index';
 import type { KwamiAudio } from './Audio';
 

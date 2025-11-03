@@ -47,8 +47,10 @@ void main(){
   float alpha = opacity;
 
   if (useBackgroundTexture) {
+    // When a blob surface texture is provided, use it as the primary color
+    // (independent from material alpha used for transparency)
     vec3 backgroundColor = texture2D(backgroundTexture, vUv).rgb;
-    finalColor = mix(finalColor, backgroundColor, 1.0 - alpha);
+    finalColor = backgroundColor;
   }
 
   gl_FragColor=vec4(finalColor,alpha);

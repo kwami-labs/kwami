@@ -556,3 +556,111 @@ export interface AgentLinkResponse {
   enabled: boolean;
   created_at?: string;
 }
+
+// ============================================================================
+// CONVERSATIONS API TYPES
+// ============================================================================
+
+/**
+ * Conversation transcript entry
+ */
+export interface ConversationTranscript {
+  role: 'user' | 'agent';
+  time_in_call_secs: number;
+  message: string;
+}
+
+/**
+ * Conversation metadata
+ */
+export interface ConversationMetadata {
+  start_time_unix_secs: number;
+  call_duration_secs: number;
+  end_time_unix_secs?: number;
+  total_tokens?: number;
+  prompt_tokens?: number;
+  completion_tokens?: number;
+  cost_usd?: number;
+}
+
+/**
+ * Conversation analysis results
+ */
+export interface ConversationAnalysis {
+  sentiment?: 'positive' | 'neutral' | 'negative';
+  topics?: string[];
+  summary?: string;
+  action_items?: string[];
+  key_points?: string[];
+}
+
+/**
+ * Conversation response
+ */
+export interface ConversationResponse {
+  agent_id: string;
+  conversation_id: string;
+  status: 'initiated' | 'in-progress' | 'processing' | 'done' | 'failed';
+  transcript: ConversationTranscript[];
+  metadata: ConversationMetadata;
+  has_audio: boolean;
+  has_user_audio: boolean;
+  has_response_audio: boolean;
+  user_id?: string | null;
+  analysis?: ConversationAnalysis | null;
+  conversation_initiation_client_data?: Record<string, any> | null;
+}
+
+/**
+ * Options for listing conversations
+ */
+export interface ListConversationsOptions {
+  agent_id?: string;
+  status?: 'initiated' | 'in-progress' | 'processing' | 'done' | 'failed';
+  page_size?: number;
+  page_token?: string;
+  sort_by?: 'created_at' | 'updated_at' | 'duration';
+  sort_order?: 'asc' | 'desc';
+}
+
+/**
+ * List conversations response
+ */
+export interface ListConversationsResponse {
+  conversations: ConversationResponse[];
+  has_more: boolean;
+  next_page_token?: string;
+  total_count?: number;
+}
+
+/**
+ * Conversation feedback request
+ */
+export interface ConversationFeedbackRequest {
+  feedback: 'like' | 'dislike';
+  comment?: string;
+  tags?: string[];
+}
+
+/**
+ * WebRTC token response
+ */
+export interface ConversationTokenResponse {
+  token: string;
+  expires_at?: number;
+}
+
+/**
+ * Options for getting signed URL
+ */
+export interface ConversationSignedUrlOptions {
+  include_conversation_id?: boolean;
+}
+
+/**
+ * Signed URL response
+ */
+export interface ConversationSignedUrlResponse {
+  signed_url: string;
+  conversation_id?: string;
+}
