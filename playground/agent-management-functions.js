@@ -339,6 +339,11 @@ window.refreshAgentsList = async function() {
     // Display agents
     displayAgentsList();
     
+    // If no agent was previously selected, select the first one
+    if (!window.agentManager.selectedAgent && window.agentManager.agents.length > 0) {
+      selectAgent(window.agentManager.agents[0].agent_id);
+    }
+    
     updateStatus(`✅ Loaded ${window.agentManager.agents.length} agent(s)`);
     
   } catch (error) {
@@ -365,12 +370,12 @@ window.displayAgentsList = function displayAgentsList() {
     const createdDate = agent.created_at ? new Date(agent.created_at).toLocaleDateString() : 'Unknown';
     
     return `
-      <div class="agent-card ${isSelected ? 'selected' : ''}" data-agent-id="${agent.agent_id}" onclick="selectAgent('${agent.agent_id}')">
+      <div class="agent-card ${isSelected ? 'selected' : ''}" data-agent-id="${agent.agent_id}" onclick="window.selectAgent('${agent.agent_id}')">
         <div class="agent-card-header">
           <div class="agent-card-name">${agent.name || 'Unnamed Agent'}</div>
           <div class="agent-card-actions">
-            <button onclick="event.stopPropagation(); duplicateAgentById('${agent.agent_id}')" title="Duplicate">📋</button>
-            <button onclick="event.stopPropagation(); deleteAgentById('${agent.agent_id}')" title="Delete" style="color: #ff6b6b;">🗑️</button>
+            <button onclick="event.stopPropagation(); window.duplicateAgentById('${agent.agent_id}')" title="Duplicate">📋</button>
+            <button onclick="event.stopPropagation(); window.deleteAgentById('${agent.agent_id}')" title="Delete" style="color: #ff6b6b;">🗑️</button>
           </div>
         </div>
         <div class="agent-card-id">${agent.agent_id}</div>
