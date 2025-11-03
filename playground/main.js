@@ -873,66 +873,53 @@ function setMediaType(type, { silent = false } = {}) {
 }
 
 window.randomizeBackground = function() {
-  if (window.kwami && window.kwami.body) {
-    // Generate random colors
-    const randomColor = () => '#' + Math.floor(Math.random() * 16777215).toString(16).padStart(6, '0');
-    const colors = [randomColor(), randomColor(), randomColor()];
-    
-    backgroundRandomizeClickCount++;
-    
-    // Update color pickers in UI
-    document.getElementById('bg-color-1').value = colors[0];
-    document.getElementById('bg-color-2').value = colors[1];
-    document.getElementById('bg-color-3').value = colors[2];
-    
-    // Randomize gradient parameters
-    const layoutParams = randomizeGradientLayout({ updateInputs: true });
-    
-    // Randomly choose gradient style
-    const styles = ['linear', 'radial', 'random'];
-    const selectedStyle = styles[Math.floor(Math.random() * styles.length)];
-    
-    // Update the gradient style selector in UI
-    const gradientStyleSelect = document.getElementById('bg-gradient-style');
-    if (gradientStyleSelect) {
-      gradientStyleSelect.value = selectedStyle;
-    }
-    
-    updateGradientOverlay({
-      colors,
-      stops: layoutParams.stops,
-      angle: selectedStyle === 'radial' ? 0 : layoutParams.angle,
-      style: selectedStyle,
-      opacity: 1,
-    });
- 
-    // Randomly adjust opacity every 3rd click
-    let opacity;
-    if (backgroundRandomizeClickCount % 3 === 0) {
-      opacity = (Math.random() * 0.6 + 0.3).toFixed(2);
-    } else {
-      opacity = '1.00';
-    }
- 
-    const opacitySlider = document.getElementById('bg-opacity');
-    if (opacitySlider) opacitySlider.value = opacity;
-    updateValueDisplay('bg-opacity-value', opacity, 2);
- 
-    const opacityValue = parseFloat(opacity);
-    if (selectedStyle === 'random') {
-      updateGradientOverlay({ colors, stops: layoutParams.stops, angle: layoutParams.angle, style: selectedStyle, opacity: opacityValue });
-    } else {
-      updateGradientOverlay({ colors, stops: layoutParams.stops, angle: selectedStyle === 'radial' ? 0 : layoutParams.angle, style: selectedStyle, opacity: opacityValue });
-    }
- 
-    // Show which style was chosen
-    const styleNames = {
-      'linear': 'Linear',
-      'radial': 'Radial',
-      'random': 'Random Spheres'
-    };
-    updateStatus(`🎲 ${styleNames[selectedStyle]} gradient randomized!`);
+  if (!window.kwami || !window.kwami.body) return;
+
+  // Generate random colors
+  const randomColor = () => '#' + Math.floor(Math.random() * 16777215).toString(16).padStart(6, '0');
+  const colors = [randomColor(), randomColor(), randomColor()];
+
+  backgroundRandomizeClickCount++;
+
+  // Update color pickers in UI
+  const c1 = document.getElementById('bg-color-1'); if (c1) c1.value = colors[0];
+  const c2 = document.getElementById('bg-color-2'); if (c2) c2.value = colors[1];
+  const c3 = document.getElementById('bg-color-3'); if (c3) c3.value = colors[2];
+
+  // Randomize gradient layout
+  const layout = randomizeGradientLayout({ updateInputs: true });
+
+  // Choose between linear or radial (omit unsupported 'random' style here)
+  const styles = ['linear', 'radial'];
+  const selectedStyle = styles[Math.floor(Math.random() * styles.length)];
+
+  // Update the gradient style selector in UI
+  const gradientStyleSelect = document.getElementById('bg-gradient-style');
+  if (gradientStyleSelect) {
+    gradientStyleSelect.value = selectedStyle;
   }
+
+  // Randomly adjust opacity every 3rd click
+  let opacityStr;
+  if (backgroundRandomizeClickCount % 3 === 0) {
+    opacityStr = (Math.random() * 0.6 + 0.3).toFixed(2);
+  } else {
+    opacityStr = '1.00';
+  }
+  const opacity = parseFloat(opacityStr);
+
+  const opacitySlider = document.getElementById('bg-opacity');
+  if (opacitySlider) opacitySlider.value = opacityStr;
+  updateValueDisplay('bg-opacity-value', opacityStr, 2);
+
+  // Apply via Three.js Body
+  if (selectedStyle === 'radial') {
+    window.kwami.body.setBackgroundGradient(colors, { direction: 'radial', stops: layout.stops, opacity });
+  } else {
+    window.kwami.body.setBackgroundGradient(colors, { angle: layout.angle, stops: layout.stops, opacity });
+  }
+
+  updateStatus(`🎲 ${selectedStyle === 'radial' ? 'Radial' : 'Linear'} gradient randomized!`);
 };
 
 window.randomizeMediaSelection = function(type) {
@@ -2772,4 +2759,9 @@ function initializeCameraControls() {
     cameraZSlider.value = camera.position.z.toString();
       updateValueDisplay('camera-z-value', camera.position.z, 1);
     }
+}
+
+// Initialize agent management slider listeners
+if (typeof setupAgentSliderListeners === 'function') {
+  setupAgentSliderListeners();
 }
