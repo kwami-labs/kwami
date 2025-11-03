@@ -108,6 +108,10 @@ export class KwamiBody {
   private camera: PerspectiveCamera;
   private scene: Scene;
   private resizeObserver?: ResizeObserver;
+  private usingWindowResizeListener = false;
+  private resizeRafId: number | null = null;
+  private lastKnownSize = { width: 0, height: 0 };
+  private readonly handleResize = () => this.scheduleResize();
   private backgroundPlane: Mesh | null = null; // Gradient/overlay plane
   private backgroundPlaneTexture: Texture | null = null;
   private backgroundMediaPlane: Mesh | null = null;
@@ -174,28 +178,82 @@ export class KwamiBody {
    * Setup automatic resize handling
    */
   private setupResize(): void {
-    const handleResize = () => {
-      const width = this.canvas.clientWidth;
-      const height = this.canvas.clientHeight;
+    const resizeTargets: Element[] = [this.canvas];
+    const parentElement = this.canvas.parentElement;
+    if (parentElement) resizeTargets.push(parentElement);
 
-      this.camera.aspect = width / height;
-      this.camera.updateProjectionMatrix();
-
-      this.renderer.setSize(width, height);
-      this.renderer.setPixelRatio(window.devicePixelRatio || 1);
-    };
-
-    // Use ResizeObserver for better resize handling
     if (typeof ResizeObserver !== 'undefined') {
-      this.resizeObserver = new ResizeObserver(handleResize);
-      this.resizeObserver.observe(this.canvas);
+      this.resizeObserver = new ResizeObserver(() => this.handleResize());
+      resizeTargets.forEach((target) => this.resizeObserver?.observe(target));
+    } else if (typeof window !== 'undefined') {
+      window.addEventListener('resize', this.handleResize);
+      this.usingWindowResizeListener = true;
     } else {
-      // Fallback to window resize event
-      window.addEventListener('resize', handleResize);
+      // Environments without ResizeObserver/window (e.g. SSR) will rely on manual calls
     }
 
-    // Initial resize
-    handleResize();
+    this.handleResize();
+  }
+
+  /**
+   * Manually trigger a responsive resize of the viewport
+   */
+  refreshViewportSize(): void {
+    this.handleResize();
+  }
+
+  private scheduleResize(): void {
+    if (typeof window === 'undefined') {
+      this.applyResize();
+      return;
+    }
+
+    if (this.resizeRafId !== null) {
+      window.cancelAnimationFrame(this.resizeRafId);
+    }
+
+    this.resizeRafId = window.requestAnimationFrame(() => {
+      this.resizeRafId = null;
+      this.applyResize();
+    });
+  }
+
+  private applyResize(): void {
+    const parent = this.canvas.parentElement;
+    const parentRect = parent?.getBoundingClientRect();
+    let width = Math.round(parentRect?.width ?? this.canvas.clientWidth ?? 0);
+    let height = Math.round(parentRect?.height ?? this.canvas.clientHeight ?? 0);
+
+    if ((!width || !height)) {
+      const canvasRect = this.canvas.getBoundingClientRect();
+      if (!width) width = Math.round(canvasRect.width);
+      if (!height) height = Math.round(canvasRect.height);
+    }
+
+    if ((!width || !height) && typeof window !== 'undefined') {
+      if (!width) width = Math.round(window.innerWidth);
+      if (!height) height = Math.round(window.innerHeight);
+    }
+
+    if (!width || !height) {
+      return; // Cannot resize with zero dimensions
+    }
+
+    if (this.lastKnownSize.width === width && this.lastKnownSize.height === height) {
+      return; // No changes detected
+    }
+
+    this.lastKnownSize = { width, height };
+
+    this.canvas.width = width;
+    this.canvas.height = height;
+
+    const pixelRatio = typeof window !== 'undefined' ? window.devicePixelRatio || 1 : 1;
+    this.renderer.setPixelRatio(pixelRatio);
+    this.renderer.setSize(width, height, false);
+
+    this.camera.aspect = width / height;
+    this.camera.updateProjectionMatrix();
   }
 
   /**
@@ -1637,6 +1695,16 @@ export class KwamiBody {
   dispose(): void {
     if (this.resizeObserver) {
       this.resizeObserver.disconnect();
+    }
+
+    if (this.usingWindowResizeListener && typeof window !== 'undefined') {
+      window.removeEventListener('resize', this.handleResize);
+      this.usingWindowResizeListener = false;
+    }
+
+    if (this.resizeRafId !== null && typeof window !== 'undefined') {
+      window.cancelAnimationFrame(this.resizeRafId);
+      this.resizeRafId = null;
     }
 
     this.blobImageMode = 'none';

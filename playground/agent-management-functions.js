@@ -418,11 +418,29 @@ window.selectAgentByIndex = function(index) {
   
   const agent = window.agentManager.agents[index];
   console.log('Selected agent:', agent);
+  console.log('Selected agent keys:', Object.keys(agent));
   
+  // Try to find agent ID from multiple possible property names
+  let actualAgentId = agent.agent_id 
+    || agent.id 
+    || agent.conversation_id
+    || agent.agentId
+    || agent.conversationId
+    || (agent._id ? agent._id.toString() : null);
+  
+  // If still not found, search for any property with 'id' in the name
+  if (!actualAgentId) {
+    const idKey = Object.keys(agent).find(key => key.toLowerCase().includes('id'));
+    if (idKey) {
+      actualAgentId = agent[idKey];
+    }
+  }
+  
+  console.log('Detected agent ID from selected agent:', actualAgentId);
+  
+  // Store agent ID on the selected agent object for later use
   window.agentManager.selectedAgent = agent;
-  
-  // Get the actual agent ID from whichever property it uses
-  const actualAgentId = agent.agent_id || agent.id || agent.conversation_id;
+  window.agentManager.selectedAgentId = actualAgentId;
   
   // Update selected agent display
   document.getElementById('selected-agent-name').textContent = agent.name || 'Unnamed Agent';
@@ -439,6 +457,7 @@ window.selectAgentByIndex = function(index) {
   
   // Save to localStorage
   localStorage.setItem('selectedAgentIndex', index);
+  localStorage.setItem('selectedAgentId', actualAgentId);
   
   updateStatus(`✅ Agent selected: ${agent.name || actualAgentId}`);
 };
@@ -547,10 +566,20 @@ window.startConversationWithAgent = async function() {
     return;
   }
   
-  // Get agent ID from whichever property it uses
-  const agentId = window.agentManager.selectedAgent.agent_id || window.agentManager.selectedAgent.id;
+  // Use the stored agent ID from selection, or try to extract it again
+  let agentId = window.agentManager.selectedAgentId;
+  
+  // If not stored, try to extract from selected agent
+  if (!agentId) {
+    agentId = window.agentManager.selectedAgent.agent_id 
+      || window.agentManager.selectedAgent.id 
+      || window.agentManager.selectedAgent.conversation_id
+      || window.agentManager.selectedAgent.agentId;
+  }
+  
   console.log('Starting conversation with agent ID:', agentId);
   console.log('Selected agent object:', window.agentManager.selectedAgent);
+  console.log('Stored agent ID:', window.agentManager.selectedAgentId);
   
   if (!agentId) {
     showError('Agent ID is missing. Please select a valid agent.');

@@ -33,7 +33,6 @@
   },
   "dependencies": {
     "@elevenlabs/elevenlabs-js": "^2.20.1",
-    "playwright": "^1.47.2",
     "simplex-noise": "^4.0.1",
     "three": ">=0.150.0"
   },

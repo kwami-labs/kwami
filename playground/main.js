@@ -47,6 +47,11 @@ window.toggleMenus = function() {
   menusCollapsed = !menusCollapsed;
   applySidebarVisibility();
   updateMenuToggleButton();
+
+  if (window.kwami?.body?.refreshViewportSize) {
+    requestAnimationFrame(() => window.kwami?.body?.refreshViewportSize?.());
+    setTimeout(() => window.kwami?.body?.refreshViewportSize?.(), 350);
+  }
 };
 
 const audioPlayerState = {
