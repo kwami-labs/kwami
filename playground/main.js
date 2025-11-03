@@ -603,9 +603,7 @@ const VIDEO_ASSET_MAP = buildAssetMap(videoModules);
 // Counter for background randomization clicks
 let backgroundRandomizeClickCount = 0;
 
-// Blob image transparency mode
-let blobImageTransparencyEnabled = false;
-let blobImageTransparencyMode = 'overlay';
+  // Removed: Glass transparency feature - requires core implementation
 let currentBackgroundImage = '';
 let currentBackgroundVideo = '';
 let currentMediaType = 'none';
@@ -1110,27 +1108,12 @@ function applyBackground() {
     });
   }
 
-  if (blobImageTransparencyEnabled) {
-    window.kwami.body.setBlobImageTransparencyMode(true, {
-      type: gradientStyle === 'radial' ? 'gradient' : 'gradient',
-      colors,
-      direction: gradientStyle === 'radial' ? 'radial' : 'vertical',
-      angle: gradientStyle === 'radial' ? undefined : angleDegrees,
-      stops: [0, stop1Percent / 100, stop2Percent / 100],
-      opacity,
-      mode: blobImageTransparencyMode,
-    });
-  } else {
-    window.kwami.body.setBlobImageTransparencyMode(false);
-  }
+  // Glass window effect removed - needs core implementation
+  // Would require modifying blob's Three.js material to act as
+  // a stencil mask or use special blending to create window effect
 }
 
 window.resetBackground = function() {
-  blobImageTransparencyEnabled = false;
-  blobImageTransparencyMode = 'glass'; // Always glass mode
-
-  const blobImageTransparencyCheckbox = document.getElementById('blob-image-transparency');
-  if (blobImageTransparencyCheckbox) blobImageTransparencyCheckbox.checked = false;
 
   const colorInputs = [
     document.getElementById('bg-color-1'),
@@ -1166,59 +1149,9 @@ window.resetBackground = function() {
 };
 
 function initializeBackgroundControls() {
-  const blobImageTransparencyCheckbox = document.getElementById('blob-image-transparency');
-
-  if (blobImageTransparencyCheckbox) {
-    blobImageTransparencyCheckbox.addEventListener('change', (e) => {
-      blobImageTransparencyEnabled = e.target.checked;
-      blobImageTransparencyMode = 'glass'; // Always use glass mode
-
-      if (blobImageTransparencyEnabled) {
-        const opacitySlider = document.getElementById('blob-opacity');
-        if (opacitySlider) {
-          opacitySlider.value = '0.3';
-          updateValueDisplay('blob-opacity-value', 0.3, 2);
-        }
-
-        const kwamiBlob = window.kwami?.body?.blob;
-        if (kwamiBlob && typeof kwamiBlob.setOpacity === 'function') {
-          kwamiBlob.setOpacity(0.3);
-        }
-
-        // Make gradient semi-transparent so we can see through
-        const gradientElement = document.getElementById('background-gradient');
-        if (gradientElement) {
-          const currentOpacity = parseFloat(document.getElementById('bg-opacity')?.value ?? 1);
-          // Store original opacity to restore later
-          gradientElement.dataset.originalOpacity = currentOpacity.toString();
-          // Make gradient 50% transparent
-          gradientElement.style.opacity = (currentOpacity * 0.5).toString();
-        }
-
-        updateStatus('🪟 Glass mode - transparent blob & semi-transparent gradient');
-      } else {
-        const kwamiBlob = window.kwami?.body?.blob;
-        if (kwamiBlob && typeof kwamiBlob.setOpacity === 'function') {
-          kwamiBlob.setOpacity(1);
-        }
-        const opacitySlider = document.getElementById('blob-opacity');
-        if (opacitySlider) {
-          opacitySlider.value = '1';
-          updateValueDisplay('blob-opacity-value', 1, 2);
-        }
-
-        // Restore gradient opacity
-        const gradientElement = document.getElementById('background-gradient');
-        if (gradientElement) {
-          const originalOpacity = gradientElement.dataset.originalOpacity || '1';
-          gradientElement.style.opacity = originalOpacity;
-          delete gradientElement.dataset.originalOpacity;
-        }
-
-        updateStatus('🎨 Glass transparency disabled');
-      }
-    });
-  }
+  // Glass transparency removed - needs core implementation
+  // The feature would require modifying the blob's Three.js material/shader
+  // to act as a stencil mask or use alpha blending to create a window effect
 
   const bgOpacitySlider = document.getElementById('bg-opacity');
   if (bgOpacitySlider) {
@@ -1228,7 +1161,7 @@ function initializeBackgroundControls() {
     });
   }
 
-  // Blob opacity slider (in Blob Texture section) - only affects blob
+  // Blob opacity slider - simple opacity control
   const blobOpacitySlider = document.getElementById('blob-opacity');
   if (blobOpacitySlider) {
     blobOpacitySlider.addEventListener('input', (e) => {
@@ -1238,16 +1171,6 @@ function initializeBackgroundControls() {
       const kwamiBlob = window.kwami?.body?.blob;
       if (kwamiBlob && typeof kwamiBlob.setOpacity === 'function') {
         kwamiBlob.setOpacity(value);
-      }
-
-      // In glass mode, keep gradient semi-transparent
-      if (blobImageTransparencyEnabled) {
-        const gradientElement = document.getElementById('background-gradient');
-        if (gradientElement && gradientElement.dataset.originalOpacity) {
-          const originalOpacity = parseFloat(gradientElement.dataset.originalOpacity);
-          // Keep gradient at 50% of original opacity
-          gradientElement.style.opacity = (originalOpacity * 0.5).toString();
-        }
       }
     });
   }

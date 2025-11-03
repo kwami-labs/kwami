@@ -718,17 +718,21 @@
         </div>
 
         <div class="parameter-group">
-          <div class="parameter-group-title">Glass Transparency</div>
-          <p class="parameter-info">Make the blob see-through to reveal background (glass effect)</p>
+          <div class="parameter-group-title">Blob Opacity</div>
           <div class="slider-control">
-            <label>Blob Opacity <span class="value-display" id="blob-opacity-value">1.00</span></label>
+            <label>Opacity <span class="value-display" id="blob-opacity-value">1.00</span></label>
             <input type="range" id="blob-opacity" min="0" max="1" step="0.01" value="1">
           </div>
-          <label class="slider-checkbox">
-            <input type="checkbox" id="blob-image-transparency">
-            Enable Glass Transparency
-          </label>
-          <small class="checkbox-hint">Make blob see-through (works with background images)</small>
+          <small class="checkbox-hint">Adjust blob transparency level</small>
+        </div>
+        
+        <!-- Glass Window Effect - Coming Soon -->
+        <div class="parameter-group" style="opacity: 0.5; pointer-events: none;">
+          <div class="parameter-group-title">Glass Window Effect (Coming Soon)</div>
+          <p class="parameter-info" style="font-size: 12px; color: #888;">
+            The glass window effect will make the blob act as a transparent window through the gradient overlay,
+            revealing the background image/video. This feature requires core shader implementation.
+          </p>
         </div>
       </div>
 
