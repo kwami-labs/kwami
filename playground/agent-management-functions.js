@@ -53,14 +53,39 @@ window.initializeAgentManager = async function() {
     return;
   }
   
+  // Validate API key format - should be alphanumeric with underscores/hyphens
+  if (!/^[a-zA-Z0-9_-]+$/.test(apiKey)) {
+    showError('Invalid API key format. API keys should only contain letters, numbers, underscores, and hyphens.');
+    return;
+  }
+  
+  // Check if API key looks like ElevenLabs format (typically starts with 'sk-')
+  if (!apiKey.startsWith('sk-') && apiKey.length < 32) {
+    if (!confirm('API key format looks unusual. ElevenLabs API keys typically start with "sk-" and are longer. Continue anyway?')) {
+      return;
+    }
+  }
+  
   try {
     updateStatus('🔄 Initializing Agent Manager...');
     
-    // Set API key on Kwami Mind
-    window.kwami.mind.config.apiKey = apiKey;
-    window.agentManager.apiKey = apiKey;
+    // Ensure API key is clean (remove any invisible characters)
+    const cleanApiKey = apiKey.replace(/[^a-zA-Z0-9_-]/g, '');
     
-    // Initialize Mind
+    if (cleanApiKey !== apiKey) {
+      console.warn('API key contained invalid characters that were removed');
+    }
+    
+    // Set API key on Kwami Mind
+    window.kwami.mind.config.apiKey = cleanApiKey;
+    window.agentManager.apiKey = cleanApiKey;
+    
+    // Force recreation of the ElevenLabs client with new API key
+    // This is needed because the client caches the API key from constructor
+    window.kwami.mind.client = null;
+    window.kwami.mind.isInitialized = false;
+    
+    // Initialize Mind with new API key
     await window.kwami.mind.initialize();
     
     // Mark as initialized
@@ -73,12 +98,23 @@ window.initializeAgentManager = async function() {
     
     // Enable all agent management sections by removing disabled class
     const sections = [
+      // Agent Management sections
       'agent-creation-section',
       'agents-list-section', 
       'agent-actions-section',
       'agent-testing-section',
       'cost-calculator-section',
-      'agent-link-section'
+      'agent-link-section',
+      // Legacy testing/preview sections
+      'voice-preview-section',
+      'voice-settings-section',
+      'tts-options-section',
+      'direct-conversation-section',
+      'stt-section',
+      'pronunciation-section',
+      'test-lab-section',
+      'usage-section',
+      'quick-actions-section'
     ];
     
     sections.forEach(sectionId => {
@@ -88,10 +124,15 @@ window.initializeAgentManager = async function() {
       }
     });
     
-    // Enable all agent management buttons
+    // Enable all agent management and testing buttons
     const buttons = [
       'create-agent-btn',
-      'refresh-agents-btn'
+      'refresh-agents-btn',
+      // Legacy testing buttons
+      'preview-btn',
+      'speak-btn',
+      'test-mic-btn',
+      'start-conversation-btn'
     ];
     
     buttons.forEach(buttonId => {
@@ -109,9 +150,60 @@ window.initializeAgentManager = async function() {
     
     updateStatus('✅ Agent Manager ready! Create or select an agent to begin.');
   } catch (error) {
-    showError('Failed to initialize Agent Manager: ' + error.message);
-    console.error(error);
+    let errorMessage = 'Failed to initialize Agent Manager: ';
+    
+    if (error.message.includes('ISO-8859-1')) {
+      errorMessage += 'Invalid API key format. Please check your API key for special characters or spaces.';
+    } else if (error.message.includes('401') || error.message.includes('Unauthorized')) {
+      errorMessage += 'Invalid API key. Please check your ElevenLabs API key is correct.';
+    } else if (error.message.includes('403') || error.message.includes('Forbidden')) {
+      errorMessage += 'API key lacks required permissions. Ensure your key has agent management access.';
+    } else {
+      errorMessage += error.message;
+    }
+    
+    showError(errorMessage);
+    console.error('Agent Manager initialization error:', error);
+    
+    // Reset initialization state on error
+    document.getElementById('agent-manager-status').style.display = 'none';
+    document.getElementById('init-agent-manager-btn').disabled = false;
+    document.getElementById('init-agent-manager-btn').textContent = '🚀 Initialize Agent Manager';
   }
+};
+
+// Copy tested voice settings to agent creation form
+window.copyTestedSettingsToAgent = function() {
+  // Copy voice settings from testing section to agent creation
+  const voiceId = document.getElementById('voice-id')?.value;
+  const stability = document.getElementById('voice-stability')?.value;
+  const similarity = document.getElementById('voice-similarity')?.value;
+  const model = document.getElementById('voice-model')?.value;
+  
+  if (voiceId && voiceId !== 'custom') {
+    document.getElementById('agent-voice-id').value = voiceId;
+  }
+  if (stability) {
+    document.getElementById('agent-stability').value = stability;
+    document.getElementById('agent-stability-value').textContent = parseFloat(stability).toFixed(2);
+  }
+  if (similarity) {
+    document.getElementById('agent-similarity').value = similarity;
+    document.getElementById('agent-similarity-value').textContent = parseFloat(similarity).toFixed(2);
+  }
+  
+  // Map voice model to TTS model
+  const modelMap = {
+    'eleven_multilingual_v2': 'eleven_multilingual_v2',
+    'eleven_turbo_v2': 'eleven_turbo_v2',
+    'eleven_turbo_v2_5': 'eleven_turbo_v2_5'
+  };
+  
+  if (model && modelMap[model]) {
+    document.getElementById('agent-tts-model').value = modelMap[model];
+  }
+  
+  updateStatus('✅ Voice settings copied to agent creation form!');
 };
 
 // Setup slider value display listeners

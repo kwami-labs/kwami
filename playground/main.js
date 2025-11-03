@@ -1012,19 +1012,20 @@ window.randomizeBlobMedia = function(type) {
   }
 
   const value = options[Math.floor(Math.random() * options.length)];
+  const resolved = resolveMediaPath(value);
 
   if (type === 'image') {
     const imageSelect = document.getElementById('blob-media-image');
     if (imageSelect) imageSelect.value = value;
     setBlobMediaType('image');
-    // TODO: Apply to blob texture when implemented in core (will auto-fill)
-    updateStatus(`🖼️ Blob texture fill: ${value.split('/').pop()} (coming soon)`);
+    window.kwami?.body?.setBlobSurfaceImage(resolved);
+    updateStatus(`🖼️ Blob texture: ${value.split('/').pop()}`);
   } else {
     const videoSelect = document.getElementById('blob-media-video');
     if (videoSelect) videoSelect.value = value;
     setBlobMediaType('video');
-    // TODO: Apply to blob texture when implemented in core (will auto-fill)
-    updateStatus(`🎥 Blob texture fill: ${value.split('/').pop()} (coming soon)`);
+    window.kwami?.body?.setBlobSurfaceVideo(resolved, { autoplay: true, loop: true, muted: true });
+    updateStatus(`🎥 Blob video texture: ${value.split('/').pop()}`);
   }
 };
 
@@ -1037,6 +1038,7 @@ window.clearBlobMedia = function(type) {
     if (videoSelect) videoSelect.value = '';
   }
   setBlobMediaType('none');
+  window.kwami?.body?.clearBlobSurfaceMedia?.();
 };
 
 function applyBackground() {
@@ -2661,10 +2663,12 @@ function initializeBodyControls() {
   const blobImageSelect = document.getElementById('blob-media-image');
   if (blobImageSelect) {
     blobImageSelect.addEventListener('change', (e) => {
-      if (e.target.value) {
+      const value = e.target.value;
+      if (value) {
         setBlobMediaType('image');
-        // TODO: Apply blob texture when core supports it (will auto-fill blob surface)
-        updateStatus(`🖼️ Blob texture fill: ${e.target.value.split('/').pop()} (coming soon)`);
+        const resolved = resolveMediaPath(value);
+        window.kwami?.body?.setBlobSurfaceImage(resolved);
+        updateStatus(`🖼️ Blob texture: ${value.split('/').pop()}`);
       } else {
         window.clearBlobMedia('image');
       }
@@ -2674,10 +2678,12 @@ function initializeBodyControls() {
   const blobVideoSelect = document.getElementById('blob-media-video');
   if (blobVideoSelect) {
     blobVideoSelect.addEventListener('change', (e) => {
-      if (e.target.value) {
+      const value = e.target.value;
+      if (value) {
         setBlobMediaType('video');
-        // TODO: Apply blob video texture when core supports it (will auto-fill blob surface)
-        updateStatus(`🎥 Blob texture fill: ${e.target.value.split('/').pop()} (coming soon)`);
+        const resolved = resolveMediaPath(value);
+        window.kwami?.body?.setBlobSurfaceVideo(resolved, { autoplay: true, loop: true, muted: true });
+        updateStatus(`🎥 Blob video: ${value.split('/').pop()}`);
       } else {
         window.clearBlobMedia('video');
       }

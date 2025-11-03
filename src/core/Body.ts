@@ -114,6 +114,12 @@ export class KwamiBody {
   private backgroundMediaTexture: Texture | null = null;
   private blobImageMode: BlobImageMode = 'none';
   private backgroundTexture: Texture | null = null;
+  // Blob surface media (independent from background overlay)
+  private blobSurfaceTexture: Texture | null = null;
+  private blobSurfaceVideoElement: HTMLVideoElement | null = null;
+  private blobSurfaceVideoTexture: VideoTexture | null = null;
+  private currentBlobSurfaceImageUrl: string | null = null;
+  private currentBlobSurfaceVideoUrl: string | null = null;
   private currentBackgroundImageUrl: string | null = null;
   private currentMediaImageUrl: string | null = null;
   private currentVideoUrl: string | null = null;
@@ -1073,9 +1079,18 @@ export class KwamiBody {
   private updateBlobBackgroundTextureForMode(): void {
     if (this.blobImageMode === 'overlay' && this.backgroundTexture) {
       this.blob.setBackgroundTexture(this.backgroundTexture);
-    } else {
-      this.blob.setBackgroundTexture(null);
+      return;
     }
+    // Fall back to blob surface media if present
+    if (this.blobSurfaceVideoTexture) {
+      this.blob.setBackgroundTexture(this.blobSurfaceVideoTexture);
+      return;
+    }
+    if (this.blobSurfaceTexture) {
+      this.blob.setBackgroundTexture(this.blobSurfaceTexture);
+      return;
+    }
+    this.blob.setBackgroundTexture(null);
   }
 
   private updateBackgroundPlaneTransform(): void {
@@ -1487,6 +1502,138 @@ export class KwamiBody {
   /**
    * Cleanup and dispose all resources
    */
+  // Set blob surface image (independent of background overlay)
+  setBlobSurfaceImage(url: string | null): void {
+    // Clear any existing surface video
+    this.clearBlobSurfaceVideo();
+
+    if (!url) {
+      if (this.blobSurfaceTexture) {
+        this.blobSurfaceTexture.dispose();
+        this.blobSurfaceTexture = null;
+      }
+      this.currentBlobSurfaceImageUrl = null;
+      this.updateBlobBackgroundTextureForMode();
+      return;
+    }
+
+    this.currentBlobSurfaceImageUrl = url;
+    this.textureLoader.load(
+      url,
+      (texture) => {
+        if (this.currentBlobSurfaceImageUrl !== url) {
+          texture.dispose();
+          return;
+        }
+        texture.colorSpace = SRGBColorSpace;
+        texture.needsUpdate = true;
+        if (this.blobSurfaceTexture) this.blobSurfaceTexture.dispose();
+        this.blobSurfaceTexture = texture;
+        this.updateBlobBackgroundTextureForMode();
+      },
+      undefined,
+      () => {
+        if (this.currentBlobSurfaceImageUrl === url) {
+          this.blobSurfaceTexture = null;
+          this.updateBlobBackgroundTextureForMode();
+        }
+      },
+    );
+  }
+
+  // Set blob surface video (independent of background overlay)
+  setBlobSurfaceVideo(url: string | null, options: { loop?: boolean; muted?: boolean; autoplay?: boolean; playbackRate?: number } = {}): void {
+    // Clear image
+    if (this.blobSurfaceTexture) {
+      this.blobSurfaceTexture.dispose();
+      this.blobSurfaceTexture = null;
+    }
+
+    if (!url) {
+      this.clearBlobSurfaceVideo();
+      this.updateBlobBackgroundTextureForMode();
+      return;
+    }
+
+    this.currentBlobSurfaceVideoUrl = url;
+    // Reuse existing element if same URL
+    if (this.blobSurfaceVideoElement && this.blobSurfaceVideoTexture && this.currentBlobSurfaceVideoUrl === url) {
+      this.syncSurfaceVideoOptions(this.blobSurfaceVideoElement, options);
+      this.updateBlobBackgroundTextureForMode();
+      return;
+    }
+
+    this.clearBlobSurfaceVideo();
+
+    const video = document.createElement('video');
+    video.crossOrigin = 'anonymous';
+    video.muted = options.muted ?? true;
+    video.loop = options.loop ?? true;
+    video.autoplay = options.autoplay ?? true;
+    video.playsInline = true;
+    video.controls = false;
+    video.preload = 'auto';
+    video.src = url;
+    video.playbackRate = options.playbackRate ?? 1;
+
+    this.blobSurfaceVideoElement = video;
+
+    const handleLoaded = () => {
+      if (this.currentBlobSurfaceVideoUrl !== url || !this.blobSurfaceVideoElement) return;
+      const tex = new VideoTexture(video);
+      tex.colorSpace = SRGBColorSpace;
+      tex.minFilter = LinearFilter;
+      tex.magFilter = LinearFilter;
+      tex.generateMipmaps = false;
+      this.blobSurfaceVideoTexture = tex;
+      this.updateBlobBackgroundTextureForMode();
+      if (video.autoplay) video.play().catch(() => {});
+    };
+
+    const handleError = (e: Event) => {
+      if (this.currentBlobSurfaceVideoUrl === url) {
+        this.clearBlobSurfaceVideo();
+        this.updateBlobBackgroundTextureForMode();
+      }
+    };
+
+    video.addEventListener('loadedmetadata', handleLoaded, { once: true });
+    video.addEventListener('error', handleError, { once: true });
+    video.load();
+    if (video.autoplay) video.play().catch(() => {});
+  }
+
+  clearBlobSurfaceMedia(): void {
+    if (this.blobSurfaceTexture) {
+      this.blobSurfaceTexture.dispose();
+      this.blobSurfaceTexture = null;
+    }
+    this.clearBlobSurfaceVideo();
+    this.currentBlobSurfaceImageUrl = null;
+    this.updateBlobBackgroundTextureForMode();
+  }
+
+  private clearBlobSurfaceVideo(): void {
+    if (this.blobSurfaceVideoTexture) {
+      this.blobSurfaceVideoTexture.dispose();
+      this.blobSurfaceVideoTexture = null;
+    }
+    if (this.blobSurfaceVideoElement) {
+      try { this.blobSurfaceVideoElement.pause(); } catch {}
+      this.blobSurfaceVideoElement.removeAttribute('src');
+      this.blobSurfaceVideoElement.load();
+      this.blobSurfaceVideoElement = null;
+    }
+    this.currentBlobSurfaceVideoUrl = null;
+  }
+
+  private syncSurfaceVideoOptions(video: HTMLVideoElement, options: { loop?: boolean; muted?: boolean; autoplay?: boolean; playbackRate?: number }): void {
+    video.loop = options.loop ?? true;
+    video.muted = options.muted ?? true;
+    video.playbackRate = options.playbackRate ?? 1;
+    if (options.autoplay ?? true) video.play().catch(() => {});
+  }
+
   dispose(): void {
     if (this.resizeObserver) {
       this.resizeObserver.disconnect();
@@ -1502,6 +1649,14 @@ export class KwamiBody {
     }
     this.blob.setBackgroundTexture(null);
     this.backgroundMediaState = null;
+
+    // Dispose blob surface media
+    if (this.blobSurfaceTexture) {
+      this.blobSurfaceTexture.dispose();
+      this.blobSurfaceTexture = null;
+    }
+    this.clearBlobSurfaceVideo();
+    this.currentBlobSurfaceImageUrl = null;
 
     this.blob.dispose();
     this.audio.dispose();

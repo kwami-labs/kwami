@@ -314,8 +314,19 @@
         </div>
       </div>
 
-      <!-- OLD SECTIONS BELOW (kept for backward compatibility) -->
-      <!-- Authentication -->
+      <!-- VOICE TESTING & PREVIEW TOOLS -->
+      <div class="divider-section" style="margin: 40px 0; text-align: center; position: relative;">
+        <hr style="border: none; border-top: 1px solid #333;">
+        <span style="position: absolute; top: -12px; left: 50%; transform: translateX(-50%); background: #0a0a0a; padding: 0 15px; color: #666; font-size: 12px; text-transform: uppercase; letter-spacing: 1px;">Voice Testing Tools</span>
+      </div>
+      
+      <div class="info-box" style="background: linear-gradient(135deg, rgba(102, 126, 234, 0.1) 0%, rgba(118, 75, 162, 0.1) 100%); border: 1px solid rgba(102, 126, 234, 0.3); border-radius: 12px; padding: 15px; margin-bottom: 20px;">
+        <p style="color: #aaa; font-size: 14px; margin: 0; line-height: 1.6;">
+          💡 <strong>Pro Tip:</strong> Use the tools below to test and fine-tune voices before creating agents. Once you find the perfect settings, click "🔗 Copy to Agent Creation" to transfer them automatically.
+        </p>
+      </div>
+      
+      <!-- Legacy Authentication (Hidden - using new agent auth) -->
       <div class="section" style="display: none;">
         <div class="section-title">🧠 Mind (AI Configuration) - Legacy</div>
         
@@ -334,9 +345,12 @@
         <button onclick="initializeMind()" id="init-btn">Initialize AI Agent</button>
       </div>
 
-      <!-- Voice Configuration -->
-      <div class="section">
-        <div class="section-title">🎙️ Voice Configuration</div>
+      <!-- Voice Preview & Testing (Use before creating agents) -->
+      <div class="section disabled-section" id="voice-preview-section">
+        <div class="section-title">🎙️ Voice Preview & Testing</div>
+        <p style="color: #888; font-size: 14px; margin-bottom: 15px;">
+          Test voices and settings before adding them to your agents
+        </p>
         
         <div class="input-group">
           <label>Voice Selection</label>
@@ -411,10 +425,11 @@
       </div>
 
       <button onclick="previewVoice()" id="preview-btn" disabled class="button-secondary">👂 Preview Voice</button>
+      <button onclick="copyTestedSettingsToAgent()" class="button-secondary" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);">🔗 Use in Agent Creation</button>
 
-      <!-- Voice Settings (Fine-tuning) -->
-      <div class="section">
-        <div class="section-title">🎚️ Voice Settings</div>
+      <!-- Voice Settings (Fine-tuning for Testing) -->
+      <div class="section disabled-section" id="voice-settings-section">
+        <div class="section-title">🎚️ Voice Fine-Tuning Lab</div>
         
         <div class="parameter-group">
           <div class="parameter-group-title">Voice Characteristics</div>
@@ -447,11 +462,12 @@
         </div>
 
         <button class="button-secondary" onclick="applyVoiceSettings()">✅ Apply Voice Settings</button>
+        <button class="button-secondary" onclick="copyTestedSettingsToAgent()" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); margin-top: 10px;">🔗 Copy to Agent Creation</button>
       </div>
 
-      <!-- Advanced TTS Options -->
-      <div class="section">
-        <div class="section-title">⚙️ Advanced TTS Options</div>
+      <!-- Advanced TTS Options (Testing) -->
+      <div class="section disabled-section" id="tts-options-section">
+        <div class="section-title">⚙️ Advanced TTS Testing</div>
         
         <div class="input-group">
           <label>Output Format</label>
@@ -481,9 +497,12 @@
         </div>
       </div>
 
-      <!-- Conversational AI Settings -->
-      <div class="section">
-        <div class="section-title">💬 Conversational AI</div>
+      <!-- Direct Conversation (Legacy - Use Agent Management Instead) -->
+      <div class="section disabled-section" id="direct-conversation-section">
+        <div class="section-title">💬 Direct Conversation (Legacy)</div>
+        <p style="color: #ffa500; font-size: 14px; margin-bottom: 15px;">
+          ⚠️ Recommended: Use Agent Management above for full conversation features
+        </p>
         
         <!-- Conversation status container -->
         <div id="conversation-status-container" style="display: none; margin-top: 15px; padding: 15px; border-radius: 12px; background: #1a1a1a; border: 1px solid #333;">
@@ -514,9 +533,9 @@
         <button onclick="stopConversation()" id="stop-conversation-btn" disabled style="display: none;">⏹️ Stop Conversation</button>
       </div>
 
-      <!-- Speech-to-Text Settings -->
-      <div class="section">
-        <div class="section-title">🎤 Speech-to-Text</div>
+      <!-- Speech-to-Text Testing -->
+      <div class="section disabled-section" id="stt-section">
+        <div class="section-title">🎙 Speech-to-Text Testing</div>
         
         <div class="input-group">
           <label>STT Model</label>
@@ -549,9 +568,9 @@
         </div>
       </div>
 
-      <!-- Pronunciation & Phonetics -->
-      <div class="section">
-        <div class="section-title">📖 Pronunciation</div>
+      <!-- Pronunciation Dictionary (Testing) -->
+      <div class="section disabled-section" id="pronunciation-section">
+        <div class="section-title">📖 Pronunciation Dictionary</div>
         
         <div class="input-group">
           <label>Pronunciation Dictionary</label>
@@ -570,9 +589,9 @@
         <button class="button-secondary" onclick="applyPronunciation()">✅ Apply Pronunciation Rules</button>
       </div>
 
-      <!-- Test & Preview -->
-      <div class="section">
-        <div class="section-title">🎬 Test & Preview</div>
+      <!-- Voice Test Lab -->
+      <div class="section disabled-section" id="test-lab-section">
+        <div class="section-title">🎬 Voice Test Lab</div>
         
         <div class="input-group">
           <label>Text to Speak</label>
@@ -586,9 +605,9 @@
         </div>
       </div>
 
-      <!-- Usage & Limits -->
-      <div class="section">
-        <div class="section-title">📊 Usage Information</div>
+      <!-- API Usage Stats -->
+      <div class="section disabled-section" id="usage-section">
+        <div class="section-title">📊 API Usage Stats</div>
         
         <button class="button-secondary" onclick="checkUsage()">🔍 Check API Usage</button>
         
@@ -601,9 +620,9 @@
         </div>
       </div>
 
-      <!-- Presets & Quick Actions -->
-      <div class="section">
-        <div class="section-title">⚡ Quick Actions</div>
+      <!-- Quick Actions (Testing Tools) -->
+      <div class="section disabled-section" id="quick-actions-section">
+        <div class="section-title">⚡ Quick Testing Tools</div>
         
         <div class="parameter-group">
           <div class="parameter-group-title">Voice Presets</div>
