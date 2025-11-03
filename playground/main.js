@@ -1053,14 +1053,14 @@ window.randomizeBlobMedia = function(type) {
     const imageSelect = document.getElementById('blob-media-image');
     if (imageSelect) imageSelect.value = value;
     setBlobMediaType('image');
-    // TODO: Apply to blob texture when implemented in core
-    updateStatus(`🎴 Random blob texture: ${value.split('/').pop()}`);
+    // TODO: Apply to blob texture when implemented in core (will auto-fill)
+    updateStatus(`🖼️ Blob texture fill: ${value.split('/').pop()} (coming soon)`);
   } else {
     const videoSelect = document.getElementById('blob-media-video');
     if (videoSelect) videoSelect.value = value;
     setBlobMediaType('video');
-    // TODO: Apply to blob texture when implemented in core
-    updateStatus(`🎥 Random blob video texture: ${value.split('/').pop()}`);
+    // TODO: Apply to blob texture when implemented in core (will auto-fill)
+    updateStatus(`🎥 Blob texture fill: ${value.split('/').pop()} (coming soon)`);
   }
 };
 
@@ -1127,16 +1127,10 @@ function applyBackground() {
 
 window.resetBackground = function() {
   blobImageTransparencyEnabled = false;
-  blobImageTransparencyMode = 'overlay';
+  blobImageTransparencyMode = 'glass'; // Always glass mode
 
   const blobImageTransparencyCheckbox = document.getElementById('blob-image-transparency');
   if (blobImageTransparencyCheckbox) blobImageTransparencyCheckbox.checked = false;
-
-  const blobTransparencyModeSelect = document.getElementById('blob-transparency-mode');
-  if (blobTransparencyModeSelect) blobTransparencyModeSelect.value = 'overlay';
-
-  const blobTransparencyModeWrapper = document.getElementById('blob-transparency-mode-wrapper');
-  if (blobTransparencyModeWrapper) blobTransparencyModeWrapper.style.display = 'none';
 
   const colorInputs = [
     document.getElementById('bg-color-1'),
@@ -1173,15 +1167,11 @@ window.resetBackground = function() {
 
 function initializeBackgroundControls() {
   const blobImageTransparencyCheckbox = document.getElementById('blob-image-transparency');
-  const blobTransparencyModeWrapper = document.getElementById('blob-transparency-mode-wrapper');
-  const blobTransparencyModeSelect = document.getElementById('blob-transparency-mode');
 
   if (blobImageTransparencyCheckbox) {
     blobImageTransparencyCheckbox.addEventListener('change', (e) => {
       blobImageTransparencyEnabled = e.target.checked;
-      if (blobTransparencyModeWrapper) {
-        blobTransparencyModeWrapper.style.display = blobImageTransparencyEnabled ? 'flex' : 'none';
-      }
+      blobImageTransparencyMode = 'glass'; // Always use glass mode
 
       if (blobImageTransparencyEnabled) {
         const opacitySlider = document.getElementById('blob-opacity');
@@ -1194,32 +1184,12 @@ function initializeBackgroundControls() {
         if (kwamiBlob && typeof kwamiBlob.setOpacity === 'function') {
           kwamiBlob.setOpacity(0.8);
         }
+        updateStatus('🪟 Glass transparency enabled - blob reveals background');
+      } else {
+        updateStatus('🎨 Glass transparency disabled');
       }
 
       applyBackground();
-
-      if (blobImageTransparencyEnabled) {
-        const message = blobImageTransparencyMode === 'glass'
-          ? '🪟 Glass window mode enabled - blob reveals the background image'
-          : '🖼️ Overlay mode enabled - image fills the blob interior';
-        updateStatus(message);
-  } else {
-        updateStatus('🎨 Normal background mode');
-      }
-    });
-  }
-
-  if (blobTransparencyModeSelect) {
-    blobTransparencyModeSelect.addEventListener('change', (e) => {
-      blobImageTransparencyMode = e.target.value;
-
-      if (blobImageTransparencyEnabled) {
-        applyBackground();
-        const message = blobImageTransparencyMode === 'glass'
-          ? '🪟 Glass window mode enabled - blob reveals the background image'
-          : '🖼️ Overlay mode enabled - image fills the blob interior';
-        updateStatus(message);
-      }
     });
   }
 
@@ -2729,8 +2699,8 @@ function initializeBodyControls() {
     blobImageSelect.addEventListener('change', (e) => {
       if (e.target.value) {
         setBlobMediaType('image');
-        // TODO: Apply blob texture when core supports it
-        updateStatus(`🎴 Blob texture: ${e.target.value.split('/').pop()}`);
+        // TODO: Apply blob texture when core supports it (will auto-fill blob surface)
+        updateStatus(`🖼️ Blob texture fill: ${e.target.value.split('/').pop()} (coming soon)`);
       } else {
         window.clearBlobMedia('image');
       }
@@ -2742,8 +2712,8 @@ function initializeBodyControls() {
     blobVideoSelect.addEventListener('change', (e) => {
       if (e.target.value) {
         setBlobMediaType('video');
-        // TODO: Apply blob video texture when core supports it
-        updateStatus(`🎥 Blob video: ${e.target.value.split('/').pop()}`);
+        // TODO: Apply blob video texture when core supports it (will auto-fill blob surface)
+        updateStatus(`🎥 Blob texture fill: ${e.target.value.split('/').pop()} (coming soon)`);
       } else {
         window.clearBlobMedia('video');
       }
