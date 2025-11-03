@@ -369,9 +369,21 @@ window.displayAgentsList = function displayAgentsList() {
     // Debug: log agent object to see available properties
     console.log('Agent object:', agent);
     console.log('Agent properties:', Object.keys(agent));
+    console.log('Agent JSON:', JSON.stringify(agent, null, 2));
     
-    // Try different property names for agent ID
-    const agentId = agent.agent_id || agent.id || agent.conversation_id;
+    // Try many different property names for agent ID
+    const agentId = agent.agent_id 
+      || agent.id 
+      || agent.conversation_id
+      || agent.agentId
+      || agent.conversationId
+      || (agent._id ? agent._id.toString() : null)
+      || Object.keys(agent).find(key => key.toLowerCase().includes('id'))
+      ? agent[Object.keys(agent).find(key => key.toLowerCase().includes('id'))]
+      : null;
+    
+    console.log('Detected agent ID:', agentId);
+    
     const isSelected = window.agentManager.selectedAgent === agent; // Direct reference comparison
     const createdDate = agent.created_at ? new Date(agent.created_at).toLocaleDateString() : 'Unknown';
     
@@ -384,7 +396,7 @@ window.displayAgentsList = function displayAgentsList() {
             <button onclick="event.stopPropagation(); window.deleteAgentById('${agentId}')" title="Delete" style="color: #ff6b6b;">🗑️</button>
           </div>
         </div>
-        <div class="agent-card-id">${agentId || 'No ID'}</div>
+        <div class="agent-card-id">${agentId || 'Loading...'}</div>
         <div class="agent-card-info">
           ${agent.conversation_config?.agent?.prompt?.prompt?.substring(0, 60) || 'No prompt'}...
         </div>
