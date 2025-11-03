@@ -366,19 +366,24 @@ window.displayAgentsList = function displayAgentsList() {
   emptyMessage.style.display = 'none';
   
   agentsList.innerHTML = window.agentManager.agents.map(agent => {
-    const isSelected = window.agentManager.selectedAgent?.agent_id === agent.agent_id;
+    // Debug: log agent object to see available properties
+    console.log('Agent object:', agent);
+    
+    // Try different property names for agent ID
+    const agentId = agent.agent_id || agent.id || agent.conversation_id;
+    const isSelected = window.agentManager.selectedAgent?.agent_id === agentId || window.agentManager.selectedAgent?.id === agentId;
     const createdDate = agent.created_at ? new Date(agent.created_at).toLocaleDateString() : 'Unknown';
     
     return `
-      <div class="agent-card ${isSelected ? 'selected' : ''}" data-agent-id="${agent.agent_id}" onclick="window.selectAgent('${agent.agent_id}')">
+      <div class="agent-card ${isSelected ? 'selected' : ''}" data-agent-id="${agentId}" onclick="window.selectAgent('${agentId}')">
         <div class="agent-card-header">
           <div class="agent-card-name">${agent.name || 'Unnamed Agent'}</div>
           <div class="agent-card-actions">
-            <button onclick="event.stopPropagation(); window.duplicateAgentById('${agent.agent_id}')" title="Duplicate">📋</button>
-            <button onclick="event.stopPropagation(); window.deleteAgentById('${agent.agent_id}')" title="Delete" style="color: #ff6b6b;">🗑️</button>
+            <button onclick="event.stopPropagation(); window.duplicateAgentById('${agentId}')" title="Duplicate">📋</button>
+            <button onclick="event.stopPropagation(); window.deleteAgentById('${agentId}')" title="Delete" style="color: #ff6b6b;">🗑️</button>
           </div>
         </div>
-        <div class="agent-card-id">${agent.agent_id}</div>
+        <div class="agent-card-id">${agentId}</div>
         <div class="agent-card-info">
           ${agent.conversation_config?.agent?.prompt?.prompt?.substring(0, 60) || 'No prompt'}...
         </div>
@@ -390,14 +395,29 @@ window.displayAgentsList = function displayAgentsList() {
 
 // Select Agent
 window.selectAgent = function(agentId) {
-  const agent = window.agentManager.agents.find(a => a.agent_id === agentId);
-  if (!agent) return;
+  console.log('Selecting agent with ID:', agentId);
+  
+  // Find agent by either agent_id or id property
+  const agent = window.agentManager.agents.find(a => 
+    a.agent_id === agentId || a.id === agentId
+  );
+  
+  if (!agent) {
+    console.error('Agent not found:', agentId);
+    showError('Agent not found');
+    return;
+  }
+  
+  console.log('Found agent:', agent);
   
   window.agentManager.selectedAgent = agent;
   
+  // Get the actual agent ID from whichever property it uses
+  const actualAgentId = agent.agent_id || agent.id;
+  
   // Update selected agent display
   document.getElementById('selected-agent-name').textContent = agent.name || 'Unnamed Agent';
-  document.getElementById('selected-agent-id').textContent = `ID: ${agent.agent_id}`;
+  document.getElementById('selected-agent-id').textContent = `ID: ${actualAgentId}`;
   
   // Enable action buttons
   document.getElementById('start-agent-conversation-btn').disabled = false;
@@ -477,8 +497,10 @@ window.startConversationWithAgent = async function() {
     return;
   }
   
-  const agentId = window.agentManager.selectedAgent.agent_id;
+  // Get agent ID from whichever property it uses
+  const agentId = window.agentManager.selectedAgent.agent_id || window.agentManager.selectedAgent.id;
   console.log('Starting conversation with agent ID:', agentId);
+  console.log('Selected agent object:', window.agentManager.selectedAgent);
   
   if (!agentId) {
     showError('Agent ID is missing. Please select a valid agent.');
