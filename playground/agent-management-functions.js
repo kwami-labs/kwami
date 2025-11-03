@@ -201,7 +201,7 @@ window.refreshAgentsList = async function() {
 };
 
 // Display Agents List
-function displayAgentsList() {
+window.displayAgentsList = function displayAgentsList() {
   const agentsList = document.getElementById('agents-list');
   const emptyMessage = document.getElementById('agents-list-empty');
   
@@ -263,7 +263,7 @@ window.selectAgent = function(agentId) {
 };
 
 // Helper function to select by ID
-function selectAgentById(agentId) {
+window.selectAgentById = function selectAgentById(agentId) {
   selectAgent(agentId);
 }
 
