@@ -1184,16 +1184,6 @@ function initializeBackgroundControls() {
         if (kwamiBlob && typeof kwamiBlob.setOpacity === 'function') {
           kwamiBlob.setOpacity(0.8);
         }
-
-        // Enable glass transparency mode on the blob
-        window.kwami.body.setBlobImageTransparencyMode(true, {
-          type: 'gradient',
-          colors: [],
-          direction: 'vertical',
-          stops: [],
-          opacity: 0.8,
-          mode: 'glass',
-        });
         updateStatus('🪟 Glass transparency enabled - blob reveals background');
       } else {
         const kwamiBlob = window.kwami?.body?.blob;
@@ -1205,8 +1195,6 @@ function initializeBackgroundControls() {
           opacitySlider.value = '1';
           updateValueDisplay('blob-opacity-value', 1, 2);
         }
-        // Disable glass transparency mode
-        window.kwami.body.setBlobImageTransparencyMode(false);
         updateStatus('🎨 Glass transparency disabled');
       }
     });
@@ -1230,18 +1218,6 @@ function initializeBackgroundControls() {
       const kwamiBlob = window.kwami?.body?.blob;
       if (kwamiBlob && typeof kwamiBlob.setOpacity === 'function') {
         kwamiBlob.setOpacity(value);
-      }
-
-      // If glass transparency is enabled, update it with new opacity
-      if (blobImageTransparencyEnabled) {
-        window.kwami.body.setBlobImageTransparencyMode(true, {
-          type: 'gradient',
-          colors: [],
-          direction: 'vertical',
-          stops: [],
-          opacity: value,
-          mode: 'glass',
-        });
       }
     });
   }
