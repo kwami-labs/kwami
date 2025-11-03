@@ -1123,9 +1123,20 @@ window.resetBackground = function() {
 };
 
 function initializeBackgroundControls() {
-  // Glass transparency removed - needs core implementation
-  // The feature would require modifying the blob's Three.js material/shader
-  // to act as a stencil mask or use alpha blending to create a window effect
+  // Glass transparency toggle (blob as window through gradient)
+  const glassCheckbox = document.getElementById('blob-image-transparency');
+  if (glassCheckbox) {
+    glassCheckbox.addEventListener('change', (e) => {
+      if (!window.kwami || !window.kwami.body) return;
+      if (e.target.checked) {
+        window.kwami.body.setBlobImageTransparencyMode(true, { mode: 'glass' });
+        updateStatus('🪟 Glass transparency enabled');
+      } else {
+        window.kwami.body.setBlobImageTransparencyMode(false);
+        updateStatus('🎨 Glass transparency disabled');
+      }
+    });
+  }
 
   const bgOpacitySlider = document.getElementById('bg-opacity');
   if (bgOpacitySlider) {
@@ -2553,22 +2564,6 @@ function initializeBodyControls() {
     });
   }
 
-  // Glass mode checkbox
-  const glassCheckbox = document.getElementById('glass-mode');
-  if (glassCheckbox) {
-    glassCheckbox.addEventListener('change', (e) => {
-      if (window.kwami && window.kwami.body) {
-        if (e.target.checked) {
-          window.kwami.body.setBlobImageTransparencyMode(true, { mode: 'glass' });
-          updateStatus('🪟 Glass mode enabled');
-        } else {
-          window.kwami.body.setBlobImageTransparencyMode(false);
-          updateStatus('🎨 Glass mode disabled');
-        }
-      }
-    });
-  }
-  
   // Click interaction checkbox
   const clickInteractionCheckbox = document.getElementById('click-interaction');
   if (clickInteractionCheckbox) {

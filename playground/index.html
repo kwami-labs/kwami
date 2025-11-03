@@ -88,9 +88,233 @@
       <h1>🤖 Mind</h1>
       <p class="subtitle">AI Agent Configuration</p>
 
-      <!-- Authentication -->
+      <!-- 🤖 AGENT MANAGEMENT SECTION -->
+      <!-- API Key (Required First) -->
       <div class="section">
-        <div class="section-title">🧠 Mind (AI Configuration)</div>
+        <div class="section-title">🔑 API Authentication</div>
+        
+        <div class="input-group">
+          <label>ElevenLabs API Key (Required)</label>
+          <input type="password" id="api-key-agent" placeholder="Enter your ElevenLabs API Key">
+          <small style="display: block; color: #888; margin-top: 2px;">Get from elevenlabs.io/settings/api-keys</small>
+        </div>
+        
+        <button onclick="initializeAgentManager()" id="init-agent-manager-btn">🚀 Initialize Agent Manager</button>
+        <div id="agent-manager-status" style="margin-top: 10px; display: none;">
+          <small style="color: #4CAF50;">✅ Agent Manager Ready</small>
+        </div>
+      </div>
+
+      <!-- Agent Creation (Primary Feature) -->
+      <div class="section" id="agent-creation-section" style="display: none;">
+        <div class="section-title">✨ Create New Agent</div>
+        <p style="color: #888; font-size: 14px; margin-bottom: 15px;">
+          Create a conversational AI agent with custom personality and voice
+        </p>
+        
+        <div class="input-group">
+          <label>Agent Name</label>
+          <input type="text" id="agent-name" placeholder="My AI Agent">
+        </div>
+        
+        <div class="input-group">
+          <label>System Prompt (Agent's Personality)</label>
+          <textarea id="agent-prompt" placeholder="You are a helpful, friendly AI assistant..." style="min-height: 100px;"></textarea>
+          <small style="display: block; color: #888; margin-top: 2px;">
+            Define how the agent behaves and responds
+          </small>
+        </div>
+        
+        <div class="input-group">
+          <label>First Message (Greeting)</label>
+          <input type="text" id="agent-first-message" placeholder="Hello! How can I help you today?" value="Hello! How can I help you today?">
+        </div>
+        
+        <div class="input-group">
+          <label>Language Model (LLM)</label>
+          <select id="agent-llm-model">
+            <option value="gpt-4">GPT-4 (Recommended)</option>
+            <option value="gpt-4-turbo">GPT-4 Turbo (Faster)</option>
+            <option value="gpt-3.5-turbo">GPT-3.5 Turbo (Economical)</option>
+            <option value="claude-3-opus">Claude 3 Opus</option>
+            <option value="claude-3-sonnet">Claude 3 Sonnet</option>
+            <option value="claude-3-haiku">Claude 3 Haiku (Fast)</option>
+          </select>
+        </div>
+        
+        <div class="input-group">
+          <label>Temperature <span class="value-display" id="agent-temperature-value">0.7</span></label>
+          <input type="range" id="agent-temperature" min="0" max="1" step="0.1" value="0.7">
+          <small style="display: block; color: #888; margin-top: 2px;">
+            Lower = More focused | Higher = More creative
+          </small>
+        </div>
+        
+        <div class="input-group">
+          <label>Max Response Tokens</label>
+          <input type="number" id="agent-max-tokens" min="50" max="2000" value="500" placeholder="500">
+        </div>
+        
+        <!-- Voice Configuration for Agent -->
+        <div class="parameter-group">
+          <div class="parameter-group-title">🎙️ Voice Configuration</div>
+          
+          <div class="input-group">
+            <label>Voice Selection</label>
+            <select id="agent-voice-id">
+              <option value="pNInz6obpgDQGcFmaJgB">Adam (Deep, Professional)</option>
+              <option value="EXAVITQu4vr4xnSDxMaL">Bella (Soft, Female)</option>
+              <option value="ErXwobaYiN019PkySvjV">Antoni (Well-rounded, Male)</option>
+              <option value="MF3mGyEYCl7XYWbV9V6O">Elli (Emotional, Female)</option>
+              <option value="TxGEqnHWrfWFTfGW9XjX">Josh (Young, Male)</option>
+            </select>
+          </div>
+          
+          <div class="input-group">
+            <label>TTS Model</label>
+            <select id="agent-tts-model">
+              <option value="eleven_turbo_v2" selected>Eleven Turbo v2 (Recommended)</option>
+              <option value="eleven_turbo_v2_5">Eleven Turbo v2.5</option>
+              <option value="eleven_multilingual_v2">Eleven Multilingual v2</option>
+            </select>
+          </div>
+          
+          <div class="slider-control">
+            <label>Voice Stability <span class="value-display" id="agent-stability-value">0.5</span></label>
+            <input type="range" id="agent-stability" min="0" max="1" step="0.05" value="0.5">
+          </div>
+          
+          <div class="slider-control">
+            <label>Similarity Boost <span class="value-display" id="agent-similarity-value">0.75</span></label>
+            <input type="range" id="agent-similarity" min="0" max="1" step="0.05" value="0.75">
+          </div>
+        </div>
+        
+        <button onclick="createNewAgent()" id="create-agent-btn">✨ Create Agent</button>
+        <div id="agent-creation-status" style="margin-top: 10px; display: none;"></div>
+      </div>
+
+      <!-- My Agents List -->
+      <div class="section" id="agents-list-section" style="display: none;">
+        <div class="section-title">📋 My Agents</div>
+        <button class="button-secondary" onclick="refreshAgentsList()" style="margin-bottom: 10px;">🔄 Refresh List</button>
+        
+        <div id="agents-list-container">
+          <div id="agents-list" class="agents-list">
+            <!-- Agents will be populated here -->
+          </div>
+          <div id="agents-list-empty" style="color: #888; padding: 20px; text-align: center; display: none;">
+            No agents found. Create your first agent above! 👆
+          </div>
+        </div>
+      </div>
+
+      <!-- Selected Agent Actions -->
+      <div class="section" id="agent-actions-section" style="display: none;">
+        <div class="section-title">🎯 Active Agent</div>
+        
+        <div id="selected-agent-info" style="padding: 15px; background: #1a1a1a; border-radius: 12px; margin-bottom: 15px;">
+          <div style="font-weight: bold; margin-bottom: 5px;">
+            <span id="selected-agent-name">No agent selected</span>
+          </div>
+          <div style="font-size: 12px; color: #888;">
+            <span id="selected-agent-id"></span>
+          </div>
+        </div>
+        
+        <button onclick="startConversationWithAgent()" id="start-agent-conversation-btn" disabled>
+          🎙️ Start Conversation
+        </button>
+        <button onclick="stopConversation()" id="stop-agent-conversation-btn" disabled style="display: none;">
+          ⏹️ Stop Conversation
+        </button>
+      </div>
+
+      <!-- Agent Testing -->
+      <div class="section" id="agent-testing-section" style="display: none;">
+        <div class="section-title">🧪 Test Agent</div>
+        <p style="color: #888; font-size: 14px; margin-bottom: 15px;">
+          Test your agent with simulated conversations before going live
+        </p>
+        
+        <div class="input-group">
+          <label>Test Message</label>
+          <textarea id="test-message" placeholder="What can you help me with?">Hello! Tell me about yourself.</textarea>
+        </div>
+        
+        <button onclick="testAgent()" id="test-agent-btn" disabled>🧪 Test Agent</button>
+        
+        <div id="test-results" style="margin-top: 15px; display: none;">
+          <div style="padding: 15px; background: #1a1a1a; border-radius: 12px;">
+            <div style="font-weight: bold; margin-bottom: 10px;">Test Results:</div>
+            <div id="test-agent-response" style="color: #4CAF50; margin-bottom: 10px;"></div>
+            <div id="test-agent-metadata" style="font-size: 12px; color: #888;"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Cost Calculator -->
+      <div class="section" id="cost-calculator-section" style="display: none;">
+        <div class="section-title">💰 Cost Calculator</div>
+        <p style="color: #888; font-size: 14px; margin-bottom: 15px;">
+          Estimate token usage and costs for your agent
+        </p>
+        
+        <div class="input-group">
+          <label>Expected Conversation Turns</label>
+          <input type="number" id="cost-calc-turns" min="1" max="1000" value="10" placeholder="10">
+          <small style="display: block; color: #888; margin-top: 2px;">
+            Number of back-and-forth exchanges
+          </small>
+        </div>
+        
+        <div class="input-group">
+          <label>Average Message Length (characters)</label>
+          <input type="number" id="cost-calc-length" min="10" max="500" value="50" placeholder="50">
+        </div>
+        
+        <button onclick="calculateAgentCost()" id="calculate-cost-btn" disabled>💰 Calculate Cost</button>
+        
+        <div id="cost-results" style="margin-top: 15px; display: none;">
+          <div style="padding: 15px; background: #1a1a1a; border-radius: 12px;">
+            <div style="font-weight: bold; margin-bottom: 10px;">Estimated Costs:</div>
+            <div style="color: #888; font-size: 14px;">
+              <div>Prompt Tokens: <span id="cost-prompt-tokens">-</span></div>
+              <div>Completion Tokens: <span id="cost-completion-tokens">-</span></div>
+              <div>Total Tokens: <span id="cost-total-tokens">-</span></div>
+              <div style="margin-top: 10px; font-size: 16px; color: #4CAF50;">
+                Cost per Conversation: <span id="cost-per-conversation">$-</span>
+              </div>
+              <div>Model: <span id="cost-model">-</span></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Agent Link -->
+      <div class="section" id="agent-link-section" style="display: none;">
+        <div class="section-title">🔗 Share Agent</div>
+        
+        <button onclick="getAgentShareLink()" id="get-link-btn" disabled>🔗 Get Shareable Link</button>
+        
+        <div id="agent-link-result" style="margin-top: 15px; display: none;">
+          <div style="padding: 15px; background: #1a1a1a; border-radius: 12px;">
+            <div style="font-weight: bold; margin-bottom: 10px;">Shareable Link:</div>
+            <div style="display: flex; gap: 10px; align-items: center;">
+              <input type="text" id="agent-link-url" readonly style="flex: 1; background: #0a0a0a; padding: 8px; border-radius: 6px; border: 1px solid #333;">
+              <button onclick="copyAgentLink()" class="button-secondary">📋 Copy</button>
+            </div>
+            <small style="display: block; color: #888; margin-top: 8px;">
+              Link Status: <span id="agent-link-status">-</span>
+            </small>
+          </div>
+        </div>
+      </div>
+
+      <!-- OLD SECTIONS BELOW (kept for backward compatibility) -->
+      <!-- Authentication -->
+      <div class="section" style="display: none;">
+        <div class="section-title">🧠 Mind (AI Configuration) - Legacy</div>
         
         <div class="input-group">
           <label>ElevenLabs API Key (Required)</label>
@@ -718,21 +942,16 @@
         </div>
 
         <div class="parameter-group">
-          <div class="parameter-group-title">Blob Opacity</div>
+          <div class="parameter-group-title">Texture Blending</div>
           <div class="slider-control">
             <label>Opacity <span class="value-display" id="blob-opacity-value">1.00</span></label>
             <input type="range" id="blob-opacity" min="0" max="1" step="0.01" value="1">
           </div>
-          <small class="checkbox-hint">Adjust blob transparency level</small>
-        </div>
-        
-        <!-- Glass Window Effect - Coming Soon -->
-        <div class="parameter-group" style="opacity: 0.5; pointer-events: none;">
-          <div class="parameter-group-title">Glass Window Effect (Coming Soon)</div>
-          <p class="parameter-info" style="font-size: 12px; color: #888;">
-            The glass window effect will make the blob act as a transparent window through the gradient overlay,
-            revealing the background image/video. This feature requires core shader implementation.
-          </p>
+          <label class="slider-checkbox">
+            <input type="checkbox" id="blob-image-transparency">
+            Enable Glass Transparency
+          </label>
+          <small class="checkbox-hint">Blob becomes a window through the gradient; background image/video visible.</small>
         </div>
       </div>
 
@@ -772,16 +991,6 @@
           </div>
         </div>
 
-        <div class="parameter-group">
-          <div class="parameter-group-title">Glass Window</div>
-          <div class="input-group">
-            <label>
-              <input type="checkbox" id="glass-mode">
-              Enable Glass Transparency (blob reveals background through gradient)
-            </label>
-            <small class="checkbox-hint">Requires image/video background; gradient acts as overlay.</small>
-          </div>
-        </div>
       </div>
 
       <!-- Audio Effects Configuration -->
@@ -984,6 +1193,7 @@
     </div>
   </template>
 
+  <script src="agent-management-functions.js"></script>
   <script type="module" src="main.js"></script>
 </body>
 </html>
