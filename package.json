@@ -17,11 +17,11 @@
     "webgl",
     "typescript"
   ],
-  "author": "Quami",
+  "author": "Alex Colls",
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "https://github.com/yourusername/kwami"
+    "url": "https://github.com/alexcolls/kwami"
   },
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
