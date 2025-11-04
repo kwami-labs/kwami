@@ -10,7 +10,7 @@ An **independent, reusable** 3D Interactive AI Companion Library for creating en
 
 - 🎨 **3D Blob Body** - Morphing sphere that reacts to audio in real-time
 - 🎵 **Audio Integration** - Built-in audio playback and frequency analysis
-- 🎭 **Multiple Skins** - Tricolor, Tricolor2 (Donut), and Zebra shader materials with easy extensibility
+- 🎭 **Multiple Skins** - 3Colors collection featuring Poles, Donut, and Vintage shader materials (formerly Tricolor, Tricolor2, and Zebra) with easy extensibility
 - 🔊 **Audio Visualization** - Real-time audio-reactive animations
 - 🤚 **Interactive Touch** - Click the blob for natural liquid-like touch effects
 - 🎤 **Listening Mode** - Double-click to start/stop microphone listening with inward audio-reactive spikes
@@ -41,7 +41,7 @@ An **independent, reusable** 3D Interactive AI Companion Library for creating en
   - Spikes (X/Y/Z noise frequency)
   - Time (X/Y/Z animation speed)
   - Rotation (X/Y/Z spin effects)
-  - Colors (X/Y/Z tricolor selection)
+  - Colors (X/Y/Z 3Colors palette)
   - Resolution, Shininess, Wireframe
   - Real-time value displays
 - 💾 **Real-time Updates** - Immediate visual feedback with bidirectional sync
@@ -86,7 +86,7 @@ const canvas = document.querySelector("canvas") as HTMLCanvasElement;
 const kwami = new Kwami(canvas, {
   body: {
     audioFiles: ["/audio/track1.mp3", "/audio/track2.mp3"],
-    initialSkin: "tricolor",
+    initialSkin: "Poles",
     blob: {
       resolution: 180,
       colors: {
@@ -140,8 +140,8 @@ const kwami = new Kwami(canvas, {
     // Audio files for the playlist
     audioFiles: ["/audio/track1.mp3"],
 
-    // Initial skin type
-    initialSkin: "tricolor", // or 'zebra'
+    // Initial skin type (3Colors collection variants: Poles, Donut, Vintage)
+    initialSkin: "Poles",
 
     // Audio configuration
     audio: {
@@ -204,10 +204,10 @@ const frequencyData = kwami.body.audio.getFrequencyData();
 
 ```typescript
 // Change skin
-kwami.body.blob.setSkin("zebra");
-kwami.body.blob.setSkin("tricolor2"); // Donut skin
+kwami.body.blob.setSkin("Vintage");
+kwami.body.blob.setSkin("Donut");
 
-// Set custom colors (tricolor skin)
+// Set custom colors (Poles skin)
 kwami.body.blob.setColors("#ff0000", "#00ff00", "#0000ff");
 
 // Set single color
@@ -405,7 +405,7 @@ The interactive playground includes a comprehensive dual-sidebar interface:
 - X, Y, Z sliders (0-0.01, step 0.001)
 - Creates spinning effects on different axes
 
-**Colors (Tricolor Skin)**
+**Colors (Poles Skin)**
 - X, Y, Z color pickers
 - Real-time color updates
 
@@ -414,7 +414,7 @@ The interactive playground includes a comprehensive dual-sidebar interface:
 - 🔍 **Resolution** - Mesh detail (120-220)
 - ✨ **Shininess** - Specular intensity (0-100000)
 - 📋 **Wireframe** - Toggle wireframe mode
-- 🎭 **Skin** - Choose Tricolor or Zebra skin
+- 🎭 **Skin** - Choose Poles or Vintage skin
 
 **Action Buttons**
 - 🎲 **Randomize Blob** - Generate random appearance
@@ -449,7 +449,7 @@ The interactive playground includes a comprehensive dual-sidebar interface:
       const kwami = new Kwami(canvas, {
         body: {
           audioFiles: ["/audio/music.mp3"],
-          initialSkin: "tricolor",
+          initialSkin: "Poles", // 3Colors collection (Poles, Donut, Vintage)
         },
       });
 
@@ -471,12 +471,12 @@ The interactive playground includes a comprehensive dual-sidebar interface:
 
 ```typescript
 // Change skin with buttons
-document.getElementById("tricolor-btn")?.addEventListener("click", () => {
-  kwami.body.blob.setSkin("tricolor");
+document.getElementById("poles-btn")?.addEventListener("click", () => {
+  kwami.body.blob.setSkin("Poles");
 });
 
-document.getElementById("zebra-btn")?.addEventListener("click", () => {
-  kwami.body.blob.setSkin("zebra");
+document.getElementById("vintage-btn")?.addEventListener("click", () => {
+  kwami.body.blob.setSkin("Vintage");
 });
 
 // Random blob button

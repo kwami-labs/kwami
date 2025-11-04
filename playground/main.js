@@ -546,6 +546,96 @@ const DEFAULT_VALUES = {
   opacity: 1,
 };
 
+const SKIN_COLLECTION_NAME = '3Colors';
+
+const SKIN_NAME_ALIASES = {
+  tricolor: 'tricolor',
+  tricolor2: 'tricolor2',
+  zebra: 'zebra',
+  donut: 'tricolor2',
+  poles: 'tricolor',
+  vintage: 'zebra',
+  '3colors': 'tricolor',
+  '3colors-poles': 'tricolor',
+  '3colors-donut': 'tricolor2',
+  '3colors-vintage': 'zebra',
+};
+
+const SKIN_VARIANT_LABELS = {
+  tricolor: 'Poles',
+  tricolor2: 'Donut',
+  zebra: 'Vintage',
+};
+
+const SKIN_RANDOMIZATION_TEMPLATE = [
+  'tricolor2',
+  'tricolor2',
+  'tricolor2',
+  'tricolor2',
+  'tricolor2',
+  'tricolor',
+  'tricolor',
+  'tricolor',
+  'tricolor',
+  'zebra',
+];
+
+let skinRandomizationQueue = [];
+
+function shuffleArray(array) {
+  for (let i = array.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [array[i], array[j]] = [array[j], array[i]];
+  }
+  return array;
+}
+
+function refillSkinRandomizationQueue() {
+  skinRandomizationQueue = shuffleArray([...SKIN_RANDOMIZATION_TEMPLATE]);
+}
+
+function getCanonicalSkinName(rawSkin) {
+  if (!rawSkin) {
+    return 'tricolor';
+  }
+
+  const key = String(rawSkin).toLowerCase();
+  return SKIN_NAME_ALIASES[key] || 'tricolor';
+}
+
+function getSkinDisplayName(rawSkin) {
+  const canonical = getCanonicalSkinName(rawSkin);
+  const variantLabel = SKIN_VARIANT_LABELS[canonical] || canonical;
+  return `${SKIN_COLLECTION_NAME} - ${variantLabel}`;
+}
+
+function applySkinToBlob(rawSkin) {
+  const canonical = getCanonicalSkinName(rawSkin);
+  const blob = window.kwami?.body?.blob;
+  if (!blob) {
+    return null;
+  }
+
+  blob.setSkin(canonical);
+
+  const skinSelect = document.getElementById('skin-type');
+  if (skinSelect) {
+    skinSelect.value = canonical;
+  }
+
+  return canonical;
+}
+
+function getNextRandomizedSkin() {
+  if (skinRandomizationQueue.length === 0) {
+    refillSkinRandomizationQueue();
+  }
+
+  return skinRandomizationQueue.shift() || 'tricolor';
+}
+
+refillSkinRandomizationQueue();
+
 // Default background settings
 const DEFAULT_BACKGROUND = {
   colors: ['#667eea', '#764ba2', '#f093fb'],
@@ -1307,7 +1397,7 @@ const canvas = document.getElementById('kwami-canvas');
 try {
   window.kwami = new Kwami(canvas, {
     body: {
-      initialSkin: 'tricolor',
+      initialSkin: 'Poles',
       blob: {
         resolution: 180,
         colors: {
@@ -2179,8 +2269,10 @@ window.exportGLB = function() {
 window.randomizeBlob = function() {
   if (window.kwami && window.kwami.body) {
     window.kwami.body.randomizeBlob();
-  updateAllControlsFromBlob();
-  updateStatus('🎲 Blob randomized!');
+    const appliedSkin = applySkinToBlob(getNextRandomizedSkin());
+    updateAllControlsFromBlob();
+    const skinLabel = appliedSkin ? getSkinDisplayName(appliedSkin) : getSkinDisplayName('tricolor');
+    updateStatus(`🎲 Blob randomized! 🎨 Skin: ${skinLabel}`);
   }
 };
 
@@ -2601,9 +2693,10 @@ function initializeBodyControls() {
   const skinSelect = document.getElementById('skin-type');
   if (skinSelect) {
     skinSelect.addEventListener('change', (e) => {
-      blob.setSkin(e.target.value);
-      updateStatus(`👕 Changed to ${e.target.value} skin`);
+      const appliedSkin = applySkinToBlob(e.target.value);
       updateAllControlsFromBlob();
+      const skinLabel = appliedSkin ? getSkinDisplayName(appliedSkin) : getSkinDisplayName('tricolor');
+      updateStatus(`👕 Changed to ${skinLabel} skin`);
     });
   }
   

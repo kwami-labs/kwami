@@ -376,7 +376,7 @@ The Agents API enables:
   - Creates spinning effects
   - Default: 0 (no rotation)
 
-- **Colors (Tricolor Skin)**
+- **Colors (3Colors - Poles variant)**
   - 3 color pickers for X, Y, Z colors
   - Defaults: #ff0066, #00ff66, #6600ff
   - Real-time blob color updates
@@ -388,7 +388,7 @@ The Agents API enables:
   - 🔍 **Resolution** (120-220, step: 1) - Mesh detail level
   - ✨ **Shininess** (0-100000, step: 100) - Specular highlights
   - 📋 **Wireframe** - Toggle wireframe mode
-  - 🎭 **Skin Type** - Select between Tricolor and Zebra skins
+  - 🎭 **Skin Type** - Select between 3Colors variants: Poles, Donut, Vintage
 
 - **Action Buttons**
   - 🎲 **Randomize Blob** - Generate random appearance
@@ -678,7 +678,7 @@ The Agents API enables:
   - Non-intrusive positioning
 - **GLB Export** - Download the blob as a 3D GLB file with animation and materials
 - **Dynamic Lighting Controls** - Adjust light intensity in real-time
-- **Tricolor2 Skin** - New donut-like appearance option
+- **Donut Skin** - New donut-like appearance option
 - **Test Buttons** - Quick testing for listening and thinking modes
 
 #### Core Library Features
@@ -831,7 +831,7 @@ This version represents a complete architectural refactoring of the @kwami libra
 - **Automatic resize handling** using ResizeObserver
 - **Animation loop management** with proper cleanup
 - **Resource disposal methods** for memory management
-- **Multiple skin support** (Tricolor and Zebra)
+- **Multiple skin support** (3Colors collection: Poles, Donut, Vintage)
 - **Configurable scene setup** with sensible defaults
 - **Audio playlist management** (next/previous track support)
 - **Volume control** for audio playback
