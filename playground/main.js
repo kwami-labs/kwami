@@ -1397,7 +1397,7 @@ const canvas = document.getElementById('kwami-canvas');
 try {
   window.kwami = new Kwami(canvas, {
     body: {
-      initialSkin: 'Poles',
+      initialSkin: 'Poles', // 3Colors collection default variant
       blob: {
         resolution: 180,
         colors: {

@@ -678,7 +678,7 @@ The Agents API enables:
   - Non-intrusive positioning
 - **GLB Export** - Download the blob as a 3D GLB file with animation and materials
 - **Dynamic Lighting Controls** - Adjust light intensity in real-time
-- **Donut Skin** - New donut-like appearance option
+- **3Colors - Donut variant** - New donut-like appearance option
 - **Test Buttons** - Quick testing for listening and thinking modes
 
 #### Core Library Features

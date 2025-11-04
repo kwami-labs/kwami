@@ -86,7 +86,7 @@ const canvas = document.querySelector("canvas") as HTMLCanvasElement;
 const kwami = new Kwami(canvas, {
   body: {
     audioFiles: ["/audio/track1.mp3", "/audio/track2.mp3"],
-    initialSkin: "Poles",
+    initialSkin: "Poles", // 3Colors collection variant
     blob: {
       resolution: 180,
       colors: {
@@ -203,11 +203,12 @@ const frequencyData = kwami.body.audio.getFrequencyData();
 ### Blob Customization
 
 ```typescript
-// Change skin
-kwami.body.blob.setSkin("Vintage");
-kwami.body.blob.setSkin("Donut");
+// Change skin (3Colors collection variants)
+kwami.body.blob.setSkin("Poles"); // 3Colors - Poles
+kwami.body.blob.setSkin("Donut"); // 3Colors - Donut
+kwami.body.blob.setSkin("Vintage"); // 3Colors - Vintage
 
-// Set custom colors (Poles skin)
+// Set custom colors (3Colors - Poles variant)
 kwami.body.blob.setColors("#ff0000", "#00ff00", "#0000ff");
 
 // Set single color
@@ -405,7 +406,7 @@ The interactive playground includes a comprehensive dual-sidebar interface:
 - X, Y, Z sliders (0-0.01, step 0.001)
 - Creates spinning effects on different axes
 
-**Colors (Poles Skin)**
+**Colors (3Colors - Poles variant)**
 - X, Y, Z color pickers
 - Real-time color updates
 
@@ -414,7 +415,7 @@ The interactive playground includes a comprehensive dual-sidebar interface:
 - 🔍 **Resolution** - Mesh detail (120-220)
 - ✨ **Shininess** - Specular intensity (0-100000)
 - 📋 **Wireframe** - Toggle wireframe mode
-- 🎭 **Skin** - Choose Poles or Vintage skin
+- 🎭 **Skin** - Choose among 3Colors variants: Poles, Donut, Vintage
 
 **Action Buttons**
 - 🎲 **Randomize Blob** - Generate random appearance
@@ -472,11 +473,11 @@ The interactive playground includes a comprehensive dual-sidebar interface:
 ```typescript
 // Change skin with buttons
 document.getElementById("poles-btn")?.addEventListener("click", () => {
-  kwami.body.blob.setSkin("Poles");
+  kwami.body.blob.setSkin("Poles"); // 3Colors - Poles
 });
 
 document.getElementById("vintage-btn")?.addEventListener("click", () => {
-  kwami.body.blob.setSkin("Vintage");
+  kwami.body.blob.setSkin("Vintage"); // 3Colors - Vintage
 });
 
 // Random blob button
