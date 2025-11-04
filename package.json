@@ -29,7 +29,8 @@
     "prebuild": "npm run sync-version",
     "build": "tsc",
     "dev": "tsc --watch",
-    "playground": "vite playground --port 3000"
+    "playground": "vite playground --port 3000",
+    "pg": "npm run playground"
   },
   "dependencies": {
     "@elevenlabs/elevenlabs-js": "^2.20.1",

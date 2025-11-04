@@ -1452,7 +1452,7 @@ export class KwamiMind {
     try {
       console.log('📝 Creating new agent...');
       const response = await this.client.conversationalAi.agents.create(config as any);
-      console.log('✅ Agent created successfully:', response.agent_id);
+      console.log('✅ Agent created successfully:', response.agentId);
       return response as unknown as AgentResponse;
     } catch (error) {
       console.error('Error creating agent:', error);
@@ -1623,7 +1623,7 @@ export class KwamiMind {
     try {
       console.log('📋 Duplicating agent:', agentId);
       const response = await this.client.conversationalAi.agents.duplicate(agentId, options as any);
-      console.log('✅ Agent duplicated:', response.agent_id);
+      console.log('✅ Agent duplicated:', response.agentId);
       return response as unknown as AgentResponse;
     } catch (error) {
       console.error('Error duplicating agent:', error);
