@@ -376,6 +376,92 @@ function initializeGitHubStarButton() {
   githubStarState.initialized = true;
 }
 
+// Theme management
+const themeState = {
+  initialized: false,
+  current: 'light'
+};
+
+function applyTheme(theme) {
+  if (theme === 'dark') {
+    document.body.classList.add('dark-mode');
+    themeState.current = 'dark';
+    const icon = document.getElementById('theme-toggle-icon');
+    if (icon) {
+      icon.textContent = '☀️';
+    }
+  } else {
+    document.body.classList.remove('dark-mode');
+    themeState.current = 'light';
+    const icon = document.getElementById('theme-toggle-icon');
+    if (icon) {
+      icon.textContent = '🌙';
+    }
+  }
+  
+  // Save preference to localStorage
+  try {
+    localStorage.setItem('kwami-theme', theme);
+  } catch (error) {
+    console.warn('Failed to save theme preference:', error);
+  }
+}
+
+function toggleTheme() {
+  const newTheme = themeState.current === 'light' ? 'dark' : 'light';
+  applyTheme(newTheme);
+}
+
+function initializeThemeToggle() {
+  if (themeState.initialized) {
+    return;
+  }
+
+  const themeToggleButton = document.getElementById('theme-toggle-btn');
+  if (!themeToggleButton) {
+    console.warn('Theme toggle button not found; skipping initialization');
+    return;
+  }
+
+  // Load saved theme preference or detect system preference
+  let savedTheme = 'light';
+  try {
+    savedTheme = localStorage.getItem('kwami-theme');
+  } catch (error) {
+    console.warn('Failed to load theme preference:', error);
+  }
+
+  // If no saved theme, check system preference
+  if (!savedTheme) {
+    const prefersDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
+    savedTheme = prefersDark ? 'dark' : 'light';
+  }
+
+  // Apply the initial theme
+  applyTheme(savedTheme);
+
+  // Add click listener
+  themeToggleButton.addEventListener('click', toggleTheme);
+
+  // Listen for system theme changes
+  if (window.matchMedia) {
+    const darkModeQuery = window.matchMedia('(prefers-color-scheme: dark)');
+    darkModeQuery.addEventListener('change', (e) => {
+      // Only auto-switch if user hasn't manually set a preference
+      try {
+        const hasSavedPreference = localStorage.getItem('kwami-theme');
+        if (!hasSavedPreference) {
+          applyTheme(e.matches ? 'dark' : 'light');
+        }
+      } catch (error) {
+        // Ignore localStorage errors
+      }
+    });
+  }
+
+  themeState.initialized = true;
+}
+
 // Initialize sidebars
 function initializeSidebars() {
   renderSidebar('left', sidebarState.left);
@@ -1383,6 +1469,7 @@ initializeSidebars();
 applySidebarVisibility();
 updateMenuToggleButton();
 initializeGitHubStarButton();
+initializeThemeToggle();
 
 // Initialize Mind controls since Mind is on the left by default
 setTimeout(() => {

@@ -4,11 +4,52 @@
   box-sizing: border-box;
 }
 
+:root {
+  /* Light theme colors */
+  --bg-body: #ffffff;
+  --bg-sidebar: rgba(255, 255, 255, 0.95);
+  --bg-button: rgba(255, 255, 255, 0.95);
+  --bg-button-hover: rgba(255, 255, 255, 0.98);
+  --bg-input: white;
+  --bg-section: #f9f9f9;
+  --border-input: #e0e0e0;
+  --border-section: #e8e8e8;
+  --text-primary: #333;
+  --text-secondary: #666;
+  --text-tertiary: #888;
+  --text-quaternary: #555;
+  --text-label: #666;
+  --shadow-sidebar: rgba(0, 0, 0, 0.1);
+  --shadow-button: rgba(0, 0, 0, 0.2);
+  --shadow-button-hover: rgba(0, 0, 0, 0.3);
+}
+
+body.dark-mode {
+  /* Dark theme colors */
+  --bg-body: #0f0f0f;
+  --bg-sidebar: rgba(26, 26, 26, 0.95);
+  --bg-button: rgba(40, 40, 40, 0.95);
+  --bg-button-hover: rgba(50, 50, 50, 0.98);
+  --bg-input: #1a1a1a;
+  --bg-section: #1a1a1a;
+  --border-input: #333;
+  --border-section: #2d2d2d;
+  --text-primary: #e0e0e0;
+  --text-secondary: #b0b0b0;
+  --text-tertiary: #888;
+  --text-quaternary: #c0c0c0;
+  --text-label: #999;
+  --shadow-sidebar: rgba(0, 0, 0, 0.5);
+  --shadow-button: rgba(0, 0, 0, 0.6);
+  --shadow-button-hover: rgba(0, 0, 0, 0.7);
+}
+
 body {
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-  background: #ffffff;
+  background: var(--bg-body);
   min-height: 100vh;
   overflow: hidden;
+  transition: background 0.3s ease;
 }
 
 #app {
@@ -21,13 +62,13 @@ body {
 #left-sidebar,
 #right-sidebar {
   width: 350px;
-  background: rgba(255, 255, 255, 0.95);
+  background: var(--bg-sidebar);
   backdrop-filter: blur(10px);
   padding: 50px 30px 30px;
   overflow-y: auto;
   position: relative;
   flex-shrink: 0;
-  transition: transform 0.3s ease, opacity 0.3s ease, width 0.3s ease, padding 0.3s ease, box-shadow 0.3s ease;
+  transition: transform 0.3s ease, opacity 0.3s ease, width 0.3s ease, padding 0.3s ease, box-shadow 0.3s ease, background 0.3s ease;
 }
 
 #left-sidebar.hidden,
@@ -43,11 +84,11 @@ body {
 }
 
 #left-sidebar {
-  box-shadow: 5px 0 20px rgba(0, 0, 0, 0.1);
+  box-shadow: 5px 0 20px var(--shadow-sidebar);
 }
 
 #right-sidebar {
-  box-shadow: -5px 0 20px rgba(0, 0, 0, 0.1);
+  box-shadow: -5px 0 20px var(--shadow-sidebar);
 }
 
 #canvas-container {
@@ -161,7 +202,7 @@ canvas.conversation-ready {
   top: 20px;
   left: 20px;
   z-index: 11;
-  background: rgba(255, 255, 255, 0.95);
+  background: var(--bg-button);
   backdrop-filter: blur(10px);
   border: none;
   width: 45px;
@@ -171,7 +212,7 @@ canvas.conversation-ready {
   display: flex;
   align-items: center;
   justify-content: center;
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
+  box-shadow: 0 4px 20px var(--shadow-button);
   transition: all 0.3s ease;
   font-size: 18px;
   color: #667eea;
@@ -179,8 +220,8 @@ canvas.conversation-ready {
 }
 
 .menu-toggle-btn:hover {
-  background: rgba(255, 255, 255, 0.98);
-  box-shadow: 0 6px 25px rgba(0, 0, 0, 0.3);
+  background: var(--bg-button-hover);
+  box-shadow: 0 6px 25px var(--shadow-button-hover);
   transform: scale(1.1);
 }
 
@@ -193,13 +234,49 @@ canvas.conversation-ready {
   transition: transform 0.3s ease;
 }
 
+/* Theme Toggle Button */
+.theme-toggle-btn {
+  position: absolute;
+  top: 20px;
+  right: 155px;
+  z-index: 11;
+  background: var(--bg-button);
+  backdrop-filter: blur(10px);
+  border: none;
+  width: 45px;
+  height: 45px;
+  border-radius: 50%;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 4px 20px var(--shadow-button);
+  transition: all 0.3s ease;
+  font-size: 20px;
+  padding: 0;
+}
+
+.theme-toggle-btn:hover {
+  background: var(--bg-button-hover);
+  box-shadow: 0 6px 25px var(--shadow-button-hover);
+  transform: scale(1.1);
+}
+
+.theme-toggle-btn:active {
+  transform: scale(0.95);
+}
+
+#theme-toggle-icon {
+  transition: transform 0.3s ease;
+}
+
 /* GitHub Star Button */
 .github-star-btn {
   position: absolute;
   top: 20px;
   right: 20px;
   z-index: 11;
-  background: rgba(255, 255, 255, 0.95);
+  background: var(--bg-button);
   backdrop-filter: blur(10px);
   border: none;
   padding: 10px 16px;
@@ -208,17 +285,17 @@ canvas.conversation-ready {
   display: flex;
   align-items: center;
   gap: 6px;
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
+  box-shadow: 0 4px 20px var(--shadow-button);
   transition: all 0.3s ease;
   font-size: 13px;
-  color: #333;
+  color: var(--text-primary);
   text-decoration: none;
   font-weight: 600;
 }
 
 .github-star-btn:hover {
-  background: rgba(255, 255, 255, 0.98);
-  box-shadow: 0 6px 25px rgba(0, 0, 0, 0.3);
+  background: var(--bg-button-hover);
+  box-shadow: 0 6px 25px var(--shadow-button-hover);
   transform: translateY(-2px);
   color: #667eea;
 }
@@ -256,9 +333,9 @@ canvas.conversation-ready {
   height: 42px;
   border: none;
   border-radius: 50%;
-  background: rgba(255, 255, 255, 0.9);
+  background: var(--bg-button);
   backdrop-filter: blur(10px);
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
+  box-shadow: 0 4px 20px var(--shadow-button);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -272,8 +349,8 @@ canvas.conversation-ready {
 }
 
 .audio-toggle-btn:hover {
-  background: rgba(255, 255, 255, 0.98);
-  box-shadow: 0 6px 25px rgba(0, 0, 0, 0.3);
+  background: var(--bg-button-hover);
+  box-shadow: 0 6px 25px var(--shadow-button-hover);
   transform: translateX(-50%) translateY(-2px);
 }
 
@@ -300,7 +377,7 @@ canvas.conversation-ready {
   left: 50%;
   transform: translateX(-50%);
   z-index: 10;
-  background: rgba(255, 255, 255, 0.95);
+  background: var(--bg-button);
   backdrop-filter: blur(10px);
   padding: 12px 20px;
   padding-right: 40px; /* Make room for close button */
@@ -308,15 +385,15 @@ canvas.conversation-ready {
   display: flex;
   align-items: center;
   gap: 12px;
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
+  box-shadow: 0 4px 20px var(--shadow-button);
   transition: all 0.3s ease;
   opacity: 1;
   pointer-events: auto;
 }
 
 #audio-player:hover {
-  box-shadow: 0 6px 25px rgba(0, 0, 0, 0.3);
-  background: rgba(255, 255, 255, 0.98);
+  box-shadow: 0 6px 25px var(--shadow-button-hover);
+  background: var(--bg-button-hover);
 }
 
 #audio-player.hidden {
@@ -397,7 +474,7 @@ canvas.conversation-ready {
 #audio-name {
   font-size: 13px;
   font-weight: 600;
-  color: #333;
+  color: var(--text-primary);
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -406,7 +483,7 @@ canvas.conversation-ready {
 
 #audio-time {
   font-size: 11px;
-  color: #666;
+  color: var(--text-secondary);
   font-family: 'Courier New', monospace;
 }
 
@@ -459,14 +536,14 @@ h2 {
 
 .subtitle {
   font-size: 14px;
-  color: #666;
+  color: var(--text-secondary);
   margin-bottom: 25px;
 }
 
 .about-text {
   font-size: 13px;
   line-height: 1.6;
-  color: #555;
+  color: var(--text-quaternary);
   margin: 0;
 }
 
@@ -477,7 +554,7 @@ h2 {
 .section-title {
   font-size: 14px;
   font-weight: 600;
-  color: #333;
+  color: var(--text-primary);
   margin-bottom: 15px;
   text-transform: uppercase;
   letter-spacing: 0.5px;
@@ -490,7 +567,7 @@ h2 {
 label {
   display: block;
   font-size: 12px;
-  color: #666;
+  color: var(--text-label);
   margin-bottom: 5px;
   font-weight: 500;
 }
@@ -502,12 +579,13 @@ textarea,
 select {
   width: 100%;
   padding: 10px;
-  border: 2px solid #e0e0e0;
+  border: 2px solid var(--border-input);
   border-radius: 8px;
   font-size: 14px;
-  transition: border-color 0.3s;
+  transition: border-color 0.3s, background 0.3s, color 0.3s;
   font-family: inherit;
-  background: white;
+  background: var(--bg-input);
+  color: var(--text-primary);
 }
 
 input[type="text"]:focus,
@@ -746,9 +824,10 @@ button:disabled {
 .parameter-group {
   margin-bottom: 20px;
   padding: 12px;
-  background: #f9f9f9;
+  background: var(--bg-section);
   border-radius: 8px;
-  border: 1px solid #e8e8e8;
+  border: 1px solid var(--border-section);
+  transition: background 0.3s ease, border-color 0.3s ease;
 }
 
 .parameter-group-title {
@@ -762,7 +841,7 @@ button:disabled {
 
 .parameter-info {
   font-size: 11px;
-  color: #888;
+  color: var(--text-tertiary);
   margin: -5px 0 10px 0;
   line-height: 1.4;
 }
@@ -788,7 +867,7 @@ button:disabled {
   gap: 4px;
   margin-top: 4px;
   font-size: 12px;
-  color: #666;
+  color: var(--text-secondary);
 }
 
 .slider-control .slider-checkbox input[type="checkbox"] {
@@ -797,7 +876,7 @@ button:disabled {
 
 .slider-control .checkbox-hint {
   display: block;
-  color: #888;
+  color: var(--text-tertiary);
   font-size: 11px;
   margin-top: 2px;
 }
@@ -827,11 +906,12 @@ button:disabled {
   font-size: 11px;
   color: #667eea;
   font-weight: 600;
-  background: white;
+  background: var(--bg-input);
   padding: 2px 6px;
   border-radius: 4px;
   min-width: 35px;
   text-align: right;
+  transition: background 0.3s ease;
 }
 
 input[type="range"] {
@@ -894,7 +974,7 @@ input[type="range"]::-moz-range-thumb:hover {
 input[type="color"] {
   width: 60px;
   height: 32px;
-  border: 2px solid #e0e0e0;
+  border: 2px solid var(--border-input);
   border-radius: 6px;
   cursor: pointer;
   transition: border-color 0.3s;
