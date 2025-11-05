@@ -7,6 +7,37 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [2.2.4] - 2025-11-05
+
+### ✨ Added
+
+#### 🌙 Dark Mode Support
+- **Theme toggle button** with moon/sun icons in playground UI
+- **CSS variables system** for dynamic light/dark theming
+- **localStorage persistence** - Remembers user's theme preference across sessions
+- **Auto-detection** of system theme preference on first load
+- **Smooth transitions** between themes (0.3s ease)
+- **System theme sync** - Auto-switches when system preference changes (if no manual preference set)
+
+#### 🎨 Theme Implementation
+- **Complete UI coverage** - All playground elements support dark mode:
+  - Sidebars with adjusted backgrounds and shadows
+  - Buttons, inputs, and form elements
+  - Audio player controls
+  - Status messages and indicators
+  - Section backgrounds and borders
+  - All text colors and labels
+- **Accessible color palette** - Carefully selected colors for readability in both themes
+- **Consistent design** - Maintains visual hierarchy and brand colors
+
+### 🔧 Technical Details
+
+#### Implementation
+- **CSS custom properties** (variables) for all theme-dependent colors
+- **JavaScript theme manager** with state tracking and localStorage
+- **MediaQuery listener** for system preference changes
+- **No performance impact** - Theme switching is instant with CSS transitions
+
 ## [2.2.3] - 2025-11-03
 
 ### ✨ Added
