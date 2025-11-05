@@ -22,7 +22,16 @@ import {
   getRandomHexColor,
   genDNA,
 } from '../utils/randoms';
-import type { BlobOptions, BlobSkinType } from '../types';
+import type { BlobOptions, BlobSkinKey, BlobSkinType } from '../types';
+
+const SKIN_ALIAS_MAP: Record<string, BlobSkinKey> = {
+  tricolor: 'tricolor',
+  tricolor2: 'tricolor2',
+  zebra: 'zebra',
+  donut: 'tricolor2',
+  poles: 'tricolor',
+  vintage: 'zebra',
+};
 
 /**
  * Blob - The 3D visual body of Kwami
@@ -31,8 +40,13 @@ import type { BlobOptions, BlobSkinType } from '../types';
 export class Blob {
   private mesh: Mesh;
   private config = defaultBlobConfig;
-  public currentSkin: BlobSkinType;
-  private skins: Map<BlobSkinType, ShaderMaterial> = new Map();
+  public currentSkin: BlobSkinKey;
+  private skins: Map<BlobSkinKey, ShaderMaterial> = new Map();
+  private normalizeSkin(skin: BlobSkinType): BlobSkinKey {
+    const key = typeof skin === 'string' ? skin.toLowerCase() : 'tricolor';
+    return SKIN_ALIAS_MAP[key] ?? 'tricolor';
+  }
+
   private animationFrameId: number | null = null;
 
   // Tricolor lights
@@ -97,7 +111,7 @@ export class Blob {
   private glassModeEnabled = false;
 
   constructor(private options: BlobOptions) {
-    this.currentSkin = options.skin || 'tricolor';
+    this.currentSkin = this.normalizeSkin(options.skin || 'tricolor');
 
     // Initialize skins
     this.initializeSkins();
@@ -333,14 +347,15 @@ export class Blob {
    * Change the blob's skin
    */
   setSkin(skin: BlobSkinType): void {
-    const material = this.skins.get(skin);
+    const normalizedSkin = this.normalizeSkin(skin);
+    const material = this.skins.get(normalizedSkin);
     if (material) {
       // Save current shininess and wireframe before switching
       const currentMaterial = this.mesh.material as ShaderMaterial;
       const currentShininess = currentMaterial.uniforms?.shininess?.value || 50;
       const currentWireframe = currentMaterial.wireframe;
       
-      this.currentSkin = skin;
+      this.currentSkin = normalizedSkin;
       this.mesh.material = material;
       this.applyBackgroundTextureToMaterial(material);
 
@@ -369,7 +384,7 @@ export class Blob {
   /**
    * Get current skin type
    */
-  getCurrentSkin(): BlobSkinType {
+  getCurrentSkin(): BlobSkinKey {
     return this.currentSkin;
   }
 

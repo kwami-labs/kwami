@@ -25,11 +25,9 @@ yarn-error.log*
 
 # Environment
 .env
-.env.local
-
-
-# Environment variables
-.env
+.env.*
+!.env.sample
+!.env.example
 
 # Playground build artifacts
 playground/dist

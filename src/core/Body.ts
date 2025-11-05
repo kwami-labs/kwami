@@ -108,12 +108,22 @@ export class KwamiBody {
   private camera: PerspectiveCamera;
   private scene: Scene;
   private resizeObserver?: ResizeObserver;
+  private usingWindowResizeListener = false;
+  private resizeRafId: number | null = null;
+  private lastKnownSize = { width: 0, height: 0 };
+  private readonly handleResize = () => this.scheduleResize();
   private backgroundPlane: Mesh | null = null; // Gradient/overlay plane
   private backgroundPlaneTexture: Texture | null = null;
   private backgroundMediaPlane: Mesh | null = null;
   private backgroundMediaTexture: Texture | null = null;
   private blobImageMode: BlobImageMode = 'none';
   private backgroundTexture: Texture | null = null;
+  // Blob surface media (independent from background overlay)
+  private blobSurfaceTexture: Texture | null = null;
+  private blobSurfaceVideoElement: HTMLVideoElement | null = null;
+  private blobSurfaceVideoTexture: VideoTexture | null = null;
+  private currentBlobSurfaceImageUrl: string | null = null;
+  private currentBlobSurfaceVideoUrl: string | null = null;
   private currentBackgroundImageUrl: string | null = null;
   private currentMediaImageUrl: string | null = null;
   private currentVideoUrl: string | null = null;
@@ -168,28 +178,82 @@ export class KwamiBody {
    * Setup automatic resize handling
    */
   private setupResize(): void {
-    const handleResize = () => {
-      const width = this.canvas.clientWidth;
-      const height = this.canvas.clientHeight;
+    const resizeTargets: Element[] = [this.canvas];
+    const parentElement = this.canvas.parentElement;
+    if (parentElement) resizeTargets.push(parentElement);
 
-      this.camera.aspect = width / height;
-      this.camera.updateProjectionMatrix();
-
-      this.renderer.setSize(width, height);
-      this.renderer.setPixelRatio(window.devicePixelRatio || 1);
-    };
-
-    // Use ResizeObserver for better resize handling
     if (typeof ResizeObserver !== 'undefined') {
-      this.resizeObserver = new ResizeObserver(handleResize);
-      this.resizeObserver.observe(this.canvas);
+      this.resizeObserver = new ResizeObserver(() => this.handleResize());
+      resizeTargets.forEach((target) => this.resizeObserver?.observe(target));
+    } else if (typeof window !== 'undefined') {
+      window.addEventListener('resize', this.handleResize);
+      this.usingWindowResizeListener = true;
     } else {
-      // Fallback to window resize event
-      window.addEventListener('resize', handleResize);
+      // Environments without ResizeObserver/window (e.g. SSR) will rely on manual calls
     }
 
-    // Initial resize
-    handleResize();
+    this.handleResize();
+  }
+
+  /**
+   * Manually trigger a responsive resize of the viewport
+   */
+  refreshViewportSize(): void {
+    this.handleResize();
+  }
+
+  private scheduleResize(): void {
+    if (typeof window === 'undefined') {
+      this.applyResize();
+      return;
+    }
+
+    if (this.resizeRafId !== null) {
+      window.cancelAnimationFrame(this.resizeRafId);
+    }
+
+    this.resizeRafId = window.requestAnimationFrame(() => {
+      this.resizeRafId = null;
+      this.applyResize();
+    });
+  }
+
+  private applyResize(): void {
+    const parent = this.canvas.parentElement;
+    const parentRect = parent?.getBoundingClientRect();
+    let width = Math.round(parentRect?.width ?? this.canvas.clientWidth ?? 0);
+    let height = Math.round(parentRect?.height ?? this.canvas.clientHeight ?? 0);
+
+    if ((!width || !height)) {
+      const canvasRect = this.canvas.getBoundingClientRect();
+      if (!width) width = Math.round(canvasRect.width);
+      if (!height) height = Math.round(canvasRect.height);
+    }
+
+    if ((!width || !height) && typeof window !== 'undefined') {
+      if (!width) width = Math.round(window.innerWidth);
+      if (!height) height = Math.round(window.innerHeight);
+    }
+
+    if (!width || !height) {
+      return; // Cannot resize with zero dimensions
+    }
+
+    if (this.lastKnownSize.width === width && this.lastKnownSize.height === height) {
+      return; // No changes detected
+    }
+
+    this.lastKnownSize = { width, height };
+
+    this.canvas.width = width;
+    this.canvas.height = height;
+
+    const pixelRatio = typeof window !== 'undefined' ? window.devicePixelRatio || 1 : 1;
+    this.renderer.setPixelRatio(pixelRatio);
+    this.renderer.setSize(width, height, false);
+
+    this.camera.aspect = width / height;
+    this.camera.updateProjectionMatrix();
   }
 
   /**
@@ -627,10 +691,10 @@ export class KwamiBody {
 
     const finalType = options.type ?? 'gradient';
     const finalColors = options.colors;
-    const finalOpacity = options.opacity ?? opacity;
+    const finalOpacity = options.opacity !== undefined ? options.opacity : this.backgroundState.opacity;
     const finalMode = options.mode ?? mode;
-    const finalDirection = options.direction ?? direction;
-    const finalAngle = options.angle;
+    const finalDirection = options.direction !== undefined ? options.direction : this.backgroundState.direction;
+    const finalAngle = options.angle ?? this.backgroundState.angle;
     const finalStops = options.stops;
 
     if (finalType === 'solid' && finalColors && finalColors.length > 0) {
@@ -1073,9 +1137,18 @@ export class KwamiBody {
   private updateBlobBackgroundTextureForMode(): void {
     if (this.blobImageMode === 'overlay' && this.backgroundTexture) {
       this.blob.setBackgroundTexture(this.backgroundTexture);
-    } else {
-      this.blob.setBackgroundTexture(null);
+      return;
     }
+    // Fall back to blob surface media if present
+    if (this.blobSurfaceVideoTexture) {
+      this.blob.setBackgroundTexture(this.blobSurfaceVideoTexture);
+      return;
+    }
+    if (this.blobSurfaceTexture) {
+      this.blob.setBackgroundTexture(this.blobSurfaceTexture);
+      return;
+    }
+    this.blob.setBackgroundTexture(null);
   }
 
   private updateBackgroundPlaneTransform(): void {
@@ -1487,9 +1560,151 @@ export class KwamiBody {
   /**
    * Cleanup and dispose all resources
    */
+  // Set blob surface image (independent of background overlay)
+  setBlobSurfaceImage(url: string | null): void {
+    // Clear any existing surface video
+    this.clearBlobSurfaceVideo();
+
+    if (!url) {
+      if (this.blobSurfaceTexture) {
+        this.blobSurfaceTexture.dispose();
+        this.blobSurfaceTexture = null;
+      }
+      this.currentBlobSurfaceImageUrl = null;
+      this.updateBlobBackgroundTextureForMode();
+      return;
+    }
+
+    this.currentBlobSurfaceImageUrl = url;
+    this.textureLoader.load(
+      url,
+      (texture) => {
+        if (this.currentBlobSurfaceImageUrl !== url) {
+          texture.dispose();
+          return;
+        }
+        texture.colorSpace = SRGBColorSpace;
+        texture.needsUpdate = true;
+        if (this.blobSurfaceTexture) this.blobSurfaceTexture.dispose();
+        this.blobSurfaceTexture = texture;
+        this.updateBlobBackgroundTextureForMode();
+      },
+      undefined,
+      () => {
+        if (this.currentBlobSurfaceImageUrl === url) {
+          this.blobSurfaceTexture = null;
+          this.updateBlobBackgroundTextureForMode();
+        }
+      },
+    );
+  }
+
+  // Set blob surface video (independent of background overlay)
+  setBlobSurfaceVideo(url: string | null, options: { loop?: boolean; muted?: boolean; autoplay?: boolean; playbackRate?: number } = {}): void {
+    // Clear image
+    if (this.blobSurfaceTexture) {
+      this.blobSurfaceTexture.dispose();
+      this.blobSurfaceTexture = null;
+    }
+
+    if (!url) {
+      this.clearBlobSurfaceVideo();
+      this.updateBlobBackgroundTextureForMode();
+      return;
+    }
+
+    this.currentBlobSurfaceVideoUrl = url;
+    // Reuse existing element if same URL
+    if (this.blobSurfaceVideoElement && this.blobSurfaceVideoTexture && this.currentBlobSurfaceVideoUrl === url) {
+      this.syncSurfaceVideoOptions(this.blobSurfaceVideoElement, options);
+      this.updateBlobBackgroundTextureForMode();
+      return;
+    }
+
+    this.clearBlobSurfaceVideo();
+
+    const video = document.createElement('video');
+    video.crossOrigin = 'anonymous';
+    video.muted = options.muted ?? true;
+    video.loop = options.loop ?? true;
+    video.autoplay = options.autoplay ?? true;
+    video.playsInline = true;
+    video.controls = false;
+    video.preload = 'auto';
+    video.src = url;
+    video.playbackRate = options.playbackRate ?? 1;
+
+    this.blobSurfaceVideoElement = video;
+
+    const handleLoaded = () => {
+      if (this.currentBlobSurfaceVideoUrl !== url || !this.blobSurfaceVideoElement) return;
+      const tex = new VideoTexture(video);
+      tex.colorSpace = SRGBColorSpace;
+      tex.minFilter = LinearFilter;
+      tex.magFilter = LinearFilter;
+      tex.generateMipmaps = false;
+      this.blobSurfaceVideoTexture = tex;
+      this.updateBlobBackgroundTextureForMode();
+      if (video.autoplay) video.play().catch(() => {});
+    };
+
+    const handleError = (e: Event) => {
+      if (this.currentBlobSurfaceVideoUrl === url) {
+        this.clearBlobSurfaceVideo();
+        this.updateBlobBackgroundTextureForMode();
+      }
+    };
+
+    video.addEventListener('loadedmetadata', handleLoaded, { once: true });
+    video.addEventListener('error', handleError, { once: true });
+    video.load();
+    if (video.autoplay) video.play().catch(() => {});
+  }
+
+  clearBlobSurfaceMedia(): void {
+    if (this.blobSurfaceTexture) {
+      this.blobSurfaceTexture.dispose();
+      this.blobSurfaceTexture = null;
+    }
+    this.clearBlobSurfaceVideo();
+    this.currentBlobSurfaceImageUrl = null;
+    this.updateBlobBackgroundTextureForMode();
+  }
+
+  private clearBlobSurfaceVideo(): void {
+    if (this.blobSurfaceVideoTexture) {
+      this.blobSurfaceVideoTexture.dispose();
+      this.blobSurfaceVideoTexture = null;
+    }
+    if (this.blobSurfaceVideoElement) {
+      try { this.blobSurfaceVideoElement.pause(); } catch {}
+      this.blobSurfaceVideoElement.removeAttribute('src');
+      this.blobSurfaceVideoElement.load();
+      this.blobSurfaceVideoElement = null;
+    }
+    this.currentBlobSurfaceVideoUrl = null;
+  }
+
+  private syncSurfaceVideoOptions(video: HTMLVideoElement, options: { loop?: boolean; muted?: boolean; autoplay?: boolean; playbackRate?: number }): void {
+    video.loop = options.loop ?? true;
+    video.muted = options.muted ?? true;
+    video.playbackRate = options.playbackRate ?? 1;
+    if (options.autoplay ?? true) video.play().catch(() => {});
+  }
+
   dispose(): void {
     if (this.resizeObserver) {
       this.resizeObserver.disconnect();
+    }
+
+    if (this.usingWindowResizeListener && typeof window !== 'undefined') {
+      window.removeEventListener('resize', this.handleResize);
+      this.usingWindowResizeListener = false;
+    }
+
+    if (this.resizeRafId !== null && typeof window !== 'undefined') {
+      window.cancelAnimationFrame(this.resizeRafId);
+      this.resizeRafId = null;
     }
 
     this.blobImageMode = 'none';
@@ -1502,6 +1717,14 @@ export class KwamiBody {
     }
     this.blob.setBackgroundTexture(null);
     this.backgroundMediaState = null;
+
+    // Dispose blob surface media
+    if (this.blobSurfaceTexture) {
+      this.blobSurfaceTexture.dispose();
+      this.blobSurfaceTexture = null;
+    }
+    this.clearBlobSurfaceVideo();
+    this.currentBlobSurfaceImageUrl = null;
 
     this.blob.dispose();
     this.audio.dispose();

@@ -1,6 +1,6 @@
 {
   "name": "@kwami/core",
-  "version": "2.2.1",
+  "version": "2.2.4",
   "description": "A 3D Interactive AI Companion Library - Create engaging AI companions with visual (blob), audio, and AI capabilities",
   "type": "module",
   "main": "index.ts",
@@ -17,11 +17,11 @@
     "webgl",
     "typescript"
   ],
-  "author": "Quami",
+  "author": "Alex Colls",
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "https://github.com/yourusername/kwami"
+    "url": "https://github.com/alexcolls/kwami"
   },
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
@@ -29,7 +29,8 @@
     "prebuild": "npm run sync-version",
     "build": "tsc",
     "dev": "tsc --watch",
-    "playground": "vite playground --port 3000"
+    "playground": "vite playground --port 3000",
+    "pg": "npm run playground"
   },
   "dependencies": {
     "@elevenlabs/elevenlabs-js": "^2.20.1",

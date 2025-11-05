@@ -7,6 +7,197 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [2.2.4] - 2025-11-05
+
+### ✨ Added
+
+#### 🌙 Dark Mode Support
+- **Theme toggle button** with moon/sun icons in playground UI
+- **CSS variables system** for dynamic light/dark theming
+- **localStorage persistence** - Remembers user's theme preference across sessions
+- **Auto-detection** of system theme preference on first load
+- **Smooth transitions** between themes (0.3s ease)
+- **System theme sync** - Auto-switches when system preference changes (if no manual preference set)
+
+#### 🎨 Theme Implementation
+- **Complete UI coverage** - All playground elements support dark mode:
+  - Sidebars with adjusted backgrounds and shadows
+  - Buttons, inputs, and form elements
+  - Audio player controls
+  - Status messages and indicators
+  - Section backgrounds and borders
+  - All text colors and labels
+- **Accessible color palette** - Carefully selected colors for readability in both themes
+- **Consistent design** - Maintains visual hierarchy and brand colors
+
+### 🔧 Technical Details
+
+#### Implementation
+- **CSS custom properties** (variables) for all theme-dependent colors
+- **JavaScript theme manager** with state tracking and localStorage
+- **MediaQuery listener** for system preference changes
+- **No performance impact** - Theme switching is instant with CSS transitions
+
+## [2.2.3] - 2025-11-03
+
+### ✨ Added
+
+#### 📊 ElevenLabs Conversations API
+- **Complete conversation management system** - Track, analyze, and manage all agent conversations
+- **8 new Mind class methods** for conversation operations:
+  - `listConversations(options?)` - List all conversations with advanced filtering and pagination
+  - `getConversation(conversationId)` - Retrieve detailed conversation info including transcript and metadata
+  - `deleteConversation(conversationId)` - Permanently delete conversations
+  - `getConversationAudio(conversationId)` - Download full audio recordings
+  - `sendConversationFeedback(conversationId, feedback)` - Submit user ratings and comments
+  - `getConversationToken(agentId, participantName?)` - Generate WebRTC tokens for real-time communication
+  - `getConversationSignedUrl(agentId, options?)` - Create signed URLs for secure client-side access
+
+#### 🎙️ Conversation Features
+- **Audio Management** - Download and archive conversation recordings
+- **Analytics & Insights** - Track duration, costs, token usage, and performance metrics
+- **Transcript Access** - Full conversation transcripts with timestamps
+- **Feedback System** - Collect user feedback to improve agents
+- **Sentiment Analysis** - Analyze conversation sentiment and extract topics
+- **Secure Access** - WebRTC tokens and signed URLs for client integrations
+
+#### 📦 TypeScript Type Definitions
+- **New conversation-related interfaces** in `src/types/index.ts`:
+  - `ConversationResponse` - Complete conversation details
+  - `ConversationTranscript` - Individual message entries with timestamps
+  - `ConversationMetadata` - Duration, tokens, costs, and timing info
+  - `ConversationAnalysis` - Sentiment, topics, summaries, and action items
+  - `ListConversationsOptions` & `ListConversationsResponse` - Advanced filtering and pagination
+  - `ConversationFeedbackRequest` - User feedback structure
+  - `ConversationTokenResponse` - WebRTC token information
+  - `ConversationSignedUrlOptions` & `ConversationSignedUrlResponse` - Secure URL generation
+
+### 📚 Documentation
+
+#### New Documentation Files
+- **`docs/CONVERSATIONS_API.md`** - Comprehensive 655-line guide covering:
+  - Complete API reference for all conversation methods
+  - Detailed usage examples for each endpoint
+  - Analytics dashboard implementation
+  - Feedback collection patterns
+  - Audio archive management
+  - Best practices for pagination and caching
+  - Security considerations
+  - Error handling strategies
+
+### 🔧 Technical Details
+
+#### Implementation
+- **Direct API integration** using fetch with proper headers and error handling
+- **Comprehensive metadata tracking** including costs, tokens, and duration
+- **Pagination support** for handling large conversation datasets
+- **Advanced filtering** by agent, status, date range, and more
+- **Blob handling** for audio downloads and streaming
+- **Type-safe** implementation with full TypeScript coverage
+
+#### Architecture
+- **No breaking changes** - All additions are new methods
+- **Consistent with existing patterns** - Follows Mind class conventions
+- **Efficient resource usage** - Pagination and caching strategies included
+- **Secure by design** - No API key exposure in client code
+
+### 💡 Use Cases
+
+The Conversations API enables:
+- **Conversation Analytics** - Generate reports on agent performance and usage
+- **Quality Assurance** - Review transcripts and collect feedback
+- **Compliance & Archival** - Download and store conversation records
+- **Customer Insights** - Analyze sentiment and extract key topics
+- **Cost Management** - Track token usage and conversation costs
+- **Debugging** - Access full conversation details for troubleshooting
+
+## [2.2.2] - 2025-11-03
+
+### ✨ Added
+
+- Blob surface media support (image/video) applied directly to blob skin via Body API:
+  - `setBlobSurfaceImage(url)` / `setBlobSurfaceVideo(url, opts)` / `clearBlobSurfaceMedia()`
+  - Works independently of background overlay and compatible with glass mode
+
+#### 🤖 ElevenLabs Agents Management API
+- **Complete agent lifecycle management** - Full CRUD operations for conversational AI agents
+- **10 new Mind class methods** for agent management:
+  - `createAgent(config)` - Create new agents with full configuration
+  - `getAgent(agentId)` - Retrieve agent details and configuration
+  - `listAgents(options?)` - List all agents with pagination support
+  - `updateAgent(agentId, config)` - Update existing agent configurations
+  - `deleteAgent(agentId)` - Permanently delete agents
+  - `duplicateAgent(agentId, options?)` - Clone agents with optional modifications
+  - `getAgentLink(agentId)` - Get shareable public links for agents
+  - `simulateConversation(agentId, request)` - Test agents with simulated conversations
+  - `simulateConversationStream(agentId, request, onChunk)` - Test with streaming responses
+  - `calculateLLMUsage(agentId, request?)` - Estimate token usage and costs
+
+#### 📦 TypeScript Type Definitions
+- **New agent-related interfaces** in `src/types/index.ts`:
+  - `AgentConfig` - Agent configuration structure
+  - `AgentResponse` - Agent API response format
+  - `CreateAgentRequest` & `UpdateAgentRequest` - Agent creation/update payloads
+  - `ListAgentsOptions` & `ListAgentsResponse` - Pagination support
+  - `DuplicateAgentRequest` - Agent duplication options
+  - `ConversationMessage` - Message format for simulations
+  - `SimulateConversationRequest` & `SimulateConversationResponse` - Testing interfaces
+  - `LLMUsageRequest` & `LLMUsageResponse` - Cost calculation types
+  - `AgentLinkResponse` - Shareable link information
+- **Full type safety** for all agent management operations
+
+### 📚 Documentation
+
+#### New Documentation Files
+- **`docs/AGENTS_API.md`** - Comprehensive 1000+ line guide covering:
+  - Complete API reference with method signatures
+  - Real-world code examples for all operations
+  - Common workflows (creation, testing, deployment)
+  - Error handling patterns and best practices
+  - Troubleshooting guide
+  - Integration with existing conversation features
+
+#### Updated Documentation
+- **`docs/ELEVENLABS_INTEGRATION.md`** - Added Agent Management API section
+  - Quick start example for creating agents
+  - When to use agent management vs direct conversations
+  - Links to comprehensive documentation
+- **`README.md`** - Updated with Agents API references
+  - Added to documentation guides list
+  - Added to roadmap as completed feature
+
+### 🐛 Fixed
+
+- Glass transparency now works as a true blob window without altering the gradient
+- Enabling glass sets blob opacity to 0.8 only if it was 1.0; restores on disable
+- Random Gradient button fixed to use Body API (linear/radial), compatible with glass
+- Background DOM overlays removed in favor of Three.js planes for proper stencil blending
+- Blob texture image/video not visible at opacity 1.0 — shader now renders surface texture regardless of alpha
+
+### 🔧 Technical Details
+
+#### Integration
+- **Seamless SDK integration** with `@elevenlabs/elevenlabs-js` v2.20.1
+- **Consistent error handling** across all agent operations
+- **Comprehensive JSDoc comments** with examples for all methods
+- **Validation** before API calls to prevent errors
+- **Debug logging** with emoji indicators for better DX
+
+#### Architecture
+- **No breaking changes** - All additions are new methods
+- **Backward compatible** with existing Mind functionality
+- **Type-safe** - Full TypeScript support throughout
+
+### 💡 Use Cases
+
+The Agents API enables:
+- **A/B testing** different agent personalities and configurations
+- **Cost estimation** before deploying agents to production
+- **Automated testing** of agent responses and behaviors
+- **Agent templates** that can be duplicated and customized
+- **Programmatic management** of multiple agent variants
+- **Integration testing** with simulated conversations
+
 ## [2.2.1] - 2025-11-02
 
 ### 🔧 Changed
@@ -216,7 +407,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Creates spinning effects
   - Default: 0 (no rotation)
 
-- **Colors (Tricolor Skin)**
+- **Colors (3Colors - Poles variant)**
   - 3 color pickers for X, Y, Z colors
   - Defaults: #ff0066, #00ff66, #6600ff
   - Real-time blob color updates
@@ -228,7 +419,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - 🔍 **Resolution** (120-220, step: 1) - Mesh detail level
   - ✨ **Shininess** (0-100000, step: 100) - Specular highlights
   - 📋 **Wireframe** - Toggle wireframe mode
-  - 🎭 **Skin Type** - Select between Tricolor and Zebra skins
+  - 🎭 **Skin Type** - Select between 3Colors variants: Poles, Donut, Vintage
 
 - **Action Buttons**
   - 🎲 **Randomize Blob** - Generate random appearance
@@ -518,7 +709,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Non-intrusive positioning
 - **GLB Export** - Download the blob as a 3D GLB file with animation and materials
 - **Dynamic Lighting Controls** - Adjust light intensity in real-time
-- **Tricolor2 Skin** - New donut-like appearance option
+- **3Colors - Donut variant** - New donut-like appearance option
 - **Test Buttons** - Quick testing for listening and thinking modes
 
 #### Core Library Features
@@ -671,7 +862,7 @@ This version represents a complete architectural refactoring of the @kwami libra
 - **Automatic resize handling** using ResizeObserver
 - **Animation loop management** with proper cleanup
 - **Resource disposal methods** for memory management
-- **Multiple skin support** (Tricolor and Zebra)
+- **Multiple skin support** (3Colors collection: Poles, Donut, Vintage)
 - **Configurable scene setup** with sensible defaults
 - **Audio playlist management** (next/previous track support)
 - **Volume control** for audio playback
