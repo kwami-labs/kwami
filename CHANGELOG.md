@@ -7,6 +7,49 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [2.2.5] - 2025-11-05
+
+### 🐛 Fixed
+
+#### 🚀 Render Deployment Issues
+- **ENOTEMPTY error fix** - Resolved `directory not empty` errors during npm install on Render
+- **Build cache conflicts** - Eliminated stale node_modules cache causing deployment failures
+- **Dependency inconsistencies** - Added `package-lock.json` to version control for deterministic builds
+- **Build reliability** - Switched from `npm install` to `npm ci` for cleaner, reproducible installations
+
+#### 📦 Configuration Files Added
+- **`.npmrc`** - Created with optimized npm settings:
+  - `legacy-peer-deps=true` - Prevents peer dependency conflicts
+  - `package-lock=true` - Ensures lockfile is always maintained
+  - `prefer-offline=false` - Forces fresh dependency resolution
+- **`render.yaml`** - Infrastructure-as-code configuration:
+  - Build command with cache clearing: `rm -rf node_modules && npm ci`
+  - Node.js version pinning (20.15.1)
+  - Proper service configuration for quami deployment
+
+#### 🗂️ Version Control Updates
+- **Removed `package-lock.json` from `.gitignore`** - Now tracked for build consistency
+- **Ensures identical dependency trees** across development, staging, and production
+
+### 🔧 Technical Details
+
+#### Build Process Improvements
+- **Cache clearing strategy**: `rm -rf node_modules` before install prevents orphaned files
+- **`npm ci` vs `npm install`**: Uses clean install for faster, more reliable builds
+- **Lockfile enforcement**: Guarantees exact dependency versions across all environments
+- **Legacy peer deps**: Handles @elevenlabs/elevenlabs-js and three.js peer dependencies gracefully
+
+#### Deployment Architecture
+- **Infrastructure as Code**: render.yaml enables reproducible deployments
+- **Node version consistency**: Explicitly set to 20.15.1 (matching Render default)
+- **Build optimization**: Clears cache = no ENOTEMPTY errors + consistent state
+
+#### Why This Fixes the Issue
+1. **Root cause**: Render's build cache had corrupted/partial node_modules from previous failed builds
+2. **Solution**: Force clean slate by removing node_modules before every build
+3. **Prevention**: Use `npm ci` which validates against lockfile and installs fresh
+4. **Consistency**: Committed lockfile ensures same dependencies locally and on Render
+
 ## [2.2.4] - 2025-11-05
 
 ### ✨ Added
