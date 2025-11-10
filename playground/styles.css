@@ -22,6 +22,11 @@
   --shadow-sidebar: rgba(0, 0, 0, 0.1);
   --shadow-button: rgba(0, 0, 0, 0.2);
   --shadow-button-hover: rgba(0, 0, 0, 0.3);
+  
+  /* Scrollbar colors */
+  --scrollbar-track: #f0f0f0;
+  --scrollbar-thumb: #667eea;
+  --scrollbar-thumb-hover: #764ba2;
 }
 
 body.dark-mode {
@@ -42,6 +47,11 @@ body.dark-mode {
   --shadow-sidebar: rgba(0, 0, 0, 0.5);
   --shadow-button: rgba(0, 0, 0, 0.6);
   --shadow-button-hover: rgba(0, 0, 0, 0.7);
+  
+  /* Scrollbar colors */
+  --scrollbar-track: #1a1a1a;
+  --scrollbar-thumb: #667eea;
+  --scrollbar-thumb-hover: #764ba2;
 }
 
 body {
@@ -69,6 +79,10 @@ body {
   position: relative;
   flex-shrink: 0;
   transition: transform 0.3s ease, opacity 0.3s ease, width 0.3s ease, padding 0.3s ease, box-shadow 0.3s ease, background 0.3s ease;
+  
+  /* Firefox scrollbar styling */
+  scrollbar-width: thin;
+  scrollbar-color: var(--scrollbar-thumb) var(--scrollbar-track);
 }
 
 #left-sidebar.hidden,
@@ -85,10 +99,41 @@ body {
 
 #left-sidebar {
   box-shadow: 5px 0 20px var(--shadow-sidebar);
+  overflow-x: hidden;
+  direction: rtl; /* Position scrollbar on the left */
+}
+
+/* Restore text direction for left sidebar content */
+#left-sidebar > * {
+  direction: ltr;
 }
 
 #right-sidebar {
   box-shadow: -5px 0 20px var(--shadow-sidebar);
+}
+
+/* Custom scrollbar styling for webkit browsers (Chrome, Safari, Edge) */
+#left-sidebar::-webkit-scrollbar,
+#right-sidebar::-webkit-scrollbar {
+  width: 8px;
+}
+
+#left-sidebar::-webkit-scrollbar-track,
+#right-sidebar::-webkit-scrollbar-track {
+  background: var(--scrollbar-track);
+  border-radius: 4px;
+}
+
+#left-sidebar::-webkit-scrollbar-thumb,
+#right-sidebar::-webkit-scrollbar-thumb {
+  background: var(--scrollbar-thumb);
+  border-radius: 4px;
+  transition: background 0.3s ease;
+}
+
+#left-sidebar::-webkit-scrollbar-thumb:hover,
+#right-sidebar::-webkit-scrollbar-thumb:hover {
+  background: var(--scrollbar-thumb-hover);
 }
 
 #canvas-container {
