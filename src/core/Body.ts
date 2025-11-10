@@ -1160,11 +1160,10 @@ export class KwamiBody {
     const fovRadians = (this.camera.fov * Math.PI) / 180;
 
     if (this.backgroundMediaPlane) {
-      // Position the plane in front of camera but don't rotate it
-      const mediaPosition = this.camera.position.clone();
-      mediaPosition.z -= MEDIA_PLANE_DISTANCE;
+      const mediaDirection = cameraDirection.clone().multiplyScalar(MEDIA_PLANE_DISTANCE);
+      const mediaPosition = this.camera.position.clone().add(mediaDirection);
       this.backgroundMediaPlane.position.copy(mediaPosition);
-      // Keep plane facing forward (no rotation)
+      this.backgroundMediaPlane.quaternion.copy(this.camera.quaternion);
 
       const mediaViewportHeight = 2 * Math.tan(fovRadians / 2) * MEDIA_PLANE_DISTANCE;
       const mediaViewportWidth = mediaViewportHeight * this.camera.aspect;
@@ -1206,11 +1205,10 @@ export class KwamiBody {
     }
 
     if (this.backgroundPlane) {
-      // Position the plane in front of camera but don't rotate it
-      const gradientPosition = this.camera.position.clone();
-      gradientPosition.z -= GRADIENT_PLANE_DISTANCE;
+      const gradientDirection = cameraDirection.clone().multiplyScalar(GRADIENT_PLANE_DISTANCE);
+      const gradientPosition = this.camera.position.clone().add(gradientDirection);
       this.backgroundPlane.position.copy(gradientPosition);
-      // Keep plane facing forward (no rotation)
+      this.backgroundPlane.quaternion.copy(this.camera.quaternion);
 
       const gradientViewportHeight = 2 * Math.tan(fovRadians / 2) * GRADIENT_PLANE_DISTANCE;
       const gradientViewportWidth = gradientViewportHeight * this.camera.aspect;
