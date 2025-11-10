@@ -810,10 +810,14 @@ export class KwamiBody {
 
     const hasMedia = mediaState !== null;
     const gradientOverlayActive = hasMedia && state.type !== 'transparent';
-    const requiresGradientPlane = gradientOverlayActive || this.blobImageMode !== 'none';
+    
+    // IMPORTANT: Only use planes for media or glass/overlay effects
+    // Gradients should ALWAYS use scene.background for proper viewport coverage
+    const needsMediaPlane = hasMedia;
+    const needsGradientPlane = (this.blobImageMode !== 'none' && gradientOverlayActive) || (this.blobImageMode === 'glass');
 
     // Handle media planes (image/video)
-    if (hasMedia) {
+    if (needsMediaPlane) {
       const mediaPlane = this.ensureBackgroundMediaPlane();
       const mediaMaterial = mediaPlane.material as MeshBasicMaterial;
       this.configureMediaPlaneMaterial(mediaMaterial, mediaState!);
@@ -825,11 +829,11 @@ export class KwamiBody {
       this.disposeBackgroundMediaPlane();
     }
 
-    // Only use gradient plane for overlays or blob transparency mode
-    if (requiresGradientPlane) {
+    // Only use gradient plane for glass effect with media overlay
+    if (needsGradientPlane) {
       const gradientPlane = this.ensureBackgroundPlane();
       const gradientMaterial = gradientPlane.material as MeshBasicMaterial;
-      this.configureGradientPlaneMaterial(gradientMaterial, this.blobImageMode !== 'none', gradientOverlayActive);
+      this.configureGradientPlaneMaterial(gradientMaterial, this.blobImageMode === 'glass', gradientOverlayActive);
       this.updateGradientPlaneTexture(state, gradientMaterial, gradientOverlayActive);
       gradientMaterial.opacity = gradientOverlayActive ? state.opacity : 1;
       gradientMaterial.needsUpdate = true;
@@ -839,16 +843,16 @@ export class KwamiBody {
     } else {
       this.disposeBackgroundPlane();
       
-      // Apply gradient/solid color directly to scene background when no planes are needed
-      if (!hasMedia && this.blobImageMode === 'none') {
+      // ALWAYS apply gradient/solid color directly to scene background (except when media is active)
+      if (!hasMedia) {
         this.applyStateToSceneBackground(state);
       } else {
         this.scene.background = null;
       }
     }
 
-    // Only update plane transforms if we have planes
-    if (this.backgroundPlane || this.backgroundMediaPlane) {
+    // Only update plane transforms if we have media planes
+    if (this.backgroundMediaPlane) {
       this.updateBackgroundPlaneTransform();
     }
   }
