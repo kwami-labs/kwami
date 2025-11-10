@@ -61,18 +61,20 @@ Choose your preferred package manager:
 
 ```bash
 # Using npm (Node.js)
-npm install kwami three simplex-noise
+npm install kwami
 # or
-npm i kwami three simplex-noise
+npm i kwami
 
 # Using Bun (recommended)
-bun add kwami three simplex-noise
+bun add kwami
 # or
-bun i kwami three simplex-noise
+bun i kwami
 
 # Using Deno
-deno add npm:kwami npm:three npm:simplex-noise
+deno add npm:kwami
 ```
+
+> **Note**: All dependencies (`three`, `simplex-noise`, `@elevenlabs/elevenlabs-js`) are included automatically.
 
 ## 🚀 Quick Start
 
