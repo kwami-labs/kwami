@@ -812,16 +812,20 @@ export class KwamiBody {
     const gradientOverlayActive = hasMedia && state.type !== 'transparent';
     const requiresGradientPlane = gradientOverlayActive || this.blobImageMode !== 'none';
 
+    // Handle media planes (image/video)
     if (hasMedia) {
       const mediaPlane = this.ensureBackgroundMediaPlane();
       const mediaMaterial = mediaPlane.material as MeshBasicMaterial;
       this.configureMediaPlaneMaterial(mediaMaterial, mediaState!);
       this.updateMediaPlaneTexture(mediaState!, mediaMaterial);
       mediaPlane.visible = true;
+      // Clear scene background when using media planes
+      this.scene.background = null;
     } else {
       this.disposeBackgroundMediaPlane();
     }
 
+    // Only use gradient plane for overlays or blob transparency mode
     if (requiresGradientPlane) {
       const gradientPlane = this.ensureBackgroundPlane();
       const gradientMaterial = gradientPlane.material as MeshBasicMaterial;
@@ -829,20 +833,24 @@ export class KwamiBody {
       this.updateGradientPlaneTexture(state, gradientMaterial, gradientOverlayActive);
       gradientMaterial.opacity = gradientOverlayActive ? state.opacity : 1;
       gradientMaterial.needsUpdate = true;
-      gradientPlane.visible = gradientOverlayActive || this.blobImageMode !== 'none';
+      gradientPlane.visible = true;
+      // Clear scene background when using gradient plane
+      this.scene.background = null;
     } else {
       this.disposeBackgroundPlane();
+      
+      // Apply gradient/solid color directly to scene background when no planes are needed
+      if (!hasMedia && this.blobImageMode === 'none') {
+        this.applyStateToSceneBackground(state);
+      } else {
+        this.scene.background = null;
+      }
     }
 
-    if (!hasMedia && this.blobImageMode === 'none') {
-      this.applyStateToSceneBackground(state);
-    } else if (!hasMedia && this.blobImageMode !== 'none') {
-      this.scene.background = null;
-    } else {
-      this.scene.background = null;
+    // Only update plane transforms if we have planes
+    if (this.backgroundPlane || this.backgroundMediaPlane) {
+      this.updateBackgroundPlaneTransform();
     }
-
-    this.updateBackgroundPlaneTransform();
   }
 
   private applyStateToSceneBackground(state: BackgroundState): void {
