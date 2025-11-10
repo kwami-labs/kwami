@@ -44,28 +44,29 @@ function updateMenuToggleButton() {
 }
 
 window.toggleMenus = function() {
+  const container = document.getElementById('canvas-container');
+  // Freeze canvas container width and keep it centered during the sidebar transition
+  if (container) {
+    const rect = container.getBoundingClientRect();
+    container.style.width = `${Math.round(rect.width)}px`;
+    container.style.flex = '0 0 auto';
+    container.style.margin = '0 auto';
+  }
+
   menusCollapsed = !menusCollapsed;
   applySidebarVisibility();
   updateMenuToggleButton();
 
-  // Smoothly update canvas size during the sidebar transition
-  if (window.kwami?.body?.refreshViewportSize) {
-    const duration = 320; // match CSS 0.3s + small buffer
-    const start = performance.now();
-
-    const tick = () => {
-      window.kwami?.body?.refreshViewportSize?.();
-      if (performance.now() - start < duration) {
-        requestAnimationFrame(tick);
-      }
-    };
-
-    // Kick off continuous resize updates for the duration of the animation
-    requestAnimationFrame(tick);
-
-    // Final snap after transition completes
-    setTimeout(() => window.kwami?.body?.refreshViewportSize?.(), duration + 20);
-  }
+  // Unfreeze after the CSS transition completes and snap to the final size
+  const duration = 320; // 0.3s + small buffer
+  setTimeout(() => {
+    if (container) {
+      container.style.width = '';
+      container.style.flex = '';
+      container.style.margin = '';
+    }
+    window.kwami?.body?.refreshViewportSize?.();
+  }, duration);
 };
 
 const audioPlayerState = {
