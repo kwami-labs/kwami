@@ -745,6 +745,10 @@ export class Blob {
     const canvas = this.options.renderer.domElement;
     const raycaster = new Raycaster();
     const mouse = new Vector2();
+    
+    // Mouse drag rotation variables
+    let isDragging = false;
+    let previousMousePosition = { x: 0, y: 0 };
 
     const handleClick = (event: MouseEvent) => {
       // Calculate mouse position in normalized device coordinates
@@ -810,12 +814,48 @@ export class Blob {
       }
     };
 
+    // Handle mouse drag for rotation
+    const handleMouseDown = (event: MouseEvent) => {
+      isDragging = true;
+      previousMousePosition = {
+        x: event.clientX,
+        y: event.clientY
+      };
+    };
+    
+    const handleMouseMove = (event: MouseEvent) => {
+      if (!isDragging) return;
+      
+      const deltaX = event.clientX - previousMousePosition.x;
+      const deltaY = event.clientY - previousMousePosition.y;
+      
+      // Rotate the blob mesh directly
+      this.mesh.rotation.y += deltaX * 0.01;
+      this.mesh.rotation.x += deltaY * 0.01;
+      
+      previousMousePosition = {
+        x: event.clientX,
+        y: event.clientY
+      };
+    };
+    
+    const handleMouseUp = () => {
+      isDragging = false;
+    };
+    
     canvas.addEventListener('click', handleClick);
     canvas.addEventListener('dblclick', handleDoubleClick);
+    canvas.addEventListener('mousedown', handleMouseDown);
+    canvas.addEventListener('mousemove', handleMouseMove);
+    canvas.addEventListener('mouseup', handleMouseUp);
+    canvas.addEventListener('mouseleave', handleMouseUp);
     
     // Store the handlers for cleanup
     (this as any)._clickHandler = handleClick;
     (this as any)._dblClickHandler = handleDoubleClick;
+    (this as any)._mouseDownHandler = handleMouseDown;
+    (this as any)._mouseMoveHandler = handleMouseMove;
+    (this as any)._mouseUpHandler = handleMouseUp;
   }
 
   /**
@@ -828,6 +868,9 @@ export class Blob {
     const canvas = this.options.renderer.domElement;
     const clickHandler = (this as any)._clickHandler;
     const dblClickHandler = (this as any)._dblClickHandler;
+    const mouseDownHandler = (this as any)._mouseDownHandler;
+    const mouseMoveHandler = (this as any)._mouseMoveHandler;
+    const mouseUpHandler = (this as any)._mouseUpHandler;
     
     if (clickHandler) {
       canvas.removeEventListener('click', clickHandler);
@@ -837,6 +880,22 @@ export class Blob {
     if (dblClickHandler) {
       canvas.removeEventListener('dblclick', dblClickHandler);
       delete (this as any)._dblClickHandler;
+    }
+    
+    if (mouseDownHandler) {
+      canvas.removeEventListener('mousedown', mouseDownHandler);
+      delete (this as any)._mouseDownHandler;
+    }
+    
+    if (mouseMoveHandler) {
+      canvas.removeEventListener('mousemove', mouseMoveHandler);
+      delete (this as any)._mouseMoveHandler;
+    }
+    
+    if (mouseUpHandler) {
+      canvas.removeEventListener('mouseup', mouseUpHandler);
+      canvas.removeEventListener('mouseleave', mouseUpHandler);
+      delete (this as any)._mouseUpHandler;
     }
     
     // Stop listening if active
