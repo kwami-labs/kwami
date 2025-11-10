@@ -116,6 +116,25 @@ Migrating from v1.x to v2.x wasn't a refactor—it was a **ground-up architectur
 
 ## [Unreleased]
 
+## [2.2.7] - 2025-11-10
+
+### 🐛 Fixed / 🔧 Improved
+
+- Background should not rotate with blob: corrected background plane logic; gradients now use `scene.background` and planes only for media/glass overlay.
+- Smooth sidebar transitions in playground:
+  - Kept canvas centered and width-frozen while closing menus; no rerender during close.
+  - On reopen, unfreeze and perform a single snap resize.
+  - Optional rAF-based resize removed during close to avoid flicker.
+- Canvas sizing: force CSS width/height to computed container size during resize to avoid right-edge gaps.
+- Background scaling: increased plane coverage and transform updates to fully cover viewport when media is active.
+- Disabled OrbitControls by default; added mouse drag rotation for blob mesh (playground) so the background stays static.
+- Gradient rendering in playground uses DOM overlay for bulletproof coverage during layout transitions; Three.js background kept transparent in that mode.
+
+### 🧪 Playground UX
+
+- Canvas remains static and centered while menus collapse; resumes sizing only after animation ends.
+- No unnecessary rerenders during menu close; cleaner visual behavior.
+
 ## [2.2.6] - 2025-11-10
 
 ### ✨ Added
