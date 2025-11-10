@@ -1351,21 +1351,27 @@ function applyBackground() {
 
   const gradientStyle = document.getElementById('bg-gradient-style')?.value ?? DEFAULT_BACKGROUND.style;
   
-  // Route background rendering through Three.js Body so glass mode can work
-  if (window.kwami && window.kwami.body) {
-    // Hide DOM overlays
-    const { gradientElement, mediaContainer } = getBackgroundElements();
-    if (gradientElement) gradientElement.style.display = 'none';
-    if (mediaContainer) mediaContainer.style.display = 'none';
-
-    const stopsArr = [0, stop1Percent / 100, stop2Percent / 100];
+  // In the playground, render gradient via DOM overlay to guarantee full-viewport coverage during sidebar transitions
+  const { gradientElement, mediaContainer } = getBackgroundElements();
+  if (mediaContainer) mediaContainer.style.display = 'none';
+  if (gradientElement) {
+    let backgroundImage = '';
+    const percentStops = [0, stop1Percent, stop2Percent];
 
     if (gradientStyle === 'radial') {
-      window.kwami.body.setBackgroundGradient(colors, { direction: 'radial', stops: stopsArr, opacity });
+      backgroundImage = `radial-gradient(circle, ${colors[0]} ${percentStops[0]}%, ${colors[1]} ${percentStops[1]}%, ${colors[2]} ${percentStops[2]}%)`;
     } else {
-      // Linear with angle
-      window.kwami.body.setBackgroundGradient(colors, { angle: angleDegrees, stops: stopsArr, opacity });
+      backgroundImage = `linear-gradient(${angleDegrees}deg, ${colors[0]} ${percentStops[0]}%, ${colors[1]} ${percentStops[1]}%, ${colors[2]} ${percentStops[2]}%)`;
     }
+
+    gradientElement.style.backgroundImage = backgroundImage;
+    gradientElement.style.opacity = `${opacity}`;
+    gradientElement.style.display = 'block';
+  }
+
+  // Ensure Three.js background is transparent so DOM overlay shows through
+  if (window.kwami && window.kwami.body) {
+    window.kwami.body.setBackgroundTransparent();
   }
 }
 

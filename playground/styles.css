@@ -205,8 +205,8 @@ canvas.conversation-ready {
   background: var(--bg-button);
   backdrop-filter: blur(10px);
   border: none;
-  width: 45px;
-  height: 45px;
+  width: 40px;
+  height: 40px;
   border-radius: 50%;
   cursor: pointer;
   display: flex;
@@ -243,8 +243,8 @@ canvas.conversation-ready {
   background: var(--bg-button);
   backdrop-filter: blur(10px);
   border: none;
-  width: 45px;
-  height: 45px;
+  width: 40px;
+  height: 40px;
   border-radius: 50%;
   cursor: pointer;
   display: flex;
@@ -252,7 +252,7 @@ canvas.conversation-ready {
   justify-content: center;
   box-shadow: 0 4px 20px var(--shadow-button);
   transition: all 0.3s ease;
-  font-size: 20px;
+  font-size: 16px;
   padding: 0;
 }
 
@@ -329,8 +329,8 @@ canvas.conversation-ready {
   top: 20px;
   left: 50%;
   transform: translateX(-50%);
-  width: 42px;
-  height: 42px;
+  width: 40px;
+  height: 40px;
   border: none;
   border-radius: 50%;
   background: var(--bg-button);
