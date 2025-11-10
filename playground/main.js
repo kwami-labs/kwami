@@ -48,9 +48,12 @@ window.toggleMenus = function() {
   applySidebarVisibility();
   updateMenuToggleButton();
 
+  // Smooth resize after sidebar animation completes
   if (window.kwami?.body?.refreshViewportSize) {
-    requestAnimationFrame(() => window.kwami?.body?.refreshViewportSize?.());
-    setTimeout(() => window.kwami?.body?.refreshViewportSize?.(), 350);
+    // Single resize after CSS transition (300ms + buffer)
+    setTimeout(() => {
+      window.kwami?.body?.refreshViewportSize?.();
+    }, 320);
   }
 };
 
@@ -1220,6 +1223,103 @@ window.clearBlobMedia = function(type) {
   }
   setBlobMediaType('none');
   window.kwami?.body?.clearBlobSurfaceMedia?.();
+};
+
+// Randomize 3D Texture (blob surface)
+window.randomize3DTexture = function() {
+  if (!window.kwami || !window.kwami.body) {
+    showError('Kwami not initialized yet!');
+    return;
+  }
+
+  // Gather all available blob texture options
+  const imageOptions = getBlobMediaOptions('image');
+  const videoOptions = getBlobMediaOptions('video');
+
+  // Resolve paths
+  const imageUrls = imageOptions.map(option => resolveMediaPath(option)).filter(url => url);
+  const videoUrls = videoOptions.map(option => resolveMediaPath(option)).filter(url => url);
+
+  if (imageUrls.length === 0 && videoUrls.length === 0) {
+    updateStatus('⚠️ No texture options available. Add images or videos to blob texture section.');
+    return;
+  }
+
+  // Call core library method
+  const result = window.kwami.body.randomize3DTexture(imageUrls, videoUrls);
+
+  // Update UI based on result
+  if (result.type === 'image') {
+    const imageSelect = document.getElementById('blob-media-image');
+    const matchingOption = imageOptions.find(opt => resolveMediaPath(opt) === result.url);
+    if (imageSelect && matchingOption) imageSelect.value = matchingOption;
+    setBlobMediaType('image');
+    const filename = result.url ? result.url.split('/').pop() : 'texture';
+    updateStatus(`🎲 Random 3D texture applied: ${filename}`);
+  } else if (result.type === 'video') {
+    const videoSelect = document.getElementById('blob-media-video');
+    const matchingOption = videoOptions.find(opt => resolveMediaPath(opt) === result.url);
+    if (videoSelect && matchingOption) videoSelect.value = matchingOption;
+    setBlobMediaType('video');
+    const filename = result.url ? result.url.split('/').pop() : 'texture';
+    updateStatus(`🎲 Random 3D video texture applied: ${filename}`);
+  } else {
+    setBlobMediaType('none');
+    updateStatus('🧹 Blob texture cleared');
+  }
+};
+
+// Randomize Background with Glass Effect
+window.randomizeBackgroundWithGlass = function() {
+  if (!window.kwami || !window.kwami.body) {
+    showError('Kwami not initialized yet!');
+    return;
+  }
+
+  // Gather all available background media options
+  const imageOptions = getMediaOptions('image');
+  const videoOptions = getMediaOptions('video');
+
+  // Resolve paths
+  const imageUrls = imageOptions.map(option => resolveMediaPath(option)).filter(url => url);
+  const videoUrls = videoOptions.map(option => resolveMediaPath(option)).filter(url => url);
+
+  // Call core library method
+  const result = window.kwami.body.randomizeBackgroundWithGlass(imageUrls, videoUrls);
+
+  // Update UI based on result
+  if (result.backgroundType === 'image') {
+    const imageSelect = document.getElementById('bg-media-image');
+    const matchingOption = imageOptions.find(opt => resolveMediaPath(opt) === result.backgroundUrl);
+    if (imageSelect && matchingOption) imageSelect.value = matchingOption;
+    const videoSelect = document.getElementById('bg-media-video');
+    if (videoSelect) videoSelect.value = '';
+    setMediaType('image', { silent: true });
+    const filename = result.backgroundUrl ? result.backgroundUrl.split('/').pop() : 'image';
+    updateStatus(`🪟 Glass effect with ${filename} (opacity: ${(result.opacity * 100).toFixed(0)}%)`);
+  } else if (result.backgroundType === 'video') {
+    const videoSelect = document.getElementById('bg-media-video');
+    const matchingOption = videoOptions.find(opt => resolveMediaPath(opt) === result.backgroundUrl);
+    if (videoSelect && matchingOption) videoSelect.value = matchingOption;
+    const imageSelect = document.getElementById('bg-media-image');
+    if (imageSelect) imageSelect.value = '';
+    setMediaType('video', { silent: true });
+    const filename = result.backgroundUrl ? result.backgroundUrl.split('/').pop() : 'video';
+    updateStatus(`🪟 Glass effect with ${filename} (opacity: ${(result.opacity * 100).toFixed(0)}%)`);
+  } else {
+    // No media, just gradient with glass
+    setMediaType('none', { silent: true });
+    updateStatus(`🪟 Glass effect with random gradient (opacity: ${(result.opacity * 100).toFixed(0)}%)`);
+  }
+
+  // Update glass transparency checkbox
+  const glassCheckbox = document.getElementById('blob-image-transparency');
+  if (glassCheckbox) glassCheckbox.checked = true;
+
+  // Update blob opacity slider
+  const opacitySlider = document.getElementById('blob-opacity');
+  if (opacitySlider) opacitySlider.value = result.opacity.toFixed(2);
+  updateValueDisplay('blob-opacity-value', result.opacity, 2);
 };
 
 function applyBackground() {

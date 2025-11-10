@@ -112,6 +112,7 @@ export class KwamiBody {
   private resizeRafId: number | null = null;
   private lastKnownSize = { width: 0, height: 0 };
   private readonly handleResize = () => this.scheduleResize();
+  private resizeTransitionActive = false;
   private backgroundPlane: Mesh | null = null; // Gradient/overlay plane
   private backgroundPlaneTexture: Texture | null = null;
   private backgroundMediaPlane: Mesh | null = null;
@@ -199,7 +200,13 @@ export class KwamiBody {
    * Manually trigger a responsive resize of the viewport
    */
   refreshViewportSize(): void {
+    // Mark that we're in a smooth transition (from sidebar toggle)
+    this.resizeTransitionActive = true;
     this.handleResize();
+    // Reset flag after a short delay
+    setTimeout(() => {
+      this.resizeTransitionActive = false;
+    }, 350);
   }
 
   private scheduleResize(): void {
@@ -245,15 +252,26 @@ export class KwamiBody {
 
     this.lastKnownSize = { width, height };
 
+    // Update canvas dimensions
     this.canvas.width = width;
     this.canvas.height = height;
-
+    
+    // Update renderer size
     const pixelRatio = typeof window !== 'undefined' ? window.devicePixelRatio || 1 : 1;
     this.renderer.setPixelRatio(pixelRatio);
     this.renderer.setSize(width, height, false);
 
+    // Update camera aspect ratio
     this.camera.aspect = width / height;
     this.camera.updateProjectionMatrix();
+    
+    // Preserve blob scale relative to viewport
+    // The blob should maintain its visual size regardless of aspect ratio changes
+    const currentScale = this.blob.getScale();
+    this.blob.setScale(currentScale);
+    
+    // Update background plane transforms after resize
+    this.updateBackgroundPlaneTransform();
   }
 
   /**
@@ -1158,6 +1176,16 @@ export class KwamiBody {
     this.camera.getWorldDirection(cameraDirection);
 
     const fovRadians = (this.camera.fov * Math.PI) / 180;
+    
+    // Add transition class during resize
+    if (this.resizeTransitionActive) {
+      if (this.backgroundPlane) {
+        (this.backgroundPlane.material as MeshBasicMaterial).needsUpdate = true;
+      }
+      if (this.backgroundMediaPlane) {
+        (this.backgroundMediaPlane.material as MeshBasicMaterial).needsUpdate = true;
+      }
+    }
 
     if (this.backgroundMediaPlane) {
       const mediaDirection = cameraDirection.clone().multiplyScalar(MEDIA_PLANE_DISTANCE);
@@ -1690,6 +1718,103 @@ export class KwamiBody {
     video.muted = options.muted ?? true;
     video.playbackRate = options.playbackRate ?? 1;
     if (options.autoplay ?? true) video.play().catch(() => {});
+  }
+
+  /**
+   * Randomize the 3D blob surface texture
+   * Randomly selects between image or video from the provided options
+   * @param imageUrls - Array of image URLs to choose from
+   * @param videoUrls - Array of video URLs to choose from
+   * @returns Object with the selected type and URL
+   */
+  randomize3DTexture(imageUrls: string[], videoUrls: string[]): { type: 'image' | 'video' | 'none'; url: string | null } {
+    const hasImages = imageUrls.length > 0;
+    const hasVideos = videoUrls.length > 0;
+
+    if (!hasImages && !hasVideos) {
+      this.clearBlobSurfaceMedia();
+      return { type: 'none', url: null };
+    }
+
+    // Randomly choose between image or video (50/50 chance)
+    const useVideo = Math.random() < 0.5;
+
+    if (useVideo && hasVideos) {
+      const randomIndex = Math.floor(Math.random() * videoUrls.length);
+      const selectedUrl = videoUrls[randomIndex];
+      this.setBlobSurfaceVideo(selectedUrl, { autoplay: true, loop: true, muted: true });
+      return { type: 'video', url: selectedUrl };
+    } else if (hasImages) {
+      const randomIndex = Math.floor(Math.random() * imageUrls.length);
+      const selectedUrl = imageUrls[randomIndex];
+      this.setBlobSurfaceImage(selectedUrl);
+      return { type: 'image', url: selectedUrl };
+    } else if (hasVideos) {
+      // Fallback to video if image was chosen but not available
+      const randomIndex = Math.floor(Math.random() * videoUrls.length);
+      const selectedUrl = videoUrls[randomIndex];
+      this.setBlobSurfaceVideo(selectedUrl, { autoplay: true, loop: true, muted: true });
+      return { type: 'video', url: selectedUrl };
+    }
+
+    this.clearBlobSurfaceMedia();
+    return { type: 'none', url: null };
+  }
+
+  /**
+   * Randomize background media with glass transparency effect
+   * Randomly selects a background image or video, enables glass mode, and sets random blob opacity
+   * @param imageUrls - Array of background image URLs to choose from
+   * @param videoUrls - Array of background video URLs to choose from
+   * @returns Object with the selected background type, URL, and applied opacity
+   */
+  randomizeBackgroundWithGlass(imageUrls: string[], videoUrls: string[]): { backgroundType: 'image' | 'video' | 'none'; backgroundUrl: string | null; opacity: number } {
+    const hasImages = imageUrls.length > 0;
+    const hasVideos = videoUrls.length > 0;
+
+    // Generate random opacity between 0 and 0.9
+    const randomOpacity = Math.random() * 0.9;
+
+    // If no media available, just randomize gradient and apply glass
+    if (!hasImages && !hasVideos) {
+      this.randomizeBackground();
+      this.setBlobImageTransparencyMode(true, { mode: 'glass' });
+      this.blob.setOpacity(randomOpacity);
+      return { backgroundType: 'none', backgroundUrl: null, opacity: randomOpacity };
+    }
+
+    // Randomly choose between image or video (50/50 chance)
+    const useVideo = Math.random() < 0.5;
+
+    if (useVideo && hasVideos) {
+      const randomIndex = Math.floor(Math.random() * videoUrls.length);
+      const selectedUrl = videoUrls[randomIndex];
+      this.setBackgroundVideo(selectedUrl, { opacity: 1, autoplay: true, loop: true, muted: true });
+      this.setBlobImageTransparencyMode(true, { mode: 'glass' });
+      this.blob.setOpacity(randomOpacity);
+      return { backgroundType: 'video', backgroundUrl: selectedUrl, opacity: randomOpacity };
+    } else if (hasImages) {
+      const randomIndex = Math.floor(Math.random() * imageUrls.length);
+      const selectedUrl = imageUrls[randomIndex];
+      this.setBackgroundImage(selectedUrl, { opacity: 1 });
+      this.setBlobImageTransparencyMode(true, { mode: 'glass' });
+      this.blob.setOpacity(randomOpacity);
+      return { backgroundType: 'image', backgroundUrl: selectedUrl, opacity: randomOpacity };
+    } else if (hasVideos) {
+      // Fallback to video if image was chosen but not available
+      const randomIndex = Math.floor(Math.random() * videoUrls.length);
+      const selectedUrl = videoUrls[randomIndex];
+      this.setBackgroundVideo(selectedUrl, { opacity: 1, autoplay: true, loop: true, muted: true });
+      this.setBlobImageTransparencyMode(true, { mode: 'glass' });
+      this.blob.setOpacity(randomOpacity);
+      return { backgroundType: 'video', backgroundUrl: selectedUrl, opacity: randomOpacity };
+    }
+
+    // Fallback
+    this.randomizeBackground();
+    this.setBlobImageTransparencyMode(true, { mode: 'glass' });
+    this.blob.setOpacity(randomOpacity);
+    return { backgroundType: 'none', backgroundUrl: null, opacity: randomOpacity };
   }
 
   dispose(): void {
