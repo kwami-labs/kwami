@@ -48,12 +48,23 @@ window.toggleMenus = function() {
   applySidebarVisibility();
   updateMenuToggleButton();
 
-  // Smooth resize after sidebar animation completes
+  // Smoothly update canvas size during the sidebar transition
   if (window.kwami?.body?.refreshViewportSize) {
-    // Single resize after CSS transition (300ms + buffer)
-    setTimeout(() => {
+    const duration = 320; // match CSS 0.3s + small buffer
+    const start = performance.now();
+
+    const tick = () => {
       window.kwami?.body?.refreshViewportSize?.();
-    }, 320);
+      if (performance.now() - start < duration) {
+        requestAnimationFrame(tick);
+      }
+    };
+
+    // Kick off continuous resize updates for the duration of the animation
+    requestAnimationFrame(tick);
+
+    // Final snap after transition completes
+    setTimeout(() => window.kwami?.body?.refreshViewportSize?.(), duration + 20);
   }
 };
 
