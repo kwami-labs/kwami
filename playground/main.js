@@ -45,7 +45,9 @@ function updateMenuToggleButton() {
 
 window.toggleMenus = function() {
   const container = document.getElementById('canvas-container');
-  // Freeze canvas container width and keep it centered during the sidebar transition
+  const willCollapse = !menusCollapsed;
+
+  // Freeze current canvas container width and keep it centered
   if (container) {
     const rect = container.getBoundingClientRect();
     container.style.width = `${Math.round(rect.width)}px`;
@@ -53,12 +55,19 @@ window.toggleMenus = function() {
     container.style.margin = '0 auto';
   }
 
-  menusCollapsed = !menusCollapsed;
+  menusCollapsed = willCollapse;
   applySidebarVisibility();
   updateMenuToggleButton();
 
-  // Unfreeze after the CSS transition completes and snap to the final size
-  const duration = 320; // 0.3s + small buffer
+  const duration = 320; // match CSS transition
+
+  if (willCollapse) {
+    // Closing: keep canvas frozen in the center (no resize/rerender).
+    // Do NOT unfreeze here.
+    return;
+  }
+
+  // Opening: unfreeze after animation and do a single snap resize
   setTimeout(() => {
     if (container) {
       container.style.width = '';
