@@ -1,4 +1,4 @@
-# 👻 @kwami
+# 👻 kwami
 
 An **independent, reusable** 3D Interactive AI Companion Library for creating engaging AI companions with visual (blob), audio, and AI capabilities.
 
@@ -60,24 +60,24 @@ This library supports multiple JavaScript runtimes:
 Choose your preferred package manager:
 
 ```bash
-# Using Bun (recommended)
-bun add @kwami/core three simplex-noise
+# Using npm (Node.js)
+npm install kwami three simplex-noise
 # or
-bun i @kwami/core three simplex-noise
+npm i kwami three simplex-noise
+
+# Using Bun (recommended)
+bun add kwami three simplex-noise
+# or
+bun i kwami three simplex-noise
 
 # Using Deno
-deno add npm:@kwami/core npm:three npm:simplex-noise
-
-# Using npm (Node.js)
-npm install @kwami/core three simplex-noise
-# or
-npm i @kwami/core three simplex-noise
+deno add npm:kwami npm:three npm:simplex-noise
 ```
 
 ## 🚀 Quick Start
 
 ```typescript
-import { Kwami } from "@kwami/core";
+import { Kwami } from "kwami";
 
 // Get your canvas element
 const canvas = document.querySelector("canvas") as HTMLCanvasElement;
@@ -444,7 +444,7 @@ The interactive playground includes a comprehensive dual-sidebar interface:
   <body>
     <canvas id="kwami-canvas"></canvas>
     <script type="module">
-      import { Kwami } from "@kwami/core";
+      import { Kwami } from "kwami";
 
       const canvas = document.getElementById("kwami-canvas");
       const kwami = new Kwami(canvas, {
@@ -494,7 +494,7 @@ document.getElementById("color-x")?.addEventListener("change", (e) => {
 ### Audio Reactive Visualization
 
 ```typescript
-import { Kwami } from "@kwami/core";
+import { Kwami } from "kwami";
 
 const kwami = new Kwami(canvas, {
   body: {
@@ -513,7 +513,7 @@ await kwami.body.audio.play();
 ## 🏗️ Architecture
 
 ```
-@kwami/
+kwami/
 ├── src/
 │   ├── core/           # Core classes
 │   │   ├── Kwami.ts    # Main class
