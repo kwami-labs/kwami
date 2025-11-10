@@ -116,6 +116,82 @@ Migrating from v1.x to v2.x wasn't a refactor—it was a **ground-up architectur
 
 ## [Unreleased]
 
+## [2.2.6] - 2025-11-10
+
+### ✨ Added
+
+#### 🎲 Random 3D Texture & Glass Effect Features
+- **Random 3D Texture Button** - Quick randomization of blob surface textures
+  - Randomly selects between image or video textures from available options
+  - 50/50 chance between image and video types with intelligent fallback
+  - Updates UI controls and displays selected texture filename
+  - New core method: `Body.randomize3DTexture(imageUrls, videoUrls)`
+
+- **Random Glass Button** - Randomized background with glass transparency effect
+  - Randomly selects background image or video from available media
+  - Automatically enables glass transparency mode on blob
+  - Sets random blob opacity between 0% and 90% for see-through effect
+  - Updates all related UI controls (glass checkbox, opacity slider)
+  - Shows opacity percentage in status message
+  - New core method: `Body.randomizeBackgroundWithGlass(imageUrls, videoUrls)`
+
+#### 🎨 Playground UI Enhancements
+- **Quick Variants Section** - Added two new variant buttons:
+  - 🎲 **Random 3D Texture** - Randomizes blob surface texture (image/video)
+  - 🪟 **Random Glass** - Applies random background with glass transparency
+- **Smart UI Updates** - Buttons automatically sync all related controls:
+  - Media type tabs (image/video)
+  - Select dropdowns with matching options
+  - Glass transparency checkbox
+  - Blob opacity slider and value display
+  - Status messages with emoji and detailed info
+
+### 🏗️ Architecture
+
+#### Core Library Methods (`src/core/Body.ts`)
+- **`randomize3DTexture(imageUrls: string[], videoUrls: string[])`**
+  - Returns: `{ type: 'image' | 'video' | 'none', url: string | null }`
+  - Handles empty arrays gracefully
+  - Uses existing `setBlobSurfaceImage()` and `setBlobSurfaceVideo()` methods
+
+- **`randomizeBackgroundWithGlass(imageUrls: string[], videoUrls: string[])`**
+  - Returns: `{ backgroundType: 'image' | 'video' | 'none', backgroundUrl: string | null, opacity: number }`
+  - Calls `setBackgroundImage()` or `setBackgroundVideo()`
+  - Enables glass mode via `setBlobImageTransparencyMode(true, { mode: 'glass' })`
+  - Sets random blob opacity using `blob.setOpacity(randomOpacity)`
+  - Falls back to randomized gradient if no media options available
+
+#### Playground Bridge Functions (`playground/main.js`)
+- **`window.randomize3DTexture()`** - Bridge between UI and core library
+  - Gathers blob texture options from image and video selects
+  - Resolves asset paths using existing `resolveMediaPath()` function
+  - Updates UI controls based on result type
+  - Shows status messages with filenames
+
+- **`window.randomizeBackgroundWithGlass()`** - Glass effect bridge function
+  - Gathers background media options from both media types
+  - Resolves asset paths and calls core method
+  - Updates background selects, media tabs, glass checkbox
+  - Syncs opacity slider with random value
+  - Displays detailed status with opacity percentage
+
+### 🔧 Technical Details
+
+#### Implementation Patterns
+- **Core-first architecture** - All logic in core library, not playground
+- **Return objects** - Methods return detailed info for UI synchronization
+- **Graceful degradation** - Handles edge cases (empty arrays, missing options)
+- **Existing method reuse** - Leverages established blob and background APIs
+- **Path resolution** - Uses playground's asset resolution system
+- **UI synchronization** - Automatic updates to all related controls
+
+#### User Experience
+- **One-click randomization** - Instant visual variety with single button press
+- **Visual feedback** - Status messages show what was applied
+- **Glass effect creativity** - Random opacity creates unique transparency effects
+- **Media variety** - Combines images and videos for maximum options
+- **Smart fallbacks** - Always produces a result even with limited options
+
 ## [2.2.5] - 2025-11-05
 
 ### 🐛 Fixed

@@ -1193,7 +1193,9 @@ export class KwamiBody {
       this.backgroundMediaPlane.position.copy(mediaPosition);
       this.backgroundMediaPlane.quaternion.copy(this.camera.quaternion);
 
-      const mediaViewportHeight = 2 * Math.tan(fovRadians / 2) * MEDIA_PLANE_DISTANCE;
+      // Add extra scale factor to ensure full coverage
+      const scaleFactor = 1.5;
+      const mediaViewportHeight = 2 * Math.tan(fovRadians / 2) * MEDIA_PLANE_DISTANCE * scaleFactor;
       const mediaViewportWidth = mediaViewportHeight * this.camera.aspect;
 
       let planeWidth = mediaViewportWidth;
@@ -1238,7 +1240,10 @@ export class KwamiBody {
       this.backgroundPlane.position.copy(gradientPosition);
       this.backgroundPlane.quaternion.copy(this.camera.quaternion);
 
-      const gradientViewportHeight = 2 * Math.tan(fovRadians / 2) * GRADIENT_PLANE_DISTANCE;
+      // Calculate the viewport size at the plane distance
+      // Add extra scale factor to ensure full coverage even at edges
+      const scaleFactor = 1.5; // Ensure full coverage
+      const gradientViewportHeight = 2 * Math.tan(fovRadians / 2) * GRADIENT_PLANE_DISTANCE * scaleFactor;
       const gradientViewportWidth = gradientViewportHeight * this.camera.aspect;
 
       this.backgroundPlane.scale.set(
