@@ -28,8 +28,8 @@ export function setupScene(canvas: HTMLCanvasElement, config?: SceneConfig) {
   scene.add(lights.bottom);
   scene.add(lights.ambient);
 
-  // Optional orbit controls
-  const controls = config?.enableControls !== false
+  // Optional orbit controls (disabled by default to keep backgrounds stationary)
+  const controls = config?.enableControls === true
     ? createControls(camera, renderer)
     : null;
 

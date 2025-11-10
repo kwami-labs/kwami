@@ -651,6 +651,25 @@
       <h2>🎨 Body</h2>
       <p class="subtitle">Visual Configuration</p>
 
+      <!-- Quick Variations -->
+      <div class="section">
+        <div class="section-title">⚡ Quick Variants</div>
+        <div class="parameter-group">
+          <div class="button-row">
+            <button class="button-secondary" onclick="randomizeBlob()" title="Randomize blob shape and colors">🎲 Random Blob</button>
+            <button class="button-secondary" onclick="randomizeBackground()" title="Generate random gradient colors">🎨 Random Gradient</button>
+          </div>
+          <div class="button-row" style="margin-top: 8px;">
+            <button class="button-secondary" onclick="randomizeMediaSelection('image')" title="Select random background image">🖼️ Random Image</button>
+            <button class="button-secondary" onclick="randomizeMediaSelection('video')" title="Select random background video">🎥 Random Video</button>
+          </div>
+          <div class="button-row" style="margin-top: 8px;">
+            <button class="button-secondary" onclick="randomize3DTexture()" title="Randomize blob surface texture">🎲 Random 3D Texture</button>
+            <button class="button-secondary" onclick="randomizeBackgroundWithGlass()" title="Random background with glass effect">🪟 Random Glass</button>
+          </div>
+        </div>
+      </div>
+
       <div class="section">
         <div class="section-title">🌈 Background</div>
         
@@ -701,8 +720,6 @@
               <input type="color" id="bg-color-3" value="#f093fb">
             </div>
           </div>
-
-          <button class="button-secondary" onclick="randomizeBackground()">🎲 Random Gradient</button>
         </div>
 
         <div class="parameter-group">
@@ -773,11 +790,6 @@
               <button class="button-secondary" type="button" onclick="clearMediaSelection('video')">🚫 Clear Video</button>
             </div>
           </div>
-        </div>
-
-        <div class="parameter-group" style="margin-top: 20px;">
-          <div class="parameter-group-title">Quick Variations</div>
-          <button class="button-secondary" onclick="randomizeBlob()">🎲 Randomize Blob</button>
         </div>
       </div>
 
