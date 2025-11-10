@@ -261,6 +261,10 @@ export class KwamiBody {
     this.renderer.setPixelRatio(pixelRatio);
     this.renderer.setSize(width, height, false);
 
+    // Force canvas CSS size to match computed size to avoid transparent gaps
+    this.canvas.style.width = `${width}px`;
+    this.canvas.style.height = `${height}px`;
+
     // Update camera aspect ratio
     this.camera.aspect = width / height;
     this.camera.updateProjectionMatrix();
