@@ -1079,8 +1079,6 @@ function setMediaType(type, { silent = false } = {}) {
 }
 
 window.randomizeBackground = function() {
-  if (!window.kwami || !window.kwami.body) return;
-
   // Generate random colors
   const randomColor = () => '#' + Math.floor(Math.random() * 16777215).toString(16).padStart(6, '0');
   const colors = [randomColor(), randomColor(), randomColor()];
@@ -1092,7 +1090,7 @@ window.randomizeBackground = function() {
   const c2 = document.getElementById('bg-color-2'); if (c2) c2.value = colors[1];
   const c3 = document.getElementById('bg-color-3'); if (c3) c3.value = colors[2];
 
-  // Randomize gradient layout
+  // Randomize gradient layout and write values to inputs
   const layout = randomizeGradientLayout({ updateInputs: true });
 
   // Choose between linear or radial (omit unsupported 'random' style here)
@@ -1112,18 +1110,13 @@ window.randomizeBackground = function() {
   } else {
     opacityStr = '1.00';
   }
-  const opacity = parseFloat(opacityStr);
 
   const opacitySlider = document.getElementById('bg-opacity');
   if (opacitySlider) opacitySlider.value = opacityStr;
   updateValueDisplay('bg-opacity-value', opacityStr, 2);
 
-  // Apply via Three.js Body
-  if (selectedStyle === 'radial') {
-    window.kwami.body.setBackgroundGradient(colors, { direction: 'radial', stops: layout.stops, opacity });
-  } else {
-    window.kwami.body.setBackgroundGradient(colors, { angle: layout.angle, stops: layout.stops, opacity });
-  }
+  // Apply using the same pathway as manual controls (ensures DOM overlay/scene sync)
+  applyBackground();
 
   updateStatus(`🎲 ${selectedStyle === 'radial' ? 'Radial' : 'Linear'} gradient randomized!`);
 };
