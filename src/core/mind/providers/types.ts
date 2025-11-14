@@ -98,4 +98,3 @@ export interface MindProvider {
   dispose(): void;
   updateConfig(config: MindConfig): void;
 }
-

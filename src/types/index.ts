@@ -180,10 +180,30 @@ export type MindProviderType =
   | 'bland'
   | 'synthflow';
 
+export interface OpenAISpeechConfig {
+  model?: string;
+  voice?: string;
+  format?: 'mp3' | 'wav' | 'pcm';
+}
+
+export interface OpenAIRealtimeConfig {
+  model?: string;
+  url?: string;
+  apiKey?: string;
+}
+
+export interface OpenAIProviderConfig {
+  apiKey?: string;
+  baseUrl?: string;
+  speech?: OpenAISpeechConfig;
+  realtime?: OpenAIRealtimeConfig;
+}
+
 export interface MindConfig {
   // Authentication
   apiKey?: string; // ElevenLabs API key (or from env)
   provider?: MindProviderType;
+  openai?: OpenAIProviderConfig;
   
   // Voice configuration
   voice?: {
@@ -217,6 +237,22 @@ export interface MindConfig {
 }
 
 /**
+ * Emotional trait spectrum values (-100 to +100)
+ */
+export interface EmotionalTraits {
+  happiness: number;     // -100 (deep sadness) to +100 (extreme joy)
+  energy: number;        // -100 (exhausted) to +100 (hyper-energetic)
+  confidence: number;    // -100 (anxious) to +100 (overly confident)
+  calmness: number;      // -100 (rage-prone) to +100 (extremely calm)
+  optimism: number;      // -100 (pessimistic) to +100 (blindly optimistic)
+  socialness: number;    // -100 (shy) to +100 (extremely extroverted)
+  creativity: number;    // -100 (rigid) to +100 (wildly creative)
+  patience: number;      // -100 (impatient) to +100 (infinite patience)
+  empathy: number;       // -100 (selfish) to +100 (extreme empathy)
+  curiosity: number;     // -100 (indifferent) to +100 (insatiable curiosity)
+}
+
+/**
  * AI Soul (personality) configuration
  */
 export interface SoulConfig {
@@ -224,6 +260,7 @@ export interface SoulConfig {
   personality?: string; // Overall personality description
   systemPrompt?: string; // Base AI instructions for behavior
   traits?: string[]; // Array of personality characteristics
+  emotionalTraits?: EmotionalTraits; // Emotional trait spectrum values (-100 to +100)
   language?: string; // Preferred communication language
   conversationStyle?: string; // Tone and style guidelines (e.g., 'friendly', 'professional')
   responseLength?: 'short' | 'medium' | 'long'; // Preferred response verbosity

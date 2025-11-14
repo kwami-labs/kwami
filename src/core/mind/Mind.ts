@@ -1,6 +1,6 @@
-import type {
-  MindConfig,
-  VoiceSettings,
+import type { 
+  MindConfig, 
+  VoiceSettings, 
   AdvancedTTSOptions,
   ConversationalAISettings,
   STTConfig,
@@ -57,12 +57,12 @@ export class KwamiMind {
   }
 
   async speak(text: string, systemPrompt?: string): Promise<void> {
-    const processedText = this.applyPronunciations(text);
+      const processedText = this.applyPronunciations(text);
     await this.provider.speak(processedText, { systemPrompt });
   }
 
   async startConversation(
-    systemPrompt?: string,
+    systemPrompt?: string, 
     callbacks?: MindConversationCallbacks
   ): Promise<void> {
     const resolvedPrompt = systemPrompt ?? this.getSystemPromptForConversation();
@@ -373,7 +373,7 @@ export class KwamiMind {
       ...this.config.pronunciation,
       ...config,
     };
-
+    
     if (config.dictionary) {
       this.pronunciationDictionary.clear();
       if (config.dictionary instanceof Map) {

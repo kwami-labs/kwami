@@ -38,7 +38,7 @@ export class Kwami {
    * @returns The version string (e.g., "2.2.0")
    */
   static getVersion(): string {
-    return '2.2.7';
+    return '1.3.0';
   }
 
   constructor(canvas: HTMLCanvasElement, config?: KwamiConfig) {
