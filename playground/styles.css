@@ -883,6 +883,41 @@ button:disabled {
   opacity: 0.8;
 }
 
+.trait-slider-container {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-top: 8px;
+}
+
+.trait-slider-container input[type="range"] {
+  flex: 1;
+}
+
+.trait-emoji-left,
+.trait-emoji-right {
+  font-size: 20px;
+  user-select: none;
+  opacity: 0.7;
+  transition: opacity 0.2s ease, transform 0.2s ease;
+}
+
+.trait-emoji-left {
+  text-align: right;
+  min-width: 30px;
+}
+
+.trait-emoji-right {
+  text-align: left;
+  min-width: 30px;
+}
+
+.trait-slider-container:hover .trait-emoji-left,
+.trait-slider-container:hover .trait-emoji-right {
+  opacity: 1;
+  transform: scale(1.1);
+}
+
 .parameter-group-title {
   font-size: 11px;
   font-weight: 600;

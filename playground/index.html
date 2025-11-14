@@ -802,15 +802,15 @@
           <p class="parameter-info">Control how much the blob stretches along each axis.</p>
           <div class="slider-control">
             <label>X <span class="value-display" id="spike-x-value">0.2</span></label>
-            <input type="range" id="spike-x" min="0" max="20" step="0.1" value="0.2">
+            <input type="range" id="spike-x" min="0" max="25" step="0.1" value="0.2">
           </div>
           <div class="slider-control">
             <label>Y <span class="value-display" id="spike-y-value">0.2</span></label>
-            <input type="range" id="spike-y" min="0" max="20" step="0.1" value="0.2">
+            <input type="range" id="spike-y" min="0" max="25" step="0.1" value="0.2">
           </div>
           <div class="slider-control">
             <label>Z <span class="value-display" id="spike-z-value">0.2</span></label>
-            <input type="range" id="spike-z" min="0" max="20" step="0.1" value="0.2">
+            <input type="range" id="spike-z" min="0" max="25" step="0.1" value="0.2">
           </div>
         </div>
 
@@ -819,15 +819,15 @@
           <p class="parameter-info">Change how quickly the blob cycles through its movement.</p>
           <div class="slider-control">
             <label>X <span class="value-display" id="time-x-value">1.0</span></label>
-            <input type="range" id="time-x" min="0" max="5" step="0.1" value="1">
+            <input type="range" id="time-x" min="0" max="25" step="0.1" value="5">
           </div>
           <div class="slider-control">
             <label>Y <span class="value-display" id="time-y-value">1.0</span></label>
-            <input type="range" id="time-y" min="0" max="5" step="0.1" value="1">
+            <input type="range" id="time-y" min="0" max="25" step="0.1" value="5">
           </div>
           <div class="slider-control">
             <label>Z <span class="value-display" id="time-z-value">1.0</span></label>
-            <input type="range" id="time-z" min="0" max="5" step="0.1" value="1">
+            <input type="range" id="time-z" min="0" max="25" step="0.1" value="5">
           </div>
         </div>
 
@@ -1177,28 +1177,53 @@
       <h2>✨ Soul</h2>
       <p class="subtitle">Personality Configuration</p>
 
+      <!-- Personality Selector -->
       <div class="section">
-        <div class="section-title">🎭 Personality</div>
-        <p class="about-text">Define who Kwami is - their character, traits, and communication style.</p>
+        <div class="section-title">🎭 Load Personality</div>
+        <p class="about-text">Select a preset personality or load a custom saved configuration.</p>
+        
+        <div class="input-group">
+          <label>Personality Template</label>
+          <select id="personality-selector" onchange="loadPersonalityFromSelector()">
+            <option value="">-- Select Personality --</option>
+            <optgroup label="📦 Built-in Templates">
+              <option value="friendly">😊 Kaya (Friendly)</option>
+              <option value="professional">💼 Nexus (Professional)</option>
+              <option value="playful">✨ Spark (Playful)</option>
+            </optgroup>
+            <optgroup label="💾 Saved Personalities" id="saved-personalities-group">
+              <!-- Dynamically populated from localStorage -->
+            </optgroup>
+          </select>
+        </div>
+
+        <div class="input-group">
+          <label>Current: <strong id="personality-name">Kwami</strong></label>
+        </div>
+      </div>
+
+      <!-- Basic Configuration -->
+      <div class="section">
+        <div class="section-title">⚙️ Basic Configuration</div>
         
         <div class="input-group">
           <label>Name</label>
-          <input type="text" id="soul-name" value="Kwami" placeholder="Kwami's name">
+          <input type="text" id="soul-name" value="Kwami" placeholder="Kwami's name" oninput="autoUpdateSoul()">
         </div>
 
         <div class="input-group">
           <label>Personality Description</label>
-          <textarea id="soul-personality" placeholder="Describe Kwami's personality...">Friendly, helpful, and curious AI companion with a playful spirit.</textarea>
+          <textarea id="soul-personality" placeholder="Describe Kwami's personality..." oninput="autoUpdateSoul()">Friendly, helpful, and curious AI companion.</textarea>
         </div>
 
         <div class="input-group">
           <label>System Prompt</label>
-          <textarea id="soul-system-prompt" placeholder="Base instructions for AI behavior..." style="min-height: 120px;">You are Kwami, a friendly AI companion. You are helpful, curious, and enjoy engaging conversations. Keep responses natural and concise.</textarea>
+          <textarea id="soul-system-prompt" placeholder="Base instructions for AI behavior..." style="min-height: 100px;" oninput="autoUpdateSoul()">You are Kwami, a friendly AI companion.</textarea>
         </div>
 
         <div class="input-group">
           <label>Response Length</label>
-          <select id="soul-response-length">
+          <select id="soul-response-length" onchange="autoUpdateSoul()">
             <option value="short">Short</option>
             <option value="medium" selected>Medium</option>
             <option value="long">Long</option>
@@ -1207,148 +1232,175 @@
 
         <div class="input-group">
           <label>Emotional Tone</label>
-          <select id="soul-emotional-tone">
+          <select id="soul-emotional-tone" onchange="autoUpdateSoul()">
             <option value="neutral">Neutral</option>
             <option value="warm" selected>Warm</option>
             <option value="enthusiastic">Enthusiastic</option>
             <option value="calm">Calm</option>
           </select>
         </div>
-
-        <button class="button-secondary" onclick="applySoulConfig()">✅ Apply Soul Config</button>
-      </div>
-
-      <div class="section">
-        <div class="section-title">🎨 Preset Personalities</div>
-        
-        <div class="personality-buttons">
-          <button class="button-secondary" onclick="loadPersonality('friendly')">😊 Kaya</button>
-          <button class="button-secondary" onclick="loadPersonality('professional')">💼 Nexus</button>
-          <button class="button-secondary" onclick="loadPersonality('playful')">✨ Spark</button>
-        </div>
-
-        <div class="input-group">
-          <label>Current Name: <span id="personality-name">Kwami</span></label>
-        </div>
       </div>
 
       <!-- Emotional Traits Section -->
       <div class="section">
         <div class="section-title">🎭 Emotional Traits</div>
-        <p class="about-text">Adjust emotional dimensions (-100 to +100). Each trait influences behavior and communication style.</p>
+        <p class="about-text">Adjust emotional dimensions (-100 to +100). Drag sliders to set each trait.</p>
         
-        <!-- Happiness -->
+        <!-- Happiness/Sadness -->
         <div class="parameter-group">
           <div class="parameter-label">
-            <span>😊 Happiness</span>
+            <span>Happiness / Sadness</span>
             <span id="happiness-value" class="parameter-value">0</span>
           </div>
-          <input type="range" id="happiness-slider" min="-100" max="100" value="0" step="1" 
-                 oninput="updateEmotionalTrait('happiness', this.value)">
-          <div class="trait-hint">-100: Deep sadness → +100: Extreme joy</div>
+          <div class="trait-slider-container">
+            <span class="trait-emoji-left">😢</span>
+            <input type="range" id="happiness-slider" min="-100" max="100" value="0" step="1" 
+                   oninput="updateEmotionalTrait('happiness', this.value)">
+            <span class="trait-emoji-right">😊</span>
+          </div>
         </div>
 
-        <!-- Energy -->
+        <!-- Energy/Exhaustion -->
         <div class="parameter-group">
           <div class="parameter-label">
-            <span>⚡ Energy</span>
+            <span>Energy / Exhaustion</span>
             <span id="energy-value" class="parameter-value">0</span>
           </div>
-          <input type="range" id="energy-slider" min="-100" max="100" value="0" step="1" 
-                 oninput="updateEmotionalTrait('energy', this.value)">
-          <div class="trait-hint">-100: Exhausted → +100: Hyper-energetic</div>
+          <div class="trait-slider-container">
+            <span class="trait-emoji-left">😴</span>
+            <input type="range" id="energy-slider" min="-100" max="100" value="0" step="1" 
+                   oninput="updateEmotionalTrait('energy', this.value)">
+            <span class="trait-emoji-right">⚡</span>
+          </div>
         </div>
 
-        <!-- Confidence -->
+        <!-- Confidence/Anxiety -->
         <div class="parameter-group">
           <div class="parameter-label">
-            <span>💪 Confidence</span>
+            <span>Confidence / Anxiety</span>
             <span id="confidence-value" class="parameter-value">0</span>
           </div>
-          <input type="range" id="confidence-slider" min="-100" max="100" value="0" step="1" 
-                 oninput="updateEmotionalTrait('confidence', this.value)">
-          <div class="trait-hint">-100: Anxious → +100: Overly confident</div>
+          <div class="trait-slider-container">
+            <span class="trait-emoji-left">😰</span>
+            <input type="range" id="confidence-slider" min="-100" max="100" value="0" step="1" 
+                   oninput="updateEmotionalTrait('confidence', this.value)">
+            <span class="trait-emoji-right">💪</span>
+          </div>
         </div>
 
-        <!-- Calmness -->
+        <!-- Calmness/Anger -->
         <div class="parameter-group">
           <div class="parameter-label">
-            <span>🧘 Calmness</span>
+            <span>Calmness / Anger</span>
             <span id="calmness-value" class="parameter-value">0</span>
           </div>
-          <input type="range" id="calmness-slider" min="-100" max="100" value="0" step="1" 
-                 oninput="updateEmotionalTrait('calmness', this.value)">
-          <div class="trait-hint">-100: Rage-prone → +100: Extremely calm</div>
+          <div class="trait-slider-container">
+            <span class="trait-emoji-left">😡</span>
+            <input type="range" id="calmness-slider" min="-100" max="100" value="0" step="1" 
+                   oninput="updateEmotionalTrait('calmness', this.value)">
+            <span class="trait-emoji-right">🧘</span>
+          </div>
         </div>
 
-        <!-- Optimism -->
+        <!-- Optimism/Pessimism -->
         <div class="parameter-group">
           <div class="parameter-label">
-            <span>🌟 Optimism</span>
+            <span>Optimism / Pessimism</span>
             <span id="optimism-value" class="parameter-value">0</span>
           </div>
-          <input type="range" id="optimism-slider" min="-100" max="100" value="0" step="1" 
-                 oninput="updateEmotionalTrait('optimism', this.value)">
-          <div class="trait-hint">-100: Pessimistic → +100: Blindly optimistic</div>
+          <div class="trait-slider-container">
+            <span class="trait-emoji-left">😞</span>
+            <input type="range" id="optimism-slider" min="-100" max="100" value="0" step="1" 
+                   oninput="updateEmotionalTrait('optimism', this.value)">
+            <span class="trait-emoji-right">🌟</span>
+          </div>
         </div>
 
-        <!-- Socialness -->
+        <!-- Socialness/Shyness -->
         <div class="parameter-group">
           <div class="parameter-label">
-            <span>🤝 Socialness</span>
+            <span>Socialness / Shyness</span>
             <span id="socialness-value" class="parameter-value">0</span>
           </div>
-          <input type="range" id="socialness-slider" min="-100" max="100" value="0" step="1" 
-                 oninput="updateEmotionalTrait('socialness', this.value)">
-          <div class="trait-hint">-100: Extremely shy → +100: Overly extroverted</div>
+          <div class="trait-slider-container">
+            <span class="trait-emoji-left">🙈</span>
+            <input type="range" id="socialness-slider" min="-100" max="100" value="0" step="1" 
+                   oninput="updateEmotionalTrait('socialness', this.value)">
+            <span class="trait-emoji-right">🤝</span>
+          </div>
         </div>
 
-        <!-- Creativity -->
+        <!-- Creativity/Rigidity -->
         <div class="parameter-group">
           <div class="parameter-label">
-            <span>🎨 Creativity</span>
+            <span>Creativity / Rigidity</span>
             <span id="creativity-value" class="parameter-value">0</span>
           </div>
-          <input type="range" id="creativity-slider" min="-100" max="100" value="0" step="1" 
-                 oninput="updateEmotionalTrait('creativity', this.value)">
-          <div class="trait-hint">-100: Rigid → +100: Wildly creative</div>
+          <div class="trait-slider-container">
+            <span class="trait-emoji-left">📏</span>
+            <input type="range" id="creativity-slider" min="-100" max="100" value="0" step="1" 
+                   oninput="updateEmotionalTrait('creativity', this.value)">
+            <span class="trait-emoji-right">🎨</span>
+          </div>
         </div>
 
-        <!-- Patience -->
+        <!-- Patience/Impatience -->
         <div class="parameter-group">
           <div class="parameter-label">
-            <span>⏳ Patience</span>
+            <span>Patience / Impatience</span>
             <span id="patience-value" class="parameter-value">0</span>
           </div>
-          <input type="range" id="patience-slider" min="-100" max="100" value="0" step="1" 
-                 oninput="updateEmotionalTrait('patience', this.value)">
-          <div class="trait-hint">-100: Impatient → +100: Infinite patience</div>
+          <div class="trait-slider-container">
+            <span class="trait-emoji-left">⏱️</span>
+            <input type="range" id="patience-slider" min="-100" max="100" value="0" step="1" 
+                   oninput="updateEmotionalTrait('patience', this.value)">
+            <span class="trait-emoji-right">⏳</span>
+          </div>
         </div>
 
-        <!-- Empathy -->
+        <!-- Empathy/Selfishness -->
         <div class="parameter-group">
           <div class="parameter-label">
-            <span>💖 Empathy</span>
+            <span>Empathy / Selfishness</span>
             <span id="empathy-value" class="parameter-value">0</span>
           </div>
-          <input type="range" id="empathy-slider" min="-100" max="100" value="0" step="1" 
-                 oninput="updateEmotionalTrait('empathy', this.value)">
-          <div class="trait-hint">-100: Selfish → +100: Extreme empathy</div>
+          <div class="trait-slider-container">
+            <span class="trait-emoji-left">🙅</span>
+            <input type="range" id="empathy-slider" min="-100" max="100" value="0" step="1" 
+                   oninput="updateEmotionalTrait('empathy', this.value)">
+            <span class="trait-emoji-right">💖</span>
+          </div>
         </div>
 
-        <!-- Curiosity -->
+        <!-- Curiosity/Indifference -->
         <div class="parameter-group">
           <div class="parameter-label">
-            <span>🔍 Curiosity</span>
+            <span>Curiosity / Indifference</span>
             <span id="curiosity-value" class="parameter-value">0</span>
           </div>
-          <input type="range" id="curiosity-slider" min="-100" max="100" value="0" step="1" 
-                 oninput="updateEmotionalTrait('curiosity', this.value)">
-          <div class="trait-hint">-100: Indifferent → +100: Insatiable curiosity</div>
+          <div class="trait-slider-container">
+            <span class="trait-emoji-left">😑</span>
+            <input type="range" id="curiosity-slider" min="-100" max="100" value="0" step="1" 
+                   oninput="updateEmotionalTrait('curiosity', this.value)">
+            <span class="trait-emoji-right">🔍</span>
+          </div>
         </div>
 
-        <button class="button-secondary" onclick="applyEmotionalTraits()">✅ Apply Emotional Traits</button>
         <button class="button-secondary" onclick="resetEmotionalTraits()">🔄 Reset to Neutral</button>
+      </div>
+
+      <!-- Save Configuration Section -->
+      <div class="section">
+        <div class="section-title">💾 Save Configuration</div>
+        <p class="about-text">Save your custom personality configuration for future use.</p>
+        
+        <div class="input-group">
+          <label>Configuration Name</label>
+          <input type="text" id="save-config-name" placeholder="My Custom Personality" value="">
+        </div>
+
+        <button class="button-primary" onclick="savePersonalityConfig()">💾 Save Personality</button>
+        <button class="button-secondary" onclick="deleteSavedPersonality()">🗑️ Delete Selected</button>
       </div>
     </div>
   </template>

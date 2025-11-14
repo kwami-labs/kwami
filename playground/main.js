@@ -618,28 +618,31 @@ function initializeSoulControls() {
 }
 
 // Soul configuration function
-window.applySoulConfig = function() {
-  const name = document.getElementById('soul-name')?.value || 'Kwami';
-  const personality = document.getElementById('soul-personality')?.value || '';
-  const systemPrompt = document.getElementById('soul-system-prompt')?.value || '';
-  const responseLength = document.getElementById('soul-response-length')?.value || 'medium';
-  const emotionalTone = document.getElementById('soul-emotional-tone')?.value || 'warm';
-  
-  if (window.kwami && window.kwami.soul) {
-    window.kwami.soul.config.name = name;
-    window.kwami.soul.config.personality = personality;
-    window.kwami.soul.config.systemPrompt = systemPrompt;
-    window.kwami.soul.config.responseLength = responseLength;
-    window.kwami.soul.config.emotionalTone = emotionalTone;
+// Auto-update Soul configuration as user types (debounced)
+let soulUpdateTimeout;
+window.autoUpdateSoul = function() {
+  clearTimeout(soulUpdateTimeout);
+  soulUpdateTimeout = setTimeout(() => {
+    if (!window.kwami || !window.kwami.soul) return;
     
-    // Update personality name display if it exists
+    const name = document.getElementById('soul-name')?.value || 'Kwami';
+    const personality = document.getElementById('soul-personality')?.value || '';
+    const systemPrompt = document.getElementById('soul-system-prompt')?.value || '';
+    const responseLength = document.getElementById('soul-response-length')?.value || 'medium';
+    const emotionalTone = document.getElementById('soul-emotional-tone')?.value || 'warm';
+    
+    window.kwami.soul.updateConfig({
+      name,
+      personality,
+      systemPrompt,
+      responseLength,
+      emotionalTone
+    });
+    
+    // Update display
     const nameDisplay = document.getElementById('personality-name');
-    if (nameDisplay) {
-      nameDisplay.textContent = name;
-    }
-    
-    updateStatus(`✅ Soul configuration applied for ${name}!`);
-  }
+    if (nameDisplay) nameDisplay.textContent = name;
+  }, 300);
 };
 
 // Default values for body parameters
@@ -2437,37 +2440,35 @@ window.loadPersonality = async function(type) {
     // Use the library's preset method instead of loading JSON files
     window.kwami.soul.loadPresetPersonality(type);
     
-    const name = window.kwami.soul.getName();
-    document.getElementById('personality-name').textContent = name;
+    const config = window.kwami.soul.getConfig();
     
-    // Update Soul UI if visible
-    const soulName = document.getElementById('soul-name');
-    if (soulName) soulName.value = name;
-    
-    const soulPersonality = document.getElementById('soul-personality');
-    if (soulPersonality) {
-      const config = window.kwami.soul.getConfig();
-      soulPersonality.value = config.personality || '';
-    }
+    // Update all Soul UI fields
+    updateSoulUIFromConfig(config);
     
     // Update emotional trait sliders from loaded personality
     updateEmotionalTraitSliders();
     
-    updateStatus(`✅ Loaded ${name} personality!`);
+    updateStatus(`✅ Loaded ${config.name} personality!`);
   } catch (error) {
     showError('Failed to load personality: ' + error.message);
   }
 };
 
-// Update emotional trait value display
+// Update emotional trait value display and auto-apply
 window.updateEmotionalTrait = function(trait, value) {
   const valueDisplay = document.getElementById(`${trait}-value`);
   if (valueDisplay) {
     valueDisplay.textContent = value;
   }
+  
+  // Auto-apply the trait change
+  if (window.kwami && window.kwami.soul) {
+    window.kwami.soul.setEmotionalTrait(trait, parseInt(value));
+  }
 };
 
-// Apply all emotional traits to Soul
+// Note: Emotional traits are now auto-applied as sliders change
+// This function is kept for backward compatibility but may not be needed
 window.applyEmotionalTraits = function() {
   if (!window.kwami || !window.kwami.soul) {
     showError('Soul not initialized');
@@ -3239,5 +3240,183 @@ if (typeof setupAgentSliderListeners === 'function') {
 setTimeout(() => {
   if (window.kwami && window.kwami.soul) {
     updateEmotionalTraitSliders();
+    loadSavedPersonalitiesIntoSelector();
   }
 }, 500);
+
+// LocalStorage key for saved personalities
+const STORAGE_KEY = 'kwami_saved_personalities';
+
+// Load personality from selector
+window.loadPersonalityFromSelector = function() {
+  const selector = document.getElementById('personality-selector');
+  if (!selector) return;
+  
+  const value = selector.value;
+  if (!value) return;
+  
+  // Check if it's a built-in template
+  if (['friendly', 'professional', 'playful'].includes(value)) {
+    window.loadPersonality(value);
+    return;
+  }
+  
+  // Load from localStorage
+  loadSavedPersonality(value);
+};
+
+// Save current personality configuration
+window.savePersonalityConfig = function() {
+  if (!window.kwami || !window.kwami.soul) {
+    showError('Soul not initialized');
+    return;
+  }
+  
+  const nameInput = document.getElementById('save-config-name');
+  const name = nameInput?.value.trim();
+  
+  if (!name) {
+    showError('Please enter a name for this personality');
+    return;
+  }
+  
+  try {
+    // Get current configuration
+    const config = window.kwami.soul.createSnapshot();
+    
+    // Get existing saved personalities
+    const saved = getSavedPersonalities();
+    
+    // Add or update this personality
+    saved[name] = config;
+    
+    // Save to localStorage
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(saved));
+    
+    // Update selector
+    loadSavedPersonalitiesIntoSelector();
+    
+    // Clear input
+    if (nameInput) nameInput.value = '';
+    
+    updateStatus(`💾 Saved personality: ${name}`);
+  } catch (error) {
+    showError('Failed to save personality: ' + error.message);
+  }
+};
+
+// Load a saved personality from localStorage
+function loadSavedPersonality(name) {
+  try {
+    const saved = getSavedPersonalities();
+    const config = saved[name];
+    
+    if (!config) {
+      showError(`Personality "${name}" not found`);
+      return;
+    }
+    
+    // Load the configuration
+    if (window.kwami && window.kwami.soul) {
+      window.kwami.soul.setPersonality(config);
+      
+      // Update UI
+      updateSoulUIFromConfig(config);
+      updateEmotionalTraitSliders();
+      
+      updateStatus(`✅ Loaded saved personality: ${name}`);
+    }
+  } catch (error) {
+    showError('Failed to load personality: ' + error.message);
+  }
+}
+
+// Delete selected saved personality
+window.deleteSavedPersonality = function() {
+  const selector = document.getElementById('personality-selector');
+  if (!selector) return;
+  
+  const value = selector.value;
+  if (!value || ['friendly', 'professional', 'playful'].includes(value)) {
+    showError('Please select a saved personality to delete');
+    return;
+  }
+  
+  if (!confirm(`Delete personality "${value}"?`)) {
+    return;
+  }
+  
+  try {
+    const saved = getSavedPersonalities();
+    delete saved[value];
+    
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(saved));
+    
+    // Reset selector
+    selector.value = '';
+    
+    // Reload saved personalities in selector
+    loadSavedPersonalitiesIntoSelector();
+    
+    updateStatus(`🗑️ Deleted personality: ${value}`);
+  } catch (error) {
+    showError('Failed to delete personality: ' + error.message);
+  }
+};
+
+// Get all saved personalities from localStorage
+function getSavedPersonalities() {
+  try {
+    const saved = localStorage.getItem(STORAGE_KEY);
+    return saved ? JSON.parse(saved) : {};
+  } catch (error) {
+    console.error('Error reading saved personalities:', error);
+    return {};
+  }
+}
+
+// Load saved personalities into the selector dropdown
+function loadSavedPersonalitiesIntoSelector() {
+  const group = document.getElementById('saved-personalities-group');
+  if (!group) return;
+  
+  // Clear existing options
+  group.innerHTML = '';
+  
+  const saved = getSavedPersonalities();
+  const names = Object.keys(saved);
+  
+  if (names.length === 0) {
+    const option = document.createElement('option');
+    option.value = '';
+    option.textContent = '(No saved personalities)';
+    option.disabled = true;
+    group.appendChild(option);
+    return;
+  }
+  
+  // Add saved personalities
+  names.sort().forEach(name => {
+    const option = document.createElement('option');
+    option.value = name;
+    option.textContent = `💾 ${name}`;
+    group.appendChild(option);
+  });
+}
+
+// Update Soul UI fields from configuration
+function updateSoulUIFromConfig(config) {
+  const nameInput = document.getElementById('soul-name');
+  const personalityInput = document.getElementById('soul-personality');
+  const systemPromptInput = document.getElementById('soul-system-prompt');
+  const responseLengthSelect = document.getElementById('soul-response-length');
+  const emotionalToneSelect = document.getElementById('soul-emotional-tone');
+  const nameDisplay = document.getElementById('personality-name');
+  
+  if (nameInput) nameInput.value = config.name || 'Kwami';
+  if (personalityInput) personalityInput.value = config.personality || '';
+  if (systemPromptInput) systemPromptInput.value = config.systemPrompt || '';
+  if (responseLengthSelect) responseLengthSelect.value = config.responseLength || 'medium';
+  if (emotionalToneSelect) emotionalToneSelect.value = config.emotionalTone || 'warm';
+  if (nameDisplay) nameDisplay.textContent = config.name || 'Kwami';
+}
