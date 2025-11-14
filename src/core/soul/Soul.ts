@@ -1,4 +1,4 @@
-import type { SoulConfig } from '../types/index';
+import type { SoulConfig } from '../../types/index';
 
 /**
  * KwamiSoul - Manages the personality and behavioral characteristics of Kwami

@@ -785,8 +785,16 @@ const BACKGROUND_IMAGES = [
   'src/assets/img/white-tree.jpg'
 ];
 
-const imageModules = import.meta.glob('../src/assets/img/*', { as: 'url', eager: true });
-const videoModules = import.meta.glob('../src/assets/vid/*', { as: 'url', eager: true });
+const imageModules = import.meta.glob('../src/assets/img/*', {
+  query: '?url',
+  import: 'default',
+  eager: true,
+});
+const videoModules = import.meta.glob('../src/assets/vid/*', {
+  query: '?url',
+  import: 'default',
+  eager: true,
+});
 
 function buildAssetMap(modules) {
   const map = {};
@@ -1353,6 +1361,11 @@ function applyBackground() {
   const stop2Percent = Math.max(stop1Percent, Math.min(100, Number.isFinite(stop2PercentRaw) ? stop2PercentRaw : DEFAULT_BACKGROUND.stops[2] * 100));
 
   const gradientStyle = document.getElementById('bg-gradient-style')?.value ?? DEFAULT_BACKGROUND.style;
+
+  // Ensure gradient mode takes over if media was previously selected
+  if (currentMediaType !== 'none') {
+    setMediaType('none', { silent: true });
+  }
   
   // In the playground, render gradient via DOM overlay to guarantee full-viewport coverage during sidebar transitions
   const { gradientElement, mediaContainer } = getBackgroundElements();

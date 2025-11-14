@@ -1,4 +1,4 @@
-import type { AudioConfig } from '../types/index';
+import type { AudioConfig } from '../../types/index';
 
 /**
  * KwamiAudio - Manages audio playback and frequency analysis for Kwami

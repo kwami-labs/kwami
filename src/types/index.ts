@@ -1,5 +1,5 @@
 import type { Scene, PerspectiveCamera, WebGLRenderer } from 'three';
-import type { KwamiAudio } from '../core/Audio';
+import type { KwamiAudio } from '../core/body/Audio';
 
 /**
  * Kwami states representing different modes of operation

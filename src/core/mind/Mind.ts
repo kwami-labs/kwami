@@ -26,8 +26,8 @@ import type {
   ConversationTokenResponse,
   ConversationSignedUrlOptions,
   ConversationSignedUrlResponse
-} from '../types/index';
-import type { KwamiAudio } from './Audio';
+} from '../../types/index';
+import type { KwamiAudio } from '../body/Audio';
 
 /**
  * KwamiMind - Manages AI capabilities and voice interactions using ElevenLabs

@@ -1,6 +1,6 @@
-import { KwamiBody } from './Body';
-import { KwamiMind } from './Mind';
-import { KwamiSoul } from './Soul';
+import { KwamiBody } from './body/Body';
+import { KwamiMind } from './mind/Mind';
+import { KwamiSoul } from './soul/Soul';
 import type { KwamiConfig, KwamiState } from '../types/index';
 
 /**
