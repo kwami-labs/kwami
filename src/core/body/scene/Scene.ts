@@ -1,7 +1,7 @@
 import {
   WebGLRenderer,
   PerspectiveCamera,
-  Scene,
+  Scene as ThreeScene,
   DirectionalLight,
   AmbientLight,
   PCFSoftShadowMap,
@@ -9,31 +9,33 @@ import {
   CanvasTexture,
 } from 'three';
 import { OrbitControls } from 'three/addons/controls/OrbitControls';
-import type { SceneConfig } from '../types';
+import type { SceneConfig } from '../../../types';
 
 /**
- * Setup the THREE.js scene with renderer, camera, lights, and optional controls
+ * Scene - Manages the THREE.js scene configuration for Kwami
  */
-export function setupScene(canvas: HTMLCanvasElement, config?: SceneConfig) {
-  const renderer = createRenderer(canvas, config);
-  const camera = createCamera(canvas, config);
-  const scene = new Scene();
-  const lights = createLights(config);
+export class Scene {
+  public renderer: WebGLRenderer;
+  public camera: PerspectiveCamera;
+  public scene: ThreeScene;
+  public lights: ReturnType<typeof createLights>;
+  public controls: OrbitControls | null;
 
-  // Configure scene background
-  applySceneBackground(scene, config);
+  constructor(canvas: HTMLCanvasElement, config?: SceneConfig) {
+    this.renderer = createRenderer(canvas, config);
+    this.camera = createCamera(canvas, config);
+    this.scene = new ThreeScene();
+    this.lights = createLights(config);
 
-  // Add lights to scene
-  scene.add(lights.top);
-  scene.add(lights.bottom);
-  scene.add(lights.ambient);
+    applySceneBackground(this.scene, config);
+    this.scene.add(this.lights.top);
+    this.scene.add(this.lights.bottom);
+    this.scene.add(this.lights.ambient);
 
-  // Optional orbit controls (disabled by default to keep backgrounds stationary)
-  const controls = config?.enableControls === true
-    ? createControls(camera, renderer)
-    : null;
-
-  return { renderer, camera, scene, lights, controls };
+    this.controls = config?.enableControls === true
+      ? createControls(this.camera, this.renderer)
+      : null;
+  }
 }
 
 /**
@@ -150,7 +152,7 @@ function createControls(
 /**
  * Apply background configuration to the scene
  */
-function applySceneBackground(scene: Scene, config?: SceneConfig) {
+function applySceneBackground(scene: ThreeScene, config?: SceneConfig) {
   const bgConfig = config?.background;
   
   if (!bgConfig || bgConfig.type === 'transparent') {

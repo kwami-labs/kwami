@@ -21,8 +21,8 @@ import {
   getRandomBoolean,
   getRandomHexColor,
   genDNA,
-} from '../utils/randoms';
-import type { BlobOptions, BlobSkinKey, BlobSkinType } from '../types';
+} from '../../../utils/randoms';
+import type { BlobOptions, BlobSkinKey, BlobSkinType } from '../../../types';
 
 const SKIN_ALIAS_MAP: Record<string, BlobSkinKey> = {
   tricolor: 'tricolor',

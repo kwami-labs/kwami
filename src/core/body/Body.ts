@@ -1,7 +1,7 @@
 import type {
   WebGLRenderer,
   PerspectiveCamera,
-  Scene,
+  Scene as ThreeScene,
 } from 'three';
 import {
   Color,
@@ -20,9 +20,9 @@ import {
   LinearFilter,
 } from 'three';
 import { KwamiAudio } from './Audio';
-import { Blob } from '../blob/Blob.js';
-import { setupScene } from '../scene/setup.js';
-import type { BackgroundMediaFit, BodyConfig, BlobSkinType, SceneBackgroundConfig } from '../types/index';
+import { Blob } from './blob/Blob.js';
+import { Scene } from './scene/Scene.js';
+import type { BackgroundMediaFit, BodyConfig, BlobSkinType, SceneBackgroundConfig } from '../../types/index';
 
 type BackgroundDirection = 'vertical' | 'horizontal' | 'radial' | 'diagonal';
 type BlobImageMode = 'none' | 'overlay' | 'glass';
@@ -106,7 +106,7 @@ export class KwamiBody {
   private canvas: HTMLCanvasElement;
   private renderer: WebGLRenderer;
   private camera: PerspectiveCamera;
-  private scene: Scene;
+  private scene: ThreeScene;
   private resizeObserver?: ResizeObserver;
   private usingWindowResizeListener = false;
   private resizeRafId: number | null = null;
@@ -118,6 +118,7 @@ export class KwamiBody {
   private backgroundMediaPlane: Mesh | null = null;
   private backgroundMediaTexture: Texture | null = null;
   private blobImageMode: BlobImageMode = 'none';
+  private gradientOverlayEnabled = false;
   private backgroundTexture: Texture | null = null;
   // Blob surface media (independent from background overlay)
   private blobSurfaceTexture: Texture | null = null;
@@ -143,7 +144,7 @@ export class KwamiBody {
     this.canvas = canvas;
 
     // Setup the 3D scene
-    const sceneSetup = setupScene(this.canvas, config?.scene);
+    const sceneSetup = new Scene(this.canvas, config?.scene);
     this.renderer = sceneSetup.renderer;
     this.camera = sceneSetup.camera;
     this.scene = sceneSetup.scene;
@@ -667,6 +668,17 @@ export class KwamiBody {
   }
 
   /**
+   * Force gradient overlays to render even when blob image transparency is off
+   */
+  setGradientOverlayEnabled(enabled: boolean): void {
+    if (this.gradientOverlayEnabled === enabled) {
+      return;
+    }
+    this.gradientOverlayEnabled = enabled;
+    this.applyBackgroundState();
+  }
+
+  /**
    * Get current background opacity
    */
   getBackgroundOpacity(): number {
@@ -818,7 +830,9 @@ export class KwamiBody {
     // IMPORTANT: Only use planes for media or glass/overlay effects
     // Gradients should ALWAYS use scene.background for proper viewport coverage
     const needsMediaPlane = hasMedia;
-    const needsGradientPlane = (this.blobImageMode !== 'none' && gradientOverlayActive) || (this.blobImageMode === 'glass');
+    const needsGradientPlane =
+      ((this.blobImageMode !== 'none' || this.gradientOverlayEnabled) && gradientOverlayActive) ||
+      (this.blobImageMode === 'glass');
 
     // Handle media planes (image/video)
     if (needsMediaPlane) {

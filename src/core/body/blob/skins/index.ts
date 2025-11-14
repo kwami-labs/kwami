@@ -2,7 +2,7 @@ import type { ShaderMaterial } from 'three';
 import { createTricolorSkin } from './tricolor';
 import { createTricolor2Skin } from './tricolor2';
 import { createZebraSkin } from './zebra';
-import type { BlobSkinType, TricolorSkinConfig, ZebraSkinConfig } from '../../types';
+import type { BlobSkinType, TricolorSkinConfig, ZebraSkinConfig } from '../../../../types';
 
 /**
  * Create a skin material based on type and configuration

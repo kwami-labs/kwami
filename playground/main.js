@@ -785,8 +785,16 @@ const BACKGROUND_IMAGES = [
   'src/assets/img/white-tree.jpg'
 ];
 
-const imageModules = import.meta.glob('../src/assets/img/*', { as: 'url', eager: true });
-const videoModules = import.meta.glob('../src/assets/vid/*', { as: 'url', eager: true });
+const imageModules = import.meta.glob('../src/assets/img/*', {
+  query: '?url',
+  import: 'default',
+  eager: true,
+});
+const videoModules = import.meta.glob('../src/assets/vid/*', {
+  query: '?url',
+  import: 'default',
+  eager: true,
+});
 
 function buildAssetMap(modules) {
   const map = {};
@@ -813,6 +821,7 @@ let prevBlobOpacityForGlass = null;
 let currentBackgroundImage = '';
 let currentBackgroundVideo = '';
 let currentMediaType = 'none';
+let gradientOverlayOptIn = false;
 
 // Default camera position
 const DEFAULT_CAMERA_POSITION = {
@@ -919,6 +928,15 @@ function getBackgroundElements() {
     videoElement: document.getElementById('background-media-video'),
     gradientElement: document.getElementById('background-gradient'),
   };
+}
+
+function syncGradientOverlayState() {
+  const body = window.kwami?.body;
+  if (!body || typeof body.setGradientOverlayEnabled !== 'function') {
+    return;
+  }
+  const wantsOverlay = gradientOverlayOptIn && currentMediaType !== 'none';
+  body.setGradientOverlayEnabled(wantsOverlay);
 }
 
 function generateRandomSpheresTexture(colors) {
@@ -1048,10 +1066,7 @@ function setMediaType(type, { silent = false } = {}) {
     setBackgroundVideo('', { silent: true });
     setBackgroundImage('', { silent: true });
     if (!silent) updateStatus('🧹 Background media cleared');
-    return;
-  }
-
-  if (type === 'image') {
+  } else if (type === 'image') {
     const videoSelect = document.getElementById('bg-media-video');
     if (videoSelect) videoSelect.value = '';
     setBackgroundVideo('', { silent: true });
@@ -1062,9 +1077,7 @@ function setMediaType(type, { silent = false } = {}) {
     } else {
       setBackgroundImage('', { silent: true });
     }
-  }
-
-  if (type === 'video') {
+  } else if (type === 'video') {
     const imageSelect = document.getElementById('bg-media-image');
     if (imageSelect) imageSelect.value = '';
     setBackgroundImage('', { silent: true });
@@ -1076,6 +1089,8 @@ function setMediaType(type, { silent = false } = {}) {
       setBackgroundVideo('', { silent: true });
     }
   }
+
+  syncGradientOverlayState();
 }
 
 window.randomizeBackground = function() {
@@ -1336,7 +1351,7 @@ window.randomizeBackgroundWithGlass = function() {
   updateValueDisplay('blob-opacity-value', result.opacity, 2);
 };
 
-function applyBackground() {
+function applyBackground({ skipGradientOverlayOptIn = false } = {}) {
   const opacity = parseFloat(document.getElementById('bg-opacity')?.value ?? DEFAULT_BACKGROUND.opacity);
 
   const colors = [
@@ -1351,15 +1366,46 @@ function applyBackground() {
 
   const stop1Percent = Math.max(0, Math.min(100, Number.isFinite(stop1PercentRaw) ? stop1PercentRaw : DEFAULT_BACKGROUND.stops[1] * 100));
   const stop2Percent = Math.max(stop1Percent, Math.min(100, Number.isFinite(stop2PercentRaw) ? stop2PercentRaw : DEFAULT_BACKGROUND.stops[2] * 100));
+  const percentStops = [0, stop1Percent, stop2Percent];
+  const normalizedStops = percentStops.map((stop) => Math.max(0, Math.min(100, stop)) / 100);
 
   const gradientStyle = document.getElementById('bg-gradient-style')?.value ?? DEFAULT_BACKGROUND.style;
-  
-  // In the playground, render gradient via DOM overlay to guarantee full-viewport coverage during sidebar transitions
+
+  if (!skipGradientOverlayOptIn) {
+    gradientOverlayOptIn = true;
+  }
+
+  const body = window.kwami?.body;
+  if (body) {
+    syncGradientOverlayState();
+
+    if (gradientStyle === 'random') {
+      body.setBackgroundSpheres(colors);
+      body.setBackgroundOpacity(opacity);
+    } else {
+      const gradientOptions = {
+        stops: normalizedStops,
+        opacity,
+      };
+      if (gradientStyle === 'radial') {
+        gradientOptions.direction = 'radial';
+      } else {
+        gradientOptions.angle = angleDegrees;
+      }
+      body.setBackgroundGradient(colors, gradientOptions);
+    }
+
+    const { gradientElement } = getBackgroundElements();
+    if (gradientElement) {
+      gradientElement.style.display = 'none';
+    }
+    return;
+  }
+
   const { gradientElement, mediaContainer } = getBackgroundElements();
   if (mediaContainer) mediaContainer.style.display = 'none';
   if (gradientElement) {
     let backgroundImage = '';
-    const percentStops = [0, stop1Percent, stop2Percent];
 
     if (gradientStyle === 'radial') {
       backgroundImage = `radial-gradient(circle, ${colors[0]} ${percentStops[0]}%, ${colors[1]} ${percentStops[1]}%, ${colors[2]} ${percentStops[2]}%)`;
@@ -1370,11 +1416,6 @@ function applyBackground() {
     gradientElement.style.backgroundImage = backgroundImage;
     gradientElement.style.opacity = `${opacity}`;
     gradientElement.style.display = 'block';
-  }
-
-  // Ensure Three.js background is transparent so DOM overlay shows through
-  if (window.kwami && window.kwami.body) {
-    window.kwami.body.setBackgroundTransparent();
   }
 }
 
@@ -1409,7 +1450,9 @@ window.resetBackground = function() {
   updateValueDisplay('bg-opacity-value', DEFAULT_BACKGROUND.opacity, 2);
 
   setMediaType('none', { silent: true });
-  applyBackground();
+  gradientOverlayOptIn = false;
+  syncGradientOverlayState();
+  applyBackground({ skipGradientOverlayOptIn: true });
   updateStatus('🔄 Background reset to defaults!');
 };
 
@@ -1581,7 +1624,7 @@ function initializeBackgroundControls() {
   }
 
   setMediaType('none', { silent: true });
-  applyBackground();
+  applyBackground({ skipGradientOverlayOptIn: true });
 }
 
 // Initialize sidebars first

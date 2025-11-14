@@ -26,24 +26,24 @@
 
 // Main exports
 export { Kwami } from './src/core/Kwami';
-export { KwamiBody } from './src/core/Body';
-export { KwamiAudio } from './src/core/Audio';
-export { KwamiMind } from './src/core/Mind';
-export { KwamiSoul } from './src/core/Soul';
-export { Blob } from './src/blob/Blob';
+export { KwamiBody } from './src/core/body/Body';
+export { KwamiAudio } from './src/core/body/Audio';
+export { KwamiMind } from './src/core/mind/Mind';
+export { KwamiSoul } from './src/core/soul/Soul';
+export { Blob } from './src/core/body/blob/Blob';
 
 // Utilities
 export * from './src/utils/randoms';
 export { default as SpeechSynthesisRecorder } from './src/utils/recorder';
 
 // Scene setup
-export { setupScene } from './src/scene/setup';
+export { Scene } from './src/core/body/scene/Scene';
 
 // Skins
-export { createSkin, createTricolorSkin, createZebraSkin } from './src/blob/skins';
+export { createSkin, createTricolorSkin, createZebraSkin } from './src/core/body/blob/skins';
 
 // Configuration
-export { defaultBlobConfig } from './src/blob/config';
+export { defaultBlobConfig } from './src/core/body/blob/config';
 
 // Types
 export type {

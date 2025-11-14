@@ -1,5 +1,5 @@
 import type { Scene, PerspectiveCamera, WebGLRenderer } from 'three';
-import type { KwamiAudio } from '../core/Audio';
+import type { KwamiAudio } from '../core/body/Audio';
 
 /**
  * Kwami states representing different modes of operation
@@ -172,9 +172,18 @@ export interface PronunciationConfig {
 /**
  * AI Mind configuration for ElevenLabs Voice Agent
  */
+export type MindProviderType =
+  | 'elevenlabs'
+  | 'openai'
+  | 'vapi'
+  | 'retell'
+  | 'bland'
+  | 'synthflow';
+
 export interface MindConfig {
   // Authentication
   apiKey?: string; // ElevenLabs API key (or from env)
+  provider?: MindProviderType;
   
   // Voice configuration
   voice?: {

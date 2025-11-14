@@ -1,20 +1,17 @@
 import { ShaderMaterial, Color, Vector3 } from 'three';
 import vertexShader from './vertex.glsl?raw';
 import fragmentShader from './fragment.glsl?raw';
-import type { ZebraSkinConfig, TricolorSkinConfig } from '../../../types/index';
+import type { TricolorSkinConfig } from '../../../../../types/index';
 
 /**
- * Create a zebra stripe shader material for the blob
- * Tricolor stripes with specular highlights
+ * Create a tricolor2 shader material for the blob
+ * Colors are distributed vertically like a donut:
+ * - Color 1 at the top
+ * - Color 2 in the middle (donut band)
+ * - Color 3 at the bottom
  */
-export function createZebraSkin(config: ZebraSkinConfig | TricolorSkinConfig): ShaderMaterial {
-  // If it's a TricolorSkinConfig, use its colors; otherwise use default colors
-  const colors = 'color1' in config 
-    ? { color1: config.color1, color2: config.color2, color3: config.color3 }
-    : { color1: '#ff0066', color2: '#00ff66', color3: '#6600ff' };
-
-  const opacity = 'opacity' in config ? config.opacity : 1;
-  const isTransparent = opacity < 0.999;
+export function createTricolor2Skin(config: TricolorSkinConfig): ShaderMaterial {
+  const isTransparent = config.opacity < 0.999;
 
   return new ShaderMaterial({
     vertexShader,
@@ -38,16 +35,16 @@ export function createZebraSkin(config: ZebraSkinConfig | TricolorSkinConfig): S
         value: new Color(0xFFFFFF),
       },
       _color1: {
-        value: new Color(colors.color1),
+        value: new Color(config.color1),
       },
       _color2: {
-        value: new Color(colors.color2),
+        value: new Color(config.color2),
       },
       _color3: {
-        value: new Color(colors.color3),
+        value: new Color(config.color3),
       },
       opacity: {
-        value: opacity,
+        value: config.opacity,
       },
       backgroundTexture: {
         value: null,
@@ -63,3 +60,4 @@ export function createZebraSkin(config: ZebraSkinConfig | TricolorSkinConfig): S
 }
 
 export { vertexShader, fragmentShader };
+
