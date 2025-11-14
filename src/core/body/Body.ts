@@ -118,6 +118,7 @@ export class KwamiBody {
   private backgroundMediaPlane: Mesh | null = null;
   private backgroundMediaTexture: Texture | null = null;
   private blobImageMode: BlobImageMode = 'none';
+  private gradientOverlayEnabled = false;
   private backgroundTexture: Texture | null = null;
   // Blob surface media (independent from background overlay)
   private blobSurfaceTexture: Texture | null = null;
@@ -667,6 +668,17 @@ export class KwamiBody {
   }
 
   /**
+   * Force gradient overlays to render even when blob image transparency is off
+   */
+  setGradientOverlayEnabled(enabled: boolean): void {
+    if (this.gradientOverlayEnabled === enabled) {
+      return;
+    }
+    this.gradientOverlayEnabled = enabled;
+    this.applyBackgroundState();
+  }
+
+  /**
    * Get current background opacity
    */
   getBackgroundOpacity(): number {
@@ -818,7 +830,9 @@ export class KwamiBody {
     // IMPORTANT: Only use planes for media or glass/overlay effects
     // Gradients should ALWAYS use scene.background for proper viewport coverage
     const needsMediaPlane = hasMedia;
-    const needsGradientPlane = (this.blobImageMode !== 'none' && gradientOverlayActive) || (this.blobImageMode === 'glass');
+    const needsGradientPlane =
+      ((this.blobImageMode !== 'none' || this.gradientOverlayEnabled) && gradientOverlayActive) ||
+      (this.blobImageMode === 'glass');
 
     // Handle media planes (image/video)
     if (needsMediaPlane) {
