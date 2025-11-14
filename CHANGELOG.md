@@ -116,6 +116,16 @@ Migrating from v1.x to v2.x wasn't a refactor—it was a **ground-up architectur
 
 ## [Unreleased]
 
+- Gradient overlays can now sit above image/video backgrounds again:
+  - Added `body.setGradientOverlayEnabled()` in `src/core/body/Body.ts` so gradients render on the dedicated plane even when glass mode is off.
+  - Playground gradients now drive Three.js directly instead of forcing the DOM overlay, preserving media layers; randomization/reset toggles opt-in behavior without clearing media.
+- Mind provider architecture refactor:
+  - `KwamiMind` now delegates to a `MindProvider` abstraction created via `src/core/mind/providers/factory.ts`, keeping the public API stable while enabling multi-vendor support.
+  - Added `src/core/mind/11labs/ElevenLabsProvider.ts` to contain all ElevenLabs streaming, TTS, and agent API logic plus shared helper utilities.
+  - Extended `MindConfig` with a `provider` field and shared typings so future providers (OpenAI, Vapi, Retell, Bland, Synthflow) can drop in with zero breaking changes.
+  - Authored `src/core/mind/README.md` documenting the provider pattern, runtime flow, and integration steps for new vendors.
+- Documented the full Body subsystem architecture in `src/core/body/README.md`, including the new `Scene` module, renderer/camera/light responsibilities, background layering, and integration example for developers embedding Kwami.
+
 ## [2.2.7] - 2025-11-10
 
 ### 🐛 Fixed / 🔧 Improved
