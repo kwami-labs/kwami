@@ -996,7 +996,7 @@
             <input type="checkbox" id="blob-image-transparency">
             Enable Glass Transparency
           </label>
-          <p class="parameter-info">Blob becomes a window through the gradient; background image/video visible.</p>
+          <small class="parameter-info">Blob becomes a window through the gradient; background image/video visible.</small>
         </div>
       </div>
 
@@ -1023,16 +1023,13 @@
             <input type="range" id="resolution" min="120" max="220" step="1" value="180">
             <small class="checkbox-hint">Higher = smoother surface, lower = faceted look</small>
           </div>
-        </div>
 
-        <div class="parameter-group">
-          <div class="parameter-group-title">Rendering Mode</div>
-          <div class="input-group">
+          <div>
             <label>
               <input type="checkbox" id="wireframe">
               Wireframe Mode
             </label>
-            <small class="checkbox-hint">Show the mesh structure</small>
+            <small class="parameter-info">Show the mesh structure</small>
           </div>
         </div>
 
@@ -1228,11 +1225,130 @@
           <button class="button-secondary" onclick="loadPersonality('friendly')">😊 Kaya</button>
           <button class="button-secondary" onclick="loadPersonality('professional')">💼 Nexus</button>
           <button class="button-secondary" onclick="loadPersonality('playful')">✨ Spark</button>
-  </div>
+        </div>
 
         <div class="input-group">
           <label>Current Name: <span id="personality-name">Kwami</span></label>
         </div>
+      </div>
+
+      <!-- Emotional Traits Section -->
+      <div class="section">
+        <div class="section-title">🎭 Emotional Traits</div>
+        <p class="about-text">Adjust emotional dimensions (-100 to +100). Each trait influences behavior and communication style.</p>
+        
+        <!-- Happiness -->
+        <div class="parameter-group">
+          <div class="parameter-label">
+            <span>😊 Happiness</span>
+            <span id="happiness-value" class="parameter-value">0</span>
+          </div>
+          <input type="range" id="happiness-slider" min="-100" max="100" value="0" step="1" 
+                 oninput="updateEmotionalTrait('happiness', this.value)">
+          <div class="trait-hint">-100: Deep sadness → +100: Extreme joy</div>
+        </div>
+
+        <!-- Energy -->
+        <div class="parameter-group">
+          <div class="parameter-label">
+            <span>⚡ Energy</span>
+            <span id="energy-value" class="parameter-value">0</span>
+          </div>
+          <input type="range" id="energy-slider" min="-100" max="100" value="0" step="1" 
+                 oninput="updateEmotionalTrait('energy', this.value)">
+          <div class="trait-hint">-100: Exhausted → +100: Hyper-energetic</div>
+        </div>
+
+        <!-- Confidence -->
+        <div class="parameter-group">
+          <div class="parameter-label">
+            <span>💪 Confidence</span>
+            <span id="confidence-value" class="parameter-value">0</span>
+          </div>
+          <input type="range" id="confidence-slider" min="-100" max="100" value="0" step="1" 
+                 oninput="updateEmotionalTrait('confidence', this.value)">
+          <div class="trait-hint">-100: Anxious → +100: Overly confident</div>
+        </div>
+
+        <!-- Calmness -->
+        <div class="parameter-group">
+          <div class="parameter-label">
+            <span>🧘 Calmness</span>
+            <span id="calmness-value" class="parameter-value">0</span>
+          </div>
+          <input type="range" id="calmness-slider" min="-100" max="100" value="0" step="1" 
+                 oninput="updateEmotionalTrait('calmness', this.value)">
+          <div class="trait-hint">-100: Rage-prone → +100: Extremely calm</div>
+        </div>
+
+        <!-- Optimism -->
+        <div class="parameter-group">
+          <div class="parameter-label">
+            <span>🌟 Optimism</span>
+            <span id="optimism-value" class="parameter-value">0</span>
+          </div>
+          <input type="range" id="optimism-slider" min="-100" max="100" value="0" step="1" 
+                 oninput="updateEmotionalTrait('optimism', this.value)">
+          <div class="trait-hint">-100: Pessimistic → +100: Blindly optimistic</div>
+        </div>
+
+        <!-- Socialness -->
+        <div class="parameter-group">
+          <div class="parameter-label">
+            <span>🤝 Socialness</span>
+            <span id="socialness-value" class="parameter-value">0</span>
+          </div>
+          <input type="range" id="socialness-slider" min="-100" max="100" value="0" step="1" 
+                 oninput="updateEmotionalTrait('socialness', this.value)">
+          <div class="trait-hint">-100: Extremely shy → +100: Overly extroverted</div>
+        </div>
+
+        <!-- Creativity -->
+        <div class="parameter-group">
+          <div class="parameter-label">
+            <span>🎨 Creativity</span>
+            <span id="creativity-value" class="parameter-value">0</span>
+          </div>
+          <input type="range" id="creativity-slider" min="-100" max="100" value="0" step="1" 
+                 oninput="updateEmotionalTrait('creativity', this.value)">
+          <div class="trait-hint">-100: Rigid → +100: Wildly creative</div>
+        </div>
+
+        <!-- Patience -->
+        <div class="parameter-group">
+          <div class="parameter-label">
+            <span>⏳ Patience</span>
+            <span id="patience-value" class="parameter-value">0</span>
+          </div>
+          <input type="range" id="patience-slider" min="-100" max="100" value="0" step="1" 
+                 oninput="updateEmotionalTrait('patience', this.value)">
+          <div class="trait-hint">-100: Impatient → +100: Infinite patience</div>
+        </div>
+
+        <!-- Empathy -->
+        <div class="parameter-group">
+          <div class="parameter-label">
+            <span>💖 Empathy</span>
+            <span id="empathy-value" class="parameter-value">0</span>
+          </div>
+          <input type="range" id="empathy-slider" min="-100" max="100" value="0" step="1" 
+                 oninput="updateEmotionalTrait('empathy', this.value)">
+          <div class="trait-hint">-100: Selfish → +100: Extreme empathy</div>
+        </div>
+
+        <!-- Curiosity -->
+        <div class="parameter-group">
+          <div class="parameter-label">
+            <span>🔍 Curiosity</span>
+            <span id="curiosity-value" class="parameter-value">0</span>
+          </div>
+          <input type="range" id="curiosity-slider" min="-100" max="100" value="0" step="1" 
+                 oninput="updateEmotionalTrait('curiosity', this.value)">
+          <div class="trait-hint">-100: Indifferent → +100: Insatiable curiosity</div>
+        </div>
+
+        <button class="button-secondary" onclick="applyEmotionalTraits()">✅ Apply Emotional Traits</button>
+        <button class="button-secondary" onclick="resetEmotionalTraits()">🔄 Reset to Neutral</button>
       </div>
     </div>
   </template>

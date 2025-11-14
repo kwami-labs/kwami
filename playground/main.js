@@ -2450,11 +2450,101 @@ window.loadPersonality = async function(type) {
       soulPersonality.value = config.personality || '';
     }
     
+    // Update emotional trait sliders from loaded personality
+    updateEmotionalTraitSliders();
+    
     updateStatus(`✅ Loaded ${name} personality!`);
   } catch (error) {
     showError('Failed to load personality: ' + error.message);
   }
 };
+
+// Update emotional trait value display
+window.updateEmotionalTrait = function(trait, value) {
+  const valueDisplay = document.getElementById(`${trait}-value`);
+  if (valueDisplay) {
+    valueDisplay.textContent = value;
+  }
+};
+
+// Apply all emotional traits to Soul
+window.applyEmotionalTraits = function() {
+  if (!window.kwami || !window.kwami.soul) {
+    showError('Soul not initialized');
+    return;
+  }
+
+  try {
+    const emotionalTraits = {
+      happiness: parseInt(document.getElementById('happiness-slider')?.value || 0),
+      energy: parseInt(document.getElementById('energy-slider')?.value || 0),
+      confidence: parseInt(document.getElementById('confidence-slider')?.value || 0),
+      calmness: parseInt(document.getElementById('calmness-slider')?.value || 0),
+      optimism: parseInt(document.getElementById('optimism-slider')?.value || 0),
+      socialness: parseInt(document.getElementById('socialness-slider')?.value || 0),
+      creativity: parseInt(document.getElementById('creativity-slider')?.value || 0),
+      patience: parseInt(document.getElementById('patience-slider')?.value || 0),
+      empathy: parseInt(document.getElementById('empathy-slider')?.value || 0),
+      curiosity: parseInt(document.getElementById('curiosity-slider')?.value || 0)
+    };
+
+    window.kwami.soul.setEmotionalTraits(emotionalTraits);
+    updateStatus('✅ Emotional traits applied!');
+  } catch (error) {
+    showError('Failed to apply emotional traits: ' + error.message);
+  }
+};
+
+// Reset all emotional traits to neutral (0)
+window.resetEmotionalTraits = function() {
+  const traits = ['happiness', 'energy', 'confidence', 'calmness', 'optimism', 
+                  'socialness', 'creativity', 'patience', 'empathy', 'curiosity'];
+  
+  traits.forEach(trait => {
+    const slider = document.getElementById(`${trait}-slider`);
+    const valueDisplay = document.getElementById(`${trait}-value`);
+    
+    if (slider) slider.value = 0;
+    if (valueDisplay) valueDisplay.textContent = '0';
+  });
+
+  if (window.kwami && window.kwami.soul) {
+    window.kwami.soul.setEmotionalTraits({
+      happiness: 0,
+      energy: 0,
+      confidence: 0,
+      calmness: 0,
+      optimism: 0,
+      socialness: 0,
+      creativity: 0,
+      patience: 0,
+      empathy: 0,
+      curiosity: 0
+    });
+  }
+
+  updateStatus('🔄 Emotional traits reset to neutral');
+};
+
+// Update sliders to match current Soul emotional traits
+function updateEmotionalTraitSliders() {
+  if (!window.kwami || !window.kwami.soul) return;
+
+  const traits = window.kwami.soul.getEmotionalTraits();
+  if (!traits) return;
+
+  const traitNames = ['happiness', 'energy', 'confidence', 'calmness', 'optimism', 
+                      'socialness', 'creativity', 'patience', 'empathy', 'curiosity'];
+  
+  traitNames.forEach(traitName => {
+    const value = traits[traitName] || 0;
+    const slider = document.getElementById(`${traitName}-slider`);
+    const valueDisplay = document.getElementById(`${traitName}-value`);
+    
+    if (slider) slider.value = value;
+    if (valueDisplay) valueDisplay.textContent = value;
+  });
+}
 
 // Speak
 window.speak = async function() {
@@ -3144,3 +3234,10 @@ function initializeCameraControls() {
 if (typeof setupAgentSliderListeners === 'function') {
   setupAgentSliderListeners();
 }
+
+// Initialize emotional trait sliders when Kwami is ready
+setTimeout(() => {
+  if (window.kwami && window.kwami.soul) {
+    updateEmotionalTraitSliders();
+  }
+}, 500);
