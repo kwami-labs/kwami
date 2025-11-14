@@ -7,6 +7,39 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [2.2.8] - 2025-11-14
+
+### ✨ New Features
+
+- **Emotional Personality System**: Complete overhaul of Kwami's personality system with quantitative emotional traits
+  - Added 10 emotional trait dimensions with -100 to +100 ranges: happiness, energy, confidence, calmness, optimism, socialness, creativity, patience, empathy, curiosity
+  - Converted personality files from JSON to YAML format for better readability and developer experience
+  - Enhanced `KwamiSoul` class with emotional trait management methods
+  - Updated preset personalities (Kaya, Nexus, Spark) with emotional trait profiles
+
+### 🏗️ Architecture Changes
+
+- **YAML Personality Files**: Replaced JSON personality files with YAML for improved configuration management
+- **Emotional Traits API**: Added `EmotionalTraits` interface and methods for accessing/manipulating personality dimensions
+- **Backward Compatibility**: Maintained legacy JSON import methods while adding new YAML support
+
+### 📚 Documentation
+
+- **Personality System Documentation**: Comprehensive guide in `core/mind/README.md` covering:
+  - Emotional traits spectrum explanation
+  - Custom personality creation guide
+  - API usage examples for developers
+
+### 🔧 Technical Improvements
+
+- Added `js-yaml` dependency for YAML parsing
+- Enhanced `loadPersonality()` method to auto-detect JSON vs YAML files
+- Added `exportAsString()` method with YAML support (defaults to YAML)
+- New emotional trait accessor methods: `getEmotionalTraits()`, `getEmotionalTrait()`, `setEmotionalTrait()`
+- Updated all preset personalities with balanced emotional trait values
+
+---
+
 ## 🧬 Project Evolution: From Sequential Pipeline to Real-Time Streaming
 
 ### The Journey of Kwami
@@ -18,6 +51,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 **Initial Vision**: Create a natural voice-based AI companion with visual representation (animated 3D blob) that could listen, think, and respond with personality.
 
 **Technical Architecture**:
+
 - **Sequential 3-step pipeline**: Voice Input → STT → LLM Processing → TTS → Audio Output
 - **Eden AI Unified Platform**: Single API orchestrating multiple AI providers
 - **Multi-provider Strategy**: Fallback chains across OpenAI Whisper, AssemblyAI, Google Cloud STT, GPT-3.5-turbo, Claude-1, ElevenLabs, Google TTS
@@ -32,6 +66,7 @@ Total latency: 2.1s - 5.2s per turn
 ```
 
 **Technical Breakdown**:
+
 - **STT Phase**: Audio buffer accumulation (min 1-3 seconds for accuracy) + VAD detection + provider API roundtrip
 - **LLM Phase**: Token-by-token generation with no streaming to TTS layer + provider rate limits
 - **TTS Phase**: Full text required before audio generation + synthesis time + MP3 encoding
@@ -46,12 +81,14 @@ While Eden AI provided excellent multi-provider orchestration, fallback logic, a
 - TTS providers needed full text for prosody and natural speech patterns
 
 **User Experience Impact**:
+
 - Conversations felt like walkie-talkie exchanges, not natural dialogue
 - 2-5 second pauses destroyed conversational flow
 - User interruptions required pipeline restart
 - Multi-turn conversations accumulated latency
 
 **Memory and Cost Challenges**:
+
 - Audio buffer accumulation caused memory pressure (5-10MB per 30s conversation)
 - Multiple provider calls per turn increased API costs by 3-5x
 - Fallback chains meant redundant processing for reliability
@@ -72,6 +109,7 @@ Conversational AI APIs (ElevenLabs Conversational AI, OpenAI Realtime API) funda
 5. **Native interruption handling**: No pipeline restart needed
 
 **New Architecture**:
+
 ```
 User speaks ──┐
               ├──> [WebSocket] <──> [Integrated AI Service] ──> AI speaks
@@ -81,6 +119,7 @@ User speaks ──┐
 ```
 
 **Performance Transformation**:
+
 - **Latency**: 2-5 seconds → 50-200ms (10-25x improvement)
 - **Memory**: 5-10MB buffers → 256KB streaming chunks (20-40x reduction)
 - **Cost**: 3-5 API calls per turn → 1 WebSocket session (70% cost reduction)
@@ -97,6 +136,7 @@ Migrating from v1.x to v2.x wasn't a refactor—it was a **ground-up architectur
 5. **TypeScript Architecture**: Monolithic classes → Modular Mind/Body/Soul separation
 
 **Why We Couldn't Just "Update" v1.x**:
+
 - Eden AI SDK was request/response based (no WebSocket support)
 - Audio pipeline assumed discrete chunks, not continuous streams
 - Three.js blob animations were tied to audio buffer events
@@ -107,6 +147,7 @@ Migrating from v1.x to v2.x wasn't a refactor—it was a **ground-up architectur
 **v2.x achieves what v1.x couldn't**: Real-time, natural-feeling conversations with an AI companion. The sub-200ms latency makes interactions feel immediate and human-like, while the visual blob representation provides engaging feedback that adapts to conversation state (listening, thinking, speaking).
 
 **Key Metrics**:
+
 - **User satisfaction**: 3.2/5 (v1.x) → 4.7/5 (v2.x)
 - **Conversation length**: 45 seconds average → 4.5 minutes average
 - **Return rate**: 15% → 68%
@@ -124,6 +165,10 @@ Migrating from v1.x to v2.x wasn't a refactor—it was a **ground-up architectur
   - Added `src/core/mind/11labs/ElevenLabsProvider.ts` to contain all ElevenLabs streaming, TTS, and agent API logic plus shared helper utilities.
   - Extended `MindConfig` with a `provider` field and shared typings so future providers (OpenAI, Vapi, Retell, Bland, Synthflow) can drop in with zero breaking changes.
   - Authored `src/core/mind/README.md` documenting the provider pattern, runtime flow, and integration steps for new vendors.
+- Introduced an **experimental OpenAI provider**:
+  - New `src/core/mind/providers/openai/OpenAIProvider.ts` supports TTS via `POST /v1/audio/speech`, sharing the same `MindProvider` contract as ElevenLabs.
+  - Updated provider factory and types so `mind.setProvider('openai')` works out of the box; OpenAI-specific configuration lives under `MindConfig.openai`.
+  - Conversation streaming and agent APIs are not wired up yet—the provider throws descriptive errors to signal unsupported surfaces until the Realtime API integration ships.
 - Documented the full Body subsystem architecture in `src/core/body/README.md`, including the new `Scene` module, renderer/camera/light responsibilities, background layering, and integration example for developers embedding Kwami.
 
 ## [2.2.7] - 2025-11-10
@@ -150,7 +195,9 @@ Migrating from v1.x to v2.x wasn't a refactor—it was a **ground-up architectur
 ### ✨ Added
 
 #### 🎲 Random 3D Texture & Glass Effect Features
+
 - **Random 3D Texture Button** - Quick randomization of blob surface textures
+
   - Randomly selects between image or video textures from available options
   - 50/50 chance between image and video types with intelligent fallback
   - Updates UI controls and displays selected texture filename
@@ -165,6 +212,7 @@ Migrating from v1.x to v2.x wasn't a refactor—it was a **ground-up architectur
   - New core method: `Body.randomizeBackgroundWithGlass(imageUrls, videoUrls)`
 
 #### 🎨 Playground UI Enhancements
+
 - **Quick Variants Section** - Added two new variant buttons:
   - 🎲 **Random 3D Texture** - Randomizes blob surface texture (image/video)
   - 🪟 **Random Glass** - Applies random background with glass transparency
@@ -178,7 +226,9 @@ Migrating from v1.x to v2.x wasn't a refactor—it was a **ground-up architectur
 ### 🏗️ Architecture
 
 #### Core Library Methods (`src/core/Body.ts`)
+
 - **`randomize3DTexture(imageUrls: string[], videoUrls: string[])`**
+
   - Returns: `{ type: 'image' | 'video' | 'none', url: string | null }`
   - Handles empty arrays gracefully
   - Uses existing `setBlobSurfaceImage()` and `setBlobSurfaceVideo()` methods
@@ -191,7 +241,9 @@ Migrating from v1.x to v2.x wasn't a refactor—it was a **ground-up architectur
   - Falls back to randomized gradient if no media options available
 
 #### Playground Bridge Functions (`playground/main.js`)
+
 - **`window.randomize3DTexture()`** - Bridge between UI and core library
+
   - Gathers blob texture options from image and video selects
   - Resolves asset paths using existing `resolveMediaPath()` function
   - Updates UI controls based on result type
@@ -207,6 +259,7 @@ Migrating from v1.x to v2.x wasn't a refactor—it was a **ground-up architectur
 ### 🔧 Technical Details
 
 #### Implementation Patterns
+
 - **Core-first architecture** - All logic in core library, not playground
 - **Return objects** - Methods return detailed info for UI synchronization
 - **Graceful degradation** - Handles edge cases (empty arrays, missing options)
@@ -215,6 +268,7 @@ Migrating from v1.x to v2.x wasn't a refactor—it was a **ground-up architectur
 - **UI synchronization** - Automatic updates to all related controls
 
 #### User Experience
+
 - **One-click randomization** - Instant visual variety with single button press
 - **Visual feedback** - Status messages show what was applied
 - **Glass effect creativity** - Random opacity creates unique transparency effects
@@ -226,12 +280,14 @@ Migrating from v1.x to v2.x wasn't a refactor—it was a **ground-up architectur
 ### 🐛 Fixed
 
 #### 🚀 Render Deployment Issues
+
 - **ENOTEMPTY error fix** - Resolved `directory not empty` errors during npm install on Render
 - **Build cache conflicts** - Eliminated stale node_modules cache causing deployment failures
 - **Dependency inconsistencies** - Added `package-lock.json` to version control for deterministic builds
 - **Build reliability** - Switched from `npm install` to `npm ci` for cleaner, reproducible installations
 
 #### 📦 Configuration Files Added
+
 - **`.npmrc`** - Created with optimized npm settings:
   - `legacy-peer-deps=true` - Prevents peer dependency conflicts
   - `package-lock=true` - Ensures lockfile is always maintained
@@ -242,23 +298,27 @@ Migrating from v1.x to v2.x wasn't a refactor—it was a **ground-up architectur
   - Proper service configuration for quami deployment
 
 #### 🗂️ Version Control Updates
+
 - **Removed `package-lock.json` from `.gitignore`** - Now tracked for build consistency
 - **Ensures identical dependency trees** across development, staging, and production
 
 ### 🔧 Technical Details
 
 #### Build Process Improvements
+
 - **Cache clearing strategy**: `rm -rf node_modules` before install prevents orphaned files
 - **`npm ci` vs `npm install`**: Uses clean install for faster, more reliable builds
 - **Lockfile enforcement**: Guarantees exact dependency versions across all environments
 - **Legacy peer deps**: Handles @elevenlabs/elevenlabs-js and three.js peer dependencies gracefully
 
 #### Deployment Architecture
+
 - **Infrastructure as Code**: render.yaml enables reproducible deployments
 - **Node version consistency**: Explicitly set to 20.15.1 (matching Render default)
 - **Build optimization**: Clears cache = no ENOTEMPTY errors + consistent state
 
 #### Why This Fixes the Issue
+
 1. **Root cause**: Render's build cache had corrupted/partial node_modules from previous failed builds
 2. **Solution**: Force clean slate by removing node_modules before every build
 3. **Prevention**: Use `npm ci` which validates against lockfile and installs fresh
@@ -269,6 +329,7 @@ Migrating from v1.x to v2.x wasn't a refactor—it was a **ground-up architectur
 ### ✨ Added
 
 #### 🌙 Dark Mode Support
+
 - **Theme toggle button** with moon/sun icons in playground UI
 - **CSS variables system** for dynamic light/dark theming
 - **localStorage persistence** - Remembers user's theme preference across sessions
@@ -277,6 +338,7 @@ Migrating from v1.x to v2.x wasn't a refactor—it was a **ground-up architectur
 - **System theme sync** - Auto-switches when system preference changes (if no manual preference set)
 
 #### 🎨 Theme Implementation
+
 - **Complete UI coverage** - All playground elements support dark mode:
   - Sidebars with adjusted backgrounds and shadows
   - Buttons, inputs, and form elements
@@ -290,6 +352,7 @@ Migrating from v1.x to v2.x wasn't a refactor—it was a **ground-up architectur
 ### 🔧 Technical Details
 
 #### Implementation
+
 - **CSS custom properties** (variables) for all theme-dependent colors
 - **JavaScript theme manager** with state tracking and localStorage
 - **MediaQuery listener** for system preference changes
@@ -300,6 +363,7 @@ Migrating from v1.x to v2.x wasn't a refactor—it was a **ground-up architectur
 ### ✨ Added
 
 #### 📊 ElevenLabs Conversations API
+
 - **Complete conversation management system** - Track, analyze, and manage all agent conversations
 - **8 new Mind class methods** for conversation operations:
   - `listConversations(options?)` - List all conversations with advanced filtering and pagination
@@ -311,6 +375,7 @@ Migrating from v1.x to v2.x wasn't a refactor—it was a **ground-up architectur
   - `getConversationSignedUrl(agentId, options?)` - Create signed URLs for secure client-side access
 
 #### 🎙️ Conversation Features
+
 - **Audio Management** - Download and archive conversation recordings
 - **Analytics & Insights** - Track duration, costs, token usage, and performance metrics
 - **Transcript Access** - Full conversation transcripts with timestamps
@@ -319,6 +384,7 @@ Migrating from v1.x to v2.x wasn't a refactor—it was a **ground-up architectur
 - **Secure Access** - WebRTC tokens and signed URLs for client integrations
 
 #### 📦 TypeScript Type Definitions
+
 - **New conversation-related interfaces** in `src/types/index.ts`:
   - `ConversationResponse` - Complete conversation details
   - `ConversationTranscript` - Individual message entries with timestamps
@@ -332,6 +398,7 @@ Migrating from v1.x to v2.x wasn't a refactor—it was a **ground-up architectur
 ### 📚 Documentation
 
 #### New Documentation Files
+
 - **`docs/CONVERSATIONS_API.md`** - Comprehensive 655-line guide covering:
   - Complete API reference for all conversation methods
   - Detailed usage examples for each endpoint
@@ -345,6 +412,7 @@ Migrating from v1.x to v2.x wasn't a refactor—it was a **ground-up architectur
 ### 🔧 Technical Details
 
 #### Implementation
+
 - **Direct API integration** using fetch with proper headers and error handling
 - **Comprehensive metadata tracking** including costs, tokens, and duration
 - **Pagination support** for handling large conversation datasets
@@ -353,6 +421,7 @@ Migrating from v1.x to v2.x wasn't a refactor—it was a **ground-up architectur
 - **Type-safe** implementation with full TypeScript coverage
 
 #### Architecture
+
 - **No breaking changes** - All additions are new methods
 - **Consistent with existing patterns** - Follows Mind class conventions
 - **Efficient resource usage** - Pagination and caching strategies included
@@ -361,6 +430,7 @@ Migrating from v1.x to v2.x wasn't a refactor—it was a **ground-up architectur
 ### 💡 Use Cases
 
 The Conversations API enables:
+
 - **Conversation Analytics** - Generate reports on agent performance and usage
 - **Quality Assurance** - Review transcripts and collect feedback
 - **Compliance & Archival** - Download and store conversation records
@@ -377,6 +447,7 @@ The Conversations API enables:
   - Works independently of background overlay and compatible with glass mode
 
 #### 🤖 ElevenLabs Agents Management API
+
 - **Complete agent lifecycle management** - Full CRUD operations for conversational AI agents
 - **10 new Mind class methods** for agent management:
   - `createAgent(config)` - Create new agents with full configuration
@@ -391,6 +462,7 @@ The Conversations API enables:
   - `calculateLLMUsage(agentId, request?)` - Estimate token usage and costs
 
 #### 📦 TypeScript Type Definitions
+
 - **New agent-related interfaces** in `src/types/index.ts`:
   - `AgentConfig` - Agent configuration structure
   - `AgentResponse` - Agent API response format
@@ -406,6 +478,7 @@ The Conversations API enables:
 ### 📚 Documentation
 
 #### New Documentation Files
+
 - **`docs/AGENTS_API.md`** - Comprehensive 1000+ line guide covering:
   - Complete API reference with method signatures
   - Real-world code examples for all operations
@@ -415,6 +488,7 @@ The Conversations API enables:
   - Integration with existing conversation features
 
 #### Updated Documentation
+
 - **`docs/ELEVENLABS_INTEGRATION.md`** - Added Agent Management API section
   - Quick start example for creating agents
   - When to use agent management vs direct conversations
@@ -434,6 +508,7 @@ The Conversations API enables:
 ### 🔧 Technical Details
 
 #### Integration
+
 - **Seamless SDK integration** with `@elevenlabs/elevenlabs-js` v2.20.1
 - **Consistent error handling** across all agent operations
 - **Comprehensive JSDoc comments** with examples for all methods
@@ -441,6 +516,7 @@ The Conversations API enables:
 - **Debug logging** with emoji indicators for better DX
 
 #### Architecture
+
 - **No breaking changes** - All additions are new methods
 - **Backward compatible** with existing Mind functionality
 - **Type-safe** - Full TypeScript support throughout
@@ -448,6 +524,7 @@ The Conversations API enables:
 ### 💡 Use Cases
 
 The Agents API enables:
+
 - **A/B testing** different agent personalities and configurations
 - **Cost estimation** before deploying agents to production
 - **Automated testing** of agent responses and behaviors
@@ -460,6 +537,7 @@ The Agents API enables:
 ### 🔧 Changed
 
 #### Automated Version Management
+
 - **Single source of truth for versioning** - `package.json` is now the only place to update version
 - **Automated version sync** - Created `scripts/sync-version.js` to automatically sync version from package.json to Kwami.ts
 - **Integrated into build process** - `prebuild` script now runs version sync automatically
@@ -467,6 +545,7 @@ The Agents API enables:
 - **Reduced human error** - Prevents version mismatch between package.json and Kwami.getVersion()
 
 ### 📚 Documentation
+
 - Updated contribution workflow to reflect automated version management
 - Version updates now only require changing package.json
 
@@ -475,11 +554,13 @@ The Agents API enables:
 ### ✨ Added
 
 #### 🔧 Background Image Controls
+
 - Enhanced background management with image support
 - Debug documentation for background image implementation
 - Improved asset handling for playground backgrounds
 
 #### 🎨 Playground Enhancements
+
 - Updated HTML structure for better organization
 - Enhanced CSS styling with improved responsive design
 - Refined JavaScript event handlers and controls
@@ -488,16 +569,19 @@ The Agents API enables:
 ### 🔄 Changed
 
 #### Type System Improvements
+
 - Enhanced TypeScript type definitions in `src/types/index.ts`
 - Better type safety for Body class configurations
 - Improved type inference for background configurations
 
 #### Core Improvements
+
 - Refined Body.ts implementation with better type handling
 - Enhanced background state management
 - Improved playground control synchronization
 
 ### 📚 Documentation
+
 - Added BACKGROUND_IMAGE_DEBUG.md for troubleshooting
 - Enhanced inline code documentation
 - Updated playground UI documentation
@@ -507,12 +591,14 @@ The Agents API enables:
 ### ✨ Added
 
 #### 🎨 Playground Version Display
+
 - Added version number display at bottom center of playground
 - Styled in soft gray (rgba(160, 160, 160, 0.6)) for subtle visibility
 - Monospace font with letter spacing for technical aesthetic
 - Non-intrusive positioning with pointer-events disabled
 
 #### 🔧 Enhanced Mind Class - WebSocket Conversational AI
+
 - **WebSocket-based real-time conversations** with ElevenLabs Conversational API
 - **startConversation()** - Initialize WebSocket conversation with callbacks
 - **stopConversation()** - Gracefully end conversation and cleanup resources
@@ -525,6 +611,7 @@ The Agents API enables:
 - **Automatic state management** synchronized with Kwami body animations
 
 #### 📚 Comprehensive Documentation
+
 - **ELEVENLABS_AGENT_URL_FORMATS.md** - Guide to ElevenLabs agent URL formats and iframe integration
 - **ELEVENLABS_CONVERSATION_API.md** - Complete WebSocket API reference and implementation guide
 - **ELEVENLABS_IFRAME_FIX.md** - Solutions for iframe integration issues
@@ -532,6 +619,7 @@ The Agents API enables:
 - **WEBSOCKET_CONVERSATION_GUIDE.md** - Step-by-step guide for implementing WebSocket conversations
 
 #### 🎛️ Body Class Enhancements
+
 - **setState()** method for programmatic state management (idle, listening, thinking, speaking)
 - **getState()** method to query current animation state
 - **State synchronization** with Mind class for seamless AI interactions
@@ -541,6 +629,7 @@ The Agents API enables:
 ### 🔄 Changed
 
 #### Mind Class Refactoring
+
 - **Complete overhaul** of conversation handling from demo mode to production-ready WebSocket implementation
 - **Improved initialization flow** with better validation and error messages
 - **Enhanced callback system** supporting multiple event types (transcript, turn, status, error)
@@ -548,6 +637,7 @@ The Agents API enables:
 - **Simplified API** for starting/stopping conversations
 
 #### Playground UI Improvements
+
 - **Conversation controls** now properly reflect WebSocket connection status
 - **Real-time status updates** during conversation lifecycle
 - **Better error messages** with actionable troubleshooting steps
@@ -557,6 +647,7 @@ The Agents API enables:
 ### 🐛 Bug Fixes
 
 #### Recent Fixes (Oct 30-31, 2025)
+
 - **Fixed shininess behavior** in blob shaders - proper specular highlight rendering
 - **Fixed image paths** for playground assets - corrected paths for production builds
 - **Fixed state indicator** initialization error - proper DOM element handling
@@ -565,6 +656,7 @@ The Agents API enables:
 - **Removed unused assets** - cleaned up textures/index.ts file
 
 #### Core Functionality
+
 - **Fixed WebSocket connection** handling with proper error recovery
 - **Fixed audio streaming** synchronization with conversation state
 - **Fixed state transitions** when switching between conversation modes
@@ -574,24 +666,28 @@ The Agents API enables:
 ### 🔧 Technical Improvements
 
 #### Architecture
+
 - **Refactored playground functionality** into core library classes for better reusability
 - **Enhanced type definitions** for conversation callbacks and state management
 - **Improved separation of concerns** between Mind, Body, and Soul classes
 - **Better error propagation** from WebSocket to UI layer
 
 #### Performance
+
 - **Optimized WebSocket message handling** for lower latency
 - **Improved animation frame scheduling** during conversations
 - **Reduced bundle size** by removing unused texture imports
 - **Better asset loading** with Vite configuration optimization
 
 #### Developer Experience
+
 - **5 new documentation files** with comprehensive guides
 - **Improved TypeScript types** for better IDE support
 - **Enhanced error messages** with debugging information
 - **Better code organization** in Mind and Body classes
 
 ### 📦 Dependencies
+
 - No new dependencies added
 - Optimized existing ElevenLabs SDK usage for WebSocket API
 - Improved Three.js integration for state-aware animations
@@ -599,11 +695,13 @@ The Agents API enables:
 ### 🚀 Deployment & Branch Strategy
 
 **Live Deployment**
+
 - Kwami Playground is now live at [kwami.io](https://kwami.io)
 - Deployed from the protected `main` branch
 - Automatic deployment on release tags
 
 **Git Workflow**
+
 - Introduced professional branching strategy:
   - 🔒 **main** - Production branch (protected)
     - Deployed to kwami.io
@@ -618,6 +716,7 @@ The Agents API enables:
     - PR to `dev` for review
 
 **Release Process**
+
 - Features are developed on branches and PRed to `dev`
 - When ready for release:
   1. `dev` is merged to `main` in a release PR
@@ -633,7 +732,9 @@ The Agents API enables:
 #### 🌈 Enhanced Playground UI - Dual Sidebar Layout & Background Controls
 
 **New Dual Sidebar Architecture:**
+
 - **Left Sidebar** (350px): Configuration & Environment
+
   - ℹ️ **About Section** - Kwami description and features overview
   - 🗣️ **Voice Settings** - ElevenLabs API key and voice ID configuration
   - 🎭 **Personality Selection** - Choose from Kaya, Nexus, or Spark personalities
@@ -649,27 +750,33 @@ The Agents API enables:
   - 🎨 **Body Controls** - Complete blob customization
 
 **🎨 Comprehensive Body Parameter Controls:**
+
 - **Spikes (Noise Frequency)**
+
   - X, Y, Z sliders (0-20, step: 0.1)
   - Real-time value displays
   - Default: 0.2 on all axes
 
 - **Time (Animation Speed)**
+
   - X, Y, Z sliders (0-5, step: 0.1)
   - Controls animation responsiveness
   - Default: 1.0 on all axes
 
 - **Rotation Speed**
+
   - X, Y, Z sliders (0-0.01, step: 0.001)
   - Creates spinning effects
   - Default: 0 (no rotation)
 
 - **Colors (3Colors - Poles variant)**
+
   - 3 color pickers for X, Y, Z colors
   - Defaults: #ff0066, #00ff66, #6600ff
   - Real-time blob color updates
 
 - **Appearance Settings**
+
   - 📐 **Scale** (0.1-3.0, step: 0.1) - Blob size control
     - Preserved during animation as multiplier
     - Works seamlessly with breathing effect
@@ -683,6 +790,7 @@ The Agents API enables:
   - 🔄 **Reset to Defaults** - Restore initial values
 
 **CSS Enhancements:**
+
 - `.parameter-group` - Organized control sections with background styling
 - `.parameter-group-title` - Section headers with color coding
 - `.slider-control` - Flex layout for label and value display
@@ -692,6 +800,7 @@ The Agents API enables:
 - Smooth transitions (0.8s) for all animations
 
 **JavaScript Features:**
+
 - `DEFAULT_VALUES` - Centralized default configuration
 - `updateAllControlsFromBlob()` - Bidirectional UI-blob sync
 - `initializeBodyControls()` - Event listener setup
@@ -1290,18 +1399,21 @@ kwami.body.blob.setSpikes(0.5, 0.5, 0.5);
 #### 📊 Final Performance Audit
 
 **Latency Analysis** (aggregated from 1,247 conversation sessions):
+
 - **p50 latency**: 2.8 seconds
-- **p95 latency**: 4.6 seconds  
+- **p95 latency**: 4.6 seconds
 - **p99 latency**: 7.2 seconds
 - **User tolerance threshold**: < 1.5 seconds (failed in 94% of sessions)
 
 **Cost Analysis**:
+
 - Average cost per conversation turn: $0.12 USD
 - Eden AI orchestration overhead: 15% of total cost
 - Multi-provider fallback redundancy: 40% wasted API calls
 - Monthly burn rate for 1000 DAU: ~$3,600 USD
 
 **Technical Debt Accumulation**:
+
 - 23 known race conditions in audio buffer management
 - 156 error codes across 8 provider integrations
 - Memory leak in WebGL context recreation (12MB/hour)
@@ -1312,21 +1424,24 @@ kwami.body.blob.setSpikes(0.5, 0.5, 0.5);
 **Fundamental Architectural Flaws**:
 
 1. **Sequential Bottleneck**: Each pipeline stage blocks the next
+
    ```typescript
    // Pseudocode representation of the blocking pattern
-   const audioBuffer = await captureAudio();        // 1.5-3s
+   const audioBuffer = await captureAudio(); // 1.5-3s
    const transcript = await sttProvider(audioBuffer); // 0.6-1.2s
-   const response = await llmProvider(transcript);    // 0.8-2.5s  
+   const response = await llmProvider(transcript); // 0.8-2.5s
    const audioResponse = await ttsProvider(response); // 0.7-1.5s
    // Total: 3.6-8.2 seconds minimum
    ```
 
 2. **Buffer Accumulation**: STT requires minimum audio length for accuracy
+
    - Whisper model requires 1.5-3s samples
    - AssemblyAI streaming mode still has 800ms latency
    - VAD (Voice Activity Detection) adds 200-400ms overhead
 
 3. **No Streaming Between Stages**: LLM can't start TTS until complete
+
    - GPT-3.5-turbo generates tokens at 30-50 tokens/second
    - TTS needs full sentence for natural prosody
    - Streaming tokens to TTS word-by-word produces robotic speech
@@ -1339,14 +1454,16 @@ kwami.body.blob.setSpikes(0.5, 0.5, 0.5);
 #### 🎯 Attempted Optimizations (All Failed)
 
 **Failed Attempt #1: Aggressive Audio Segmentation**
+
 ```typescript
 // Tried reducing buffer size for faster STT
 const MIN_AUDIO_BUFFER = 800; // ms - below this, accuracy drops to 65%
-const OPTIMAL_BUFFER = 2400;  // ms - but adds 2.4s latency
+const OPTIMAL_BUFFER = 2400; // ms - but adds 2.4s latency
 // Result: 35% accuracy loss vs. 2.4s latency trade-off (unacceptable)
 ```
 
 **Failed Attempt #2: Predictive TTS Pregeneration**
+
 ```typescript
 // Tried pregenerating common responses
 const COMMON_RESPONSES_CACHE = [
@@ -1358,32 +1475,36 @@ const COMMON_RESPONSES_CACHE = [
 ```
 
 **Failed Attempt #3: Parallel Provider Redundancy**
+
 ```typescript
 // Fire all providers simultaneously, use fastest response
 const results = await Promise.race([
   whisperSTT(audio),
-  assemblyAISTT(audio), 
-  googleSTT(audio)
+  assemblyAISTT(audio),
+  googleSTT(audio),
 ]);
 // Result: 3x cost, providers throttled us, 2% latency improvement
 ```
 
 **Failed Attempt #4: WebWorker Audio Processing**
+
 ```typescript
 // Offload audio processing to dedicated worker thread
-const worker = new Worker('audio-processor.js');
+const worker = new Worker("audio-processor.js");
 // Result: 50ms improvement, added complexity, not worth it
 ```
 
 #### 💡 Key Learnings
 
 **What Worked**:
+
 - Eden AI's unified API abstraction (excellent DX)
 - Three.js blob visualization (users loved the visual feedback)
 - Multi-provider fallback logic (99.2% uptime)
 - Cost tracking and quota management system
 
 **What Didn't Work**:
+
 - **Everything related to latency** - the architecture was fundamentally flawed
 - Compensating for slow responses with better UI (users still noticed)
 - Caching strategies (conversations are too diverse)
@@ -1392,6 +1513,7 @@ const worker = new Worker('audio-processor.js');
 #### 📝 Lessons for v2.x
 
 **Architectural Requirements**:
+
 1. ✅ **Streaming must be end-to-end** (audio in → audio out, no intermediate buffers)
 2. ✅ **Single integrated service** (no provider orchestration overhead)
 3. ✅ **Native interruption support** (user can interrupt AI mid-sentence)
@@ -1407,7 +1529,9 @@ const worker = new Worker('audio-processor.js');
 ### 🐛 Critical Bug Fixes
 
 #### Audio Synchronization
+
 - **Fixed**: Race condition causing audio playback to start before TTS completion
+
   - Root cause: `AudioContext.createBufferSource()` called with incomplete MP3 decode
   - Solution: Added `audioBuffer.waitForComplete()` guard with timeout
   - Failure rate: 12% → 0.3%
@@ -1418,7 +1542,9 @@ const worker = new Worker('audio-processor.js');
   - Measured improvement: PESQ score 3.2 → 4.1 (perceived audio quality)
 
 #### Memory Management
+
 - **Fixed**: WebGL context leak causing tab crashes after 30-minute sessions
+
   - Root cause: Three.js scene disposal incomplete (blob geometry buffers retained)
   - Solution: Added `blob.geometry.dispose()` + `blob.material.dispose()` on state transitions
   - Memory growth: 12MB/hour → 2MB/hour
@@ -1431,6 +1557,7 @@ const worker = new Worker('audio-processor.js');
 ### 🔧 Performance Improvements
 
 #### Provider Failover Optimization
+
 ```typescript
 // Before: Sequential fallback (slow)
 let transcript;
@@ -1448,13 +1575,14 @@ try {
 const transcript = await Promise.race([
   whisperSTT(audio).catch(() => null),
   assemblyAISTT(audio).catch(() => null),
-  Promise.delay(2000).then(() => googleSTT(audio))
+  Promise.delay(2000).then(() => googleSTT(audio)),
 ]).filter(Boolean)[0];
 
 // Improvement: 800ms average failover → 400ms average failover
 ```
 
 #### LLM Token Streaming (Partial Implementation)
+
 - Implemented GPT-3.5-turbo SSE (Server-Sent Events) streaming
 - Tokens arrive at 35-50 tokens/second
 - **Problem**: Can't start TTS until full response (no improvement to user-perceived latency)
@@ -1465,12 +1593,14 @@ const transcript = await Promise.race([
 ### 📊 Metrics
 
 **Before 1.5.1**:
+
 - Audio playback failures: 12%
 - Memory crashes: 8% of sessions > 20 minutes
 - Provider failover latency: 800ms average
 - WebGL context leak: 12MB/hour
 
 **After 1.5.1**:
+
 - Audio playback failures: 0.3%
 - Memory crashes: 0.5% of sessions > 20 minutes
 - Provider failover latency: 400ms average
@@ -1485,6 +1615,7 @@ const transcript = await Promise.race([
 ### ✨ Added
 
 #### 🎙️ Advanced Voice Activity Detection (VAD)
+
 - **Implemented custom VAD using Web Audio API `AnalyserNode`**
   - Energy threshold: `-45dB` (tuned for home environments)
   - Minimum speech duration: `400ms` (filters coughs, clicks)
@@ -1492,24 +1623,25 @@ const transcript = await Promise.race([
   - Prevents premature STT submission on mid-sentence pauses
 
 **Technical Implementation**:
+
 ```typescript
 class VoiceActivityDetector {
   private analyser: AnalyserNode;
   private threshold = -45; // dB
   private silenceDuration = 0;
   private speechDuration = 0;
-  
-  detectActivity(audioBuffer: Float32Array): 'speech' | 'silence' {
+
+  detectActivity(audioBuffer: Float32Array): "speech" | "silence" {
     const rms = this.calculateRMS(audioBuffer);
     const db = 20 * Math.log10(rms);
-    
+
     if (db > this.threshold) {
       this.speechDuration += 20; // 20ms frames
       this.silenceDuration = 0;
-      return this.speechDuration > 400 ? 'speech' : 'silence';
+      return this.speechDuration > 400 ? "speech" : "silence";
     } else {
       this.silenceDuration += 20;
-      return this.silenceDuration > 800 ? 'silence' : 'speech';
+      return this.silenceDuration > 800 ? "silence" : "speech";
     }
   }
 }
@@ -1518,19 +1650,22 @@ class VoiceActivityDetector {
 **Impact**: Reduced false-positive STT submissions by 34%, but added 200-400ms latency to speech endpoint detection.
 
 #### 🔄 Audio Buffer Queue Management
+
 - **Implemented circular buffer with dynamic resizing**
+
   - Initial size: `16KB` (333ms at 48kHz)
   - Growth strategy: Double on overflow (up to 512KB max)
   - Shrink strategy: Halve on 5 seconds of underutilization
   - Prevents buffer overflow in high-latency scenarios
 
 - **Added buffer health monitoring**
+
   ```typescript
   interface BufferHealth {
-    utilizationPercent: number;  // 0-100
-    overflowCount: number;       // Incremented on buffer full
-    underrunCount: number;       // Incremented on buffer empty
-    avgLatency: number;          // Rolling 10-sample average (ms)
+    utilizationPercent: number; // 0-100
+    overflowCount: number; // Incremented on buffer full
+    underrunCount: number; // Incremented on buffer empty
+    avgLatency: number; // Rolling 10-sample average (ms)
   }
   ```
 
@@ -1540,24 +1675,31 @@ class VoiceActivityDetector {
   - Result: 15% reduction in buffer overflow events
 
 #### 💰 Cost Optimization System
+
 - **Implemented token usage tracking across all providers**
+
   ```typescript
   interface TokenUsageMetrics {
     stt: { provider: string; seconds: number; cost: number };
-    llm: { provider: string; tokens: { input: number; output: number }; cost: number };
+    llm: {
+      provider: string;
+      tokens: { input: number; output: number };
+      cost: number;
+    };
     tts: { provider: string; characters: number; cost: number };
     totalCost: number;
   }
   ```
 
 - **Provider cost comparison** (per 1000 conversation turns):
-  | Provider        | Cost/1000 turns | Latency (p50) | Selection Rate |
+  | Provider | Cost/1000 turns | Latency (p50) | Selection Rate |
   |-----------------|-----------------|---------------|----------------|
-  | Whisper (OpenAI)| $6.00           | 850ms         | 65%            |
-  | AssemblyAI      | $15.00          | 650ms         | 25%            |
-  | Google STT      | $24.00          | 720ms         | 10%            |
+  | Whisper (OpenAI)| $6.00 | 850ms | 65% |
+  | AssemblyAI | $15.00 | 650ms | 25% |
+  | Google STT | $24.00 | 720ms | 10% |
 
 - **Intelligent provider selection**:
+
   - Default: Whisper (best cost/performance)
   - Fallback: AssemblyAI (faster, more expensive)
   - Last resort: Google STT (reliable, expensive)
@@ -1571,21 +1713,25 @@ class VoiceActivityDetector {
 ### 🔧 Changed
 
 #### Audio Pipeline Refactoring
+
 - **Before**: Monolithic `AudioPipeline` class (1,200 lines)
 - **After**: Modular architecture
+
   - `AudioCapture` (microphone handling)
   - `AudioProcessor` (VAD, noise reduction)
   - `BufferManager` (queue management)
   - `AudioPlayer` (playback, visualization)
 
-- **Benefits**: 
+- **Benefits**:
   - Easier testing (unit tests for each module)
   - Better error isolation (failures don't cascade)
   - 40% reduction in cyclomatic complexity
 
 #### Eden AI SDK Integration Updates
+
 - Upgraded from `edenai-sdk@1.2.0` to `edenai-sdk@1.4.3`
 - **New features**:
+
   - Batch request support (submit STT+LLM in single call)
   - Result: Reduced network overhead by 25%
   - Caveat: Still sequential processing on backend (no latency improvement)
@@ -1594,10 +1740,10 @@ class VoiceActivityDetector {
   ```typescript
   // Eden AI unified error codes
   enum EdenAIErrorCode {
-    RATE_LIMIT = 'rate_limit_exceeded',
-    QUOTA_EXCEEDED = 'quota_exceeded',
-    PROVIDER_TIMEOUT = 'provider_timeout',
-    INVALID_AUDIO = 'invalid_audio_format',
+    RATE_LIMIT = "rate_limit_exceeded",
+    QUOTA_EXCEEDED = "quota_exceeded",
+    PROVIDER_TIMEOUT = "provider_timeout",
+    INVALID_AUDIO = "invalid_audio_format",
     // ... 23 more error codes
   }
   ```
@@ -1605,10 +1751,12 @@ class VoiceActivityDetector {
 ### 🐛 Fixed
 
 - **Fixed**: Audio buffer overflow causing 2-second silence gaps
+
   - Occurred when TTS response exceeded buffer capacity (512KB)
   - Solution: Dynamic buffer expansion + streaming playback
 
 - **Fixed**: Three.js blob freezing on provider errors
+
   - Root cause: Animation loop tied to audio playback state
   - Solution: Decoupled blob animation from audio pipeline
 
@@ -1618,16 +1766,19 @@ class VoiceActivityDetector {
 ### 📊 Performance Metrics
 
 **Latency** (still the Achilles' heel):
+
 - Best case: 2.1 seconds (everything cached, ideal network)
 - Average case: 3.2 seconds (mixed cache, normal network)
 - Worst case: 5.8 seconds (cold start, provider failover)
 
 **Reliability**:
+
 - Conversation completion rate: 85% → 92%
 - Provider uptime: 99.2% (with fallback)
 - Audio playback success: 95% → 97%
 
 **Resource Usage**:
+
 - Peak memory: 250MB → 180MB
 - CPU usage: 35% average (MacBook Pro M1)
 - Network bandwidth: 150KB/turn average
@@ -1643,6 +1794,7 @@ class VoiceActivityDetector {
 **Implemented 4 TTS providers with intelligent fallback**:
 
 1. **ElevenLabs** (Primary) - Best quality, moderate cost
+
    - Voice models: Multilingual v1 (11 voices)
    - Latency: 700-1,200ms
    - Cost: $0.30 per 1,000 characters
@@ -1651,6 +1803,7 @@ class VoiceActivityDetector {
    - API endpoint: `https://api.elevenlabs.io/v1/text-to-speech/{voice_id}` (via Eden AI proxy)
 
 2. **Google Cloud TTS** (Fallback) - Reliable, faster
+
    - Voice models: WaveNet, Neural2
    - Latency: 500-900ms
    - Cost: $16 per 1 million characters ($0.016 per 1k)
@@ -1659,6 +1812,7 @@ class VoiceActivityDetector {
    - API endpoint: Routed through Eden AI orchestration
 
 3. **AWS Polly** (Tertiary) - Fast, lower quality
+
    - Voice models: Standard, Neural
    - Latency: 400-700ms
    - Cost: $4 per 1 million characters ($0.004 per 1k)
@@ -1673,40 +1827,42 @@ class VoiceActivityDetector {
    - Sample rate: 24kHz Opus
 
 **Provider Selection Logic**:
+
 ```typescript
 interface TTSProviderStrategy {
-  priority: number;  // 1-4 (lower is higher priority)
-  costThreshold: number;  // Max cost per character
-  qualityThreshold: number;  // Min MOS score
-  latencyThreshold: number;  // Max acceptable latency (ms)
+  priority: number; // 1-4 (lower is higher priority)
+  costThreshold: number; // Max cost per character
+  qualityThreshold: number; // Min MOS score
+  latencyThreshold: number; // Max acceptable latency (ms)
 }
 
 const providerStrategies: Record<string, TTSProviderStrategy> = {
-  'premium': {
+  premium: {
     priority: 1,
-    provider: 'elevenlabs',
+    provider: "elevenlabs",
     costThreshold: 0.0003,
     qualityThreshold: 4.5,
-    latencyThreshold: 1500
+    latencyThreshold: 1500,
   },
-  'balanced': {
+  balanced: {
     priority: 2,
-    provider: 'google',
+    provider: "google",
     costThreshold: 0.00002,
     qualityThreshold: 4.0,
-    latencyThreshold: 1000
+    latencyThreshold: 1000,
   },
-  'fast': {
+  fast: {
     priority: 3,
-    provider: 'aws_polly',
+    provider: "aws_polly",
     costThreshold: 0.000005,
     qualityThreshold: 3.5,
-    latencyThreshold: 800
-  }
+    latencyThreshold: 800,
+  },
 };
 ```
 
 **Auto-fallback on provider failure**:
+
 - ElevenLabs quota exceeded → Switch to Google TTS
 - Google TTS timeout → Switch to AWS Polly
 - All providers down → Cache last 10 responses, replay with variation
@@ -1717,40 +1873,40 @@ const providerStrategies: Record<string, TTSProviderStrategy> = {
 
 ```typescript
 interface PersonalityVoiceMapping {
-  personality: 'friendly' | 'professional' | 'energetic' | 'calm';
-  preferredProvider: 'elevenlabs' | 'google' | 'aws_polly';
+  personality: "friendly" | "professional" | "energetic" | "calm";
+  preferredProvider: "elevenlabs" | "google" | "aws_polly";
   voiceId: string;
   styleParams: {
-    stability: number;  // 0.0-1.0
-    similarity: number;  // 0.0-1.0
-    speakingRate: number;  // 0.8-1.2
-    pitch: number;  // -10 to +10 semitones
+    stability: number; // 0.0-1.0
+    similarity: number; // 0.0-1.0
+    speakingRate: number; // 0.8-1.2
+    pitch: number; // -10 to +10 semitones
   };
 }
 
 const personalityVoices: PersonalityVoiceMapping[] = [
   {
-    personality: 'friendly',
-    preferredProvider: 'elevenlabs',
-    voiceId: 'pNInz6obpgDQGcFmaJgB',  // Adam voice
+    personality: "friendly",
+    preferredProvider: "elevenlabs",
+    voiceId: "pNInz6obpgDQGcFmaJgB", // Adam voice
     styleParams: {
       stability: 0.6,
       similarity: 0.75,
       speakingRate: 1.05,
-      pitch: 2
-    }
+      pitch: 2,
+    },
   },
   {
-    personality: 'professional',
-    preferredProvider: 'google',
-    voiceId: 'en-US-Neural2-J',
+    personality: "professional",
+    preferredProvider: "google",
+    voiceId: "en-US-Neural2-J",
     styleParams: {
       stability: 0.8,
       similarity: 0.9,
       speakingRate: 0.95,
-      pitch: -1
-    }
-  }
+      pitch: -1,
+    },
+  },
   // ... more mappings
 ];
 ```
@@ -1758,37 +1914,39 @@ const personalityVoices: PersonalityVoiceMapping[] = [
 #### 🔊 Audio Quality Enhancements
 
 **Post-processing pipeline** for TTS output:
+
 1. **Normalization**: Peak amplitude to -3dB FS (Full Scale)
 2. **Equalization**: Boost 2-4kHz (speech clarity band) by +2dB
 3. **Compression**: Ratio 2:1, Threshold -18dB (dynamic range control)
 4. **Limiting**: Ceiling at -0.5dB (prevent clipping)
 
 **Implementation using Web Audio API**:
+
 ```typescript
 class AudioPostProcessor {
   private context: AudioContext;
   private compressor: DynamicsCompressorNode;
   private eq: BiquadFilterNode;
-  
+
   constructor(context: AudioContext) {
     this.context = context;
-    
+
     // Compression
     this.compressor = context.createDynamicsCompressor();
     this.compressor.threshold.value = -18;
     this.compressor.knee.value = 10;
     this.compressor.ratio.value = 2;
-    this.compressor.attack.value = 0.003;  // 3ms
-    this.compressor.release.value = 0.25;  // 250ms
-    
+    this.compressor.attack.value = 0.003; // 3ms
+    this.compressor.release.value = 0.25; // 250ms
+
     // EQ (boost speech frequencies)
     this.eq = context.createBiquadFilter();
-    this.eq.type = 'peaking';
-    this.eq.frequency.value = 3000;  // 3kHz
+    this.eq.type = "peaking";
+    this.eq.frequency.value = 3000; // 3kHz
     this.eq.Q.value = 1.0;
-    this.eq.gain.value = 2.0;  // +2dB
+    this.eq.gain.value = 2.0; // +2dB
   }
-  
+
   process(audioBuffer: AudioBuffer): AudioBuffer {
     // Connect nodes: source -> eq -> compressor -> destination
     // ... processing logic
@@ -1798,6 +1956,7 @@ class AudioPostProcessor {
 ```
 
 **Measured improvements**:
+
 - Perceived loudness consistency: +35%
 - Speech intelligibility (STOI metric): 0.82 → 0.89
 - Listening fatigue reduction (subjective, N=15 testers): 40% less fatigue after 10-minute conversations
@@ -1805,6 +1964,7 @@ class AudioPostProcessor {
 ### 🔧 Changed
 
 #### TTS Configuration Management
+
 - Moved from hardcoded voice IDs to database configuration
 - Added UI for voice preview and selection (not in this repo, separate admin panel)
 - Voice parameters now adjustable at runtime (stability, similarity, rate, pitch)
@@ -1812,11 +1972,13 @@ class AudioPostProcessor {
 ### 🐛 Fixed
 
 - **Fixed**: Choppy audio playback on weak network connections
+
   - Root cause: TTS MP3 streaming not buffered properly
   - Solution: Preload full audio before playback, show loading indicator
   - Trade-off: Adds 200-400ms latency (acceptable for quality improvement)
 
 - **Fixed**: Voice switching mid-conversation causing personality confusion
+
   - Root cause: Provider fallback changed voice without user awareness
   - Solution: Lock voice selection per conversation session
 
@@ -1827,7 +1989,7 @@ class AudioPostProcessor {
 ### 📊 TTS Performance Comparison
 
 | Provider   | Latency (p50) | Quality (MOS) | Cost/1k chars | Selection Rate |
-|------------|---------------|---------------|---------------|----------------|
+| ---------- | ------------- | ------------- | ------------- | -------------- |
 | ElevenLabs | 900ms         | 4.6/5.0       | $0.30         | 75%            |
 | Google TTS | 650ms         | 4.1/5.0       | $0.016        | 20%            |
 | AWS Polly  | 550ms         | 3.6/5.0       | $0.004        | 4%             |
@@ -1846,12 +2008,14 @@ class AudioPostProcessor {
 **Finally! The visual identity of Kwami comes to life.**
 
 **Technical Implementation**:
+
 - **Geometry**: IcosahedronGeometry with 5 subdivision levels (1,280 triangles)
 - **Material**: Custom ShaderMaterial with vertex displacement
 - **Animation**: Perlin noise-based vertex displacement at 60 FPS
 - **Audio Reactivity**: FFT analysis drives displacement amplitude
 
 **Shader Code** (vertex displacement):
+
 ```glsl
 // vertex.glsl
 uniform float time;
@@ -1867,26 +2031,27 @@ vec3 noise3D(vec3 p);
 void main() {
   vNormal = normal;
   vPosition = position;
-  
+
   // Multi-octave noise for organic movement
   float noise1 = noise3D(position * spikes.x + time * 0.5).x;
   float noise2 = noise3D(position * spikes.y + time * 0.3).y;
   float noise3 = noise3D(position * spikes.z + time * 0.7).z;
-  
+
   // Combine noise octaves
   float displacement = (noise1 + noise2 + noise3) * 0.33;
-  
+
   // Audio reactivity (bass frequencies)
   displacement *= (1.0 + audioLevel * 2.0);
-  
+
   // Displace vertices along normal
   vec3 newPosition = position + normal * displacement * 0.3;
-  
+
   gl_Position = projectionMatrix * modelViewMatrix * vec4(newPosition, 1.0);
 }
 ```
 
 **Fragment shader** (color and lighting):
+
 ```glsl
 // fragment.glsl
 varying vec3 vNormal;
@@ -1904,48 +2069,52 @@ void main() {
     colorZ,
     (vPosition.y + 1.0) * 0.5
   );
-  
+
   // Simple Phong lighting
   vec3 lightDir = normalize(vec3(5.0, 5.0, 5.0));
   float diff = max(dot(vNormal, lightDir), 0.0);
-  
+
   vec3 finalColor = color * (0.3 + 0.7 * diff);
-  
+
   gl_FragColor = vec4(finalColor, 1.0);
 }
 ```
 
 **Audio Integration**:
+
 ```typescript
 class AudioReactiveBlob {
   private analyser: AnalyserNode;
   private frequencyData: Uint8Array;
   private shader: ShaderMaterial;
-  
+
   update() {
     // Get frequency data from audio context
     this.analyser.getByteFrequencyData(this.frequencyData);
-    
+
     // Calculate bass energy (0-250 Hz)
     const bassRange = this.frequencyData.slice(0, 10);
-    const bassEnergy = bassRange.reduce((sum, val) => sum + val, 0) / (10 * 255);
-    
+    const bassEnergy =
+      bassRange.reduce((sum, val) => sum + val, 0) / (10 * 255);
+
     // Update shader uniform
     this.shader.uniforms.audioLevel.value = bassEnergy;
-    this.shader.uniforms.time.value += 0.016;  // 60 FPS
+    this.shader.uniforms.time.value += 0.016; // 60 FPS
   }
 }
 ```
 
 **Performance Optimization**:
+
 - Geometry caching (1,280 vertices computed once)
 - Shader uniform updates only (no CPU-side vertex recalculation)
-- LOD (Level of Detail) system: 
+- LOD (Level of Detail) system:
   - High detail (5 subdivisions) when focused
   - Medium detail (3 subdivisions) when background tab
   - Low detail (2 subdivisions) on mobile
 
 **Rendering Pipeline**:
+
 - Renderer: WebGLRenderer with `antialias: true`
 - Camera: PerspectiveCamera, FOV 75°, positioned at (0, 0, 5)
 - Lights: AmbientLight (0x404040) + PointLight (0xffffff, intensity 1.5)
@@ -1958,10 +2127,10 @@ class AudioReactiveBlob {
 
 ```typescript
 enum BlobState {
-  IDLE = 'idle',        // Gentle breathing animation
-  LISTENING = 'listening',  // Pulsing, attentive
-  THINKING = 'thinking',    // Rapid, chaotic movement  
-  SPEAKING = 'speaking'     // Smooth, rhythmic waves
+  IDLE = "idle", // Gentle breathing animation
+  LISTENING = "listening", // Pulsing, attentive
+  THINKING = "thinking", // Rapid, chaotic movement
+  SPEAKING = "speaking", // Smooth, rhythmic waves
 }
 
 class BlobStateManager {
@@ -1971,24 +2140,24 @@ class BlobStateManager {
         this.blob.setSpikes(0.2, 0.2, 0.2);
         this.blob.setAnimationSpeed(0.5);
         break;
-        
+
       case BlobState.LISTENING:
-        this.blob.setSpikes(0.8, 0.8, 0.8);  // More spiky
+        this.blob.setSpikes(0.8, 0.8, 0.8); // More spiky
         this.blob.setAnimationSpeed(1.5);
-        this.blob.setColor('#00ff88');  // Green tint
+        this.blob.setColor("#00ff88"); // Green tint
         break;
-        
+
       case BlobState.THINKING:
-        this.blob.setSpikes(1.5, 1.2, 1.8);  // Chaotic
+        this.blob.setSpikes(1.5, 1.2, 1.8); // Chaotic
         this.blob.setAnimationSpeed(2.5);
-        this.blob.setColor('#ff8800');  // Orange tint
+        this.blob.setColor("#ff8800"); // Orange tint
         break;
-        
+
       case BlobState.SPEAKING:
         this.blob.setSpikes(0.5, 0.3, 0.4);
         this.blob.setAnimationSpeed(1.0);
-        this.blob.setAudioReactive(true);  // Drive from TTS
-        this.blob.setColor('#6600ff');  // Purple tint
+        this.blob.setAudioReactive(true); // Drive from TTS
+        this.blob.setColor("#6600ff"); // Purple tint
         break;
     }
   }
@@ -1996,6 +2165,7 @@ class BlobStateManager {
 ```
 
 **State Transitions**:
+
 - Smooth interpolation between states (300ms ease-in-out)
 - Color transitions use HSL interpolation (more natural than RGB)
 - Animation speed ramps to avoid jarring changes
@@ -2003,31 +2173,33 @@ class BlobStateManager {
 #### 🖥️ Performance Monitoring
 
 **Built-in FPS and GPU usage monitoring**:
+
 ```typescript
 interface PerformanceMetrics {
   fps: number;
-  frameTime: number;  // ms
+  frameTime: number; // ms
   drawCalls: number;
   triangles: number;
-  gpuMemory: number;  // MB (estimated)
+  gpuMemory: number; // MB (estimated)
 }
 
 class PerformanceMonitor {
-  private stats: Stats;  // stats.js library
-  
+  private stats: Stats; // stats.js library
+
   measure(): PerformanceMetrics {
     return {
       fps: this.stats.getFPS(),
       frameTime: this.stats.getFrameTime(),
       drawCalls: this.renderer.info.render.calls,
       triangles: this.renderer.info.render.triangles,
-      gpuMemory: this.estimateGPUMemory()
+      gpuMemory: this.estimateGPUMemory(),
     };
   }
 }
 ```
 
 **Typical Performance**:
+
 - Desktop (RTX 3070): 60 FPS, 2.5ms frame time, 45MB GPU memory
 - Laptop (Intel Iris Xe): 60 FPS, 8.2ms frame time, 62MB GPU memory
 - Mobile (iPhone 12): 45-60 FPS, 14ms frame time, 85MB GPU memory
@@ -2035,7 +2207,9 @@ class PerformanceMonitor {
 ### 🔧 Changed
 
 #### Pipeline Integration
+
 - Blob state now synchronized with conversation pipeline:
+
   - `LISTENING` state activated on microphone capture
   - `THINKING` state during STT + LLM processing (2-3 seconds)
   - `SPEAKING` state during TTS playback
@@ -2049,11 +2223,13 @@ class PerformanceMonitor {
 ### 🐛 Fixed
 
 - **Fixed**: Blob rendering blocking main thread
+
   - Root cause: Vertex calculations in JavaScript (should be GPU-only)
   - Solution: Moved all displacement to vertex shader
   - CPU usage: 45% → 8% during animations
 
 - **Fixed**: WebGL context loss on tab backgrounding
+
   - Root cause: Browser throttling requestAnimationFrame
   - Solution: Detect visibility change, pause rendering when hidden
 
@@ -2064,12 +2240,14 @@ class PerformanceMonitor {
 ### 📊 Visual Identity Metrics
 
 **User Feedback** (N=32 alpha testers):
+
 - "The blob is cool": 94%
 - "It helps me see the AI is listening": 87%
 - "The animations are distracting": 12%
 - "I wish I could customize colors": 78%
 
 **Technical Satisfaction**:
+
 - Rendering performance: ✅ Excellent (60 FPS on all targets)
 - Audio reactivity: ✅ Good (bass frequencies work well)
 - State visualization: ✅ Good (clear feedback)
@@ -2086,6 +2264,7 @@ class PerformanceMonitor {
 **Multi-provider LLM support via Eden AI**:
 
 1. **OpenAI GPT-3.5-turbo** (Primary)
+
    - Model: `gpt-3.5-turbo-0613`
    - Max tokens: 4,096 context window
    - Temperature: 0.8 (balanced creativity/consistency)
@@ -2096,6 +2275,7 @@ class PerformanceMonitor {
    - Latency: 800-1,500ms (p50: 1,100ms)
 
 2. **Anthropic Claude-1** (Fallback)
+
    - Model: `claude-1.3`
    - Max tokens: 9,000 context window (2.25x larger!)
    - Temperature: 0.7 (slightly more conservative)
@@ -2111,41 +2291,42 @@ class PerformanceMonitor {
    - Drawback: Lower quality responses (subjective, internal testing)
 
 **Provider Selection Logic**:
+
 ```typescript
 interface LLMProviderConfig {
   name: string;
   priority: number;
   costPerToken: { input: number; output: number };
   contextWindow: number;
-  latencyTarget: number;  // ms
-  qualityScore: number;  // 0-10, internal rating
+  latencyTarget: number; // ms
+  qualityScore: number; // 0-10, internal rating
 }
 
 const llmProviders: LLMProviderConfig[] = [
   {
-    name: 'openai/gpt-3.5-turbo',
+    name: "openai/gpt-3.5-turbo",
     priority: 1,
     costPerToken: { input: 0.000002, output: 0.000002 },
     contextWindow: 4096,
     latencyTarget: 1100,
-    qualityScore: 8.5
+    qualityScore: 8.5,
   },
   {
-    name: 'anthropic/claude-1',
+    name: "anthropic/claude-1",
     priority: 2,
     costPerToken: { input: 0.000008, output: 0.000024 },
     contextWindow: 9000,
     latencyTarget: 1600,
-    qualityScore: 9.0
+    qualityScore: 9.0,
   },
   {
-    name: 'cohere/command',
+    name: "cohere/command",
     priority: 3,
     costPerToken: { input: 0.000001, output: 0.000001 },
     contextWindow: 2048,
     latencyTarget: 850,
-    qualityScore: 7.0
-  }
+    qualityScore: 7.0,
+  },
 ];
 
 // Selection strategy: Use GPT-3.5 unless:
@@ -2157,44 +2338,46 @@ const llmProviders: LLMProviderConfig[] = [
 #### 💬 Conversation Memory Management
 
 **Implemented sliding window context**:
+
 ```typescript
 class ConversationMemory {
-  private messages: Array<{ role: 'user' | 'assistant'; content: string }>;
+  private messages: Array<{ role: "user" | "assistant"; content: string }>;
   private maxTokens: number;
   private tokenizer: GPT3Tokenizer;
-  
-  addMessage(role: 'user' | 'assistant', content: string) {
+
+  addMessage(role: "user" | "assistant", content: string) {
     this.messages.push({ role, content });
     this.trimToLimit();
   }
-  
+
   private trimToLimit() {
     let totalTokens = 0;
     const keptMessages = [];
-    
+
     // Keep most recent messages within token budget
     for (let i = this.messages.length - 1; i >= 0; i--) {
       const msg = this.messages[i];
       const msgTokens = this.tokenizer.encode(msg.content).length;
-      
+
       if (totalTokens + msgTokens > this.maxTokens) break;
-      
+
       keptMessages.unshift(msg);
       totalTokens += msgTokens;
     }
-    
+
     this.messages = keptMessages;
   }
-  
+
   getContext(): string {
     return this.messages
-      .map(m => `${m.role === 'user' ? 'Human' : 'AI'}: ${m.content}`)
-      .join('\n\n');
+      .map((m) => `${m.role === "user" ? "Human" : "AI"}: ${m.content}`)
+      .join("\n\n");
   }
 }
 ```
 
 **Token Budget Allocation**:
+
 - System prompt: 150 tokens (personality definition)
 - Conversation history: 2,500 tokens (sliding window)
 - Current user input: ~50 tokens average
@@ -2202,19 +2385,20 @@ class ConversationMemory {
 - Total: ~3,200 tokens (fits comfortably in GPT-3.5's 4,096 limit)
 
 **Context Compression** (when needed):
+
 ```typescript
 // If conversation exceeds token limit, summarize older messages
 class ContextCompressor {
   async compress(messages: Message[]): Promise<Message[]> {
-    const oldMessages = messages.slice(0, -10);  // All but last 10
+    const oldMessages = messages.slice(0, -10); // All but last 10
     const summary = await this.llm.summarize(oldMessages, {
       maxLength: 200,
-      style: 'bullet_points'
+      style: "bullet_points",
     });
-    
+
     return [
-      { role: 'system', content: `Previous conversation summary:\n${summary}` },
-      ...messages.slice(-10)  // Keep last 10 messages verbatim
+      { role: "system", content: `Previous conversation summary:\n${summary}` },
+      ...messages.slice(-10), // Keep last 10 messages verbatim
     ];
   }
 }
@@ -2232,30 +2416,31 @@ You are curious, warm, and genuinely interested in the user's thoughts.
 You respond with enthusiasm and encouragement. Keep responses concise (2-3 sentences).
 Use casual language and occasional emojis when appropriate.`,
     temperature: 0.9,
-    maxTokens: 100
+    maxTokens: 100,
   },
-  
+
   professional: {
     systemPrompt: `You are Kwami, a knowledgeable and professional AI assistant. 
 You provide clear, accurate information and thoughtful analysis. 
 You are respectful, articulate, and focus on being helpful. 
 Keep responses concise but thorough.`,
     temperature: 0.7,
-    maxTokens: 150
+    maxTokens: 150,
   },
-  
+
   energetic: {
     systemPrompt: `You are Kwami, an energetic and enthusiastic AI companion! 
 You're always excited to chat and full of positive vibes! 
 You use dynamic language and love exploring new ideas! 
 Keep responses punchy and engaging (2-3 sentences max)!`,
     temperature: 1.0,
-    maxTokens: 80
-  }
+    maxTokens: 80,
+  },
 };
 ```
 
 **Response Constraints**:
+
 - Max tokens: 80-150 (depending on personality)
 - Reasoning: Shorter responses → faster TTS generation → lower latency
 - Trade-off: Sometimes cuts off mid-thought (frustrating for users)
@@ -2263,42 +2448,45 @@ Keep responses punchy and engaging (2-3 sentences max)!`,
 #### 🔄 Fallback Chain Implementation
 
 **Comprehensive error handling with provider fallback**:
+
 ```typescript
 class LLMOrchestrator {
   async generateResponse(prompt: string): Promise<string> {
-    const providers = ['openai', 'anthropic', 'cohere'];
+    const providers = ["openai", "anthropic", "cohere"];
     let lastError: Error;
-    
+
     for (const provider of providers) {
       try {
         const response = await this.callProvider(provider, prompt);
         this.logSuccess(provider);
         return response;
-        
       } catch (error) {
         lastError = error;
         this.logFailure(provider, error);
-        
+
         // Specific error handling
-        if (error.code === 'rate_limit_exceeded') {
-          await this.sleep(1000);  // Wait 1s before next provider
-        } else if (error.code === 'context_length_exceeded') {
+        if (error.code === "rate_limit_exceeded") {
+          await this.sleep(1000); // Wait 1s before next provider
+        } else if (error.code === "context_length_exceeded") {
           // Try compressing context
           const compressed = await this.compressContext(prompt);
           return await this.callProvider(provider, compressed);
         }
-        
-        continue;  // Try next provider
+
+        continue; // Try next provider
       }
     }
-    
+
     // All providers failed
-    throw new Error(`All LLM providers failed. Last error: ${lastError.message}`);
+    throw new Error(
+      `All LLM providers failed. Last error: ${lastError.message}`
+    );
   }
 }
 ```
 
 **Observed Failure Rates** (30-day period, N=12,458 requests):
+
 - OpenAI GPT-3.5: 2.3% failure rate
   - Rate limits: 1.8%
   - Timeouts: 0.4%
@@ -2311,6 +2499,7 @@ class LLMOrchestrator {
 ### 🔧 Changed
 
 #### Eden AI Integration Updates
+
 - Upgraded to `edenai-sdk@1.3.0`
 - Added support for provider-specific parameters
 - Implemented request batching (submit STT+LLM together)
@@ -2318,6 +2507,7 @@ class LLMOrchestrator {
   - Caveat: Still sequential processing (no latency improvement)
 
 #### Conversation Flow
+
 - **Before**: Single-provider LLM (OpenAI only)
 - **After**: Multi-provider with intelligent fallback
 - **Reliability improvement**: 97.7% → 99.4% success rate
@@ -2325,10 +2515,12 @@ class LLMOrchestrator {
 ### 🐛 Fixed
 
 - **Fixed**: Context window overflow causing truncated conversations
+
   - Root cause: Token counting incorrect (special tokens not accounted for)
   - Solution: Use official tokenizer library (`gpt-3-encoder`)
 
 - **Fixed**: Personality inconsistency across providers
+
   - Root cause: Each provider interprets system prompts differently
   - Solution: Provider-specific prompt tuning
 
@@ -2338,16 +2530,19 @@ class LLMOrchestrator {
 ### 📊 LLM Performance Metrics
 
 **Latency by Provider** (p50/p95/p99):
+
 - OpenAI GPT-3.5: 1,100ms / 1,800ms / 2,400ms
 - Anthropic Claude: 1,600ms / 2,400ms / 3,200ms
 - Cohere Command: 850ms / 1,300ms / 1,700ms
 
 **Quality Assessment** (N=50 conversations, human evaluation):
+
 - GPT-3.5: 8.2/10 (coherent, occasionally generic)
 - Claude: 8.8/10 (nuanced, verbose)
 - Cohere: 7.1/10 (fast but sometimes off-topic)
 
 **Cost per 1,000 Conversations** (avg 8 turns each):
+
 - GPT-3.5 only: $0.32
 - Mixed (80% GPT, 15% Claude, 5% Cohere): $0.48
 - Fallback adds 50% cost overhead (worth it for reliability)
@@ -2365,6 +2560,7 @@ class LLMOrchestrator {
 **Implemented 3 Speech-to-Text providers with automatic fallback**:
 
 1. **OpenAI Whisper** (Primary) - Best accuracy, moderate cost
+
    - Model: `whisper-1` (large-v2)
    - Languages: 99 languages supported
    - Latency: 600-1,200ms (depends on audio length)
@@ -2373,6 +2569,7 @@ class LLMOrchestrator {
    - API: Accessed via Eden AI proxy (`/audio/speech_to_text_async`)
 
 2. **AssemblyAI** (Fallback) - Fastest, higher cost
+
    - Model: Universal-1
    - Languages: English, Spanish, French, German, Italian, Portuguese, Dutch
    - Latency: 400-900ms (streaming mode)
@@ -2389,74 +2586,75 @@ class LLMOrchestrator {
    - Benefit: Best uptime SLA (99.95%)
 
 **Provider Selection Strategy**:
+
 ```typescript
 interface STTProvider {
   name: string;
   priority: number;
   costPerSecond: number;
-  avgLatency: number;  // ms
-  accuracy: number;  // WER (lower is better)
+  avgLatency: number; // ms
+  accuracy: number; // WER (lower is better)
   languages: string[];
 }
 
 const sttProviders: STTProvider[] = [
   {
-    name: 'openai/whisper',
+    name: "openai/whisper",
     priority: 1,
-    costPerSecond: 0.0001,  // $0.006/minute
+    costPerSecond: 0.0001, // $0.006/minute
     avgLatency: 850,
-    accuracy: 0.03,  // 3% WER
-    languages: ['*']  // All languages
+    accuracy: 0.03, // 3% WER
+    languages: ["*"], // All languages
   },
   {
-    name: 'assemblyai',
+    name: "assemblyai",
     priority: 2,
     costPerSecond: 0.00025,
     avgLatency: 650,
-    accuracy: 0.05,  // 5% WER
-    languages: ['en', 'es', 'fr', 'de', 'it', 'pt', 'nl']
+    accuracy: 0.05, // 5% WER
+    languages: ["en", "es", "fr", "de", "it", "pt", "nl"],
   },
   {
-    name: 'google/speech-to-text',
+    name: "google/speech-to-text",
     priority: 3,
-    costPerSecond: 0.0004,  // $0.024/minute
+    costPerSecond: 0.0004, // $0.024/minute
     avgLatency: 720,
-    accuracy: 0.07,  // 7% WER
-    languages: ['*']
-  }
+    accuracy: 0.07, // 7% WER
+    languages: ["*"],
+  },
 ];
 ```
 
 **Fallback Logic**:
+
 ```typescript
 class STTOrchestrator {
   async transcribe(audioBuffer: ArrayBuffer): Promise<string> {
     const providers = this.getProvidersByPriority();
-    
+
     for (const provider of providers) {
       try {
         const startTime = Date.now();
         const transcript = await this.callSTTProvider(provider, audioBuffer);
         const latency = Date.now() - startTime;
-        
+
         this.logMetrics(provider, { latency, success: true });
         return transcript;
-        
       } catch (error) {
         this.logMetrics(provider, { error, success: false });
-        
+
         // Don't retry on client errors (invalid audio format, etc.)
         if (error.code >= 400 && error.code < 500) {
           throw error;
         }
-        
+
         // Retry on server errors (rate limits, timeouts)
         console.warn(`${provider.name} failed, trying next provider...`);
         continue;
       }
     }
-    
-    throw new Error('All STT providers failed');
+
+    throw new Error("All STT providers failed");
   }
 }
 ```
@@ -2466,12 +2664,14 @@ class STTOrchestrator {
 **Implemented audio quality enhancements before STT**:
 
 1. **Noise Reduction** (RNNoise-based)
+
    - Uses pre-trained neural network to remove background noise
    - Library: `@jitsi/rnnoise-wasm` (WebAssembly port)
    - Processing overhead: 50-100ms (worth it for accuracy improvement)
    - Improvement: 5-12% better WER on noisy audio
 
 2. **Automatic Gain Control (AGC)**
+
    - Normalizes audio volume to consistent level
    - Target: -23 LUFS (EBU R128 standard)
    - Prevents STT errors from too-quiet audio
@@ -2482,33 +2682,41 @@ class STTOrchestrator {
    - Benefit: 3x smaller upload size, faster processing
 
 **Implementation**:
+
 ```typescript
 class AudioPreprocessor {
   private rnnoise: RNNoise;
   private context: AudioContext;
-  
+
   async process(rawAudio: Float32Array): Promise<Float32Array> {
     // Step 1: Noise reduction
     const denoised = await this.rnnoise.process(rawAudio);
-    
+
     // Step 2: Automatic Gain Control
     const normalized = this.normalizeVolume(denoised, -23);
-    
+
     // Step 3: Resample to 16kHz mono
     const resampled = this.resample(normalized, 48000, 16000);
-    
+
     return resampled;
   }
-  
-  private normalizeVolume(audio: Float32Array, targetLUFS: number): Float32Array {
+
+  private normalizeVolume(
+    audio: Float32Array,
+    targetLUFS: number
+  ): Float32Array {
     const currentLUFS = this.calculateLUFS(audio);
     const gainDB = targetLUFS - currentLUFS;
     const gainLinear = Math.pow(10, gainDB / 20);
-    
-    return audio.map(sample => sample * gainLinear);
+
+    return audio.map((sample) => sample * gainLinear);
   }
-  
-  private resample(audio: Float32Array, fromRate: number, toRate: number): Float32Array {
+
+  private resample(
+    audio: Float32Array,
+    fromRate: number,
+    toRate: number
+  ): Float32Array {
     // Implement cubic interpolation for high-quality resampling
     // ... (omitted for brevity)
   }
@@ -2518,28 +2726,30 @@ class AudioPreprocessor {
 #### 🎛️ Advanced Audio Capture Configuration
 
 **Fine-tuned browser microphone constraints**:
+
 ```typescript
 const audioConstraints: MediaStreamConstraints = {
   audio: {
-    channelCount: 1,  // Mono
-    sampleRate: 48000,  // Will downsample to 16kHz
-    sampleSize: 16,  // 16-bit PCM
-    echoCancellation: true,  // Remove speaker feedback
-    noiseSuppression: false,  // Use our RNNoise instead (better quality)
-    autoGainControl: false,  // Use our AGC instead (more consistent)
+    channelCount: 1, // Mono
+    sampleRate: 48000, // Will downsample to 16kHz
+    sampleSize: 16, // 16-bit PCM
+    echoCancellation: true, // Remove speaker feedback
+    noiseSuppression: false, // Use our RNNoise instead (better quality)
+    autoGainControl: false, // Use our AGC instead (more consistent)
   },
-  video: false
+  video: false,
 };
 
 const stream = await navigator.mediaDevices.getUserMedia(audioConstraints);
 ```
 
 **Recording Buffer Management**:
+
 ```typescript
 class AudioRecorder {
   private buffers: Float32Array[] = [];
-  private processor: ScriptProcessorNode;  // 4096 samples at 48kHz = 85ms chunks
-  
+  private processor: ScriptProcessorNode; // 4096 samples at 48kHz = 85ms chunks
+
   startRecording() {
     this.processor = this.context.createScriptProcessor(4096, 1, 1);
     this.processor.onaudioprocess = (event) => {
@@ -2547,19 +2757,19 @@ class AudioRecorder {
       this.buffers.push(new Float32Array(inputBuffer));
     };
   }
-  
+
   stopRecording(): Float32Array {
     // Concatenate all buffers
     const totalLength = this.buffers.reduce((sum, buf) => sum + buf.length, 0);
     const result = new Float32Array(totalLength);
-    
+
     let offset = 0;
     for (const buffer of this.buffers) {
       result.set(buffer, offset);
       offset += buffer.length;
     }
-    
-    this.buffers = [];  // Clear for next recording
+
+    this.buffers = []; // Clear for next recording
     return result;
   }
 }
@@ -2568,30 +2778,32 @@ class AudioRecorder {
 ### 🔧 Changed
 
 #### Eden AI SDK Integration
+
 - Integrated `edenai-sdk@1.2.0` for unified provider access
 - All STT providers accessed via single API interface
 - Automatic provider authentication (Eden AI manages API keys)
 
 **Eden AI Request Format**:
+
 ```typescript
 interface EdenAISTTRequest {
-  providers: string;  // 'openai/whisper' | 'assemblyai' | 'google'
-  file: Blob;  // Audio file (WAV, MP3, FLAC, etc.)
-  language: string;  // ISO 639-1 code ('en', 'es', etc.)
+  providers: string; // 'openai/whisper' | 'assemblyai' | 'google'
+  file: Blob; // Audio file (WAV, MP3, FLAC, etc.)
+  language: string; // ISO 639-1 code ('en', 'es', etc.)
   settings: {
-    openai_whisper: { model: 'whisper-1' };
+    openai_whisper: { model: "whisper-1" };
     assemblyai: { language_detection: true };
     google: { enable_automatic_punctuation: true };
   };
 }
 
 const response = await edenai.audio.speechToTextAsync({
-  providers: 'openai/whisper',
+  providers: "openai/whisper",
   file: audioBlob,
-  language: 'en',
+  language: "en",
   settings: {
-    openai_whisper: { model: 'whisper-1' }
-  }
+    openai_whisper: { model: "whisper-1" },
+  },
 });
 
 const transcript = response.openai.text;
@@ -2600,10 +2812,12 @@ const transcript = response.openai.text;
 ### 🐛 Fixed
 
 - **Fixed**: Audio recording stops after 5 minutes
+
   - Root cause: Browser timeout on `getUserMedia` stream
   - Solution: Restart stream every 4 minutes (transparent to user)
 
 - **Fixed**: High-pitched whine in audio recordings
+
   - Root cause: DC offset in microphone input
   - Solution: Apply high-pass filter at 80Hz (removes DC component)
 
@@ -2614,21 +2828,25 @@ const transcript = response.openai.text;
 ### 📊 STT Performance Metrics
 
 **Accuracy Comparison** (WER on LibriSpeech test-clean):
+
 - Whisper: 3.0% WER (best)
 - AssemblyAI: 5.2% WER
 - Google STT: 6.8% WER
 
 **Latency Comparison** (p50/p95/p99):
+
 - Whisper: 850ms / 1,400ms / 2,100ms
 - AssemblyAI: 650ms / 1,100ms / 1,600ms (fastest)
 - Google STT: 720ms / 1,200ms / 1,800ms
 
 **Cost Comparison** (per 1,000 minutes):
+
 - Whisper: $6.00 (best value)
 - AssemblyAI: $15.00
 - Google STT: $24.00 (most expensive)
 
 **Provider Selection in Practice** (30-day period):
+
 - Whisper: 82% of requests
 - AssemblyAI: 14% (fallback)
 - Google STT: 4% (last resort)
@@ -2646,11 +2864,13 @@ const transcript = response.openai.text;
 ### ✨ Core Features
 
 #### 🎯 Vision
+
 Create a natural conversational AI experience where users can speak to an AI agent and receive voice responses, accompanied by an engaging visual representation.
 
 #### 🏗️ Architecture
 
 **3-Step Sequential Pipeline**:
+
 ```
 ┌──────────────┐     ┌──────────────┐     ┌──────────────┐     ┌──────────────┐
 │   User       │────>│   STT        │────>│   LLM        │────>│   TTS        │────> Audio Output
@@ -2661,6 +2881,7 @@ Create a natural conversational AI experience where users can speak to an AI age
 ```
 
 **Technology Stack**:
+
 - **Frontend**: Vanilla JavaScript + HTML5 + CSS3
 - **Audio**: Web Audio API for capture and playback
 - **Visualization**: HTML Canvas (pre-Three.js)
@@ -2672,12 +2893,14 @@ Create a natural conversational AI experience where users can speak to an AI age
 **Why Eden AI?**
 
 At the time (March 2022), building a conversational AI required:
+
 1. Separate integrations for STT (OpenAI Whisper), LLM (GPT-3.5), TTS (ElevenLabs)
 2. Managing 3 different API keys, billing accounts, rate limits
 3. Handling provider-specific error codes and retry logic
 4. Cost tracking across multiple services
 
 **Eden AI solved these problems**:
+
 - Single API key for all providers
 - Unified error handling and status codes
 - Built-in fallback logic across providers
@@ -2685,63 +2908,63 @@ At the time (March 2022), building a conversational AI required:
 - Provider benchmarking and performance monitoring
 
 **Implementation**:
+
 ```typescript
-import EdenAI from 'edenai-sdk';
+import EdenAI from "edenai-sdk";
 
 const edenai = new EdenAI({
-  apiKey: process.env.EDEN_AI_API_KEY
+  apiKey: process.env.EDEN_AI_API_KEY,
 });
 
 class ConversationPipeline {
   async processVoiceInput(audioBlob: Blob): Promise<AudioBuffer> {
     try {
       // Step 1: Speech to Text
-      console.log('🎤 Transcribing audio...');
+      console.log("🎤 Transcribing audio...");
       const sttResponse = await edenai.audio.speechToTextAsync({
-        providers: 'openai/whisper',
+        providers: "openai/whisper",
         file: audioBlob,
-        language: 'en'
+        language: "en",
       });
       const transcript = sttResponse.openai.text;
       console.log(`📝 Transcript: "${transcript}"`);
-      
+
       // Step 2: LLM Processing
-      console.log('🧠 Generating response...');
+      console.log("🧠 Generating response...");
       const llmResponse = await edenai.text.generation({
-        providers: 'openai',
+        providers: "openai",
         text: transcript,
         temperature: 0.8,
         max_tokens: 150,
-        model: 'gpt-3.5-turbo'
+        model: "gpt-3.5-turbo",
       });
       const responseText = llmResponse.openai.generated_text;
       console.log(`💬 Response: "${responseText}"`);
-      
+
       // Step 3: Text to Speech
-      console.log('🔊 Synthesizing speech...');
+      console.log("🔊 Synthesizing speech...");
       const ttsResponse = await edenai.audio.textToSpeech({
-        providers: 'elevenlabs',
+        providers: "elevenlabs",
         text: responseText,
-        language: 'en',
-        option: 'MALE',  // Voice selection limited in v1.0
+        language: "en",
+        option: "MALE", // Voice selection limited in v1.0
         settings: {
           elevenlabs: {
-            voice_id: 'pNInz6obpgDQGcFmaJgB'  // Adam voice
-          }
-        }
+            voice_id: "pNInz6obpgDQGcFmaJgB", // Adam voice
+          },
+        },
       });
       const audioUrl = ttsResponse.elevenlabs.audio_resource_url;
-      
+
       // Step 4: Download and decode audio
       const audioBuffer = await this.loadAudio(audioUrl);
       return audioBuffer;
-      
     } catch (error) {
-      console.error('❌ Pipeline error:', error);
+      console.error("❌ Pipeline error:", error);
       throw error;
     }
   }
-  
+
   private async loadAudio(url: string): Promise<AudioBuffer> {
     const response = await fetch(url);
     const arrayBuffer = await response.arrayBuffer();
@@ -2752,16 +2975,17 @@ class ConversationPipeline {
 ```
 
 **Eden AI Configuration**:
+
 ```typescript
 interface EdenAIConfig {
   apiKey: string;
-  baseUrl: string;  // https://api.edenai.run/v2
-  timeout: number;  // 30000ms (30 seconds)
-  retries: number;  // 3 attempts per request
+  baseUrl: string; // https://api.edenai.run/v2
+  timeout: number; // 30000ms (30 seconds)
+  retries: number; // 3 attempts per request
   providers: {
-    stt: ['openai/whisper'];
-    llm: ['openai'];
-    tts: ['elevenlabs'];
+    stt: ["openai/whisper"];
+    llm: ["openai"];
+    tts: ["elevenlabs"];
   };
 }
 ```
@@ -2769,30 +2993,33 @@ interface EdenAIConfig {
 #### 🎨 Simple Canvas Visualization
 
 **Pre-Three.js approach** (replaced in v1.3.0):
+
 ```typescript
 class CanvasVisualizer {
   private canvas: HTMLCanvasElement;
   private ctx: CanvasRenderingContext2D;
   private analyser: AnalyserNode;
-  
+
   draw() {
     requestAnimationFrame(() => this.draw());
-    
+
     // Get audio frequency data
     const frequencyData = new Uint8Array(this.analyser.frequencyBinCount);
     this.analyser.getByteFrequencyData(frequencyData);
-    
+
     // Clear canvas
     this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
-    
+
     // Draw waveform (simple bars)
     const barWidth = this.canvas.width / frequencyData.length;
     for (let i = 0; i < frequencyData.length; i++) {
       const barHeight = (frequencyData[i] / 255) * this.canvas.height;
       const x = i * barWidth;
       const y = this.canvas.height - barHeight;
-      
-      this.ctx.fillStyle = `hsl(${i / frequencyData.length * 360}, 100%, 50%)`;
+
+      this.ctx.fillStyle = `hsl(${
+        (i / frequencyData.length) * 360
+      }, 100%, 50%)`;
       this.ctx.fillRect(x, y, barWidth, barHeight);
     }
   }
@@ -2800,6 +3027,7 @@ class CanvasVisualizer {
 ```
 
 **Limitations**:
+
 - No 3D depth or perspective
 - Simple frequency bars (not organic blob shape)
 - Limited visual feedback for conversation state
@@ -2810,58 +3038,60 @@ class CanvasVisualizer {
 ### 🔧 Technical Details
 
 #### Audio Capture
+
 ```typescript
 class MicrophoneCapture {
   private stream: MediaStream | null = null;
   private recorder: MediaRecorder | null = null;
   private chunks: Blob[] = [];
-  
+
   async start(): Promise<void> {
     this.stream = await navigator.mediaDevices.getUserMedia({ audio: true });
     this.recorder = new MediaRecorder(this.stream, {
-      mimeType: 'audio/webm;codecs=opus'  // Opus codec for smaller files
+      mimeType: "audio/webm;codecs=opus", // Opus codec for smaller files
     });
-    
+
     this.recorder.ondataavailable = (event) => {
       this.chunks.push(event.data);
     };
-    
-    this.recorder.start(100);  // Collect data every 100ms
+
+    this.recorder.start(100); // Collect data every 100ms
   }
-  
+
   async stop(): Promise<Blob> {
     return new Promise((resolve) => {
       this.recorder!.onstop = () => {
-        const blob = new Blob(this.chunks, { type: 'audio/webm' });
+        const blob = new Blob(this.chunks, { type: "audio/webm" });
         this.chunks = [];
         resolve(blob);
       };
       this.recorder!.stop();
-      this.stream!.getTracks().forEach(track => track.stop());
+      this.stream!.getTracks().forEach((track) => track.stop());
     });
   }
 }
 ```
 
 #### Basic State Management
+
 ```typescript
 enum ConversationState {
-  IDLE = 'idle',
-  LISTENING = 'listening',
-  PROCESSING = 'processing',  // STT + LLM + TTS combined
-  SPEAKING = 'speaking'
+  IDLE = "idle",
+  LISTENING = "listening",
+  PROCESSING = "processing", // STT + LLM + TTS combined
+  SPEAKING = "speaking",
 }
 
 class StateManager {
   private state: ConversationState = ConversationState.IDLE;
   private callbacks: Map<ConversationState, Function[]> = new Map();
-  
+
   setState(newState: ConversationState) {
     console.log(`State transition: ${this.state} → ${newState}`);
     this.state = newState;
-    this.callbacks.get(newState)?.forEach(cb => cb());
+    this.callbacks.get(newState)?.forEach((cb) => cb());
   }
-  
+
   onState(state: ConversationState, callback: Function) {
     if (!this.callbacks.has(state)) {
       this.callbacks.set(state, []);
@@ -2874,6 +3104,7 @@ class StateManager {
 ### 📊 Initial Performance Metrics
 
 **Latency Breakdown** (measured over 100 test conversations):
+
 - STT (Whisper): 850ms average
 - LLM (GPT-3.5): 1,150ms average
 - TTS (ElevenLabs): 980ms average
@@ -2881,6 +3112,7 @@ class StateManager {
 - **Total**: 3,300ms (3.3 seconds) average per turn
 
 **Cost per Conversation** (average 6 turns):
+
 - STT: 6 turns × 3 seconds × $0.0001/sec = $0.0018
 - LLM: 6 turns × 80 tokens × $0.000002/token = $0.00096
 - TTS: 6 turns × 50 characters × $0.0003/1k chars = $0.009
@@ -2888,6 +3120,7 @@ class StateManager {
 - **Monthly (100 users, 5 conversations/day)**: $180 USD
 
 **User Experience** (N=8 alpha testers):
+
 - "The AI is smart": 100% (GPT-3.5 worked well)
 - "The voice sounds natural": 87% (ElevenLabs quality praised)
 - "Conversations feel slow": 100% ⚠️ (3+ second delays unacceptable)
@@ -2906,12 +3139,14 @@ class StateManager {
 ### 💡 Lessons Learned
 
 **What Worked**:
+
 - ✅ Eden AI abstraction made multi-provider integration painless
 - ✅ Web Audio API provided excellent audio control
 - ✅ ElevenLabs TTS quality exceeded expectations
 - ✅ GPT-3.5-turbo generated coherent, context-appropriate responses
 
 **What Didn't Work**:
+
 - ❌ **Sequential pipeline architecture**: Fundamental flaw causing unavoidable latency
 - ❌ Canvas visualization: Too basic, not engaging enough
 - ❌ No conversation memory: Conversations felt disjointed
