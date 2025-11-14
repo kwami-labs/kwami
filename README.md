@@ -24,7 +24,7 @@ An **independent, reusable** 3D Interactive AI Companion Library for creating en
 
 ### ✨ Latest Enhancements
 
-#### Playground UI (Last 48 hours)
+#### Playground UI
 
 - 📐 **Scale Control** - Adjust blob size (0.1-3.0) while preserving audio-reactive breathing
 - 🌈 **Advanced Background Controls** - Full tricolor gradient system:
