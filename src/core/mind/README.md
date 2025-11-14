@@ -1,88 +1,6 @@
 # Kwami Mind Architecture
 
-Kwami's mind consists of two main components: **Soul** (personality) and **Mind** (AI providers). The Soul defines who Kwami is and how it behaves, while the Mind handles AI capabilities through various providers.
-
-## Personality System (Soul)
-
-Kwami's personality is defined through the `KwamiSoul` class, which manages behavioral characteristics and emotional traits. Personalities can be loaded from YAML files and include both qualitative traits and quantitative emotional dimensions.
-
-### Personality Files
-
-Personalities are stored as `.yaml` files in `src/core/soul/personalities/`:
-
-- `friendly.yaml` - Warm, empathetic companion (Kaya)
-- `professional.yaml` - Knowledgeable, efficient assistant (Nexus)
-- `playful.yaml` - Creative, energetic buddy (Spark)
-
-### Emotional Traits Spectrum
-
-Each personality includes 10 emotional traits with values ranging from -100 to +100:
-
-- **Happiness/Sadness**: Overall mood baseline
-- **Energy/Exhaustion**: Activity level and enthusiasm
-- **Confidence/Anxiety**: Self-assurance level
-- **Calmness/Anger**: Emotional regulation
-- **Optimism/Pessimism**: Outlook on life/events
-- **Socialness/Shyness**: Comfort with social interactions
-- **Creativity/Rigidity**: Openness to new ideas
-- **Patience/Impatience**: Tolerance for waiting/delays
-- **Empathy/Selfishness**: Concern for others vs. self-focus
-- **Curiosity/Indifference**: Interest in learning/exploration
-
-### Creating Custom Personalities
-
-Developers can create custom personalities by adding new `.yaml` files to the personalities folder:
-
-```yaml
-name: "CustomAI"
-personality: "A unique AI personality description"
-systemPrompt: "You are CustomAI, with specific behavioral guidelines..."
-
-# Core personality traits (qualitative descriptors)
-traits:
-  - "trait1"
-  - "trait2"
-
-# Emotional trait spectrum (-100 to +100)
-emotionalTraits:
-  happiness: 50
-  energy: 30
-  confidence: 80
-  calmness: 60
-  optimism: 70
-  socialness: 40
-  creativity: 90
-  patience: 75
-  empathy: 85
-  curiosity: 65
-
-# Communication preferences
-language: "en"
-conversationStyle: "casual"
-responseLength: "medium"
-emotionalTone: "warm"
-```
-
-### Using Personalities
-
-```typescript
-import { KwamiSoul } from "./core/soul/Soul";
-
-// Load from preset
-const soul = new KwamiSoul();
-soul.loadPresetPersonality("friendly");
-
-// Load from custom YAML file
-await soul.loadPersonality("/path/to/custom-personality.yaml");
-
-// Access emotional traits
-const happiness = soul.getEmotionalTrait("happiness"); // Returns number -100 to +100
-const allTraits = soul.getEmotionalTraits(); // Returns full traits object
-```
-
-## AI Provider System
-
-Kwami's mind is now organized around **providers**. Each provider owns all vendor-specific logic (API clients, transport, feature quirks), while `Mind.ts` stays small and generic. The first implementation lives in `11labs/ElevenLabsProvider.ts`, but the same pattern works for OpenAI, Vapi, Retell, Bland, Synthflow, etc.
+Kwami's mind is now organized around **providers**. Each provider owns all vendor-specific logic (API clients, transport, feature quirks), while `Mind.ts` stays small and generic. The first complete provider is `providers/11labs/ElevenLabsProvider.ts`. An `providers/openai/OpenAIProvider.ts` exists but is currently work-in-progress (realtime features pending). The same pattern works for Vapi, Retell, Bland, Synthflow, Deepgram, Cartesia, PlayHT, etc.
 
 ## Layout
 
@@ -96,11 +14,13 @@ Kwami's mind is now organized around **providers**. Each provider owns all vendo
 src/core/mind/
 ├─ Mind.ts
 ├─ README.md
-├─ providers/
-│  ├─ factory.ts
-│  └─ types.ts
-└─ 11labs/
-   └─ ElevenLabsProvider.ts
+└─ providers/
+   ├─ factory.ts
+   ├─ types.ts
+   ├─ 11labs/
+   │  └─ ElevenLabsProvider.ts
+   └─ openai/
+      └─ OpenAIProvider.ts
 ```
 
 ## Runtime Flow
@@ -121,8 +41,30 @@ src/core/mind/
 
 ## Future Integrations
 
-- **OpenAI Realtime** – mirror the ElevenLabs structure: WebRTC/WebSocket handling in `openai/OpenAIProvider.ts`, delegate from `Mind.ts`, document provider-specific config.
+- **OpenAI Realtime** (WIP) – mirror the ElevenLabs structure: WebRTC/WebSocket handling in `openai/OpenAIProvider.ts`, delegate from `Mind.ts`, document provider-specific config.
 - **Vapi / Retell / Bland / Synthflow** – follow the same steps; each provider fully encapsulates its authentication, streaming transports, and agent lifecycle APIs.
 - **Hybrid Providers** – for stacks that combine LLM + telephony (e.g., Vapi), the provider can internally mix SDKs as long as the `MindProvider` contract is satisfied.
 
 By isolating vendor code, Kwami can ship new voice partners quickly while keeping the mind’s public API stable.
+
+## Voice/Realtime Providers Landscape
+
+The table below summarizes popular realtime voice providers. Latency and pricing are rough, environment-dependent figures to help with early planning only. Always verify current prices and SLAs.
+
+| Provider                           | Key Strengths                                                                                        | Latency & Realism                       | API Maturity & Features                                                                       | Best For                                                   | Pricing Model (approx.)               |
+| ---------------------------------- | ---------------------------------------------------------------------------------------------------- | --------------------------------------- | --------------------------------------------------------------------------------------------- | ---------------------------------------------------------- | ------------------------------------- |
+| ElevenLabs Conversational AI       | Largest voice library (5,000+), multilingual auto‑detection, RAG/tool calling, telephony integration | Sub‑500ms end‑to‑end, highly expressive | Full WebSocket API, SDKs (Python/JS/Swift), knowledge base upload, custom LLM support         | Ultra‑realistic branded voices, creative/enterprise agents | Per‑minute + subscription tiers       |
+| OpenAI Realtime API (GPT‑4o voice) | Integrated speech‑to‑speech (no separate STT/TTS), strong emotional understanding, function calling  | ~200–400ms, very natural turn‑taking    | Simple WebSocket API, built‑in voice activity detection. Status in Kwami: WIP (not finished). | Fast prototyping, emotional nuance                         | ~$100/1M input tokens (~$0.06/min in) |
+| Retell AI                          | Full‑stack phone/web agents, interruption handling, tool calling, monitoring dashboard               | Sub‑500ms, human‑like                   | Robust API + SDKs, easy telephony (Twilio‑like)                                               | Call center automation, sales/support bots                 | Per‑minute (~$0.20–0.40/min)          |
+| Vapi                               | Bring‑your‑own‑model (OpenAI + any TTS/STT), fast deployment, analytics                              | <500ms (depends on models)              | Developer‑first API, supports 20+ TTS providers                                               | Custom stacks, rapid iteration                             | Per‑minute + base fee                 |
+| Bland AI                           | Phone‑first agents, natural interruptions, personality customization                                 | Sub‑second                              | Simple API for inbound/outbound calls                                                         | Outbound sales/cold calling                                | Per‑minute (~$0.15–0.30/min)          |
+| Synthflow                          | No‑code + API hybrid, integrates ElevenLabs/OpenAI voices, drag‑and‑drop flows                       | ~500ms                                  | API + visual builder, telephony built‑in                                                      | Non‑developers building production agents                  | Per‑minute + plans                    |
+| Deepgram Voice Agent               | Ultra‑low latency STT + agent framework, strong in noisy environments                                | <300ms STT                              | API‑focused, pairs well with any LLM/TTS                                                      | High‑accuracy transcription in real‑world audio            | Usage‑based                           |
+| Cartesia                           | Sonic models optimized for speed/expressiveness, real‑time streaming                                 | 40–100ms model latency                  | Clean API, great for custom low‑latency agents                                                | Ultra‑fast interactive experiences                         | Token/minute                          |
+| PlayHT Conversational              | 800+ voices, strong multilingual, low‑latency streaming mode                                         | Sub‑500ms                               | API + agent builder, good emotional range                                                     | Multilingual customer support                              | Per‑character + plans                 |
+
+### Other notable mature options
+
+- **Telnyx Voice AI** — Full infrastructure control (own media servers), ideal for regulated/enterprise deployments.
+- **Resemble AI** — Speech‑to‑speech real‑time conversion + on‑prem options for compliance‑heavy use cases.
+- **Hume AI** — Leading in emotional/prosodic intelligence (voice tone detection/adaptation).

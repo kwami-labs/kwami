@@ -1,5 +1,5 @@
 import { ElevenLabsClient } from '@elevenlabs/elevenlabs-js';
-import type { KwamiAudio } from '../../body/Audio';
+import type { KwamiAudio } from '../../../body/Audio';
 import type {
   MindConfig,
   AdvancedTTSOptions,
@@ -23,13 +23,13 @@ import type {
   ConversationTokenResponse,
   ConversationSignedUrlOptions,
   ConversationSignedUrlResponse,
-} from '../../../types';
+} from '../../../../types';
 import type {
   MindProvider,
   MindProviderDependencies,
   MindProviderSpeakOptions,
   MindConversationCallbacks,
-} from '../providers/types';
+} from '../types';
 
 export class ElevenLabsProvider implements MindProvider {
   readonly type = 'elevenlabs';
@@ -1184,4 +1184,3 @@ export class ElevenLabsProvider implements MindProvider {
     this.signedUrl = null;
   }
 }
-
