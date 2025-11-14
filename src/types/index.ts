@@ -172,9 +172,18 @@ export interface PronunciationConfig {
 /**
  * AI Mind configuration for ElevenLabs Voice Agent
  */
+export type MindProviderType =
+  | 'elevenlabs'
+  | 'openai'
+  | 'vapi'
+  | 'retell'
+  | 'bland'
+  | 'synthflow';
+
 export interface MindConfig {
   // Authentication
   apiKey?: string; // ElevenLabs API key (or from env)
+  provider?: MindProviderType;
   
   // Voice configuration
   voice?: {

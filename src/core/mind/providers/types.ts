@@ -19,15 +19,8 @@ import type {
   ConversationTokenResponse,
   ConversationSignedUrlOptions,
   ConversationSignedUrlResponse,
+  MindProviderType,
 } from '../../../types';
-
-export type MindProviderType =
-  | 'elevenlabs'
-  | 'openai'
-  | 'vapi'
-  | 'retell'
-  | 'bland'
-  | 'synthflow';
 
 export interface MindConversationCallbacks {
   onAgentResponse?: (text: string) => void;
