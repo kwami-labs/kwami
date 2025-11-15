@@ -10,8 +10,8 @@ const sidebarState = {
 };
 
 const sectionLabels = {
-  mind: '🤖 Mind',
-  body: '🎨 Body',
+  mind: '🧠 Mind',
+  body: '🧬 Body',
   soul: '✨ Soul'
 };
 
@@ -44,37 +44,19 @@ function updateMenuToggleButton() {
 }
 
 window.toggleMenus = function() {
-  const container = document.getElementById('canvas-container');
-  const willCollapse = !menusCollapsed;
-
-  // Freeze current canvas container width and keep it centered
-  if (container) {
-    const rect = container.getBoundingClientRect();
-    container.style.width = `${Math.round(rect.width)}px`;
-    container.style.flex = '0 0 auto';
-    container.style.margin = '0 auto';
-  }
-
-  menusCollapsed = willCollapse;
+  // Pause resize detection to prevent re-renders during transition
+  window.kwami?.body?.pauseResizeDetection?.();
+  
+  // Toggle the collapsed state
+  menusCollapsed = !menusCollapsed;
   applySidebarVisibility();
   updateMenuToggleButton();
-
-  const duration = 320; // match CSS transition
-
-  if (willCollapse) {
-    // Closing: keep canvas frozen in the center (no resize/rerender).
-    // Do NOT unfreeze here.
-    return;
-  }
-
-  // Opening: unfreeze after animation and do a single snap resize
+  
+  const duration = 300; // match CSS transition (0.3s)
+  
+  // After transition completes, resume resize detection
   setTimeout(() => {
-    if (container) {
-      container.style.width = '';
-      container.style.flex = '';
-      container.style.margin = '';
-    }
-    window.kwami?.body?.refreshViewportSize?.();
+    window.kwami?.body?.resumeResizeDetection?.();
   }, duration);
 };
 

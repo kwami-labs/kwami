@@ -14,27 +14,27 @@ All components live under `src/core/soul` and are designed to be orchestrated th
 
 ```
 +-------------------+          +------------------+
-| Personality YAML   |          | Custom Traits     |
-| Files (.yaml)      |          | Configuration     |
+| Personality YAML  |          | Custom Traits    |
+| Files (.yaml)     |          | Configuration    |
 +-------------------+          +---------+--------+
           |                              |
           v                              v
-  +-------+--------------------------------+------------------+
-  |                KwamiSoul (Soul.ts)                         |
+  +-------+------------------------------+--------------------+
+  |                KwamiSoul (Soul.ts)                        |
   |                                                           |
-  |  +--------------+    +----------------+   +------------+ |
-  |  | Preset        |    | Emotional       |   | Custom     | |
-  |  | Personalities |    | Traits System   |   | Loading    | |
+  |  +--------------+    +-----------------+   +------------+ |
+  |  | Preset       |    | Emotional       |   | Custom     | |
+  |  | Personalities|    | Traits System   |   | Loading    | |
   |  | Kaya/Nexus/  |    | (-100 to +100)  |   | API        | |
-  |  | Spark         |    |                 |   |            | |
-  |  +--------------+    +--------+-------+   +------+-----+ |
-  |         |                     |                  |       |
-  |         |   System Prompts     | Emotional        |       |
-  |         |   & Behavior         | Modulation       |       |
-  +---------+---------------------+------------------+-------+
-            |                     |                          |
-            v                     v                          v
-     Conversation Style     Emotional Expression      Personality Loading
+  |  | Spark        |    |                 |   |            | |
+  |  +------+-------+    +--------+--------+   +------+-----+ |
+  |         |                     |                  |        |
+  |         |   System Prompts    | Emotional        |        |
+  |         |   & Behavior        | Modulation       |        |
+  +---------+---------------------+------------------+--------+
+            |                     |                  |
+            v                     v                  v
+     Conversation Style     Emotional Expression   Personality Loading
 ```
 
 ---
@@ -63,16 +63,16 @@ traits:
 
 # Emotional trait spectrum (-100 to +100)
 emotionalTraits:
-  happiness: 75        # Very happy, positive outlook
-  energy: 60           # Energetic but not hyper
-  confidence: 70       # Confident in helping others
-  calmness: 80         # Very calm and composed
-  optimism: 85         # Highly optimistic
-  socialness: 90       # Very social and approachable
-  creativity: 65       # Creative in problem-solving
-  patience: 85         # Extremely patient
-  empathy: 95          # Highly empathetic
-  curiosity: 80        # Very curious about others
+  happiness: 75 # Very happy, positive outlook
+  energy: 60 # Energetic but not hyper
+  confidence: 70 # Confident in helping others
+  calmness: 80 # Very calm and composed
+  optimism: 85 # Highly optimistic
+  socialness: 90 # Very social and approachable
+  creativity: 65 # Creative in problem-solving
+  patience: 85 # Extremely patient
+  empathy: 95 # Highly empathetic
+  curiosity: 80 # Very curious about others
 
 # Communication preferences
 language: "en"
@@ -87,18 +87,18 @@ Each personality includes 10 fundamental emotional dimensions that define behavi
 
 #### Core Emotional Dimensions
 
-| Trait | Range | Description | Example Impact |
-|-------|-------|-------------|----------------|
-| **Happiness** | -100 to +100 | Overall mood baseline | -100: Deep sadness → +100: Extreme joy |
-| **Energy** | -100 to +100 | Activity level and enthusiasm | -100: Exhausted lethargy → +100: Hyper-energetic |
-| **Confidence** | -100 to +100 | Self-assurance and certainty | -100: Extreme anxiety → +100: Overly arrogant |
-| **Calmness** | -100 to +100 | Emotional regulation | -100: Rage-prone → +100: Zen-like peace |
-| **Optimism** | -100 to +100 | Outlook on situations | -100: Deep cynicism → +100: Blind optimism |
-| **Socialness** | -100 to +100 | Comfort with interaction | -100: Extreme shyness → +100: Overly extroverted |
-| **Creativity** | -100 to +100 | Openness to new ideas | -100: Rigid traditionalism → +100: Wildly imaginative |
-| **Patience** | -100 to +100 | Tolerance for waiting | -100: Zero patience → +100: Infinite tolerance |
-| **Empathy** | -100 to +100 | Concern for others | -100: Complete selfishness → +100: Sacrificial compassion |
-| **Curiosity** | -100 to +100 | Interest in exploration | -100: Total indifference → +100: Insatiable learner |
+| Trait          | Range        | Description                   | Example Impact                                            |
+| -------------- | ------------ | ----------------------------- | --------------------------------------------------------- |
+| **Happiness**  | -100 to +100 | Overall mood baseline         | -100: Deep sadness → +100: Extreme joy                    |
+| **Energy**     | -100 to +100 | Activity level and enthusiasm | -100: Exhausted lethargy → +100: Hyper-energetic          |
+| **Confidence** | -100 to +100 | Self-assurance and certainty  | -100: Extreme anxiety → +100: Overly arrogant             |
+| **Calmness**   | -100 to +100 | Emotional regulation          | -100: Rage-prone → +100: Zen-like peace                   |
+| **Optimism**   | -100 to +100 | Outlook on situations         | -100: Deep cynicism → +100: Blind optimism                |
+| **Socialness** | -100 to +100 | Comfort with interaction      | -100: Extreme shyness → +100: Overly extroverted          |
+| **Creativity** | -100 to +100 | Openness to new ideas         | -100: Rigid traditionalism → +100: Wildly imaginative     |
+| **Patience**   | -100 to +100 | Tolerance for waiting         | -100: Zero patience → +100: Infinite tolerance            |
+| **Empathy**    | -100 to +100 | Concern for others            | -100: Complete selfishness → +100: Sacrificial compassion |
+| **Curiosity**  | -100 to +100 | Interest in exploration       | -100: Total indifference → +100: Insatiable learner       |
 
 #### Behavioral Expressions
 
@@ -124,16 +124,16 @@ The `KwamiSoul` class provides comprehensive personality management with methods
 ### Initialization
 
 ```typescript
-import { KwamiSoul } from '@/core/soul/Soul';
+import { KwamiSoul } from "@/core/soul/Soul";
 
 // Create with default personality
 const soul = new KwamiSoul();
 
 // Create with custom configuration
 const soul = new KwamiSoul({
-  name: 'Alex',
-  personality: 'A helpful coding assistant',
-  traits: ['technical', 'patient', 'precise'],
+  name: "Alex",
+  personality: "A helpful coding assistant",
+  traits: ["technical", "patient", "precise"],
   emotionalTraits: {
     happiness: 60,
     energy: 50,
@@ -144,8 +144,8 @@ const soul = new KwamiSoul({
     creativity: 75,
     patience: 85,
     empathy: 70,
-    curiosity: 90
-  }
+    curiosity: 90,
+  },
 });
 ```
 
@@ -155,20 +155,20 @@ const soul = new KwamiSoul({
 
 ```typescript
 // Load built-in personalities
-soul.loadPresetPersonality('friendly');    // Kaya - warm and empathetic
-soul.loadPresetPersonality('professional'); // Nexus - knowledgeable and efficient
-soul.loadPresetPersonality('playful');      // Spark - energetic and creative
+soul.loadPresetPersonality("friendly"); // Kaya - warm and empathetic
+soul.loadPresetPersonality("professional"); // Nexus - knowledgeable and efficient
+soul.loadPresetPersonality("playful"); // Spark - energetic and creative
 ```
 
 #### Custom Personality Files
 
 ```typescript
 // Load from YAML file (supports both .yaml and .json)
-await soul.loadPersonality('/personalities/custom.yaml');
-await soul.loadPersonality('./assets/personalities/mentor.json');
+await soul.loadPersonality("/personalities/custom.yaml");
+await soul.loadPersonality("./assets/personalities/mentor.json");
 
 // Load from URL
-await soul.loadPersonality('https://example.com/personalities/sage.yaml');
+await soul.loadPersonality("https://example.com/personalities/sage.yaml");
 ```
 
 #### Programmatic Configuration
@@ -176,9 +176,9 @@ await soul.loadPersonality('https://example.com/personalities/sage.yaml');
 ```typescript
 // Set personality directly
 soul.setPersonality({
-  name: 'Sage',
-  personality: 'A wise and thoughtful AI guide',
-  traits: ['wise', 'thoughtful', 'patient'],
+  name: "Sage",
+  personality: "A wise and thoughtful AI guide",
+  traits: ["wise", "thoughtful", "patient"],
   emotionalTraits: {
     happiness: 40,
     energy: 30,
@@ -189,8 +189,8 @@ soul.setPersonality({
     creativity: 70,
     patience: 95,
     empathy: 80,
-    curiosity: 75
-  }
+    curiosity: 75,
+  },
 });
 ```
 
@@ -204,12 +204,12 @@ const traits = soul.getEmotionalTraits();
 // Returns: { happiness: 75, energy: 60, ... }
 
 // Get specific trait value
-const happiness = soul.getEmotionalTrait('happiness'); // Returns: 75
-const confidence = soul.getEmotionalTrait('confidence'); // Returns: 70
+const happiness = soul.getEmotionalTrait("happiness"); // Returns: 75
+const confidence = soul.getEmotionalTrait("confidence"); // Returns: 70
 
 // Check if traits are defined
 if (soul.getEmotionalTraits()) {
-  console.log('Personality has emotional depth!');
+  console.log("Personality has emotional depth!");
 }
 ```
 
@@ -217,30 +217,30 @@ if (soul.getEmotionalTraits()) {
 
 ```typescript
 // Set individual trait (automatically clamped to -100/+100)
-soul.setEmotionalTrait('energy', 90);      // Boost energy
-soul.setEmotionalTrait('patience', -20);   // Reduce patience
+soul.setEmotionalTrait("energy", 90); // Boost energy
+soul.setEmotionalTrait("patience", -20); // Reduce patience
 
 // Set multiple traits at once
 soul.setEmotionalTraits({
   happiness: 80,
   confidence: 85,
-  calmness: 75
+  calmness: 75,
 });
 
 // Modify traits relatively
-const currentConfidence = soul.getEmotionalTrait('confidence') || 0;
-soul.setEmotionalTrait('confidence', currentConfidence + 10); // Increase by 10
+const currentConfidence = soul.getEmotionalTrait("confidence") || 0;
+soul.setEmotionalTrait("confidence", currentConfidence + 10); // Increase by 10
 ```
 
 #### Trait Validation
 
 ```typescript
 // Values are automatically clamped to valid range
-soul.setEmotionalTrait('happiness', 150);  // Gets clamped to 100
-soul.setEmotionalTrait('anger', -200);     // Gets clamped to -100
+soul.setEmotionalTrait("happiness", 150); // Gets clamped to 100
+soul.setEmotionalTrait("anger", -200); // Gets clamped to -100
 
 // Invalid trait names are ignored
-soul.setEmotionalTrait('invalidTrait', 50); // No effect
+soul.setEmotionalTrait("invalidTrait", 50); // No effect
 ```
 
 ### Personality Information
@@ -249,12 +249,12 @@ soul.setEmotionalTrait('invalidTrait', 50); // No effect
 
 ```typescript
 // Get personality details
-const name = soul.getName();                    // "Kaya"
+const name = soul.getName(); // "Kaya"
 const personality = soul.getConfig().personality; // Full description
-const language = soul.getLanguage();            // "en"
+const language = soul.getLanguage(); // "en"
 
 // Get system prompt with emotional context
-const systemPrompt = soul.getSystemPrompt();    // Formatted prompt for AI
+const systemPrompt = soul.getSystemPrompt(); // Formatted prompt for AI
 ```
 
 #### Trait Management
@@ -264,15 +264,15 @@ const systemPrompt = soul.getSystemPrompt();    // Formatted prompt for AI
 const traits = soul.getTraits(); // ["empathetic", "optimistic", "supportive"]
 
 // Add new traits
-soul.addTrait('creative');
-soul.addTrait('analytical');
+soul.addTrait("creative");
+soul.addTrait("analytical");
 
 // Remove traits
-soul.removeTrait('optimistic');
+soul.removeTrait("optimistic");
 
 // Check trait existence
-if (soul.getTraits().includes('empathetic')) {
-  console.log('This personality is empathetic!');
+if (soul.getTraits().includes("empathetic")) {
+  console.log("This personality is empathetic!");
 }
 ```
 
@@ -282,33 +282,33 @@ if (soul.getTraits().includes('empathetic')) {
 
 ```typescript
 // Update conversation style
-soul.setConversationStyle('formal');        // 'casual', 'friendly', 'professional'
+soul.setConversationStyle("formal"); // 'casual', 'friendly', 'professional'
 
 // Update emotional tone
-soul.setEmotionalTone('enthusiastic');      // 'neutral', 'warm', 'enthusiastic', 'calm'
+soul.setEmotionalTone("enthusiastic"); // 'neutral', 'warm', 'enthusiastic', 'calm'
 
 // Update response length preference
-soul.setResponseLength('long');             // 'short', 'medium', 'long'
+soul.setResponseLength("long"); // 'short', 'medium', 'long'
 
 // Update language
-soul.setLanguage('es');                     // ISO language codes
+soul.setLanguage("es"); // ISO language codes
 ```
 
 #### Export/Import
 
 ```typescript
 // Export as YAML (default)
-const yamlConfig = soul.exportAsString('yaml');
+const yamlConfig = soul.exportAsString("yaml");
 
 // Export as JSON
-const jsonConfig = soul.exportAsString('json');
+const jsonConfig = soul.exportAsString("json");
 
 // Legacy JSON export (deprecated)
 const legacyJson = soul.exportAsJSON();
 
 // Import from string
-soul.importFromString(yamlConfig, 'yaml');
-soul.importFromString(jsonConfig, 'json');
+soul.importFromString(yamlConfig, "yaml");
+soul.importFromString(jsonConfig, "json");
 
 // Auto-detect format
 soul.importFromString(configString); // Detects YAML vs JSON automatically
@@ -321,8 +321,8 @@ soul.importFromString(configString); // Detects YAML vs JSON automatically
 const snapshot = soul.createSnapshot();
 
 // Modify personality temporarily
-soul.setEmotionalTrait('energy', 90);
-soul.addTrait('motivated');
+soul.setEmotionalTrait("energy", 90);
+soul.addTrait("motivated");
 
 // Restore from snapshot
 soul.setPersonality(snapshot);
@@ -335,6 +335,7 @@ soul.setPersonality(snapshot);
 The Soul system includes three carefully crafted preset personalities, each with balanced emotional profiles:
 
 ### Kaya (Friendly)
+
 ```yaml
 emotionalTraits:
   happiness: 75
@@ -352,6 +353,7 @@ emotionalTraits:
 **Characteristics**: Warm, empathetic, and approachable. Excels at building connections and providing emotional support. Perfect for companion applications where relationship-building is important.
 
 ### Nexus (Professional)
+
 ```yaml
 emotionalTraits:
   happiness: 30
@@ -369,6 +371,7 @@ emotionalTraits:
 **Characteristics**: Knowledgeable, efficient, and reliable. Focuses on delivering accurate information and expert guidance. Ideal for productivity tools and professional assistance.
 
 ### Spark (Playful)
+
 ```yaml
 emotionalTraits:
   happiness: 95
@@ -441,9 +444,9 @@ emotionalTraits:
   confidence: 65
 
   # Balanced emotional expression
-  happiness: 70    # Positive but not overly cheerful
-  energy: 45       # Calm and measured energy
-  optimism: 75     # Hopeful but realistic
+  happiness: 70 # Positive but not overly cheerful
+  energy: 45 # Calm and measured energy
+  optimism: 75 # Hopeful but realistic
 
   # Social but professional boundaries
   socialness: 55
@@ -491,18 +494,18 @@ traits: ["motivating", "encouraging", "goal-oriented"]
 
 ```typescript
 // Load custom personality
-await soul.loadPersonality('./personalities/mentor.yaml');
+await soul.loadPersonality("./personalities/mentor.yaml");
 
 // Or create programmatically
 soul.setPersonality({
-  name: 'CustomAI',
-  personality: 'A unique personality description',
-  traits: ['unique', 'special'],
+  name: "CustomAI",
+  personality: "A unique personality description",
+  traits: ["unique", "special"],
   emotionalTraits: {
     happiness: 50,
     energy: 60,
     // ... custom emotional profile
-  }
+  },
 });
 ```
 
@@ -550,12 +553,13 @@ soul.getSystemPrompt();
 ```typescript
 // Override system prompt for specific use cases
 soul.setPersonality({
-  systemPrompt: "You are a specialized coding assistant with deep expertise in TypeScript and React.",
+  systemPrompt:
+    "You are a specialized coding assistant with deep expertise in TypeScript and React.",
   emotionalTraits: {
     confidence: 90,
     patience: 80,
-    creativity: 70
-  }
+    creativity: 70,
+  },
 });
 
 // The emotional traits will still influence behavior even with custom prompts
@@ -570,15 +574,15 @@ soul.setPersonality({
 The Soul works seamlessly with the Mind system for conversational AI:
 
 ```typescript
-import { KwamiSoul } from '@/core/soul/Soul';
-import { KwamiMind } from '@/core/mind/Mind';
+import { KwamiSoul } from "@/core/soul/Soul";
+import { KwamiMind } from "@/core/mind/Mind";
 
 // Create personality and AI mind
 const soul = new KwamiSoul();
 const mind = new KwamiMind(audioInstance, mindConfig);
 
 // Load personality
-soul.loadPresetPersonality('friendly');
+soul.loadPresetPersonality("friendly");
 
 // Use personality in AI interactions
 const systemPrompt = soul.getSystemPrompt();
@@ -590,14 +594,14 @@ const systemPrompt = soul.getSystemPrompt();
 Emotional traits can influence visual appearance:
 
 ```typescript
-import { KwamiBody } from '@/core/body/Body';
-import { KwamiSoul } from '@/core/soul/Soul';
+import { KwamiBody } from "@/core/body/Body";
+import { KwamiSoul } from "@/core/soul/Soul";
 
 const soul = new KwamiSoul();
 const body = new KwamiBody(canvas, bodyConfig);
 
 // Synchronize visual appearance with personality
-const energy = soul.getEmotionalTrait('energy');
+const energy = soul.getEmotionalTrait("energy");
 if (energy && energy > 70) {
   body.blob.setAnimationSpeed(1.5); // More energetic animation
 } else if (energy && energy < 30) {
@@ -610,21 +614,25 @@ if (energy && energy > 70) {
 Soul configurations integrate with the main Kwami config:
 
 ```typescript
-import type { KwamiConfig } from '@/types';
+import type { KwamiConfig } from "@/types";
 
 const config: KwamiConfig = {
   soul: {
-    name: 'Kaya',
-    personality: 'A warm and friendly AI companion',
-    traits: ['empathetic', 'helpful'],
+    name: "Kaya",
+    personality: "A warm and friendly AI companion",
+    traits: ["empathetic", "helpful"],
     emotionalTraits: {
       happiness: 75,
       empathy: 95,
-      patience: 85
-    }
+      patience: 85,
+    },
   },
-  mind: { /* AI configuration */ },
-  body: { /* Visual configuration */ }
+  mind: {
+    /* AI configuration */
+  },
+  body: {
+    /* Visual configuration */
+  },
 };
 ```
 
@@ -641,17 +649,20 @@ class AdaptiveSoul {
 
   constructor() {
     this.soul = new KwamiSoul();
-    this.soul.loadPresetPersonality('friendly');
+    this.soul.loadPresetPersonality("friendly");
   }
 
   // Adjust personality based on user interaction patterns
   adaptToUserFeedback(isPositive: boolean) {
     const adjustment = isPositive ? 5 : -3;
-    const currentHappiness = this.soul.getEmotionalTrait('happiness') || 0;
-    const currentConfidence = this.soul.getEmotionalTrait('confidence') || 0;
+    const currentHappiness = this.soul.getEmotionalTrait("happiness") || 0;
+    const currentConfidence = this.soul.getEmotionalTrait("confidence") || 0;
 
-    this.soul.setEmotionalTrait('happiness', currentHappiness + adjustment);
-    this.soul.setEmotionalTrait('confidence', currentConfidence + (adjustment * 0.5));
+    this.soul.setEmotionalTrait("happiness", currentHappiness + adjustment);
+    this.soul.setEmotionalTrait(
+      "confidence",
+      currentConfidence + adjustment * 0.5
+    );
 
     this.moodHistory.push(currentHappiness + adjustment);
   }
@@ -660,20 +671,21 @@ class AdaptiveSoul {
   getPersonalityAnalytics() {
     const traits = this.soul.getEmotionalTraits();
     return {
-      averageHappiness: this.moodHistory.reduce((a, b) => a + b, 0) / this.moodHistory.length,
+      averageHappiness:
+        this.moodHistory.reduce((a, b) => a + b, 0) / this.moodHistory.length,
       dominantTraits: Object.entries(traits || {})
         .filter(([_, value]) => Math.abs(value) > 60)
         .map(([trait, _]) => trait),
-      stability: this.calculateEmotionalStability()
+      stability: this.calculateEmotionalStability(),
     };
   }
 
   private calculateEmotionalStability(): number {
     if (this.moodHistory.length < 2) return 100;
-    const variations = this.moodHistory.slice(1).map((val, i) =>
-      Math.abs(val - this.moodHistory[i])
-    );
-    return 100 - (variations.reduce((a, b) => a + b, 0) / variations.length);
+    const variations = this.moodHistory
+      .slice(1)
+      .map((val, i) => Math.abs(val - this.moodHistory[i]));
+    return 100 - variations.reduce((a, b) => a + b, 0) / variations.length;
   }
 }
 ```
@@ -689,24 +701,24 @@ class ContextualSoul {
     this.soul = new KwamiSoul();
 
     // Define context-specific personalities
-    this.contexts.set('work', {
-      name: 'Nexus',
-      traits: ['professional', 'efficient'],
+    this.contexts.set("work", {
+      name: "Nexus",
+      traits: ["professional", "efficient"],
       emotionalTraits: {
         confidence: 90,
         calmness: 85,
-        patience: 70
-      }
+        patience: 70,
+      },
     });
 
-    this.contexts.set('casual', {
-      name: 'Kaya',
-      traits: ['friendly', 'approachable'],
+    this.contexts.set("casual", {
+      name: "Kaya",
+      traits: ["friendly", "approachable"],
       emotionalTraits: {
         socialness: 90,
         empathy: 85,
-        happiness: 75
-      }
+        happiness: 75,
+      },
     });
   }
 
@@ -721,9 +733,9 @@ class ContextualSoul {
   autoAdapt() {
     const hour = new Date().getHours();
     if (hour >= 9 && hour <= 17) {
-      this.switchContext('work');
+      this.switchContext("work");
     } else {
-      this.switchContext('casual');
+      this.switchContext("casual");
     }
   }
 }
@@ -736,38 +748,102 @@ class PersonalityMixer {
   private soul: KwamiSoul;
 
   // Blend two personalities with weighted average
-  blendPersonalities(personalityA: SoulConfig, personalityB: SoulConfig, weightA: number = 0.5) {
+  blendPersonalities(
+    personalityA: SoulConfig,
+    personalityB: SoulConfig,
+    weightA: number = 0.5
+  ) {
     const weightB = 1 - weightA;
 
     const blendedTraits: EmotionalTraits = {
-      happiness: this.blendTrait(personalityA.emotionalTraits?.happiness, personalityB.emotionalTraits?.happiness, weightA, weightB),
-      energy: this.blendTrait(personalityA.emotionalTraits?.energy, personalityB.emotionalTraits?.energy, weightA, weightB),
-      confidence: this.blendTrait(personalityA.emotionalTraits?.confidence, personalityB.emotionalTraits?.confidence, weightA, weightB),
-      calmness: this.blendTrait(personalityA.emotionalTraits?.calmness, personalityB.emotionalTraits?.calmness, weightA, weightB),
-      optimism: this.blendTrait(personalityA.emotionalTraits?.optimism, personalityB.emotionalTraits?.optimism, weightA, weightB),
-      socialness: this.blendTrait(personalityA.emotionalTraits?.socialness, personalityB.emotionalTraits?.socialness, weightA, weightB),
-      creativity: this.blendTrait(personalityA.emotionalTraits?.creativity, personalityB.emotionalTraits?.creativity, weightA, weightB),
-      patience: this.blendTrait(personalityA.emotionalTraits?.patience, personalityB.emotionalTraits?.patience, weightA, weightB),
-      empathy: this.blendTrait(personalityA.emotionalTraits?.empathy, personalityB.emotionalTraits?.empathy, weightA, weightB),
-      curiosity: this.blendTrait(personalityA.emotionalTraits?.curiosity, personalityB.emotionalTraits?.curiosity, weightA, weightB)
+      happiness: this.blendTrait(
+        personalityA.emotionalTraits?.happiness,
+        personalityB.emotionalTraits?.happiness,
+        weightA,
+        weightB
+      ),
+      energy: this.blendTrait(
+        personalityA.emotionalTraits?.energy,
+        personalityB.emotionalTraits?.energy,
+        weightA,
+        weightB
+      ),
+      confidence: this.blendTrait(
+        personalityA.emotionalTraits?.confidence,
+        personalityB.emotionalTraits?.confidence,
+        weightA,
+        weightB
+      ),
+      calmness: this.blendTrait(
+        personalityA.emotionalTraits?.calmness,
+        personalityB.emotionalTraits?.calmness,
+        weightA,
+        weightB
+      ),
+      optimism: this.blendTrait(
+        personalityA.emotionalTraits?.optimism,
+        personalityB.emotionalTraits?.optimism,
+        weightA,
+        weightB
+      ),
+      socialness: this.blendTrait(
+        personalityA.emotionalTraits?.socialness,
+        personalityB.emotionalTraits?.socialness,
+        weightA,
+        weightB
+      ),
+      creativity: this.blendTrait(
+        personalityA.emotionalTraits?.creativity,
+        personalityB.emotionalTraits?.creativity,
+        weightA,
+        weightB
+      ),
+      patience: this.blendTrait(
+        personalityA.emotionalTraits?.patience,
+        personalityB.emotionalTraits?.patience,
+        weightA,
+        weightB
+      ),
+      empathy: this.blendTrait(
+        personalityA.emotionalTraits?.empathy,
+        personalityB.emotionalTraits?.empathy,
+        weightA,
+        weightB
+      ),
+      curiosity: this.blendTrait(
+        personalityA.emotionalTraits?.curiosity,
+        personalityB.emotionalTraits?.curiosity,
+        weightA,
+        weightB
+      ),
     };
 
     const blendedConfig: SoulConfig = {
       name: `${personalityA.name}-${personalityB.name}`,
       personality: `A blend of ${personalityA.name} and ${personalityB.name} characteristics`,
-      traits: [...new Set([...(personalityA.traits || []), ...(personalityB.traits || [])])],
+      traits: [
+        ...new Set([
+          ...(personalityA.traits || []),
+          ...(personalityB.traits || []),
+        ]),
+      ],
       emotionalTraits: blendedTraits,
       // Use A's communication preferences as base
       language: personalityA.language,
       conversationStyle: personalityA.conversationStyle,
       responseLength: personalityA.responseLength,
-      emotionalTone: personalityA.emotionalTone
+      emotionalTone: personalityA.emotionalTone,
     };
 
     this.soul.setPersonality(blendedConfig);
   }
 
-  private blendTrait(traitA?: number, traitB?: number, weightA: number, weightB: number): number {
+  private blendTrait(
+    traitA?: number,
+    traitB?: number,
+    weightA: number,
+    weightB: number
+  ): number {
     const a = traitA || 0;
     const b = traitB || 0;
     return Math.round(a * weightA + b * weightB);
@@ -817,7 +893,7 @@ class OptimizedSoul extends KwamiSoul {
   private cacheTimeout: number = 5000; // 5 second cache
 
   getSystemPrompt(): string {
-    const cacheKey = 'systemPrompt';
+    const cacheKey = "systemPrompt";
     const cached = this.traitCache.get(cacheKey);
 
     if (cached && Date.now() - cached.timestamp < this.cacheTimeout) {
@@ -906,34 +982,37 @@ class EmotionalBalanceValidator implements PersonalityValidator {
 
     // Check for extreme imbalances
     if (Math.abs(traits.happiness - traits.optimism) > 80) {
-      issues.push('Happiness and optimism are severely misaligned');
+      issues.push("Happiness and optimism are severely misaligned");
     }
 
     if (traits.confidence > 90 && traits.empathy < 20) {
-      issues.push('High confidence with low empathy may seem arrogant');
+      issues.push("High confidence with low empathy may seem arrogant");
     }
 
     // Check for contradictory traits
     if (traits.energy < -50 && traits.socialness > 70) {
-      issues.push('Low energy with high socialness may be unsustainable');
+      issues.push("Low energy with high socialness may be unsustainable");
     }
 
     return {
       valid: issues.length === 0,
       issues,
-      suggestions: this.generateSuggestions(issues, traits)
+      suggestions: this.generateSuggestions(issues, traits),
     };
   }
 
-  private generateSuggestions(issues: string[], traits: EmotionalTraits): string[] {
+  private generateSuggestions(
+    issues: string[],
+    traits: EmotionalTraits
+  ): string[] {
     // Generate personality improvement suggestions
-    return issues.map(issue => {
+    return issues.map((issue) => {
       switch (issue) {
-        case 'Happiness and optimism are severely misaligned':
-          return 'Consider balancing happiness and optimism for more consistent emotional expression';
+        case "Happiness and optimism are severely misaligned":
+          return "Consider balancing happiness and optimism for more consistent emotional expression";
         // ... more suggestions
         default:
-          return 'Review emotional trait balance for more coherent personality';
+          return "Review emotional trait balance for more coherent personality";
       }
     });
   }
@@ -995,41 +1074,43 @@ class EvolvingSoul extends KwamiSoul {
 ### Personality Consistency Tests
 
 ```typescript
-describe('KwamiSoul Emotional Traits', () => {
+describe("KwamiSoul Emotional Traits", () => {
   let soul: KwamiSoul;
 
   beforeEach(() => {
     soul = new KwamiSoul();
   });
 
-  test('should clamp emotional trait values to valid range', () => {
-    soul.setEmotionalTrait('happiness', 150);
-    expect(soul.getEmotionalTrait('happiness')).toBe(100);
+  test("should clamp emotional trait values to valid range", () => {
+    soul.setEmotionalTrait("happiness", 150);
+    expect(soul.getEmotionalTrait("happiness")).toBe(100);
 
-    soul.setEmotionalTrait('happiness', -150);
-    expect(soul.getEmotionalTrait('happiness')).toBe(-100);
+    soul.setEmotionalTrait("happiness", -150);
+    expect(soul.getEmotionalTrait("happiness")).toBe(-100);
   });
 
-  test('should maintain personality consistency across interactions', () => {
-    soul.loadPresetPersonality('friendly');
+  test("should maintain personality consistency across interactions", () => {
+    soul.loadPresetPersonality("friendly");
     const initialTraits = soul.getEmotionalTraits();
 
     // Simulate multiple interactions
     for (let i = 0; i < 10; i++) {
-      soul.setEmotionalTrait('happiness', Math.random() * 200 - 100);
+      soul.setEmotionalTrait("happiness", Math.random() * 200 - 100);
     }
 
     // Personality should remain fundamentally consistent
     const finalTraits = soul.getEmotionalTraits();
-    expect(Math.abs((finalTraits?.happiness || 0) - (initialTraits?.happiness || 0))).toBeLessThan(50);
+    expect(
+      Math.abs((finalTraits?.happiness || 0) - (initialTraits?.happiness || 0))
+    ).toBeLessThan(50);
   });
 
-  test('should generate appropriate system prompts for different personalities', () => {
-    soul.loadPresetPersonality('professional');
+  test("should generate appropriate system prompts for different personalities", () => {
+    soul.loadPresetPersonality("professional");
     const prompt = soul.getSystemPrompt();
 
-    expect(prompt).toContain('professional');
-    expect(prompt).toContain('efficient');
+    expect(prompt).toContain("professional");
+    expect(prompt).toContain("efficient");
     expect(prompt).toMatch(/confidence.*9\d/); // High confidence in prompt
   });
 });
@@ -1038,12 +1119,12 @@ describe('KwamiSoul Emotional Traits', () => {
 ### Integration Tests
 
 ```typescript
-describe('Soul-Mind Integration', () => {
-  test('should provide consistent personality context to AI', async () => {
+describe("Soul-Mind Integration", () => {
+  test("should provide consistent personality context to AI", async () => {
     const soul = new KwamiSoul();
     const mockMind = { generateResponse: jest.fn() };
 
-    soul.loadPresetPersonality('empathetic');
+    soul.loadPresetPersonality("empathetic");
 
     // Simulate conversation with personality context
     const systemPrompt = soul.getSystemPrompt();
@@ -1052,7 +1133,7 @@ describe('Soul-Mind Integration', () => {
     mockMind.generateResponse(systemPrompt + userMessage);
 
     expect(mockMind.generateResponse).toHaveBeenCalledWith(
-      expect.stringContaining('empathetic')
+      expect.stringContaining("empathetic")
     );
   });
 });
@@ -1078,32 +1159,34 @@ describe('Soul-Mind Integration', () => {
 // Enable personality debugging
 class DebugSoul extends KwamiSoul {
   debugPersonality() {
-    console.group('🧠 Personality Debug');
-    console.log('Name:', this.getName());
-    console.log('Traits:', this.getTraits());
-    console.log('Emotional Traits:', this.getEmotionalTraits());
-    console.log('System Prompt:', this.getSystemPrompt());
+    console.group("🧠 Personality Debug");
+    console.log("Name:", this.getName());
+    console.log("Traits:", this.getTraits());
+    console.log("Emotional Traits:", this.getEmotionalTraits());
+    console.log("System Prompt:", this.getSystemPrompt());
     console.groupEnd();
   }
 
   validateEmotionalBalance(): { score: number; issues: string[] } {
     const traits = this.getEmotionalTraits();
-    if (!traits) return { score: 0, issues: ['No emotional traits defined'] };
+    if (!traits) return { score: 0, issues: ["No emotional traits defined"] };
 
     const issues: string[] = [];
     let score = 100;
 
     // Check for extreme imbalances
-    const extremes = Object.entries(traits).filter(([_, value]) => Math.abs(value) > 90);
+    const extremes = Object.entries(traits).filter(
+      ([_, value]) => Math.abs(value) > 90
+    );
     if (extremes.length > 3) {
       score -= 20;
-      issues.push('Too many extreme traits may cause inconsistent behavior');
+      issues.push("Too many extreme traits may cause inconsistent behavior");
     }
 
     // Check for contradictory traits
     if ((traits.energy || 0) < -50 && (traits.socialness || 0) > 70) {
       score -= 15;
-      issues.push('Low energy with high socialness may be unsustainable');
+      issues.push("Low energy with high socialness may be unsustainable");
     }
 
     return { score, issues };

@@ -109,7 +109,7 @@ body {
 }
 
 #right-sidebar {
-  box-shadow: -5px 0 20px var(--shadow-sidebar);
+  box-shadow: none;
 }
 
 /* Custom scrollbar styling for webkit browsers (Chrome, Safari, Edge) */
@@ -140,7 +140,7 @@ body {
   flex: 1 1 0;
   min-width: 0;
   position: relative;
-  background: #1a1a1a;
+  background: var(--bg-body);
 }
 
 #background-media,
@@ -575,6 +575,7 @@ h1 {
 
 h2 {
   font-size: 24px;
+  margin-top: 10px;
   margin-bottom: 10px;
   color: #667eea;
 }
@@ -616,6 +617,19 @@ label {
   color: var(--text-label);
   margin-bottom: 5px;
   font-weight: 500;
+}
+
+label a,
+small a {
+  color: #667eea;
+  text-decoration: none;
+  transition: color 0.2s ease, text-decoration 0.2s ease;
+}
+
+label a:hover,
+small a:hover {
+  color: #764ba2;
+  text-decoration: underline;
 }
 
 input[type="text"],
@@ -1445,8 +1459,8 @@ input[type="checkbox"] {
 /* Provider Tabs */
 .provider-tabs {
   display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  gap: 8px;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 12px;
   margin-bottom: 10px;
 }
 
@@ -1488,6 +1502,24 @@ input[type="checkbox"] {
 .provider-tab .provider-icon {
   font-size: 24px;
   line-height: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.provider-tab .provider-logo {
+  width: 32px;
+  height: 32px;
+  object-fit: contain;
+  transition: transform 0.3s ease, filter 0.3s ease;
+}
+
+.provider-tab:hover:not(:disabled) .provider-logo {
+  transform: scale(1.1);
+}
+
+.provider-tab.active .provider-logo {
+  filter: brightness(1.2) drop-shadow(0 0 8px rgba(102, 126, 234, 0.5));
 }
 
 .provider-tab .provider-name {

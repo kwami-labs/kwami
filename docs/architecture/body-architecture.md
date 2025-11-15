@@ -20,7 +20,7 @@ All three modules live under `src/core/body` and are designed to be orchestrated
           v                              v
   +-------+-------------------------------+------------------+
   |                KwamiBody (Body.ts)                       |
-  |                                                         |
+  |                                                          |
   |  +--------------+    +----------------+   +------------+ |
   |  | Scene.ts     |    | Blob.ts        |   | Audio.ts   | |
   |  | renderer     |    | animated mesh  |   | analyser   | |

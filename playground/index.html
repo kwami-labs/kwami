@@ -91,27 +91,23 @@
   <!-- Mind Section (AI Agent Configuration) -->
   <template id="mind-template">
     <div class="sidebar-content">
-      <h1>🤖 Mind</h1>
+      <h2>🧠 Mind</h2>
       <p class="subtitle">Conversational AI Agents</p>
 
       <!-- Provider Tabs -->
       <div class="section">
         <div class="provider-tabs" id="provider-tabs">
           <button class="provider-tab active" data-provider="elevenlabs" onclick="switchProvider('elevenlabs')">
-            <span class="provider-icon">🎙️</span>
-            <span class="provider-name">ElevenLabs</span>
+            <span class="provider-icon">
+              <img src="logo/elevenlabs.webp" alt="ElevenLabs" class="provider-logo">
+            </span>
+            <span class="provider-name">11labs</span>
           </button>
           <button class="provider-tab" data-provider="openai" onclick="switchProvider('openai')" disabled title="Coming Soon">
-            <span class="provider-icon">🧠</span>
+            <span class="provider-icon">
+              <img src="logo/openai.webp" alt="OpenAI" class="provider-logo">
+            </span>
             <span class="provider-name">OpenAI</span>
-          </button>
-          <button class="provider-tab" data-provider="anthropic" onclick="switchProvider('anthropic')" disabled title="Coming Soon">
-            <span class="provider-icon">🤖</span>
-            <span class="provider-name">Anthropic</span>
-          </button>
-          <button class="provider-tab" data-provider="google" onclick="switchProvider('google')" disabled title="Coming Soon">
-            <span class="provider-icon">🔮</span>
-            <span class="provider-name">Google</span>
           </button>
         </div>
       </div>
@@ -128,7 +124,7 @@
           <div class="input-group">
             <label>ElevenLabs API Key (Required)</label>
             <input type="password" id="api-key-agent" placeholder="Enter your ElevenLabs API Key">
-            <small style="display: block; color: #888; margin-top: 2px;">Get from elevenlabs.io/settings/api-keys</small>
+            <small style="display: block; color: #888; margin-top: 5px;">Get it from <a href="https://elevenlabs.io/app/agents/settings" target="_blank" rel="noopener noreferrer" style="color: #667eea; text-decoration: none;">elevenlabs.io/app/agents/settings</a></small>
           </div>
           
           <button onclick="initializeAgentManager()" id="init-agent-manager-btn">🚀 Initialize Agent Manager</button>
@@ -356,32 +352,13 @@
         </div>
       </div>
 
-      <div id="provider-anthropic" class="provider-content" style="display: none;">
-        <div class="section">
-          <div class="section-title">🤖 Anthropic Agents</div>
-          <p style="color: #888; font-size: 14px; padding: 40px 20px; text-align: center;">
-            Anthropic Claude agent integration coming soon!<br>
-            <small style="color: #666;">Powered by Claude 3 for natural conversations.</small>
-          </p>
-        </div>
-      </div>
-
-      <div id="provider-google" class="provider-content" style="display: none;">
-        <div class="section">
-          <div class="section-title">🔮 Google Agents</div>
-          <p style="color: #888; font-size: 14px; padding: 40px 20px; text-align: center;">
-            Google Gemini agent integration coming soon!<br>
-            <small style="color: #666;">Multimodal AI conversations with Gemini.</small>
-          </p>
-        </div>
-      </div>
     </div>
   </template>
 
   <!-- Body Section (Visual Configuration) -->
   <template id="body-template">
     <div class="sidebar-content">
-      <h2>🎨 Body</h2>
+      <h2>🧬 Body</h2>
       <p class="subtitle">Visual Configuration</p>
 
       <!-- Quick Variations -->
@@ -390,14 +367,14 @@
         <div class="parameter-group">
           <div class="button-row">
             <button class="button-secondary" onclick="randomizeBlob()" title="Randomize blob shape and colors">🎲 Random Blob</button>
-            <button class="button-secondary" onclick="randomizeBackground()" title="Generate random gradient colors">🎨 Random Gradient</button>
+            <button class="button-secondary" onclick="randomizeBackground()" title="Generate random gradient colors">🎨 Random Bg Gradient</button>
           </div>
           <div class="button-row" style="margin-top: 8px;">
-            <button class="button-secondary" onclick="randomizeMediaSelection('image')" title="Select random background image">🖼️ Random Image</button>
-            <button class="button-secondary" onclick="randomizeMediaSelection('video')" title="Select random background video">🎥 Random Video</button>
+            <button class="button-secondary" onclick="randomizeMediaSelection('image')" title="Select random background image">🖼️ Random Bg Image</button>
+            <button class="button-secondary" onclick="randomizeMediaSelection('video')" title="Select random background video">🎥 Random Bg Video</button>
           </div>
           <div class="button-row" style="margin-top: 8px;">
-            <button class="button-secondary" onclick="randomizeBackgroundWithGlass()" title="Random background with glass effect">🪟 Random Glass</button>
+            <button class="button-secondary" onclick="randomizeBackgroundWithGlass()" title="Random background with glass effect">🪟 Random Bg Glass</button>
             <button class="button-secondary" onclick="randomize3DTexture()" title="Randomize blob surface texture">🧶 Random 3D Texture</button>
           </div>
         </div>

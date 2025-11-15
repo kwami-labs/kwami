@@ -118,6 +118,40 @@ Migrating from v0.x to v1.x wasn't a refactor—it was a **ground-up architectur
 
 ---
 
+## [1.3.2] - 2025-11-15
+
+### 🧠 Mind Architecture & UI Improvements
+
+- 🎨 **Provider Tabs Redesign**: Simplified Mind section provider selection
+  - Removed Anthropic and Google provider tabs (coming soon)
+  - Kept only ElevenLabs ("11labs") and OpenAI tabs
+  - Updated grid layout from 4 columns to 2 for better spacing
+- 🖼️ **Brand Logos**: Replaced emoji icons with actual provider logos
+  - Added `elevenlabs.webp` and `openai.webp` logo assets
+  - Created `/src/assets/img/logo/` directory for provider branding
+  - Implemented logo hover effects and active state styling
+  - Logos scale and glow on interaction for better UX
+- 🔗 **API Settings Link**: Made ElevenLabs API key help text clickable
+  - Link opens https://elevenlabs.io/app/agents/settings in new tab
+  - Added proper security attributes (rel="noopener noreferrer")
+  - Styled with theme colors and hover effects
+- 📝 **Template Updates**: Updated section headers with new emojis
+  - Mind: 🤖 → 🧠 (brain emoji for cognitive focus)
+  - Body: 🎨 → 🧬 (DNA emoji for biological metaphor)
+- 🎨 **Button Label Improvements**: Made Body sidebar buttons more descriptive
+  - "Random Gradient" → "Random Bg Gradient"
+  - "Random Image/Video" → "Random Bg Image/Video"
+  - "Random Glass" → "Random Bg Glass"
+  - Clarifies that these affect background, not blob
+
+### 🎨 Styling Enhancements
+
+- 💅 Added CSS for provider logo images with smooth transitions
+- ✨ Enhanced link hover states throughout the UI
+- 🎯 Improved visual feedback for provider tab selection
+
+---
+
 ## [1.3.1] - 2025-11-15
 
 ### 📚 Documentation Overhaul

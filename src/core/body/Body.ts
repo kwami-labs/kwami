@@ -210,6 +210,32 @@ export class KwamiBody {
     }, 350);
   }
 
+  /**
+   * Pause automatic resize detection
+   * Useful during smooth transitions where you don't want re-renders
+   */
+  pauseResizeDetection(): void {
+    if (this.resizeObserver) {
+      this.resizeObserver.disconnect();
+    } else if (this.usingWindowResizeListener && typeof window !== 'undefined') {
+      window.removeEventListener('resize', this.handleResize);
+    }
+  }
+
+  /**
+   * Resume automatic resize detection after pausing
+   */
+  resumeResizeDetection(): void {
+    if (typeof ResizeObserver !== 'undefined' && this.resizeObserver) {
+      const resizeTargets: Element[] = [this.canvas];
+      const parentElement = this.canvas.parentElement;
+      if (parentElement) resizeTargets.push(parentElement);
+      resizeTargets.forEach((target) => this.resizeObserver?.observe(target));
+    } else if (this.usingWindowResizeListener && typeof window !== 'undefined') {
+      window.addEventListener('resize', this.handleResize);
+    }
+  }
+
   private scheduleResize(): void {
     if (typeof window === 'undefined') {
       this.applyResize();
