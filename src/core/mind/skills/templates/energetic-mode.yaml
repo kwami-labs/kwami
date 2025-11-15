@@ -1,0 +1,36 @@
+id: energetic-mode
+name: Energetic Mode
+description: Makes Kwami more energetic with faster movements and vibrant colors
+version: 1.0.0
+author: Kwami Team
+tags:
+  - mood
+  - animation
+  - personality
+trigger: manual
+autoReverse: true
+reverseDelay: 5000
+actions:
+  - type: sequence
+    parallel: true
+    actions:
+      - type: body.colors
+        primary: "#ff6b35"
+        secondary: "#f7931e"
+        accent: "#fdc300"
+        duration: 500
+      - type: body.spikes
+        x: 0.8
+        y: 0.8
+        z: 0.8
+      - type: body.time
+        x: 3.0
+        y: 3.0
+        z: 3.0
+      - type: soul.trait
+        trait: energy
+        value: 80
+      - type: soul.trait
+        trait: happiness
+        value: 70
+

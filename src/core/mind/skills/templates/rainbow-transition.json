@@ -1,0 +1,46 @@
+{
+  "id": "rainbow-transition",
+  "name": "Rainbow Color Transition",
+  "description": "Cycles through rainbow colors with smooth transitions",
+  "version": "1.0.0",
+  "author": "Kwami Team",
+  "tags": ["colors", "animation", "visual"],
+  "trigger": "manual",
+  "actions": [
+    {
+      "type": "sequence",
+      "actions": [
+        {
+          "type": "body.colors",
+          "primary": "#ff0000",
+          "secondary": "#ff7700",
+          "accent": "#ffff00",
+          "duration": 1000
+        },
+        {
+          "type": "wait",
+          "duration": 500
+        },
+        {
+          "type": "body.colors",
+          "primary": "#00ff00",
+          "secondary": "#00ff77",
+          "accent": "#00ffff",
+          "duration": 1000
+        },
+        {
+          "type": "wait",
+          "duration": 500
+        },
+        {
+          "type": "body.colors",
+          "primary": "#0000ff",
+          "secondary": "#7700ff",
+          "accent": "#ff00ff",
+          "duration": 1000
+        }
+      ]
+    }
+  ]
+}
+

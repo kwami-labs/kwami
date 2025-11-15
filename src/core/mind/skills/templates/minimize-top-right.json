@@ -1,0 +1,25 @@
+{
+  "id": "minimize-top-right",
+  "name": "Minimize to Top Right",
+  "description": "Minimizes Kwami and moves it to the top-right corner of the screen",
+  "version": "1.0.0",
+  "author": "Kwami Team",
+  "tags": ["position", "scale", "ui"],
+  "trigger": "manual",
+  "autoReverse": false,
+  "actions": [
+    {
+      "type": "body.scale",
+      "preset": "mini",
+      "duration": 800,
+      "easing": "ease-in-out"
+    },
+    {
+      "type": "body.position",
+      "preset": "top-right",
+      "duration": 800,
+      "easing": "ease-in-out"
+    }
+  ]
+}
+

@@ -1,0 +1,38 @@
+id: calm-meditation
+name: Calm Meditation Mode
+description: Creates a calm, meditative atmosphere with slow movements and soothing colors
+version: 1.0.0
+author: Kwami Team
+tags:
+  - mood
+  - meditation
+  - calm
+trigger: manual
+actions:
+  - type: sequence
+    parallel: true
+    actions:
+      - type: body.colors
+        primary: "#3a86ff"
+        secondary: "#8338ec"
+        accent: "#b8b8ff"
+        duration: 2000
+      - type: body.spikes
+        x: 0.1
+        y: 0.1
+        z: 0.1
+      - type: body.time
+        x: 0.3
+        y: 0.3
+        z: 0.3
+      - type: body.rotation
+        x: 0.001
+        y: 0.002
+        z: 0.001
+      - type: soul.trait
+        trait: calmness
+        value: 90
+      - type: soul.trait
+        trait: patience
+        value: 85
+

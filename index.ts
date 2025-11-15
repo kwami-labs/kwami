@@ -32,6 +32,9 @@ export { KwamiMind } from './src/core/mind/Mind';
 export { KwamiSoul } from './src/core/soul/Soul';
 export { Blob } from './src/core/body/blob/Blob';
 
+// Skills System
+export { SkillManager } from './src/core/mind/skills/SkillManager';
+
 // Utilities
 export * from './src/utils/randoms';
 export { default as SpeechSynthesisRecorder } from './src/utils/recorder';
@@ -63,6 +66,32 @@ export type {
   EventHandler,
   EventHandlers,
 } from './src/types';
+
+// Skills Types
+export type {
+  SkillDefinition,
+  SkillActionType,
+  SkillActionUnion,
+  SkillContext,
+  SkillExecutionResult,
+  SkillRegistryEntry,
+  SkillTrigger,
+  SkillCondition,
+  PositionPreset,
+  PositionAction,
+  ScaleAction,
+  ColorsAction,
+  SpikesAction,
+  TimeAction,
+  RotationAction,
+  CameraAction,
+  SkinAction,
+  BackgroundAction,
+  SoulTraitAction,
+  SpeakAction,
+  WaitAction,
+  SequenceAction,
+} from './src/core/mind/skills/types';
 
 // Soul personality templates
 export type { PersonalityTemplate } from './src/core/soul/templates/loader';
