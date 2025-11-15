@@ -1,14 +1,71 @@
 # Kwami Soul Architecture
 
+> **Emotional intelligence and personality system for AI companions**
+
+## Table of Contents
+
+- [Overview](#overview)
+- [Architecture Principles](#architecture-principles)
+- [Core Components](#core-components)
+- [Emotional Traits System](#emotional-traits-system)
+- [Personality Architecture](#personality-architecture)
+- [Soul API Reference](#soul-api-reference)
+- [Built-in Personalities](#built-in-personalities)
+- [Creating Custom Personalities](#creating-custom-personalities)
+- [System Prompt Generation](#system-prompt-generation)
+- [Integration Patterns](#integration-patterns)
+- [Advanced Usage Patterns](#advanced-usage-patterns)
+- [Best Practices](#best-practices)
+- [Performance & Optimization](#performance--optimization)
+- [Testing & Validation](#testing--validation)
+- [Troubleshooting](#troubleshooting)
+- [Future Enhancements](#future-enhancements)
+
+---
+
+## Overview
+
 The Soul subsystem embodies Kwami's personality, behavioral characteristics, and emotional depth. It transforms Kwami from a simple AI assistant into a relatable companion with rich emotional intelligence and customizable traits. The Soul system enables developers to create diverse personalities that can express emotions, adapt behaviors, and maintain consistent character throughout interactions.
+
+### Key Capabilities
+
+✅ **10-Dimensional Emotional Spectrum** - Nuanced personality expression with -100 to +100 range  
+✅ **YAML-Based Personalities** - Easy-to-edit, human-readable personality definitions  
+✅ **Dynamic Trait Adjustment** - Real-time personality modifications during interactions  
+✅ **Preset Personalities** - Three carefully crafted archetypes (Kaya, Nexus, Spark)  
+✅ **System Prompt Generation** - Automatic AI prompt creation from personality traits  
+✅ **Personality Blending** - Combine multiple personalities with weighted mixing  
+✅ **Export/Import** - Save and restore personality configurations  
+✅ **Multi-System Integration** - Seamless connection with Mind and Body systems  
+
+---
+
+## Architecture Principles
+
+### 1. **Emotional Authenticity**
+Personalities are built on multi-dimensional emotional traits that create believable, consistent character expressions rather than superficial behavioral scripts.
+
+### 2. **Developer-Friendly Configuration**
+YAML-based personality files prioritize readability and ease of customization. No programming required for basic personality creation.
+
+### 3. **Real-Time Adaptability**
+Traits can be adjusted dynamically during interactions, enabling responsive personalities that evolve based on context and user feedback.
+
+### 4. **Quantitative Foundation**
+All emotional traits use numeric scales (-100 to +100), enabling mathematical operations like blending, interpolation, and statistical analysis.
+
+### 5. **Separation of Concerns**
+Personality (Soul) is distinct from intelligence (Mind) and appearance (Body), allowing independent customization of each layer.
+
+---
 
 ## Core Components
 
-- **`KwamiSoul`** - The main personality orchestrator that manages configuration, emotional traits, and behavioral patterns
-- **`personalities/`** - YAML-based personality definitions with emotional trait profiles
-- **Emotional Traits System** - 10-dimensional emotional spectrum (-100 to +100 range) for nuanced personality expression
+The Soul system consists of three main architectural elements:
 
-All components live under `src/core/soul` and are designed to be orchestrated through the main `KwamiSoul` class.
+### 1. KwamiSoul Class
+
+The central orchestrator that manages personality configuration, emotional traits, and behavioral patterns.
 
 ### System Diagram
 

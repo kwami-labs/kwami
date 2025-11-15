@@ -188,27 +188,27 @@ export function createMindProvider(
 
 ```
 ┌──────────────────────────────────────────────────────────┐
-│                     Application Layer                     │
-│            (React, Vue, vanilla JS, etc.)                 │
+│                     Application Layer                    │
+│            (React, Vue, vanilla JS, etc.)                │
 └────────────────────┬─────────────────────────────────────┘
                      │
                      │ new KwamiMind(audio, config)
                      ▼
 ┌──────────────────────────────────────────────────────────┐
-│                      KwamiMind                            │
+│                      KwamiMind                           │
 │  ┌────────────────────────────────────────────────────┐  │
 │  │ • Pronunciation Dictionary                         │  │
 │  │ • MindConfig (voice, STT, conversational, etc.)    │  │
 │  │ • Public API (speak, startConversation, etc.)      │  │
 │  └────────────────────┬───────────────────────────────┘  │
-│                       │                                   │
-│                       │ delegates to                      │
-│                       ▼                                   │
+│                       │                                  │
+│                       │ delegates to                     │
+│                       ▼                                  │
 │  ┌────────────────────────────────────────────────────┐  │
 │  │            Active MindProvider                     │  │
 │  │  (ElevenLabsProvider, OpenAIProvider, etc.)        │  │
 │  └────────────────────┬───────────────────────────────┘  │
-└───────────────────────┼───────────────────────────────────┘
+└───────────────────────┼──────────────────────────────────┘
                         │
                         │ vendor SDK calls
                         ▼
