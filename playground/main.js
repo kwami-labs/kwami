@@ -11,9 +11,9 @@ const sidebarState = {
 };
 
 const sectionLabels = {
-  mind: '🧠 Mind',
-  body: '🧬 Body',
-  soul: '✨ Soul'
+  mind: '🧠 Mind >',
+  body: '🧬 Body >',
+  soul: '✨ Soul >'
 };
 
 let menusCollapsed = false;

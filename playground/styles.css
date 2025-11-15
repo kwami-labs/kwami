@@ -63,10 +63,11 @@ body {
 }
 
 #app {
-  display: flex;
+  position: relative;
   height: 100vh;
   width: 100%;
   min-width: 0;
+  overflow: hidden;
 }
 
 #left-sidebar,
@@ -76,8 +77,10 @@ body {
   backdrop-filter: blur(10px);
   padding: 50px 30px 30px;
   overflow-y: auto;
-  position: relative;
-  flex-shrink: 0;
+  position: fixed;
+  top: 0;
+  height: 100vh;
+  z-index: 1000;
   transition: transform 0.3s ease, opacity 0.3s ease, width 0.3s ease, padding 0.3s ease, box-shadow 0.3s ease, background 0.3s ease;
   
   /* Firefox scrollbar styling */
@@ -85,19 +88,8 @@ body {
   scrollbar-color: var(--scrollbar-thumb) var(--scrollbar-track);
 }
 
-#left-sidebar.hidden,
-#right-sidebar.hidden {
-  opacity: 0;
-  pointer-events: none;
-  width: 0 !important;
-  min-width: 0 !important;
-  padding: 0;
-  overflow: hidden;
-  box-shadow: none;
-  flex-shrink: 1 !important;
-}
-
 #left-sidebar {
+  left: 0;
   box-shadow: 5px 0 20px var(--shadow-sidebar);
   overflow-x: hidden;
   direction: rtl; /* Position scrollbar on the left */
@@ -109,7 +101,20 @@ body {
 }
 
 #right-sidebar {
-  box-shadow: none;
+  right: 0;
+  box-shadow: -5px 0 20px var(--shadow-sidebar);
+}
+
+#left-sidebar.hidden {
+  transform: translateX(-100%);
+  opacity: 0;
+  pointer-events: none;
+}
+
+#right-sidebar.hidden {
+  transform: translateX(100%);
+  opacity: 0;
+  pointer-events: none;
 }
 
 /* Custom scrollbar styling for webkit browsers (Chrome, Safari, Edge) */
@@ -137,10 +142,13 @@ body {
 }
 
 #canvas-container {
-  flex: 1 1 0;
-  min-width: 0;
-  position: relative;
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
   background: var(--bg-body);
+  z-index: 1;
 }
 
 #background-media,
@@ -216,7 +224,7 @@ canvas.conversation-ready {
 
 #canvas-container.conversation-ready::after {
   content: 'Double-click Kwami to toggle conversation';
-  position: absolute;
+  position: fixed;
   bottom: 20px;
   left: 50%;
   transform: translateX(-50%);
@@ -243,10 +251,10 @@ canvas.conversation-ready {
 
 /* Menu Toggle Button */
 .menu-toggle-btn {
-  position: absolute;
+  position: fixed;
   top: 20px;
   left: 20px;
-  z-index: 11;
+  z-index: 1001;
   background: var(--bg-button);
   backdrop-filter: blur(10px);
   border: none;
@@ -258,10 +266,15 @@ canvas.conversation-ready {
   align-items: center;
   justify-content: center;
   box-shadow: 0 4px 20px var(--shadow-button);
-  transition: all 0.3s ease;
+  transition: left 0.3s ease, background 0.3s ease, box-shadow 0.3s ease, transform 0.3s ease;
   font-size: 18px;
   color: #667eea;
   padding: 0;
+}
+
+/* Move right when left sidebar is open */
+body:has(#left-sidebar:not(.hidden)) .menu-toggle-btn {
+  left: 370px;
 }
 
 .menu-toggle-btn:hover {
@@ -281,10 +294,10 @@ canvas.conversation-ready {
 
 /* Theme Toggle Button */
 .theme-toggle-btn {
-  position: absolute;
+  position: fixed;
   top: 20px;
   right: 155px;
-  z-index: 11;
+  z-index: 1001;
   background: var(--bg-button);
   backdrop-filter: blur(10px);
   border: none;
@@ -296,9 +309,14 @@ canvas.conversation-ready {
   align-items: center;
   justify-content: center;
   box-shadow: 0 4px 20px var(--shadow-button);
-  transition: all 0.3s ease;
+  transition: right 0.3s ease, background 0.3s ease, box-shadow 0.3s ease, transform 0.3s ease;
   font-size: 16px;
   padding: 0;
+}
+
+/* Move left when right sidebar is open */
+body:has(#right-sidebar:not(.hidden)) .theme-toggle-btn {
+  right: 505px;
 }
 
 .theme-toggle-btn:hover {
@@ -317,10 +335,10 @@ canvas.conversation-ready {
 
 /* GitHub Star Button */
 .github-star-btn {
-  position: absolute;
+  position: fixed;
   top: 20px;
   right: 20px;
-  z-index: 11;
+  z-index: 1001;
   background: var(--bg-button);
   backdrop-filter: blur(10px);
   border: none;
@@ -331,11 +349,16 @@ canvas.conversation-ready {
   align-items: center;
   gap: 6px;
   box-shadow: 0 4px 20px var(--shadow-button);
-  transition: all 0.3s ease;
+  transition: right 0.3s ease, background 0.3s ease, box-shadow 0.3s ease, transform 0.3s ease, color 0.3s ease;
   font-size: 13px;
   color: var(--text-primary);
   text-decoration: none;
   font-weight: 600;
+}
+
+/* Move left when right sidebar is open */
+body:has(#right-sidebar:not(.hidden)) .github-star-btn {
+  right: 370px;
 }
 
 .github-star-btn:hover {
@@ -370,7 +393,7 @@ canvas.conversation-ready {
 /* Audio Player Toggle Button (Headphones) */
 #audio-toggle-btn,
 .audio-toggle-btn {
-  position: absolute;
+  position: fixed;
   top: 20px;
   left: 50%;
   transform: translateX(-50%);
@@ -388,7 +411,7 @@ canvas.conversation-ready {
   color: #667eea;
   transition: all 0.3s ease;
   padding: 0;
-  z-index: 10;
+  z-index: 1001;
   opacity: 1;
   pointer-events: auto;
 }
@@ -417,11 +440,11 @@ canvas.conversation-ready {
 
 /* Audio Player Container */
 #audio-player {
-  position: absolute;
+  position: fixed;
   top: 20px;
   left: 50%;
   transform: translateX(-50%);
-  z-index: 10;
+  z-index: 1001;
   background: var(--bg-button);
   backdrop-filter: blur(10px);
   padding: 12px 20px;
@@ -703,11 +726,11 @@ button:disabled {
 
 /* State Indicator (Below Blob) */
 #canvas-container .state-indicator {
-  position: absolute;
+  position: fixed;
   bottom: 120px;
   left: 50%;
   transform: translateX(-50%) scale(0.9);
-  z-index: 10;
+  z-index: 100;
   display: inline-block;
   padding: 10px 24px;
   border-radius: 20px;
@@ -807,11 +830,11 @@ button:disabled {
 
 /* Messages Container (Below Blob) */
 #messages-container {
-  position: absolute;
+  position: fixed;
   bottom: 30px;
   left: 50%;
   transform: translateX(-50%);
-  z-index: 10;
+  z-index: 100;
   max-width: 600px;
   width: 90%;
   display: flex;
@@ -1199,7 +1222,7 @@ input[type="range"]::-moz-range-thumb:hover {
 }
 
 .color-control {
-  margin-bottom: 10px;
+  margin-bottom: 0px;
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -1333,7 +1356,7 @@ input[type="checkbox"] {
 
 /* Version Display */
 #version-display {
-  position: absolute;
+  position: fixed;
   bottom: 10px;
   left: 50%;
   transform: translateX(-50%);
