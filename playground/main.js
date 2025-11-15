@@ -1010,12 +1010,11 @@ function resolveMediaPath(value) {
 }
 
 function getMediaOptions(type) {
-  const selectId = type === 'video' ? 'bg-media-video' : 'bg-media-image';
-  const select = document.getElementById(selectId);
-  if (!select) return [];
-  return Array.from(select.options)
-    .map((option) => option.value)
-    .filter((value) => value && value.trim() !== '');
+  if (type === 'video') {
+    return VIDEO_PRESETS.map(preset => preset.value);
+  } else {
+    return IMAGE_PRESETS.map(preset => preset.value);
+  }
 }
 
 function updateMediaTabs(activeType) {
@@ -1300,13 +1299,9 @@ window.randomizeMediaSelection = function(type) {
   const value = options[Math.floor(Math.random() * options.length)];
 
   if (type === 'image') {
-    const imageSelect = document.getElementById('bg-media-image');
-    if (imageSelect) imageSelect.value = value;
     setMediaType('image');
     setBackgroundImage(value);
   } else {
-    const videoSelect = document.getElementById('bg-media-video');
-    if (videoSelect) videoSelect.value = value;
     setMediaType('video');
     setBackgroundVideo(value);
   }
@@ -1314,12 +1309,8 @@ window.randomizeMediaSelection = function(type) {
 
 window.clearMediaSelection = function(type) {
   if (type === 'image') {
-    const imageSelect = document.getElementById('bg-media-image');
-    if (imageSelect) imageSelect.value = '';
     setBackgroundImage('');
   } else if (type === 'video') {
-    const videoSelect = document.getElementById('bg-media-video');
-    if (videoSelect) videoSelect.value = '';
     setBackgroundVideo('');
   }
   setMediaType('none');
@@ -1372,12 +1363,11 @@ window.uploadMediaFile = function(type) {
 let currentBlobMediaType = 'none';
 
 function getBlobMediaOptions(type) {
-  const selectId = type === 'video' ? 'blob-media-video' : 'blob-media-image';
-  const select = document.getElementById(selectId);
-  if (!select) return [];
-  return Array.from(select.options)
-    .map((option) => option.value)
-    .filter((value) => value && value.trim() !== '');
+  if (type === 'video') {
+    return VIDEO_PRESETS.map(preset => preset.value);
+  } else {
+    return IMAGE_PRESETS.map(preset => preset.value);
+  }
 }
 
 function updateBlobMediaTabs(activeType) {
@@ -1423,14 +1413,10 @@ window.randomizeBlobMedia = function(type) {
   const resolved = resolveMediaPath(value);
 
   if (type === 'image') {
-    const imageSelect = document.getElementById('blob-media-image');
-    if (imageSelect) imageSelect.value = value;
     setBlobMediaType('image');
     window.kwami?.body?.setBlobSurfaceImage(resolved);
     updateStatus(`🖼️ Blob texture: ${value.split('/').pop()}`);
   } else {
-    const videoSelect = document.getElementById('blob-media-video');
-    if (videoSelect) videoSelect.value = value;
     setBlobMediaType('video');
     window.kwami?.body?.setBlobSurfaceVideo(resolved, { autoplay: true, loop: true, muted: true });
     updateStatus(`🎥 Blob video texture: ${value.split('/').pop()}`);
@@ -1438,13 +1424,6 @@ window.randomizeBlobMedia = function(type) {
 };
 
 window.clearBlobMedia = function(type) {
-  if (type === 'image') {
-    const imageSelect = document.getElementById('blob-media-image');
-    if (imageSelect) imageSelect.value = '';
-  } else if (type === 'video') {
-    const videoSelect = document.getElementById('blob-media-video');
-    if (videoSelect) videoSelect.value = '';
-  }
   setBlobMediaType('none');
   window.kwami?.body?.clearBlobSurfaceMedia?.();
 };
@@ -1474,16 +1453,10 @@ window.randomize3DTexture = function() {
 
   // Update UI based on result
   if (result.type === 'image') {
-    const imageSelect = document.getElementById('blob-media-image');
-    const matchingOption = imageOptions.find(opt => resolveMediaPath(opt) === result.url);
-    if (imageSelect && matchingOption) imageSelect.value = matchingOption;
     setBlobMediaType('image');
     const filename = result.url ? result.url.split('/').pop() : 'texture';
     updateStatus(`🎲 Random 3D texture applied: ${filename}`);
   } else if (result.type === 'video') {
-    const videoSelect = document.getElementById('blob-media-video');
-    const matchingOption = videoOptions.find(opt => resolveMediaPath(opt) === result.url);
-    if (videoSelect && matchingOption) videoSelect.value = matchingOption;
     setBlobMediaType('video');
     const filename = result.url ? result.url.split('/').pop() : 'texture';
     updateStatus(`🎲 Random 3D video texture applied: ${filename}`);
@@ -1513,20 +1486,10 @@ window.randomizeBackgroundWithGlass = function() {
 
   // Update UI based on result
   if (result.backgroundType === 'image') {
-    const imageSelect = document.getElementById('bg-media-image');
-    const matchingOption = imageOptions.find(opt => resolveMediaPath(opt) === result.backgroundUrl);
-    if (imageSelect && matchingOption) imageSelect.value = matchingOption;
-    const videoSelect = document.getElementById('bg-media-video');
-    if (videoSelect) videoSelect.value = '';
     setMediaType('image', { silent: true });
     const filename = result.backgroundUrl ? result.backgroundUrl.split('/').pop() : 'image';
     updateStatus(`🪟 Glass effect with ${filename} (opacity: ${(result.opacity * 100).toFixed(0)}%)`);
   } else if (result.backgroundType === 'video') {
-    const videoSelect = document.getElementById('bg-media-video');
-    const matchingOption = videoOptions.find(opt => resolveMediaPath(opt) === result.backgroundUrl);
-    if (videoSelect && matchingOption) videoSelect.value = matchingOption;
-    const imageSelect = document.getElementById('bg-media-image');
-    if (imageSelect) imageSelect.value = '';
     setMediaType('video', { silent: true });
     const filename = result.backgroundUrl ? result.backgroundUrl.split('/').pop() : 'video';
     updateStatus(`🪟 Glass effect with ${filename} (opacity: ${(result.opacity * 100).toFixed(0)}%)`);
@@ -3353,36 +3316,6 @@ function initializeBodyControls() {
       setBlobMediaType(tab.dataset.media);
     });
   });
-
-  const blobImageSelect = document.getElementById('blob-media-image');
-  if (blobImageSelect) {
-    blobImageSelect.addEventListener('change', (e) => {
-      const value = e.target.value;
-      if (value) {
-        setBlobMediaType('image');
-        const resolved = resolveMediaPath(value);
-        window.kwami?.body?.setBlobSurfaceImage(resolved);
-        updateStatus(`🖼️ Blob texture: ${value.split('/').pop()}`);
-      } else {
-        window.clearBlobMedia('image');
-      }
-    });
-  }
-
-  const blobVideoSelect = document.getElementById('blob-media-video');
-  if (blobVideoSelect) {
-    blobVideoSelect.addEventListener('change', (e) => {
-      const value = e.target.value;
-      if (value) {
-        setBlobMediaType('video');
-        const resolved = resolveMediaPath(value);
-        window.kwami?.body?.setBlobSurfaceVideo(resolved, { autoplay: true, loop: true, muted: true });
-        updateStatus(`🎥 Blob video: ${value.split('/').pop()}`);
-      } else {
-        window.clearBlobMedia('video');
-      }
-    });
-  }
 
   // Initialize blob media to none
   setBlobMediaType('none');

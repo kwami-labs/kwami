@@ -213,7 +213,10 @@ This version marks a major evolution in the Kwami ecosystem with the introductio
 - `kwami.io/solana/SETUP.md` - Development environment setup
 - `kwami.io/solana/IMPLEMENTATION_STATUS.md` - Implementation progress
 - `kwami.io/solana/anchor/README.md` - Anchor development guide
+- `kwami.io/server/README.md` - WebSocket implementation guide
+- `kwami.io/WEBSOCKET_IMPLEMENTATION.md` - Real-time features documentation
 - `kwami.io/README.md` - Platform architecture vision
+- `kwami.io/SETUP_COMPLETE.md` - Setup completion checklist
 
 #### 🚧 In Progress (v1.4.x)
 
