@@ -118,6 +118,134 @@ Migrating from v0.x to v1.x wasn't a refactor—it was a **ground-up architectur
 
 --- Latest version:
 
+## [1.4.0] - 2025-11-15
+
+### 🚀 Kwami.io - Solana NFT Candy Machine
+
+This version marks a major evolution in the Kwami ecosystem with the introduction of blockchain-based NFTs and the separation of concerns across three platforms:
+
+#### 🧬 KWAMI NFT System
+
+- **Unique DNA-Based NFTs**: Each KWAMI has a unique DNA hash derived from its body configuration
+- **1 Trillion Limit**: Maximum of 1,000,000,000,000 unique KWAMIs with DNA-based validation
+- **Solana Blockchain**: Native Solana NFTs using Metaplex standard with Arweave storage
+- **Candy Machine**: Web3 minting interface in kwami.io for creating KWAMI NFTs
+- **DNA Registry**: On-chain DNA validation prevents duplicate KWAMIs
+- **Burn & Remint**: Change your KWAMI's DNA by burning and re-minting
+
+#### 🌐 Platform Architecture
+
+- **kwami.io** (NEW): Candy machine for minting KWAMI NFTs on Solana
+  - Nuxt4 SSR-disabled app with Bun runtime
+  - Wallet integration (Phantom, Solflare, etc.)
+  - Real-time DNA preview and validation
+  - NFT gallery and management
+- **qwami.io** (Planned v1.5.x): QWAMI energy token minting and management
+  - SPL token for AI service payments
+  - Token staking and rewards
+- **quami.io** (Planned v1.6.x): Web3/Web2 OS platform
+  - Requires KWAMI NFT in wallet for access
+  - MCP connectors for digital life management
+  - Encrypted data storage accessible only with KWAMI NFT
+
+#### 🔷 Solana Programs
+
+**Kwami NFT Program** (`solana/anchor/kwami-nft/`)
+
+- ✨ DNA Registry with on-chain uniqueness validation
+- 🎨 Mint instruction with DNA hash verification
+- 🔄 Update metadata for Mind/Soul changes (DNA unchanged)
+- 🔥 Burn instruction to free DNA for re-minting
+- 🔐 Transfer ownership tracking
+- 📊 Collection authority and statistics
+
+**Key Features:**
+
+- DNA Components: geometry, deformation (spikes, time, rotation), colors, shininess, skin type, scale
+- Metaplex NFT Standard integration
+- Arweave decentralized storage
+- Maximum 1,000 DNA entries per registry account (sharding support for scaling)
+
+#### 🛠️ Candy Machine Features
+
+- **Visual DNA Editor**: Real-time blob preview with Three.js
+- **Wallet Connection**: Multi-wallet support via Solana Wallet Adapter
+- **DNA Validation**: Pre-mint uniqueness check against on-chain registry
+- **Metadata Upload**: Automatic Arweave upload for images and metadata
+- **Transaction Management**: User-friendly minting flow with progress tracking
+- **NFT Gallery**: View and manage your minted KWAMIs
+- **Responsive Design**: Modern, beautiful UI built with Nuxt4 and TailwindCSS
+- **Real-time WebSocket**: Live user count and activity tracking with Socket.IO 4.8.1
+
+#### 🧪 DNA System
+
+- **SHA-256 Hashing**: Deterministic DNA generation from body configuration
+- **Excluded from DNA**: Backgrounds, audio effects, Mind config, Soul config (updatable)
+- **DNA Helper Functions**: `calculateKwamiDNA()`, `getShortDNA()`, `compareDNA()`
+- **Metadata Preparation**: `prepareKwamiMetadata()` for Metaplex standard format
+
+#### 📦 Technical Stack
+
+- **Frontend**: Nuxt4 (SSR disabled), Vue 3 Composition API, Bun runtime
+- **Real-time**: Socket.IO 4.8.1 for live updates and user tracking
+- **UI Framework**: @nuxt/ui 4.1.0 with TailwindCSS
+- **State Management**: Pinia for reactive state
+- **Blockchain**: Solana devnet (mainnet-ready)
+- **Smart Contracts**: Anchor Framework v0.29.0
+- **NFT Standard**: Metaplex Token Metadata Program
+- **Storage**: Arweave for decentralized asset storage
+- **Wallets**: Solana Wallet Adapter (Phantom, Solflare, etc.)
+- **3D Rendering**: Three.js (shared with main @kwami/core)
+
+#### 🔧 Developer Tools
+
+- **Anchor Programs**: Complete Rust-based smart contracts
+- **TypeScript Utilities**: DNA calculation and metadata preparation
+- **Deployment Scripts**: Automated devnet deployment and initialization
+- **Testing Suite**: Anchor tests for all contract instructions
+- **WebSocket Server**: Real-time communication with Socket.IO (server/plugins/socket.ts)
+- **REST API**: `/api/socket/stats` for monitoring connections
+- **Documentation**: Comprehensive guides for Solana integration and WebSocket usage
+
+#### 📝 Documentation Added
+
+- `kwami.io/solana/README.md` - Solana programs overview
+- `kwami.io/solana/SETUP.md` - Development environment setup
+- `kwami.io/solana/IMPLEMENTATION_STATUS.md` - Implementation progress
+- `kwami.io/solana/anchor/README.md` - Anchor development guide
+- `kwami.io/README.md` - Platform architecture vision
+
+#### 🚧 In Progress (v1.4.x)
+
+- QWAMI token program implementation
+- Metaplex collection initialization scripts
+- Backend API routes for minting and updates
+- Frontend state management (Pinia stores)
+- NFT gallery UI components
+- Wallet integration components
+- Arweave upload utilities
+- Comprehensive testing suite
+
+#### 🔐 Security
+
+- Private key management best practices
+- Devnet testing before mainnet
+- Authority separation for different operations
+- Input validation and error handling
+- Account security with PDA (Program Derived Addresses)
+
+#### 💡 Future Plans (v1.5.x+)
+
+- QWAMI token integration in qwami.io
+- AI service payment with QWAMI tokens
+- Staking and rewards system
+- Cross-platform KWAMI authentication
+- MCP connector ecosystem in quami.io
+- NFT marketplace integration
+- DAO governance for protocol decisions
+
+---
+
 ## [1.3.4] - 2025-11-16
 
 ### 🧬 Body & Animation Enhancements
