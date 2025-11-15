@@ -918,6 +918,135 @@ button:disabled {
   transform: scale(1.1);
 }
 
+/* New Trait Group Styles - Compact & Gray */
+.trait-group {
+  margin-bottom: 12px;
+  padding: 8px 12px;
+  background: transparent;
+  border: 1px solid rgba(128, 128, 128, 0.15);
+  border-radius: 6px;
+  transition: all 0.2s ease;
+}
+
+.trait-group:hover {
+  border-color: rgba(128, 128, 128, 0.3);
+  background: rgba(128, 128, 128, 0.03);
+}
+
+.trait-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 6px;
+  font-size: 11px;
+  color: #888;
+  font-weight: 500;
+}
+
+.trait-label-left,
+.trait-label-right {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 11px;
+  color: #888;
+  user-select: none;
+  white-space: nowrap;
+}
+
+.trait-value {
+  font-size: 12px;
+  font-weight: 600;
+  color: #666;
+  min-width: 35px;
+  text-align: center;
+  padding: 2px 6px;
+  background: rgba(128, 128, 128, 0.08);
+  border-radius: 4px;
+}
+
+.trait-slider {
+  width: 100%;
+  height: 4px;
+  -webkit-appearance: none;
+  appearance: none;
+  background: linear-gradient(to right, #e0e0e0 0%, #e0e0e0 50%, #e0e0e0 100%);
+  border-radius: 3px;
+  outline: none;
+  transition: background 0.2s ease;
+}
+
+.trait-slider::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  background: #888;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.trait-slider::-moz-range-thumb {
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  background: #888;
+  cursor: pointer;
+  border: none;
+  transition: all 0.2s ease;
+}
+
+.trait-slider:hover::-webkit-slider-thumb {
+  background: #666;
+  transform: scale(1.1);
+}
+
+.trait-slider:hover::-moz-range-thumb {
+  background: #666;
+  transform: scale(1.1);
+}
+
+/* Dark mode adjustments */
+body.dark-mode .trait-group {
+  border-color: rgba(200, 200, 200, 0.15);
+}
+
+body.dark-mode .trait-group:hover {
+  border-color: rgba(200, 200, 200, 0.3);
+  background: rgba(200, 200, 200, 0.05);
+}
+
+body.dark-mode .trait-label-left,
+body.dark-mode .trait-label-right {
+  color: #aaa;
+}
+
+body.dark-mode .trait-value {
+  color: #bbb;
+  background: rgba(200, 200, 200, 0.1);
+}
+
+body.dark-mode .trait-slider {
+  background: linear-gradient(to right, #444 0%, #444 50%, #444 100%);
+}
+
+body.dark-mode .trait-slider::-webkit-slider-thumb {
+  background: #aaa;
+}
+
+body.dark-mode .trait-slider::-moz-range-thumb {
+  background: #aaa;
+}
+
+body.dark-mode .trait-slider:hover::-webkit-slider-thumb {
+  background: #ccc;
+}
+
+body.dark-mode .trait-slider:hover::-moz-range-thumb {
+  background: #ccc;
+}
+
 .parameter-group-title {
   font-size: 11px;
   font-weight: 600;

@@ -988,143 +988,113 @@
         <p class="about-text">Adjust emotional dimensions (-100 to +100). Drag sliders to set each trait.</p>
         
         <!-- Happiness/Sadness -->
-        <div class="parameter-group">
-          <div class="parameter-label">
-            <span>Happiness / Sadness</span>
-            <span id="happiness-value" class="parameter-value">0</span>
+        <div class="parameter-group trait-group">
+          <div class="trait-header">
+            <span class="trait-label-left">😢 Sadness</span>
+            <span id="happiness-value" class="trait-value">0</span>
+            <span class="trait-label-right">Happiness 😊</span>
           </div>
-          <div class="trait-slider-container">
-            <span class="trait-emoji-left">😢</span>
-            <input type="range" id="happiness-slider" min="-100" max="100" value="0" step="1" 
-                   oninput="updateEmotionalTrait('happiness', this.value)">
-            <span class="trait-emoji-right">😊</span>
-          </div>
+          <input type="range" id="happiness-slider" class="trait-slider" min="-100" max="100" value="0" step="1" 
+                 oninput="updateEmotionalTrait('happiness', this.value)">
         </div>
 
         <!-- Energy/Exhaustion -->
-        <div class="parameter-group">
-          <div class="parameter-label">
-            <span>Energy / Exhaustion</span>
-            <span id="energy-value" class="parameter-value">0</span>
+        <div class="parameter-group trait-group">
+          <div class="trait-header">
+            <span class="trait-label-left">😴 Exhaustion</span>
+            <span id="energy-value" class="trait-value">0</span>
+            <span class="trait-label-right">Energy ⚡</span>
           </div>
-          <div class="trait-slider-container">
-            <span class="trait-emoji-left">😴</span>
-            <input type="range" id="energy-slider" min="-100" max="100" value="0" step="1" 
-                   oninput="updateEmotionalTrait('energy', this.value)">
-            <span class="trait-emoji-right">⚡</span>
-          </div>
+          <input type="range" id="energy-slider" class="trait-slider" min="-100" max="100" value="0" step="1" 
+                 oninput="updateEmotionalTrait('energy', this.value)">
         </div>
 
         <!-- Confidence/Anxiety -->
-        <div class="parameter-group">
-          <div class="parameter-label">
-            <span>Confidence / Anxiety</span>
-            <span id="confidence-value" class="parameter-value">0</span>
+        <div class="parameter-group trait-group">
+          <div class="trait-header">
+            <span class="trait-label-left">😰 Anxiety</span>
+            <span id="confidence-value" class="trait-value">0</span>
+            <span class="trait-label-right">Confidence 💪</span>
           </div>
-          <div class="trait-slider-container">
-            <span class="trait-emoji-left">😰</span>
-            <input type="range" id="confidence-slider" min="-100" max="100" value="0" step="1" 
-                   oninput="updateEmotionalTrait('confidence', this.value)">
-            <span class="trait-emoji-right">💪</span>
-          </div>
+          <input type="range" id="confidence-slider" class="trait-slider" min="-100" max="100" value="0" step="1" 
+                 oninput="updateEmotionalTrait('confidence', this.value)">
         </div>
 
         <!-- Calmness/Anger -->
-        <div class="parameter-group">
-          <div class="parameter-label">
-            <span>Calmness / Anger</span>
-            <span id="calmness-value" class="parameter-value">0</span>
+        <div class="parameter-group trait-group">
+          <div class="trait-header">
+            <span class="trait-label-left">😡 Anger</span>
+            <span id="calmness-value" class="trait-value">0</span>
+            <span class="trait-label-right">Calmness 🧘</span>
           </div>
-          <div class="trait-slider-container">
-            <span class="trait-emoji-left">😡</span>
-            <input type="range" id="calmness-slider" min="-100" max="100" value="0" step="1" 
-                   oninput="updateEmotionalTrait('calmness', this.value)">
-            <span class="trait-emoji-right">🧘</span>
-          </div>
+          <input type="range" id="calmness-slider" class="trait-slider" min="-100" max="100" value="0" step="1" 
+                 oninput="updateEmotionalTrait('calmness', this.value)">
         </div>
 
         <!-- Optimism/Pessimism -->
-        <div class="parameter-group">
-          <div class="parameter-label">
-            <span>Optimism / Pessimism</span>
-            <span id="optimism-value" class="parameter-value">0</span>
+        <div class="parameter-group trait-group">
+          <div class="trait-header">
+            <span class="trait-label-left">😞 Pessimism</span>
+            <span id="optimism-value" class="trait-value">0</span>
+            <span class="trait-label-right">Optimism 🌟</span>
           </div>
-          <div class="trait-slider-container">
-            <span class="trait-emoji-left">😞</span>
-            <input type="range" id="optimism-slider" min="-100" max="100" value="0" step="1" 
-                   oninput="updateEmotionalTrait('optimism', this.value)">
-            <span class="trait-emoji-right">🌟</span>
-          </div>
+          <input type="range" id="optimism-slider" class="trait-slider" min="-100" max="100" value="0" step="1" 
+                 oninput="updateEmotionalTrait('optimism', this.value)">
         </div>
 
         <!-- Socialness/Shyness -->
-        <div class="parameter-group">
-          <div class="parameter-label">
-            <span>Socialness / Shyness</span>
-            <span id="socialness-value" class="parameter-value">0</span>
+        <div class="parameter-group trait-group">
+          <div class="trait-header">
+            <span class="trait-label-left">🙈 Shyness</span>
+            <span id="socialness-value" class="trait-value">0</span>
+            <span class="trait-label-right">Socialness 🤝</span>
           </div>
-          <div class="trait-slider-container">
-            <span class="trait-emoji-left">🙈</span>
-            <input type="range" id="socialness-slider" min="-100" max="100" value="0" step="1" 
-                   oninput="updateEmotionalTrait('socialness', this.value)">
-            <span class="trait-emoji-right">🤝</span>
-          </div>
+          <input type="range" id="socialness-slider" class="trait-slider" min="-100" max="100" value="0" step="1" 
+                 oninput="updateEmotionalTrait('socialness', this.value)">
         </div>
 
         <!-- Creativity/Rigidity -->
-        <div class="parameter-group">
-          <div class="parameter-label">
-            <span>Creativity / Rigidity</span>
-            <span id="creativity-value" class="parameter-value">0</span>
+        <div class="parameter-group trait-group">
+          <div class="trait-header">
+            <span class="trait-label-left">📏 Rigidity</span>
+            <span id="creativity-value" class="trait-value">0</span>
+            <span class="trait-label-right">Creativity 🎨</span>
           </div>
-          <div class="trait-slider-container">
-            <span class="trait-emoji-left">📏</span>
-            <input type="range" id="creativity-slider" min="-100" max="100" value="0" step="1" 
-                   oninput="updateEmotionalTrait('creativity', this.value)">
-            <span class="trait-emoji-right">🎨</span>
-          </div>
+          <input type="range" id="creativity-slider" class="trait-slider" min="-100" max="100" value="0" step="1" 
+                 oninput="updateEmotionalTrait('creativity', this.value)">
         </div>
 
         <!-- Patience/Impatience -->
-        <div class="parameter-group">
-          <div class="parameter-label">
-            <span>Patience / Impatience</span>
-            <span id="patience-value" class="parameter-value">0</span>
+        <div class="parameter-group trait-group">
+          <div class="trait-header">
+            <span class="trait-label-left">⏱️ Impatience</span>
+            <span id="patience-value" class="trait-value">0</span>
+            <span class="trait-label-right">Patience ⏳</span>
           </div>
-          <div class="trait-slider-container">
-            <span class="trait-emoji-left">⏱️</span>
-            <input type="range" id="patience-slider" min="-100" max="100" value="0" step="1" 
-                   oninput="updateEmotionalTrait('patience', this.value)">
-            <span class="trait-emoji-right">⏳</span>
-          </div>
+          <input type="range" id="patience-slider" class="trait-slider" min="-100" max="100" value="0" step="1" 
+                 oninput="updateEmotionalTrait('patience', this.value)">
         </div>
 
         <!-- Empathy/Selfishness -->
-        <div class="parameter-group">
-          <div class="parameter-label">
-            <span>Empathy / Selfishness</span>
-            <span id="empathy-value" class="parameter-value">0</span>
+        <div class="parameter-group trait-group">
+          <div class="trait-header">
+            <span class="trait-label-left">🙅 Selfishness</span>
+            <span id="empathy-value" class="trait-value">0</span>
+            <span class="trait-label-right">Empathy 💖</span>
           </div>
-          <div class="trait-slider-container">
-            <span class="trait-emoji-left">🙅</span>
-            <input type="range" id="empathy-slider" min="-100" max="100" value="0" step="1" 
-                   oninput="updateEmotionalTrait('empathy', this.value)">
-            <span class="trait-emoji-right">💖</span>
-          </div>
+          <input type="range" id="empathy-slider" class="trait-slider" min="-100" max="100" value="0" step="1" 
+                 oninput="updateEmotionalTrait('empathy', this.value)">
         </div>
 
         <!-- Curiosity/Indifference -->
-        <div class="parameter-group">
-          <div class="parameter-label">
-            <span>Curiosity / Indifference</span>
-            <span id="curiosity-value" class="parameter-value">0</span>
+        <div class="parameter-group trait-group">
+          <div class="trait-header">
+            <span class="trait-label-left">😑 Indifference</span>
+            <span id="curiosity-value" class="trait-value">0</span>
+            <span class="trait-label-right">Curiosity 🔍</span>
           </div>
-          <div class="trait-slider-container">
-            <span class="trait-emoji-left">😑</span>
-            <input type="range" id="curiosity-slider" min="-100" max="100" value="0" step="1" 
-                   oninput="updateEmotionalTrait('curiosity', this.value)">
-            <span class="trait-emoji-right">🔍</span>
-          </div>
+          <input type="range" id="curiosity-slider" class="trait-slider" min="-100" max="100" value="0" step="1" 
+                 oninput="updateEmotionalTrait('curiosity', this.value)">
         </div>
 
         <button class="button-secondary" onclick="resetEmotionalTraits()">🔄 Reset to Neutral</button>
