@@ -65,7 +65,7 @@ export interface PositionAction extends SkillAction {
  */
 export interface ScaleAction extends SkillAction {
   type: 'body.scale';
-  value: number; // Scale multiplier (0.1 to 10)
+  value?: number; // Scale multiplier (0.1 to 10)
   preset?: 'mini' | 'small' | 'normal' | 'large' | 'huge';
 }
 

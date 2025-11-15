@@ -465,7 +465,7 @@
           <div class="parameter-group">
             <div class="parameter-group-title">Load Custom Skill</div>
             <p style="color: #888; font-size: 12px; margin-bottom: 10px;">
-              Load skills from JSON files or URLs
+              Load skills from JSON or YAML files or URLs
             </p>
 
             <div class="input-group">
@@ -582,59 +582,18 @@
           </div>
 
           <div id="media-image-controls" class="media-controls" style="display: none;">
-            <div class="input-group">
-              <label>Image Presets</label>
-              <select id="bg-media-image">
-                <option value="">None</option>
-                <option value="src/assets/img/alaska.jpeg">Alaska</option>
-                <option value="src/assets/img/binary-reality.jpg">Binary Reality</option>
-                <option value="src/assets/img/black-candle.jpg">Black Candle</option>
-                <option value="src/assets/img/black-hole.jpg">Black Hole</option>
-                <option value="src/assets/img/black-sea.jpg">Black Sea</option>
-                <option value="src/assets/img/black-windows.jpg">Black Windows</option>
-                <option value="src/assets/img/black.jpg">Black</option>
-                <option value="src/assets/img/colors.jpeg">Colors</option>
-                <option value="src/assets/img/galaxy.jpg">Galaxy</option>
-                <option value="src/assets/img/galaxy2.jpg">Galaxy 2</option>
-                <option value="src/assets/img/galaxy3.jpg">Galaxy 3</option>
-                <option value="src/assets/img/galaxy4.jpg">Galaxy 4</option>
-                <option value="src/assets/img/gargantua.jpg">Gargantua</option>
-                <option value="src/assets/img/interstellar.png">Interstellar</option>
-                <option value="src/assets/img/islan.jpg">Island</option>
-                <option value="src/assets/img/lake.jpg">Lake</option>
-                <option value="src/assets/img/mountain.jpeg">Mountain</option>
-                <option value="src/assets/img/paisaje.jpg">Paisaje</option>
-                <option value="src/assets/img/pik.jpg">Pik</option>
-                <option value="src/assets/img/planet.jpg">Planet</option>
-                <option value="src/assets/img/planet2.jpg">Planet 2</option>
-                <option value="src/assets/img/planet3.jpg">Planet 3</option>
-                <option value="src/assets/img/sahara.jpeg">Sahara</option>
-                <option value="src/assets/img/skinet.png">Skinet</option>
-                <option value="src/assets/img/skynet.png">Skynet</option>
-                <option value="src/assets/img/universe.jpg">Universe</option>
-                <option value="src/assets/img/white-tree.jpg">White Tree</option>
-              </select>
-            </div>
-            <div class="button-row">
+            <!-- Media Loader UI Component will be injected here -->
+            <div id="bg-image-loader"></div>
+            <div class="button-row" style="margin-top: 10px;">
               <button class="button-secondary" type="button" onclick="randomizeMediaSelection('image')">🎴 Random Image</button>
-              <button class="button-secondary" type="button" onclick="uploadMediaFile('image')">📤 Upload Image</button>
             </div>
           </div>
 
           <div id="media-video-controls" class="media-controls" style="display: none;">
-            <div class="input-group">
-              <label>Video Presets</label>
-              <select id="bg-media-video">
-                <option value="">Select a video...</option>
-                <option value="src/assets/vid/stars.mp4">Stars (Local)</option>
-                <option value="https://storage.coverr.co/videos/coverr-blue-particles-background-1581083411/1080p.mp4">Blue Particles</option>
-                <option value="https://storage.coverr.co/videos/coverr-purple-nebula-1584717401/1080p.mp4">Purple Nebula</option>
-                <option value="https://storage.coverr.co/videos/coverr-journey-through-space-1570107498/1080p.mp4">Space Journey</option>
-              </select>
-            </div>
-            <div class="button-row">
+            <!-- Media Loader UI Component will be injected here -->
+            <div id="bg-video-loader"></div>
+            <div class="button-row" style="margin-top: 10px;">
               <button class="button-secondary" type="button" onclick="randomizeMediaSelection('video')">🎥 Random Video</button>
-              <button class="button-secondary" type="button" onclick="uploadMediaFile('video')">📤 Upload Video</button>
             </div>
           </div>
         </div>
@@ -776,57 +735,18 @@
           </div>
 
           <div id="blob-media-image-controls" class="media-controls" style="display: none;">
-            <div class="input-group">
-              <label>Image Presets</label>
-              <select id="blob-media-image">
-                <option value="">None</option>
-                <option value="src/assets/img/alaska.jpeg">Alaska</option>
-                <option value="src/assets/img/binary-reality.jpg">Binary Reality</option>
-                <option value="src/assets/img/black-candle.jpg">Black Candle</option>
-                <option value="src/assets/img/black-hole.jpg">Black Hole</option>
-                <option value="src/assets/img/black-sea.jpg">Black Sea</option>
-                <option value="src/assets/img/black-windows.jpg">Black Windows</option>
-                <option value="src/assets/img/black.jpg">Black</option>
-                <option value="src/assets/img/colors.jpeg">Colors</option>
-                <option value="src/assets/img/galaxy.jpg">Galaxy</option>
-                <option value="src/assets/img/galaxy2.jpg">Galaxy 2</option>
-                <option value="src/assets/img/galaxy3.jpg">Galaxy 3</option>
-                <option value="src/assets/img/galaxy4.jpg">Galaxy 4</option>
-                <option value="src/assets/img/gargantua.jpg">Gargantua</option>
-                <option value="src/assets/img/interstellar.png">Interstellar</option>
-                <option value="src/assets/img/islan.jpg">Island</option>
-                <option value="src/assets/img/lake.jpg">Lake</option>
-                <option value="src/assets/img/mountain.jpeg">Mountain</option>
-                <option value="src/assets/img/paisaje.jpg">Paisaje</option>
-                <option value="src/assets/img/pik.jpg">Pik</option>
-                <option value="src/assets/img/planet.jpg">Planet</option>
-                <option value="src/assets/img/planet2.jpg">Planet 2</option>
-                <option value="src/assets/img/planet3.jpg">Planet 3</option>
-                <option value="src/assets/img/sahara.jpeg">Sahara</option>
-                <option value="src/assets/img/skinet.png">Skinet</option>
-                <option value="src/assets/img/skynet.png">Skynet</option>
-                <option value="src/assets/img/universe.jpg">Universe</option>
-                <option value="src/assets/img/white-tree.jpg">White Tree</option>
-              </select>
-            </div>
-            <div class="button-row">
+            <!-- Media Loader UI Component will be injected here -->
+            <div id="blob-image-loader"></div>
+            <div class="button-row" style="margin-top: 10px;">
               <button class="button-secondary" type="button" onclick="randomizeBlobMedia('image')">🎴 Random Image</button>
               <button class="button-secondary" type="button" onclick="clearBlobMedia('image')">🚫 Clear</button>
             </div>
           </div>
 
           <div id="blob-media-video-controls" class="media-controls" style="display: none;">
-            <div class="input-group">
-              <label>Video Presets</label>
-              <select id="blob-media-video">
-                <option value="">None</option>
-                <option value="src/assets/vid/stars.mp4">Stars (Local)</option>
-                <option value="https://storage.coverr.co/videos/coverr-blue-particles-background-1581083411/1080p.mp4">Blue Particles</option>
-                <option value="https://storage.coverr.co/videos/coverr-purple-nebula-1584717401/1080p.mp4">Purple Nebula</option>
-                <option value="https://storage.coverr.co/videos/coverr-journey-through-space-1570107498/1080p.mp4">Space Journey</option>
-              </select>
-            </div>
-            <div class="button-row">
+            <!-- Media Loader UI Component will be injected here -->
+            <div id="blob-video-loader"></div>
+            <div class="button-row" style="margin-top: 10px;">
               <button class="button-secondary" type="button" onclick="randomizeBlobMedia('video')">🎥 Random Video</button>
               <button class="button-secondary" type="button" onclick="clearBlobMedia('video')">🚫 Clear</button>
             </div>

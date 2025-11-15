@@ -1,4 +1,5 @@
 import { Kwami } from '../index.ts';
+import { createMediaLoaderUI } from './media-loader-ui.js';
 
 window.kwami = null;
 
@@ -3894,3 +3895,148 @@ function updateSkillStats() {
   
   if (executedEl) executedEl.textContent = skillsExecutedCount;
 }
+
+// ========================================
+// Media Loader Integration
+// ========================================
+
+// Image presets for backgrounds and blob textures
+const IMAGE_PRESETS = [
+  { name: 'Alaska', value: 'src/assets/img/alaska.jpeg' },
+  { name: 'Binary Reality', value: 'src/assets/img/binary-reality.jpg' },
+  { name: 'Black Candle', value: 'src/assets/img/black-candle.jpg' },
+  { name: 'Black Hole', value: 'src/assets/img/black-hole.jpg' },
+  { name: 'Black Sea', value: 'src/assets/img/black-sea.jpg' },
+  { name: 'Black Windows', value: 'src/assets/img/black-windows.jpg' },
+  { name: 'Black', value: 'src/assets/img/black.jpg' },
+  { name: 'Colors', value: 'src/assets/img/colors.jpeg' },
+  { name: 'Galaxy', value: 'src/assets/img/galaxy.jpg' },
+  { name: 'Galaxy 2', value: 'src/assets/img/galaxy2.jpg' },
+  { name: 'Galaxy 3', value: 'src/assets/img/galaxy3.jpg' },
+  { name: 'Galaxy 4', value: 'src/assets/img/galaxy4.jpg' },
+  { name: 'Gargantua', value: 'src/assets/img/gargantua.jpg' },
+  { name: 'Interstellar', value: 'src/assets/img/interstellar.png' },
+  { name: 'Island', value: 'src/assets/img/islan.jpg' },
+  { name: 'Lake', value: 'src/assets/img/lake.jpg' },
+  { name: 'Mountain', value: 'src/assets/img/mountain.jpeg' },
+  { name: 'Paisaje', value: 'src/assets/img/paisaje.jpg' },
+  { name: 'Pik', value: 'src/assets/img/pik.jpg' },
+  { name: 'Planet', value: 'src/assets/img/planet.jpg' },
+  { name: 'Planet 2', value: 'src/assets/img/planet2.jpg' },
+  { name: 'Planet 3', value: 'src/assets/img/planet3.jpg' },
+  { name: 'Sahara', value: 'src/assets/img/sahara.jpeg' },
+  { name: 'Skinet', value: 'src/assets/img/skinet.png' },
+  { name: 'Skynet', value: 'src/assets/img/skynet.png' },
+  { name: 'Universe', value: 'src/assets/img/universe.jpg' },
+  { name: 'White Tree', value: 'src/assets/img/white-tree.jpg' }
+];
+
+// Video presets
+const VIDEO_PRESETS = [
+  { name: 'Stars (Local)', value: 'src/assets/vid/stars.mp4' },
+  { name: 'Blue Particles', value: 'https://storage.coverr.co/videos/coverr-blue-particles-background-1581083411/1080p.mp4' },
+  { name: 'Purple Nebula', value: 'https://storage.coverr.co/videos/coverr-purple-nebula-1584717401/1080p.mp4' },
+  { name: 'Space Journey', value: 'https://storage.coverr.co/videos/coverr-journey-through-space-1570107498/1080p.mp4' }
+];
+
+/**
+ * Initialize Media Loader UI components
+ * Creates the media loader UI for all media upload areas
+ */
+function initializeMediaLoaders() {
+  // Background Image Loader
+  const bgImageContainer = document.getElementById('bg-image-loader');
+  if (bgImageContainer && !bgImageContainer.hasChildNodes()) {
+    const bgImageLoader = createMediaLoaderUI({
+      type: 'image',
+      label: 'Background Image',
+      presets: IMAGE_PRESETS,
+      showPresets: true,
+      onLoad: (url, source) => {
+        const resolved = resolveMediaPath(url);
+        setMediaType('image');
+        setBackgroundImage(resolved);
+        updateStatus(`🖼️ Background image loaded from ${source}`);
+      },
+      onError: (error) => {
+        updateError(`Failed to load background image: ${error.message}`);
+      }
+    });
+    bgImageContainer.appendChild(bgImageLoader);
+  }
+
+  // Background Video Loader
+  const bgVideoContainer = document.getElementById('bg-video-loader');
+  if (bgVideoContainer && !bgVideoContainer.hasChildNodes()) {
+    const bgVideoLoader = createMediaLoaderUI({
+      type: 'video',
+      label: 'Background Video',
+      presets: VIDEO_PRESETS,
+      showPresets: true,
+      onLoad: (url, source) => {
+        const resolved = resolveMediaPath(url);
+        setMediaType('video');
+        setBackgroundVideo(resolved);
+        updateStatus(`🎥 Background video loaded from ${source}`);
+      },
+      onError: (error) => {
+        updateError(`Failed to load background video: ${error.message}`);
+      }
+    });
+    bgVideoContainer.appendChild(bgVideoLoader);
+  }
+
+  // Blob Texture Image Loader
+  const blobImageContainer = document.getElementById('blob-image-loader');
+  if (blobImageContainer && !blobImageContainer.hasChildNodes()) {
+    const blobImageLoader = createMediaLoaderUI({
+      type: 'image',
+      label: 'Blob Texture Image',
+      presets: IMAGE_PRESETS,
+      showPresets: true,
+      onLoad: (url, source) => {
+        const resolved = resolveMediaPath(url);
+        setBlobMediaType('image');
+        window.kwami?.body?.setBlobSurfaceImage(resolved);
+        updateStatus(`🖼️ Blob texture loaded from ${source}`);
+      },
+      onError: (error) => {
+        updateError(`Failed to load blob texture: ${error.message}`);
+      }
+    });
+    blobImageContainer.appendChild(blobImageLoader);
+  }
+
+  // Blob Texture Video Loader
+  const blobVideoContainer = document.getElementById('blob-video-loader');
+  if (blobVideoContainer && !blobVideoContainer.hasChildNodes()) {
+    const blobVideoLoader = createMediaLoaderUI({
+      type: 'video',
+      label: 'Blob Texture Video',
+      presets: VIDEO_PRESETS,
+      showPresets: true,
+      onLoad: (url, source) => {
+        const resolved = resolveMediaPath(url);
+        setBlobMediaType('video');
+        window.kwami?.body?.setBlobSurfaceVideo(resolved, { autoplay: true, loop: true, muted: true });
+        updateStatus(`🎥 Blob video texture loaded from ${source}`);
+      },
+      onError: (error) => {
+        updateError(`Failed to load blob video texture: ${error.message}`);
+      }
+    });
+    blobVideoContainer.appendChild(blobVideoLoader);
+  }
+
+  console.log('[MediaLoader] Media loader UI components initialized');
+}
+
+// Initialize media loaders when DOM is ready
+if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', initializeMediaLoaders);
+} else {
+  initializeMediaLoaders();
+}
+
+// Export for external use
+window.initializeMediaLoaders = initializeMediaLoaders;

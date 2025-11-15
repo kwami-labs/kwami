@@ -32,6 +32,7 @@ export class SkillManager {
   private registry: Map<string, SkillRegistryEntry> = new Map();
   private activeSkills: Map<string, SkillContext> = new Map();
   private positionPresets: Record<PositionPreset, { x: number; y: number; z: number }>;
+  private ongoingAnimations: Map<string, { cancel: boolean }> = new Map();
 
   constructor(kwami: Kwami) {
     this.kwami = kwami;
@@ -295,8 +296,12 @@ export class SkillManager {
         'huge': 8,
       };
       targetScale = scalePresets[action.preset] || 4;
-    } else {
+    } else if (action.value !== undefined) {
       targetScale = action.value;
+    } else {
+      // Default to current scale if neither preset nor value is provided
+      targetScale = this.kwami.body.blob.getScale();
+      console.warn('[SkillManager] ScaleAction missing both preset and value, using current scale');
     }
     
     // Animate scale change
@@ -486,11 +491,28 @@ export class SkillManager {
     duration: number,
     easing: string = 'ease-in-out'
   ): Promise<void> {
+    // Cancel any ongoing camera animation
+    const existingAnimation = this.ongoingAnimations.get('camera');
+    if (existingAnimation) {
+      existingAnimation.cancel = true;
+    }
+    
+    // Create new animation token
+    const animationToken = { cancel: false };
+    this.ongoingAnimations.set('camera', animationToken);
+    
     const startPos = this.kwami.body.getCameraPosition();
     const startTime = Date.now();
     
     return new Promise((resolve) => {
       const animate = () => {
+        // Check if this animation has been cancelled
+        if (animationToken.cancel) {
+          this.ongoingAnimations.delete('camera');
+          resolve();
+          return;
+        }
+        
         const elapsed = Date.now() - startTime;
         const progress = Math.min(elapsed / duration, 1);
         const easedProgress = this.applyEasing(progress, easing);
@@ -504,6 +526,7 @@ export class SkillManager {
         if (progress < 1) {
           requestAnimationFrame(animate);
         } else {
+          this.ongoingAnimations.delete('camera');
           resolve();
         }
       };
@@ -520,11 +543,28 @@ export class SkillManager {
     duration: number,
     easing: string = 'ease-in-out'
   ): Promise<void> {
+    // Cancel any ongoing scale animation
+    const existingAnimation = this.ongoingAnimations.get('scale');
+    if (existingAnimation) {
+      existingAnimation.cancel = true;
+    }
+    
+    // Create new animation token
+    const animationToken = { cancel: false };
+    this.ongoingAnimations.set('scale', animationToken);
+    
     const startScale = this.kwami.body.blob.baseScale;
     const startTime = Date.now();
     
     return new Promise((resolve) => {
       const animate = () => {
+        // Check if this animation has been cancelled
+        if (animationToken.cancel) {
+          this.ongoingAnimations.delete('scale');
+          resolve();
+          return;
+        }
+        
         const elapsed = Date.now() - startTime;
         const progress = Math.min(elapsed / duration, 1);
         const easedProgress = this.applyEasing(progress, easing);
@@ -535,6 +575,7 @@ export class SkillManager {
         if (progress < 1) {
           requestAnimationFrame(animate);
         } else {
+          this.ongoingAnimations.delete('scale');
           resolve();
         }
       };

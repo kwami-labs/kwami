@@ -315,7 +315,7 @@ export class KwamiBody {
   /**
    * Get the THREE.js scene
    */
-  getScene(): Scene {
+  getScene(): ThreeScene {
     return this.scene;
   }
 

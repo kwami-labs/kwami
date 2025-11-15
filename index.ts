@@ -38,6 +38,8 @@ export { SkillManager } from './src/core/mind/skills/SkillManager';
 // Utilities
 export * from './src/utils/randoms';
 export { default as SpeechSynthesisRecorder } from './src/utils/recorder';
+export { MediaLoader } from './src/core/utils/MediaLoader';
+export type { MediaType, MediaLoadOptions, MediaValidationResult } from './src/core/utils/MediaLoader';
 
 // Scene setup
 export { Scene } from './src/core/body/scene/Scene';
