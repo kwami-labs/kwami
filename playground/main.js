@@ -331,9 +331,6 @@ function initializeAudioPlayer() {
   };
 
   const updateNavigationButtons = () => {
-    const prevButton = document.getElementById('prev-track-btn');
-    const nextButton = document.getElementById('next-track-btn');
-    
     if (!prevButton || !nextButton) return;
 
     // Disable prev/next if playing custom track
@@ -345,10 +342,6 @@ function initializeAudioPlayer() {
       nextButton.disabled = audioPlayerState.currentIndex >= audioPlayerState.playlist.length - 1;
     }
   };
-
-  // Previous/Next track buttons
-  const prevButton = document.getElementById('prev-track-btn');
-  const nextButton = document.getElementById('next-track-btn');
 
   if (prevButton) {
     prevButton.addEventListener('click', () => {
@@ -1224,6 +1217,32 @@ window.randomizeGradientColors = function() {
   applyBackground();
 
   updateStatus('🎨 Gradient colors randomized!');
+};
+
+window.randomizePaletteColors = function() {
+  // Generate random colors for palette only
+  const randomColor = () => '#' + Math.floor(Math.random() * 16777215).toString(16).padStart(6, '0');
+  const colors = [randomColor(), randomColor(), randomColor()];
+
+  // Update color pickers in UI
+  const colorX = document.getElementById('color-x');
+  const colorY = document.getElementById('color-y');
+  const colorZ = document.getElementById('color-z');
+
+  if (colorX) {
+    colorX.value = colors[0];
+    colorX.dispatchEvent(new Event('input', { bubbles: true }));
+  }
+  if (colorY) {
+    colorY.value = colors[1];
+    colorY.dispatchEvent(new Event('input', { bubbles: true }));
+  }
+  if (colorZ) {
+    colorZ.value = colors[2];
+    colorZ.dispatchEvent(new Event('input', { bubbles: true }));
+  }
+
+  updateStatus('🎨 Palette colors randomized!');
 };
 
 window.randomizeBackground = function() {

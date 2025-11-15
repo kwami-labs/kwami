@@ -97,16 +97,16 @@ export function createMediaLoaderUI(options) {
               accept="${MediaLoader.getAcceptAttribute(type)}"
               style="display: none;"
             >
-            <button class="media-loader-upload-btn button-secondary" title="Choose file to upload">
-              <span class="media-loader-icon">📁</span>
-              <span class="media-loader-text">Choose File</span>
-            </button>
             <div class="media-loader-dropzone" title="Drag and drop ${type} here">
               <div class="media-loader-dropzone-content">
                 <span class="media-loader-dropzone-icon">📎</span>
                 <span class="media-loader-dropzone-text">Drop ${type} here</span>
               </div>
             </div>
+            <button class="media-loader-upload-btn button-secondary" title="Upload file">
+              <span class="media-loader-icon">📁</span>
+              <span class="media-loader-text">Upload File</span>
+            </button>
           </div>
           <small class="media-loader-hint">
             Max size: 100MB | Formats: ${MediaLoader.getAllowedExtensions(type).join(', ')}
