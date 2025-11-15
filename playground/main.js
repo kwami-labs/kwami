@@ -592,8 +592,6 @@ function initializeSoulControls() {
   const nameInput = document.getElementById('soul-name');
   const personalityInput = document.getElementById('soul-personality');
   const systemPromptInput = document.getElementById('soul-system-prompt');
-  const responseLengthInput = document.getElementById('soul-response-length');
-  const emotionalToneInput = document.getElementById('soul-emotional-tone');
   const nameDisplay = document.getElementById('personality-name');
   
   // Populate with current values
@@ -605,12 +603,6 @@ function initializeSoulControls() {
   }
   if (systemPromptInput && window.kwami.soul.config.systemPrompt) {
     systemPromptInput.value = window.kwami.soul.config.systemPrompt;
-  }
-  if (responseLengthInput && window.kwami.soul.config.responseLength) {
-    responseLengthInput.value = window.kwami.soul.config.responseLength;
-  }
-  if (emotionalToneInput && window.kwami.soul.config.emotionalTone) {
-    emotionalToneInput.value = window.kwami.soul.config.emotionalTone;
   }
   if (nameDisplay && window.kwami.soul.config.name) {
     nameDisplay.textContent = window.kwami.soul.config.name;
@@ -628,15 +620,11 @@ window.autoUpdateSoul = function() {
     const name = document.getElementById('soul-name')?.value || 'Kwami';
     const personality = document.getElementById('soul-personality')?.value || '';
     const systemPrompt = document.getElementById('soul-system-prompt')?.value || '';
-    const responseLength = document.getElementById('soul-response-length')?.value || 'medium';
-    const emotionalTone = document.getElementById('soul-emotional-tone')?.value || 'warm';
     
     window.kwami.soul.updateConfig({
       name,
       personality,
-      systemPrompt,
-      responseLength,
-      emotionalTone
+      systemPrompt
     });
     
     // Update display
@@ -3424,14 +3412,10 @@ function updateSoulUIFromConfig(config) {
   const nameInput = document.getElementById('soul-name');
   const personalityInput = document.getElementById('soul-personality');
   const systemPromptInput = document.getElementById('soul-system-prompt');
-  const responseLengthSelect = document.getElementById('soul-response-length');
-  const emotionalToneSelect = document.getElementById('soul-emotional-tone');
   const nameDisplay = document.getElementById('personality-name');
   
   if (nameInput) nameInput.value = config.name || 'Kwami';
   if (personalityInput) personalityInput.value = config.personality || '';
   if (systemPromptInput) systemPromptInput.value = config.systemPrompt || '';
-  if (responseLengthSelect) responseLengthSelect.value = config.responseLength || 'medium';
-  if (emotionalToneSelect) emotionalToneSelect.value = config.emotionalTone || 'warm';
   if (nameDisplay) nameDisplay.textContent = config.name || 'Kwami';
 }
