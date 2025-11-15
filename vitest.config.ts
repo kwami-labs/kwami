@@ -5,7 +5,7 @@ export default defineConfig({
   test: {
     globals: true,
     environment: 'happy-dom',
-    setupFiles: ['./tests/setup.ts'],
+    setupFiles: ['./src/tests/setup.ts'],
     coverage: {
       provider: 'v8',
       reporter: ['text', 'json', 'html', 'lcov'],
@@ -13,7 +13,7 @@ export default defineConfig({
         'node_modules/',
         'dist/',
         'playground/',
-        'tests/',
+        'src/tests/',
         '**/*.d.ts',
         '**/*.config.*',
         '**/mockData',
@@ -21,7 +21,7 @@ export default defineConfig({
         '**/*.spec.ts',
       ],
     },
-    include: ['tests/**/*.test.ts'],
+    include: ['src/tests/**/*.test.ts'],
     exclude: ['node_modules', 'dist', 'playground'],
     threads: true,
     mockReset: true,

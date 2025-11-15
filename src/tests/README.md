@@ -24,7 +24,7 @@ npm run test:coverage:ui
 ## 📁 Test Structure
 
 ```
-tests/
+src/tests/
 ├── setup.ts                      # Global test setup and mocks
 ├── utils/
 │   ├── test-helpers.ts          # Shared test utilities
