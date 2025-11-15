@@ -116,9 +116,52 @@ Migrating from v0.x to v1.x wasn't a refactor—it was a **ground-up architectur
 - **Return rate**: 15% → 68%
 - **Technical stability**: 85% success rate → 98.5% success rate
 
+--- Latest version:
+
+## [1.3.4] - 2025-11-16
+
+### 🧬 Body & Animation Enhancements
+
+- ✨ **Frequency Amplitude Feature**: Added new amplitude parameters to control noise depth independently from frequency
+  - New `amplitude` property in Blob class with X, Y, Z axis controls (default: 0.8)
+  - Added `getAmplitude()` and `setAmplitude(x, y, z)` methods to Blob API
+  - Updated `animateBlob()` function to apply per-axis amplitude modulation
+  - Amplitude affects both normal/listening and thinking mode displacements
+- 🎛️ **Playground UI Controls**: Added "Frequency Amplitude" section in Body menu
+  - Three sliders (X, Y, Z) with range 0-5, step 0.1, default 0.8
+  - Positioned after "Noise Frequency" for logical parameter grouping
+  - Real-time updates with value displays
+- 🎲 **Random Blob Improvements**: Enhanced blob randomization
+  - Added amplitude randomization (0.3-1.2 range per axis) to `setRandomBlob()`
+  - Creates more diverse and natural-looking blob variations
+  - Prevents overly extreme deformations while maintaining character
+- 📏 **Scale Adjustment**: Reduced default blob scale from 4.0 to 3.2
+  - Creates more compact, focused visual presence
+  - Better balance with new amplitude feature
+- 🔧 **Reset Defaults**: Updated `resetBlobToDefaults()` to include amplitude reset
+
+### 🎨 Background & UI
+
+- 🎨 Added gradient background toggle checkbox with visual disabled state and dice button to randomize gradient colors independently
+- 📁 Moved example assets from `src/assets/` to `playground/assets/` to keep the core library clean and focused
+
+### 🐛 Bug Fixes
+
+- 🔧 **Skills System - Reset Button Fix**: Fixed infinite blob growth bug when using reset/quick skill buttons
+  - Made `ScaleAction.value` optional in type definition (`types.ts`)
+  - Added proper validation in `executeScaleAction()` to handle missing preset/value gracefully
+  - Implemented animation cancellation system to prevent multiple concurrent animations
+  - Added `ongoingAnimations` Map to track and cancel running scale/camera animations
+  - Fixed race condition where multiple animations would interfere with each other
+  - Resolved issue where rapid button clicks caused uncontrolled scale growth
+- 📝 **Skill Templates**: Converted skill template files from JSON to YAML format
+  - `calm-meditation.json` → `calm-meditation.yaml`
+  - `energetic-mode.json` → `energetic-mode.yaml`
+  - `focus-session.json` → `focus-session.yaml`
+
 ---
 
-## [1.3.2] - 2025-11-15
+## [1.3.3] - 2025-11-15
 
 ### 🧠 Mind Architecture & UI Improvements
 
@@ -150,9 +193,7 @@ Migrating from v0.x to v1.x wasn't a refactor—it was a **ground-up architectur
 - ✨ Enhanced link hover states throughout the UI
 - 🎯 Improved visual feedback for provider tab selection
 
----
-
-## [1.3.1] - 2025-11-15
+## [1.3.2] - 2025-11-14
 
 ### 📚 Documentation Overhaul
 
@@ -177,6 +218,8 @@ Migrating from v0.x to v1.x wasn't a refactor—it was a **ground-up architectur
   - System design principles
   - Data flow diagrams
 - 📝 **SUMMARY.md** - Created comprehensive documentation index and navigation guide
+
+## [1.3.1] - 2025-11-13
 
 ### ✨ Added
 
@@ -221,7 +264,7 @@ Migrating from v0.x to v1.x wasn't a refactor—it was a **ground-up architectur
 - ✨ **Spacing**: Minor UI spacing improvements throughout
 - 📦 **Assets**: Added more media assets for testing and demo purposes
 
-## [1.3.0] - 2025-11-14
+## [1.3.0] - 2025-11-12
 
 ### ✨ Added / 🎛️ Improved
 
@@ -276,7 +319,7 @@ Migrating from v0.x to v1.x wasn't a refactor—it was a **ground-up architectur
 - 🧭 Body quick variants: reorganized section for clarity
 - 🧾 CHANGELOG: comprehensive v1.x history and evolution narrative
 
-## [1.2.5] - 2025-11-05
+## [1.2.5] - 2025-11-07
 
 ### 🚀 Deployment
 
@@ -287,7 +330,7 @@ Migrating from v0.x to v1.x wasn't a refactor—it was a **ground-up architectur
 
 - 🌙 Dark mode toggle in playground
 
-## [1.2.4] - 2025-11-04
+## [1.2.4] - 2025-11-05
 
 ### ✨ Added
 
@@ -298,7 +341,7 @@ Migrating from v0.x to v1.x wasn't a refactor—it was a **ground-up architectur
 
 - 🔧 Mind.ts and dependencies updates; documentation updates
 
-## [1.2.3] - 2025-11-03
+## [1.2.3] - 2025-11-04
 
 ### 🐛 Fixed
 
@@ -320,7 +363,7 @@ Migrating from v0.x to v1.x wasn't a refactor—it was a **ground-up architectur
 
 - 🎨 Blob surface texture visibility regardless of alpha
 
-## [1.2.1] - 2025-11-03
+## [1.2.1] - 2025-11-02
 
 ### ✨ ElevenLabs Agents Management API
 
@@ -331,7 +374,7 @@ Migrating from v0.x to v1.x wasn't a refactor—it was a **ground-up architectur
 - 🧪 Glass toggle: preserve gradient; adjust blob opacity only if 1.0; fix transparency window in gradient
 - 🎲 Random Gradient fixes via Body API (linear/radial)
 
-## [1.2.0] - 2025-11-02
+## [1.2.0] - 2025-11-01
 
 ### ✨ Added
 

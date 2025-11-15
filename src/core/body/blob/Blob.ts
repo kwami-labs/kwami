@@ -86,6 +86,7 @@ export class Blob {
 
   // Animation parameters
   public spikes = { x: 0.2, y: 0.2, z: 0.2 };
+  public amplitude = { x: 0.8, y: 0.8, z: 0.8 }; // Frequency amplitude (depth of noise)
   public time = { x: 1, y: 1, z: 1 };
   public rotation = { x: 0, y: 0, z: 0 };
   
@@ -286,6 +287,9 @@ export class Blob {
           this.spikes.x,
           this.spikes.y,
           this.spikes.z,
+          this.amplitude.x,
+          this.amplitude.y,
+          this.amplitude.z,
           this.time.x,
           this.time.y,
           this.time.z,
@@ -400,6 +404,20 @@ export class Blob {
    */
   setSpikes(x: number, y: number, z: number): void {
     this.spikes = { x, y, z };
+  }
+
+  /**
+   * Get amplitude values (depth of noise frequency)
+   */
+  getAmplitude(): { x: number; y: number; z: number } {
+    return { ...this.amplitude };
+  }
+
+  /**
+   * Set amplitude values for noise depth
+   */
+  setAmplitude(x: number, y: number, z: number): void {
+    this.amplitude = { x, y, z };
   }
 
   /**
@@ -667,6 +685,13 @@ export class Blob {
         this.config.spikes.rMax,
         this.config.spikes.digits,
       ),
+    };
+
+    // Random amplitude
+    this.amplitude = {
+      x: getRandomBetween(0.3, 1.2, 1),
+      y: getRandomBetween(0.3, 1.2, 1),
+      z: getRandomBetween(0.3, 1.2, 1),
     };
 
     // Random time

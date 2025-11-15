@@ -45,15 +45,35 @@
       <!-- Audio Player -->
       <div id="audio-player" class="hidden">
         <button id="audio-close-btn" class="audio-close-btn" type="button" title="Close audio player">✕</button>
-        <input type="file" id="audio-file" accept="audio/*" style="display: none;">
-        <button id="upload-audio-btn" class="player-btn" title="Upload Audio">📁</button>
-        <button id="play-pause-btn" class="player-btn" disabled title="Play/Pause">▶️</button>
+        
+        <!-- Audio Controls Row -->
+        <div class="audio-controls-row">
+          <button id="prev-track-btn" class="player-btn" title="Previous Track">⏮️</button>
+          <button id="play-pause-btn" class="player-btn" title="Play/Pause">▶️</button>
+          <button id="next-track-btn" class="player-btn" title="Next Track">⏭️</button>
+          <button id="upload-audio-btn" class="player-btn" title="Load Audio">📂</button>
+        </div>
+        
+        <!-- Audio Info -->
         <div id="audio-info">
-          <span id="audio-name">No audio loaded</span>
+          <span id="audio-name">Loading playlist...</span>
           <span id="audio-time">0:00 / 0:00</span>
         </div>
-        <input type="range" id="volume-slider" min="0" max="100" value="80" title="Volume">
-        <span id="volume-icon">🔊</span>
+        
+        <!-- Volume Control -->
+        <div class="volume-control-row">
+          <span id="volume-icon">🔊</span>
+          <input type="range" id="volume-slider" min="0" max="100" value="80" title="Volume">
+        </div>
+        
+        <!-- Media Loader Modal (hidden by default) -->
+        <div id="audio-loader-modal" class="audio-loader-modal hidden">
+          <div class="audio-loader-modal-content">
+            <button class="audio-loader-close" onclick="closeAudioLoaderModal()">✕</button>
+            <h3 style="margin-top: 0; color: var(--text-primary);">Load Audio</h3>
+            <div id="audio-media-loader"></div>
+          </div>
+        </div>
       </div>
 
       <div id="background-media" data-active="none">
@@ -409,9 +429,9 @@
         <!-- Custom Skill Creator -->
         <div class="section">
           <div class="parameter-group">
-            <div class="parameter-group-title">Quick Actions</div>
+            <div class="parameter-group-title">Skills templates</div>
             <p style="color: #888; font-size: 12px; margin-bottom: 10px;">
-              Execute common transformations instantly
+              Some examples of Kwami's skills with configurable templates
             </p>
 
             <div class="button-row">
@@ -443,29 +463,12 @@
           </div>
         </div>
 
-        <!-- Skill Statistics -->
-        <div class="section">
-          <div class="parameter-group">
-            <div class="parameter-group-title">Statistics</div>
-            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 10px;">
-              <div style="padding: 10px; background: var(--bg-section); border-radius: 8px; text-align: center;">
-                <div style="font-size: 20px; font-weight: 700; color: #667eea;" id="skills-total">6</div>
-                <div style="font-size: 11px; color: var(--text-tertiary);">Total Skills</div>
-              </div>
-              <div style="padding: 10px; background: var(--bg-section); border-radius: 8px; text-align: center;">
-                <div style="font-size: 20px; font-weight: 700; color: #4CAF50;" id="skills-executed">0</div>
-                <div style="font-size: 11px; color: var(--text-tertiary);">Executed</div>
-              </div>
-            </div>
-          </div>
-        </div>
-
         <!-- Load Custom Skill -->
         <div class="section">
           <div class="parameter-group">
             <div class="parameter-group-title">Load Custom Skill</div>
             <p style="color: #888; font-size: 12px; margin-bottom: 10px;">
-              Load skills from JSON or YAML files or URLs
+              You can create your own skills by loading them from JSON or YAML files or URLs
             </p>
 
             <div class="input-group">
@@ -523,48 +526,60 @@
         <div class="parameter-group">
           <div class="parameter-group-title">Canvas Gradient</div>
 
-          <div class="slider-control">
-            <label>Opacity <span class="value-display" id="bg-opacity-value">1.0</span></label>
-            <input type="range" id="bg-opacity" min="0" max="1" step="0.01" value="1">
-          </div>
-
-          <div class="slider-control">
-            <label>Angle <span class="value-display" id="bg-gradient-angle-value">90</span>°</label>
-            <input type="range" id="bg-gradient-angle" min="0" max="360" step="1" value="90">
-          </div>
-
-          <div class="slider-control">
-            <label>Color Stop 1 <span class="value-display" id="bg-gradient-stop1-value">50</span>%</label>
-            <input type="range" id="bg-gradient-stop1" min="0" max="100" step="1" value="50">
-          </div>
-
-          <div class="slider-control">
-            <label>Color Stop 2 <span class="value-display" id="bg-gradient-stop2-value">100</span>%</label>
-            <input type="range" id="bg-gradient-stop2" min="0" max="100" step="1" value="100">
-          </div>
-
           <div class="input-group">
-            <label>Gradient Layout</label>
-            <select id="bg-gradient-style">
-              <option value="linear">Linear</option>
-              <option value="radial">Radial</option>
-              <option value="random">Random</option>
-            </select>
+            <label>
+              <input type="checkbox" id="bg-gradient-enabled" checked>
+              Enable Gradient Background
+            </label>
           </div>
 
-          <div class="parameter-group gradient-color-group">
-            <div class="parameter-group-title">Gradient Colors</div>
-            <div class="color-control">
-              <label>Color 1</label>
-              <input type="color" id="bg-color-1" value="#667eea">
+          <div id="gradient-controls-container">
+            <div class="slider-control">
+              <label>Opacity <span class="value-display" id="bg-opacity-value">1.0</span></label>
+              <input type="range" id="bg-opacity" min="0" max="1" step="0.01" value="1">
             </div>
-            <div class="color-control">
-              <label>Color 2</label>
-              <input type="color" id="bg-color-2" value="#764ba2">
+
+            <div class="slider-control">
+              <label>Angle <span class="value-display" id="bg-gradient-angle-value">90</span>°</label>
+              <input type="range" id="bg-gradient-angle" min="0" max="360" step="1" value="90">
             </div>
-            <div class="color-control">
-              <label>Color 3</label>
-              <input type="color" id="bg-color-3" value="#f093fb">
+
+            <div class="slider-control">
+              <label>Color Stop 1 <span class="value-display" id="bg-gradient-stop1-value">50</span>%</label>
+              <input type="range" id="bg-gradient-stop1" min="0" max="100" step="1" value="50">
+            </div>
+
+            <div class="slider-control">
+              <label>Color Stop 2 <span class="value-display" id="bg-gradient-stop2-value">100</span>%</label>
+              <input type="range" id="bg-gradient-stop2" min="0" max="100" step="1" value="100">
+            </div>
+
+            <div class="input-group">
+              <label>Gradient Layout</label>
+              <select id="bg-gradient-style">
+                <option value="linear">Linear</option>
+                <option value="radial">Radial</option>
+                <option value="random">Random</option>
+              </select>
+            </div>
+
+            <div class="parameter-group gradient-color-group">
+              <div class="parameter-group-title">
+                Gradient Colors
+                <button class="randomize-colors-btn" onclick="randomizeGradientColors()" title="Randomize gradient colors">🎲</button>
+              </div>
+              <div class="color-control">
+                <label>Color 1</label>
+                <input type="color" id="bg-color-1" value="#667eea">
+              </div>
+              <div class="color-control">
+                <label>Color 2</label>
+                <input type="color" id="bg-color-2" value="#764ba2">
+              </div>
+              <div class="color-control">
+                <label>Color 3</label>
+                <input type="color" id="bg-color-3" value="#f093fb">
+              </div>
             </div>
           </div>
         </div>
@@ -621,6 +636,23 @@
         </div>
 
         <div class="parameter-group">
+          <div class="parameter-group-title">Frequency Amplitude</div>
+          <p class="parameter-info">Control the depth of noise frequency (spike intensity) along each axis.</p>
+          <div class="slider-control">
+            <label>X <span class="value-display" id="amplitude-x-value">0.8</span></label>
+            <input type="range" id="amplitude-x" min="0" max="5" step="0.1" value="0.8">
+          </div>
+          <div class="slider-control">
+            <label>Y <span class="value-display" id="amplitude-y-value">0.8</span></label>
+            <input type="range" id="amplitude-y" min="0" max="5" step="0.1" value="0.8">
+          </div>
+          <div class="slider-control">
+            <label>Z <span class="value-display" id="amplitude-z-value">0.8</span></label>
+            <input type="range" id="amplitude-z" min="0" max="5" step="0.1" value="0.8">
+          </div>
+        </div>
+
+        <div class="parameter-group">
           <div class="parameter-group-title">Animation Speed</div>
           <p class="parameter-info">Change how quickly the blob cycles through its movement.</p>
           <div class="slider-control">
@@ -660,8 +692,8 @@
         <div class="parameter-group">
           <div class="parameter-group-title">Global Scale</div>
           <div class="slider-control">
-            <label>Scale <span class="value-display" id="scale-value">4.0</span></label>
-            <input type="range" id="scale" min="3" max="8" step="0.1" value="4.0">
+            <label>Scale <span class="value-display" id="scale-value">3.2</span></label>
+            <input type="range" id="scale" min="3" max="8" step="0.1" value="3.2">
           </div>
         </div>
 

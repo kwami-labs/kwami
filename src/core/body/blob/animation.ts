@@ -61,6 +61,9 @@ export function animateBlob(
   spikeX: number,
   spikeY: number,
   spikeZ: number,
+  amplitudeX: number = 1.0,
+  amplitudeY: number = 1.0,
+  amplitudeZ: number = 1.0,
   timeX: number,
   timeY: number,
   timeZ: number,
@@ -230,7 +233,13 @@ export function animateBlob(
     // Base amplitude enhanced by audio (creates natural, liquid response)
     const baseAmplitude = audioActive ? 0.1 + spikeEnvelope * 0.09 : 0.16;
 
-    const amplitude = baseAmplitude * audioIntensity;
+    // Apply per-axis amplitude modulation based on vertex direction
+    const amplitudeMultiplier = 
+      Math.abs(direction.x) * amplitudeX +
+      Math.abs(direction.y) * amplitudeY +
+      Math.abs(direction.z) * amplitudeZ;
+
+    const amplitude = baseAmplitude * audioIntensity * amplitudeMultiplier;
 
     // High-frequency detail shimmer driven by treble content
     const detailNoise = audioEffects.enabled
@@ -283,7 +292,7 @@ export function animateBlob(
       
       // Combine for fluid thinking animation
       const thinkingNoise = (thinkNoise1 * 0.4 + thinkNoise2 * 0.35 + thinkNoise3 * 0.25) * pulse;
-      thinkingDisplacement = thinkingNoise * 0.35 * fadeOut;
+      thinkingDisplacement = thinkingNoise * 0.35 * fadeOut * amplitudeMultiplier;
     }
     
     // Blend between states smoothly

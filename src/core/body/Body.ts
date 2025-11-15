@@ -362,6 +362,7 @@ export class KwamiBody {
   resetBlobToDefaults(): void {
     const defaults = {
       spikes: { x: 0.2, y: 0.2, z: 0.2 },
+      amplitude: { x: 0.8, y: 0.8, z: 0.8 },
       time: { x: 1, y: 1, z: 1 },
       rotation: { x: 0, y: 0, z: 0 },
       colors: { x: '#ff0066', y: '#00ff66', z: '#6600ff' },
@@ -374,6 +375,7 @@ export class KwamiBody {
     };
 
     this.blob.setSpikes(defaults.spikes.x, defaults.spikes.y, defaults.spikes.z);
+    this.blob.setAmplitude(defaults.amplitude.x, defaults.amplitude.y, defaults.amplitude.z);
     this.blob.setTime(defaults.time.x, defaults.time.y, defaults.time.z);
     this.blob.setRotation(defaults.rotation.x, defaults.rotation.y, defaults.rotation.z);
     this.blob.setColors(defaults.colors.x, defaults.colors.y, defaults.colors.z);

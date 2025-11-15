@@ -66,7 +66,25 @@ const audioPlayerState = {
   displayName: 'No audio loaded',
   lastVolume: 0.8,
   visible: false, // Start hidden
+  playlist: [], // Array of audio tracks
+  currentIndex: 0, // Current track index
+  isCustomTrack: false // Whether current track is from upload/URL
 };
+
+// Build music playlist from assets
+const MUSIC_PLAYLIST = [
+  { name: 'Track 1', url: 'assets/aud/music/0.mp3' },
+  { name: 'Track 2', url: 'assets/aud/music/1.mp3' },
+  { name: 'Track 3', url: 'assets/aud/music/2.mp3' },
+  { name: 'Track 4', url: 'assets/aud/music/3.mp3' },
+  { name: 'Track 5', url: 'assets/aud/music/4.mp3' },
+  { name: 'Track 6', url: 'assets/aud/music/5.mp3' },
+  { name: 'Track 7', url: 'assets/aud/music/6.mp3' },
+  { name: 'Track 8', url: 'assets/aud/music/7.mp3' },
+  { name: 'Track 9', url: 'assets/aud/music/8.mp3' },
+  { name: 'Track 10', url: 'assets/aud/music/9.mp3' },
+  { name: 'Track 11', url: 'assets/aud/music/10.mp3' }
+];
 
 const githubStarState = {
   initialized: false,
@@ -125,15 +143,16 @@ function initializeAudioPlayer() {
     console.warn('Audio close button missing');
   }
 
-  const fileInput = document.getElementById('audio-file');
   const uploadButton = document.getElementById('upload-audio-btn');
   const playPauseButton = document.getElementById('play-pause-btn');
+  const prevButton = document.getElementById('prev-track-btn');
+  const nextButton = document.getElementById('next-track-btn');
   const volumeSlider = document.getElementById('volume-slider');
   const volumeIcon = document.getElementById('volume-icon');
   const audioName = document.getElementById('audio-name');
   const audioTime = document.getElementById('audio-time');
 
-  if (!fileInput || !uploadButton || !playPauseButton || !volumeSlider || !volumeIcon || !audioName || !audioTime) {
+  if (!uploadButton || !playPauseButton || !prevButton || !nextButton || !volumeSlider || !volumeIcon || !audioName || !audioTime) {
     console.warn('Audio player elements missing; skipping initialization');
     return;
   }
@@ -210,30 +229,7 @@ function initializeAudioPlayer() {
     volumeIcon.textContent = icon;
   };
 
-  uploadButton.addEventListener('click', () => {
-    fileInput.click();
-  });
-
-  fileInput.addEventListener('change', async (event) => {
-    const target = event.target;
-    const file = target?.files?.[0];
-    if (!file) {
-      return;
-    }
-
-    try {
-      await kwamiAudio.loadAudioFile(file);
-      setDisplayName(file.name);
-      updateTimeDisplay();
-      updatePlayPauseState();
-      updateStatus(`🎵 Loaded "${file.name}"`);
-    } catch (error) {
-      console.error('Failed to load audio file:', error);
-      showError('Failed to load audio file. Please try another file.');
-    } finally {
-      target.value = '';
-    }
-  });
+  // Upload button handler will be replaced below with modal opener
 
   playPauseButton.addEventListener('click', async () => {
     if (playPauseButton.disabled) {
@@ -294,10 +290,141 @@ function initializeAudioPlayer() {
     updatePlayPauseState();
   });
 
+  // Initialize playlist
+  audioPlayerState.playlist = [...MUSIC_PLAYLIST];
+
+  // Playlist navigation functions
+  const loadTrack = async (index) => {
+    if (index < 0 || index >= audioPlayerState.playlist.length) {
+      return;
+    }
+
+    audioPlayerState.currentIndex = index;
+    audioPlayerState.isCustomTrack = false;
+    const track = audioPlayerState.playlist[index];
+
+    try {
+      await kwamiAudio.loadAudioFile(track.url);
+      setDisplayName(track.name);
+      updateNavigationButtons();
+      updatePlayPauseState();
+      console.log(`[Audio Player] Loaded: ${track.name}`);
+    } catch (error) {
+      console.error('Failed to load track:', error);
+      setDisplayName('Error loading track');
+      showError(`Failed to load ${track.name}`);
+    }
+  };
+
+  const loadCustomTrack = async (url, name) => {
+    try {
+      await kwamiAudio.loadAudioFile(url);
+      audioPlayerState.isCustomTrack = true;
+      setDisplayName(name || 'Custom Audio');
+      updateNavigationButtons();
+      updatePlayPauseState();
+      updateStatus(`🎵 Loaded: ${name || 'Custom Audio'}`);
+    } catch (error) {
+      console.error('Failed to load custom track:', error);
+      showError('Failed to load audio. Please try another file or URL.');
+    }
+  };
+
+  const updateNavigationButtons = () => {
+    const prevButton = document.getElementById('prev-track-btn');
+    const nextButton = document.getElementById('next-track-btn');
+    
+    if (!prevButton || !nextButton) return;
+
+    // Disable prev/next if playing custom track
+    if (audioPlayerState.isCustomTrack) {
+      prevButton.disabled = true;
+      nextButton.disabled = true;
+    } else {
+      prevButton.disabled = audioPlayerState.currentIndex <= 0;
+      nextButton.disabled = audioPlayerState.currentIndex >= audioPlayerState.playlist.length - 1;
+    }
+  };
+
+  // Previous/Next track buttons
+  const prevButton = document.getElementById('prev-track-btn');
+  const nextButton = document.getElementById('next-track-btn');
+
+  if (prevButton) {
+    prevButton.addEventListener('click', () => {
+      if (audioPlayerState.currentIndex > 0) {
+        loadTrack(audioPlayerState.currentIndex - 1);
+      }
+    });
+  }
+
+  if (nextButton) {
+    nextButton.addEventListener('click', () => {
+      if (audioPlayerState.currentIndex < audioPlayerState.playlist.length - 1) {
+        loadTrack(audioPlayerState.currentIndex + 1);
+      }
+    });
+  }
+
+  // Auto-play next track when current ends (override previous ended handler)
+  audioElement.removeEventListener('ended', audioElement._endedHandler);
+  const endedHandler = () => {
+    if (!audioPlayerState.isCustomTrack && audioPlayerState.currentIndex < audioPlayerState.playlist.length - 1) {
+      loadTrack(audioPlayerState.currentIndex + 1);
+      // Auto-play next track
+      setTimeout(() => {
+        kwamiAudio.play();
+      }, 500);
+    } else {
+      kwamiAudio.setCurrentTime(0);
+      updateTimeDisplay();
+      updatePlayPauseState();
+    }
+  };
+  audioElement._endedHandler = endedHandler;
+  audioElement.addEventListener('ended', endedHandler);
+
+  // Make upload button open modal
+  uploadButton.removeAllListeners = () => {
+    const clone = uploadButton.cloneNode(true);
+    uploadButton.parentNode.replaceChild(clone, uploadButton);
+    return clone;
+  };
+  const newUploadButton = uploadButton.removeAllListeners();
+  newUploadButton.addEventListener('click', () => {
+    openAudioLoaderModal();
+  });
+
+  // Initialize Audio Media Loader
+  const audioMediaLoaderContainer = document.getElementById('audio-media-loader');
+  if (audioMediaLoaderContainer && !audioMediaLoaderContainer.hasChildNodes()) {
+    const audioMediaLoader = createMediaLoaderUI({
+      type: 'audio',
+      label: 'Audio Track',
+      presets: [], // No presets for audio (using playlist instead)
+      showPresets: false,
+      onLoad: (url, source) => {
+        const filename = url.split('/').pop().split('?')[0];
+        const name = filename.length > 30 ? filename.substring(0, 27) + '...' : filename;
+        loadCustomTrack(url, name);
+        closeAudioLoaderModal();
+      },
+      onError: (error) => {
+        showError(`Failed to load audio: ${error.message}`);
+      }
+    });
+    audioMediaLoaderContainer.appendChild(audioMediaLoader);
+  }
+
+  // Load a random track on initialization
+  const randomIndex = Math.floor(Math.random() * audioPlayerState.playlist.length);
+  loadTrack(randomIndex);
+
   const initialName = deriveNameFromSrc(audioElement.src);
-  setDisplayName(initialName || 'No audio loaded');
+  setDisplayName(initialName || 'Loading playlist...');
   updateTimeDisplay();
   updatePlayPauseState();
+  updateNavigationButtons();
 
   const sliderInitialValue = Number(volumeSlider.value ?? 80);
   let initialVolume = Math.max(0, Math.min(100, sliderInitialValue)) / 100;
@@ -310,7 +437,23 @@ function initializeAudioPlayer() {
   updateVolumeUI(initialVolume);
 
   audioPlayerState.initialized = true;
+  console.log('[Audio Player] Audio player initialized with playlist');
 }
+
+// Modal functions for audio loader
+window.openAudioLoaderModal = function() {
+  const modal = document.getElementById('audio-loader-modal');
+  if (modal) {
+    modal.classList.remove('hidden');
+  }
+};
+
+window.closeAudioLoaderModal = function() {
+  const modal = document.getElementById('audio-loader-modal');
+  if (modal) {
+    modal.classList.add('hidden');
+  }
+};
 
 async function fetchGitHubStars() {
   const now = Date.now();
@@ -1067,6 +1210,22 @@ function setMediaType(type, { silent = false } = {}) {
   syncGradientOverlayState();
 }
 
+window.randomizeGradientColors = function() {
+  // Generate random colors only
+  const randomColor = () => '#' + Math.floor(Math.random() * 16777215).toString(16).padStart(6, '0');
+  const colors = [randomColor(), randomColor(), randomColor()];
+
+  // Update color pickers in UI
+  const c1 = document.getElementById('bg-color-1'); if (c1) c1.value = colors[0];
+  const c2 = document.getElementById('bg-color-2'); if (c2) c2.value = colors[1];
+  const c3 = document.getElementById('bg-color-3'); if (c3) c3.value = colors[2];
+
+  // Apply the new colors
+  applyBackground();
+
+  updateStatus('🎨 Gradient colors randomized!');
+};
+
 window.randomizeBackground = function() {
   // Generate random colors
   const randomColor = () => '#' + Math.floor(Math.random() * 16777215).toString(16).padStart(6, '0');
@@ -1369,6 +1528,7 @@ window.randomizeBackgroundWithGlass = function() {
 };
 
 function applyBackground({ skipGradientOverlayOptIn = false } = {}) {
+  const gradientEnabled = document.getElementById('bg-gradient-enabled')?.checked ?? true;
   const opacity = parseFloat(document.getElementById('bg-opacity')?.value ?? DEFAULT_BACKGROUND.opacity);
 
   const colors = [
@@ -1396,6 +1556,16 @@ function applyBackground({ skipGradientOverlayOptIn = false } = {}) {
   if (body) {
     syncGradientOverlayState();
 
+    if (!gradientEnabled) {
+      // Gradient disabled - hide it
+      body.setBackgroundOpacity(0);
+      const { gradientElement } = getBackgroundElements();
+      if (gradientElement) {
+        gradientElement.style.display = 'none';
+      }
+      return;
+    }
+
     if (gradientStyle === 'random') {
       body.setBackgroundSpheres(colors);
       body.setBackgroundOpacity(opacity);
@@ -1422,6 +1592,14 @@ function applyBackground({ skipGradientOverlayOptIn = false } = {}) {
   const { gradientElement, mediaContainer } = getBackgroundElements();
   if (mediaContainer) mediaContainer.style.display = 'none';
   if (gradientElement) {
+    if (!gradientEnabled) {
+      // Gradient disabled - hide it
+      gradientElement.style.display = 'none';
+      gradientElement.style.opacity = '0';
+      gradientElement.style.backgroundImage = 'none';
+      return;
+    }
+
     let backgroundImage = '';
 
     if (gradientStyle === 'radial') {
@@ -1510,6 +1688,22 @@ function initializeBackgroundControls() {
         }
         updateStatus('🎨 Glass transparency disabled');
       }
+    });
+  }
+
+  // Gradient enable/disable checkbox
+  const gradientEnabledCheckbox = document.getElementById('bg-gradient-enabled');
+  if (gradientEnabledCheckbox) {
+    gradientEnabledCheckbox.addEventListener('change', (e) => {
+      const controlsContainer = document.getElementById('gradient-controls-container');
+      if (controlsContainer) {
+        if (e.target.checked) {
+          controlsContainer.classList.remove('gradient-controls-disabled');
+        } else {
+          controlsContainer.classList.add('gradient-controls-disabled');
+        }
+      }
+      applyBackground();
     });
   }
 
@@ -2720,6 +2914,7 @@ function updateAllControlsFromBlob() {
   
   const blob = window.kwami.body.blob;
   const spikes = blob.getSpikes();
+  const amplitude = blob.getAmplitude();
   const time = blob.getTime();
   const rotation = blob.getRotation();
   const colors = blob.getColors();
@@ -2735,6 +2930,16 @@ function updateAllControlsFromBlob() {
     if (slider && display) {
       slider.value = spikes[axis];
       display.textContent = formatValue(spikes[axis], 1);
+    }
+  });
+  
+  // Update amplitude
+  ['x', 'y', 'z'].forEach(axis => {
+    const slider = document.getElementById(`amplitude-${axis}`);
+    const display = document.getElementById(`amplitude-${axis}-value`);
+    if (slider && display) {
+      slider.value = amplitude[axis];
+      display.textContent = formatValue(amplitude[axis], 1);
     }
   });
   
@@ -2934,6 +3139,20 @@ function initializeBodyControls() {
         spikes[axis] = value;
         blob.setSpikes(spikes.x, spikes.y, spikes.z);
         updateValueDisplay(`spike-${axis}-value`, value, 1);
+      });
+    }
+  });
+  
+  // Amplitude sliders
+  ['x', 'y', 'z'].forEach(axis => {
+    const slider = document.getElementById(`amplitude-${axis}`);
+    if (slider) {
+      slider.addEventListener('input', (e) => {
+        const value = parseFloat(e.target.value);
+        const amplitude = blob.getAmplitude();
+        amplitude[axis] = value;
+        blob.setAmplitude(amplitude.x, amplitude.y, amplitude.z);
+        updateValueDisplay(`amplitude-${axis}-value`, value, 1);
       });
     }
   });
@@ -3933,10 +4152,92 @@ const IMAGE_PRESETS = [
 
 // Video presets
 const VIDEO_PRESETS = [
+  // Local videos
   { name: 'Stars (Local)', value: 'src/assets/vid/stars.mp4' },
-  { name: 'Blue Particles', value: 'https://storage.coverr.co/videos/coverr-blue-particles-background-1581083411/1080p.mp4' },
-  { name: 'Purple Nebula', value: 'https://storage.coverr.co/videos/coverr-purple-nebula-1584717401/1080p.mp4' },
-  { name: 'Space Journey', value: 'https://storage.coverr.co/videos/coverr-journey-through-space-1570107498/1080p.mp4' }
+
+  // Pexels videos - Space & Abstract
+  { name: 'Cosmic Nebula 1', value: 'https://videos.pexels.com/video-files/6394054/6394054-uhd_2732_1366_24fps.mp4' },
+  { name: 'Galaxy Swirl', value: 'https://videos.pexels.com/video-files/1448735/1448735-uhd_2732_1440_24fps.mp4' },
+  { name: 'Abstract Waves 1', value: 'https://videos.pexels.com/video-files/3571264/3571264-uhd_2560_1440_30fps.mp4' },
+  { name: 'Smoke Art 1', value: 'https://videos.pexels.com/video-files/8820216/8820216-uhd_2560_1440_25fps.mp4' },
+  { name: 'Liquid Gold', value: 'https://videos.pexels.com/video-files/4763824/4763824-uhd_2560_1440_24fps.mp4' },
+  { name: 'Abstract Flow 1', value: 'https://videos.pexels.com/video-files/5946371/5946371-uhd_2560_1440_30fps.mp4' },
+  { name: 'Particle Storm', value: 'https://videos.pexels.com/video-files/3214448/3214448-uhd_2560_1440_25fps.mp4' },
+  { name: 'Digital Waves', value: 'https://videos.pexels.com/video-files/2098989/2098989-uhd_2560_1440_30fps.mp4' },
+  { name: 'Smoke Art 2', value: 'https://videos.pexels.com/video-files/4205697/4205697-uhd_2560_1440_30fps.mp4' },
+  { name: 'Fluid Motion 1', value: 'https://videos.pexels.com/video-files/4125029/4125029-uhd_2560_1440_24fps.mp4' },
+  
+  // Pexels videos - Colorful Abstract
+  { name: 'Rainbow Smoke', value: 'https://videos.pexels.com/video-files/4873244/4873244-uhd_2560_1440_25fps.mp4' },
+  { name: 'Ink in Water 1', value: 'https://videos.pexels.com/video-files/4927963/4927963-uhd_2732_1440_30fps.mp4' },
+  { name: 'Neon Lights 1', value: 'https://videos.pexels.com/video-files/5173766/5173766-uhd_2560_1440_30fps.mp4' },
+  { name: 'Abstract Colors 1', value: 'https://videos.pexels.com/video-files/5581999/5581999-uhd_2560_1440_30fps.mp4' },
+  { name: 'Plasma Effect', value: 'https://videos.pexels.com/video-files/6212548/6212548-uhd_2560_1440_25fps.mp4' },
+  { name: 'Bokeh Lights 1', value: 'https://videos.pexels.com/video-files/1851190/1851190-uhd_2560_1440_25fps.mp4' },
+  { name: 'Neon Glow', value: 'https://videos.pexels.com/video-files/2611250/2611250-uhd_2560_1440_30fps.mp4' },
+  { name: 'Light Rays 1', value: 'https://videos.pexels.com/video-files/5155396/5155396-uhd_2560_1440_30fps.mp4' },
+  { name: 'Abstract Gradient 1', value: 'https://videos.pexels.com/video-files/5453622/5453622-uhd_2560_1440_24fps.mp4' },
+  { name: 'Color Smoke 1', value: 'https://videos.pexels.com/video-files/5382333/5382333-uhd_2560_1440_30fps.mp4' },
+  
+  // Pexels videos - Energy & Motion
+  { name: 'Energy Field 1', value: 'https://videos.pexels.com/video-files/9341381/9341381-uhd_2560_1440_24fps.mp4' },
+  { name: 'Particle Flow 1', value: 'https://videos.pexels.com/video-files/5167233/5167233-uhd_2560_1440_30fps.mp4' },
+  { name: 'Abstract Motion 1', value: 'https://videos.pexels.com/video-files/5170522/5170522-uhd_2560_1440_30fps.mp4' },
+  { name: 'Fluid Motion 2', value: 'https://videos.pexels.com/video-files/4182916/4182916-uhd_2560_1440_30fps.mp4' },
+  { name: 'Cosmic Energy', value: 'https://videos.pexels.com/video-files/10477097/10477097-uhd_2560_1440_24fps.mp4' },
+  { name: 'Abstract Flow 2', value: 'https://videos.pexels.com/video-files/19145265/19145265-uhd_2560_1440_24fps.mp4' },
+  { name: 'Bokeh Lights 2', value: 'https://videos.pexels.com/video-files/856857/856857-uhd_2732_1440_30fps.mp4' },
+  { name: 'Light Show 1', value: 'https://videos.pexels.com/video-files/855835/855835-hd_1920_1080_30fps.mp4' },
+  { name: 'Neon Lights 2', value: 'https://videos.pexels.com/video-files/3141208/3141208-uhd_2560_1440_25fps.mp4' },
+  { name: 'Neon Lights 3', value: 'https://videos.pexels.com/video-files/3141209/3141209-uhd_2560_1440_25fps.mp4' },
+  
+  // Pexels videos - Dark & Mystical
+  { name: 'Dark Waves', value: 'https://videos.pexels.com/video-files/3059861/3059861-uhd_2560_1440_25fps.mp4' },
+  { name: 'Black Smoke', value: 'https://videos.pexels.com/video-files/2715412/2715412-uhd_2560_1440_30fps.mp4' },
+  { name: 'Ink Bloom', value: 'https://videos.pexels.com/video-files/5649204/5649204-uhd_2560_1440_25fps.mp4' },
+  { name: 'Dark Glow', value: 'https://videos.pexels.com/video-files/854999/854999-uhd_2560_1440_30fps.mp4' },
+  { name: 'Mystic Flow', value: 'https://videos.pexels.com/video-files/6051402/6051402-uhd_2560_1440_25fps.mp4' },
+  { name: 'Abstract Waves 2', value: 'https://videos.pexels.com/video-files/3571195/3571195-uhd_2560_1440_30fps.mp4' },
+  { name: 'Smoke Art 3', value: 'https://videos.pexels.com/video-files/4205790/4205790-uhd_1920_1440_30fps.mp4' },
+  { name: 'Dark Energy', value: 'https://videos.pexels.com/video-files/10490756/10490756-uhd_2560_1440_30fps.mp4' },
+  { name: 'Black Ink', value: 'https://videos.pexels.com/video-files/2334654/2334654-uhd_2560_1440_30fps.mp4' },
+  { name: 'Shadow Flow', value: 'https://videos.pexels.com/video-files/2110771/2110771-uhd_2560_1440_30fps.mp4' },
+  
+  // Pexels videos - Organic & Natural
+  { name: 'Ink in Water 2', value: 'https://videos.pexels.com/video-files/2711116/2711116-uhd_2560_1440_24fps.mp4' },
+  { name: 'Color Diffusion 1', value: 'https://videos.pexels.com/video-files/2063228/2063228-uhd_2560_1440_24fps.mp4' },
+  { name: 'Liquid Art 1', value: 'https://videos.pexels.com/video-files/4259460/4259460-uhd_2560_1440_25fps.mp4' },
+  { name: 'Fluid Dynamics 1', value: 'https://videos.pexels.com/video-files/4125031/4125031-uhd_2560_1440_24fps.mp4' },
+  { name: 'Ink Spread 1', value: 'https://videos.pexels.com/video-files/5796436/5796436-uhd_2560_1440_30fps.mp4' },
+  { name: 'Color Mix 1', value: 'https://videos.pexels.com/video-files/4423694/4423694-uhd_2560_1440_30fps.mp4' },
+  { name: 'Liquid Color 1', value: 'https://videos.pexels.com/video-files/5828446/5828446-uhd_2560_1440_24fps.mp4' },
+  { name: 'Ink Flow 1', value: 'https://videos.pexels.com/video-files/2856781/2856781-uhd_2560_1440_30fps.mp4' },
+  { name: 'Abstract Paint 1', value: 'https://videos.pexels.com/video-files/5396819/5396819-uhd_2560_1440_30fps.mp4' },
+  { name: 'Abstract Paint 2', value: 'https://videos.pexels.com/video-files/5396826/5396826-uhd_2560_1440_30fps.mp4' },
+  
+  // Pexels videos - Vibrant & Dynamic
+  { name: 'Color Burst 1', value: 'https://videos.pexels.com/video-files/5538822/5538822-uhd_2560_1440_30fps.mp4' },
+  { name: 'Abstract Paint 3', value: 'https://videos.pexels.com/video-files/5396825/5396825-uhd_2560_1440_30fps.mp4' },
+  { name: 'Color Explosion', value: 'https://videos.pexels.com/video-files/7031954/7031954-uhd_2560_1440_24fps.mp4' },
+  { name: 'Vibrant Flow 1', value: 'https://videos.pexels.com/video-files/3108007/3108007-uhd_2560_1440_25fps.mp4' },
+  { name: 'Dynamic Abstract 1', value: 'https://videos.pexels.com/video-files/3130182/3130182-uhd_2560_1440_30fps.mp4' },
+  { name: 'Color Dance 1', value: 'https://videos.pexels.com/video-files/3129576/3129576-uhd_2560_1440_30fps.mp4' },
+  { name: 'Psychedelic 1', value: 'https://videos.pexels.com/video-files/10755266/10755266-hd_2560_1440_30fps.mp4' },
+  { name: 'Color Wave 1', value: 'https://videos.pexels.com/video-files/3129902/3129902-uhd_2560_1440_25fps.mp4' },
+  { name: 'Abstract Blend 1', value: 'https://videos.pexels.com/video-files/3129785/3129785-uhd_2560_1440_25fps.mp4' },
+  { name: 'Gradient Flow 1', value: 'https://videos.pexels.com/video-files/6804117/6804117-uhd_2732_1440_25fps.mp4' },
+  
+  // Pexels videos - Ethereal & Dreamy
+  { name: 'Ethereal Glow 1', value: 'https://videos.pexels.com/video-files/5925291/5925291-uhd_2560_1440_24fps.mp4' },
+  { name: 'Dreamy Smoke 1', value: 'https://videos.pexels.com/video-files/8721932/8721932-uhd_2732_1440_25fps.mp4' },
+  { name: 'Soft Motion 1', value: 'https://videos.pexels.com/video-files/10532470/10532470-uhd_2560_1440_30fps.mp4' },
+  { name: 'Ambient Flow 1', value: 'https://videos.pexels.com/video-files/14003675/14003675-uhd_2560_1440_60fps.mp4' },
+  { name: 'Gentle Waves 1', value: 'https://videos.pexels.com/video-files/11274330/11274330-uhd_2560_1440_25fps.mp4' },
+  { name: 'Dreamy Smoke 2', value: 'https://videos.pexels.com/video-files/8720758/8720758-uhd_2732_1440_25fps.mp4' },
+  { name: 'Soft Glow 1', value: 'https://videos.pexels.com/video-files/6346224/6346224-uhd_2732_1440_25fps.mp4' },
+  { name: 'Ethereal Motion 1', value: 'https://videos.pexels.com/video-files/8379231/8379231-uhd_2560_1440_25fps.mp4' },
+  { name: 'Pastel Flow 1', value: 'https://videos.pexels.com/video-files/3094026/3094026-uhd_2560_1440_30fps.mp4' },
+  { name: 'Misty Abstract 1', value: 'https://videos.pexels.com/video-files/3089895/3089895-uhd_2560_1440_30fps.mp4' }
 ];
 
 /**

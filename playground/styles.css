@@ -1381,6 +1381,58 @@ input[type="checkbox"] {
   opacity: 1;
 }
 
+/* Disabled gradient controls */
+.gradient-controls-disabled {
+  opacity: 0.4;
+  pointer-events: none;
+  transition: opacity 0.3s ease;
+}
+
+.gradient-controls-disabled input[type="range"],
+.gradient-controls-disabled input[type="color"],
+.gradient-controls-disabled select {
+  cursor: not-allowed;
+}
+
+.gradient-controls-disabled label {
+  color: #555;
+}
+
+/* Randomize colors button */
+.parameter-group-title {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.randomize-colors-btn {
+  padding: 6px;
+  width: 28px;
+  height: 28px;
+  font-size: 14px;
+  background: rgba(102, 126, 234, 0.1);
+  border: 1px solid rgba(102, 126, 234, 0.3);
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  line-height: 1;
+  margin-left: auto;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.randomize-colors-btn:hover {
+  background: rgba(102, 126, 234, 0.2);
+  border-color: rgba(102, 126, 234, 0.5);
+  transform: scale(1.1) rotate(10deg);
+}
+
+.randomize-colors-btn:active {
+  transform: scale(0.95) rotate(-10deg);
+}
+
 /* Agent Management - Agent Cards */
 .agents-list {
   display: flex;
@@ -1686,24 +1738,26 @@ input[type="checkbox"] {
 .media-loader-upload-area {
   display: flex;
   gap: 12px;
-  align-items: center;
+  align-items: stretch;
 }
 
 .media-loader-upload-btn {
-  padding: 10px 16px;
-  min-width: 130px;
+  padding: 12px 16px;
+  flex: 0 0 45%;
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 6px;
+  flex-direction: column;
+  gap: 8px;
   background: var(--bg-button);
   border: 2px solid var(--border-input);
-  border-radius: 8px;
+  border-radius: 12px;
   color: var(--text-primary);
   font-size: 13px;
   font-weight: 600;
   cursor: pointer;
   transition: all 0.3s ease;
+  min-height: 120px;
 }
 
 .media-loader-upload-btn:hover {
@@ -1715,8 +1769,8 @@ input[type="checkbox"] {
 
 /* Dropzone */
 .media-loader-dropzone {
-  flex: 1;
-  min-height: 80px;
+  flex: 1 1 55%;
+  min-height: 120px;
   border: 2px dashed var(--border-input);
   border-radius: 12px;
   background: var(--bg-section);
@@ -1749,7 +1803,7 @@ input[type="checkbox"] {
 }
 
 .media-loader-dropzone-icon {
-  font-size: 32px;
+  font-size: 48px;
   opacity: 0.6;
   transition: all 0.3s ease;
 }
@@ -1761,9 +1815,9 @@ input[type="checkbox"] {
 }
 
 .media-loader-dropzone-text {
-  font-size: 13px;
+  font-size: 14px;
   color: var(--text-secondary);
-  font-weight: 500;
+  font-weight: 600;
 }
 
 /* Preset Select */
@@ -1847,6 +1901,10 @@ input[type="checkbox"] {
   line-height: 1;
 }
 
+.media-loader-upload-btn .media-loader-icon {
+  font-size: 32px;
+}
+
 .media-loader-text {
   line-height: 1;
 }
@@ -1871,5 +1929,200 @@ input[type="checkbox"] {
   
   .media-loader-dropzone {
     width: 100%;
+  }
+}
+
+/* ========================================
+   Enhanced Audio Player
+   ======================================== */
+
+#audio-player {
+  flex-direction: column;
+  gap: 12px;
+  padding: 16px;
+}
+
+.audio-controls-row {
+  display: flex;
+  gap: 8px;
+  justify-content: center;
+  align-items: center;
+}
+
+.audio-controls-row .player-btn {
+  min-width: 42px;
+  height: 42px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--bg-button);
+  border: 2px solid var(--border-input);
+  border-radius: 50%;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  font-size: 18px;
+}
+
+.audio-controls-row .player-btn:hover:not(:disabled) {
+  transform: scale(1.1);
+  border-color: #667eea;
+  box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+}
+
+.audio-controls-row .player-btn:active:not(:disabled) {
+  transform: scale(0.95);
+}
+
+.audio-controls-row .player-btn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+#audio-info {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  text-align: center;
+  padding: 8px;
+  background: var(--bg-section);
+  border-radius: 8px;
+}
+
+#audio-name {
+  font-weight: 600;
+  font-size: 13px;
+  color: var(--text-primary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+#audio-time {
+  font-size: 11px;
+  color: var(--text-secondary);
+  font-family: 'Monaco', 'Courier New', monospace;
+}
+
+.volume-control-row {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+}
+
+#volume-icon {
+  font-size: 20px;
+  cursor: pointer;
+  transition: transform 0.2s ease;
+  user-select: none;
+}
+
+#volume-icon:hover {
+  transform: scale(1.1);
+}
+
+#volume-slider {
+  flex: 1;
+  height: 6px;
+  border-radius: 3px;
+  background: var(--bg-section);
+  outline: none;
+  -webkit-appearance: none;
+}
+
+#volume-slider::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background: #667eea;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+#volume-slider::-webkit-slider-thumb:hover {
+  background: #764ba2;
+  transform: scale(1.2);
+}
+
+#volume-slider::-moz-range-thumb {
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background: #667eea;
+  cursor: pointer;
+  border: none;
+  transition: all 0.2s ease;
+}
+
+#volume-slider::-moz-range-thumb:hover {
+  background: #764ba2;
+  transform: scale(1.2);
+}
+
+/* Audio Loader Modal */
+.audio-loader-modal {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.7);
+  backdrop-filter: blur(4px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 10000;
+  animation: fadeIn 0.2s ease;
+}
+
+.audio-loader-modal.hidden {
+  display: none;
+}
+
+.audio-loader-modal-content {
+  position: relative;
+  background: var(--bg-sidebar);
+  border: 2px solid var(--border-section);
+  border-radius: 16px;
+  padding: 24px;
+  max-width: 600px;
+  width: 90%;
+  max-height: 80vh;
+  overflow-y: auto;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+  animation: slideIn 0.3s ease;
+}
+
+.audio-loader-close {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  background: transparent;
+  border: none;
+  font-size: 24px;
+  color: var(--text-secondary);
+  cursor: pointer;
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  transition: all 0.2s ease;
+}
+
+.audio-loader-close:hover {
+  background: var(--bg-section);
+  color: var(--text-primary);
+  transform: rotate(90deg);
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
   }
 }
