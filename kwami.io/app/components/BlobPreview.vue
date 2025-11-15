@@ -54,11 +54,26 @@ onMounted(async () => {
   }, 1000)
 })
 
-const generateDna = () => {
-  // TODO: Calculate real DNA from blob configuration
-  dna.value = Array.from({ length: 64 }, () => 
-    Math.floor(Math.random() * 16).toString(16)
-  ).join('')
+const generateDna = async () => {
+  // Get current blob configuration
+  const blobConfig = {
+    resolution: 5,
+    spikes: { x: 0.5, y: 0.5, z: 0.5 },
+    time: { x: 0.1, y: 0.1, z: 0.1 },
+    rotation: { x: 0.01, y: 0.01, z: 0.01 },
+    colors: { x: 0.5, y: 0.5, z: 0.8 },
+    shininess: 50,
+    wireframe: false,
+    skin: 'tricolor',
+    baseScale: 3.2,
+    opacity: 1.0,
+    frequency: { x: 1.0, y: 1.0, z: 1.0 },
+    amplitude: { x: 0.8, y: 0.8, z: 0.8 },
+  }
+  
+  // Calculate DNA using the utility function
+  const { calculateKwamiDNA } = await import('~/utils/calculateKwamiDNA')
+  dna.value = calculateKwamiDNA(blobConfig)
 }
 
 const randomize = () => {

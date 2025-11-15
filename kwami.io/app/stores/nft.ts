@@ -61,9 +61,14 @@ export const useNFTStore = defineStore('nft', () => {
   const calculateDNA = async (config: any): Promise<string> => {
     try {
       mintingStatus.value = 'generating-dna'
-      // TODO: Implement DNA calculation using the utility function
-      const dna = 'temp-dna-hash' // calculateKwamiDNA(config)
+      
+      // Import DNA calculation utility
+      const { calculateKwamiDNA } = await import('~/utils/calculateKwamiDNA')
+      
+      // Calculate DNA from body configuration
+      const dna = calculateKwamiDNA(config)
       currentDna.value = dna
+      
       return dna
     } catch (err: any) {
       error.value = err.message

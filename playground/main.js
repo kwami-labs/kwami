@@ -1454,10 +1454,14 @@ window.randomize3DTexture = function() {
   // Update UI based on result
   if (result.type === 'image') {
     setBlobMediaType('image');
+    // Apply the texture
+    window.kwami?.body?.setBlobSurfaceImage(result.url);
     const filename = result.url ? result.url.split('/').pop() : 'texture';
     updateStatus(`🎲 Random 3D texture applied: ${filename}`);
   } else if (result.type === 'video') {
     setBlobMediaType('video');
+    // Apply the texture
+    window.kwami?.body?.setBlobSurfaceVideo(result.url, { autoplay: true, loop: true, muted: true });
     const filename = result.url ? result.url.split('/').pop() : 'texture';
     updateStatus(`🎲 Random 3D video texture applied: ${filename}`);
   } else {
@@ -1487,10 +1491,14 @@ window.randomizeBackgroundWithGlass = function() {
   // Update UI based on result
   if (result.backgroundType === 'image') {
     setMediaType('image', { silent: true });
+    // Apply the background image
+    setBackgroundImage(result.backgroundUrl);
     const filename = result.backgroundUrl ? result.backgroundUrl.split('/').pop() : 'image';
     updateStatus(`🪟 Glass effect with ${filename} (opacity: ${(result.opacity * 100).toFixed(0)}%)`);
   } else if (result.backgroundType === 'video') {
     setMediaType('video', { silent: true });
+    // Apply the background video
+    setBackgroundVideo(result.backgroundUrl);
     const filename = result.backgroundUrl ? result.backgroundUrl.split('/').pop() : 'video';
     updateStatus(`🪟 Glass effect with ${filename} (opacity: ${(result.opacity * 100).toFixed(0)}%)`);
   } else {
