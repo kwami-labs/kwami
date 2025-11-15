@@ -934,16 +934,27 @@ button:disabled {
 }
 
 .trait-header {
-  display: flex;
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
   align-items: center;
-  justify-content: space-between;
+  gap: 8px;
   margin-bottom: 6px;
   font-size: 11px;
   color: #888;
   font-weight: 500;
 }
 
-.trait-label-left,
+.trait-label-left {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 11px;
+  color: #888;
+  user-select: none;
+  white-space: nowrap;
+  justify-self: start;
+}
+
 .trait-label-right {
   display: flex;
   align-items: center;
@@ -952,6 +963,7 @@ button:disabled {
   color: #888;
   user-select: none;
   white-space: nowrap;
+  justify-self: end;
 }
 
 .trait-value {
@@ -963,6 +975,7 @@ button:disabled {
   padding: 2px 6px;
   background: rgba(128, 128, 128, 0.08);
   border-radius: 4px;
+  justify-self: center;
 }
 
 .trait-slider {
