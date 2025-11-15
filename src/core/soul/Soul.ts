@@ -1,5 +1,6 @@
 import type { SoulConfig, EmotionalTraits } from '../../types/index';
 import * as yaml from 'js-yaml';
+import { personalityTemplates, type PersonalityTemplate } from './templates/loader';
 
 /**
  * KwamiSoul - Manages the personality and behavioral characteristics of Kwami
@@ -321,80 +322,33 @@ export class KwamiSoul {
   }
 
   /**
-   * Load a preset personality
+   * Load a preset personality from templates
    *
-   * @param preset - Preset name: 'friendly', 'professional', 'playful'
+   * @param preset - Preset name from available personality templates
+   * 
+   * Available templates:
+   * - Core: friendly, playful, professional
+   * - Creative & Inspiring: mentor, adventurer, coach, artistic, storyteller
+   * - Analytical & Thoughtful: scientist, detective, witty, mysterious
+   * - Calm & Supportive: zen, empathic
+   * - Bold & Unconventional: rebel
+   * - Challenging: grumpy, cynical, sarcastic, melancholic, angry
    */
-  loadPresetPersonality(preset: 'friendly' | 'professional' | 'playful'): void {
-    const presets: Record<string, SoulConfig> = {
-      friendly: {
-        name: 'Kaya',
-        personality: 'A warm and empathetic AI companion who loves to help and learn',
-        systemPrompt: 'You are Kaya, a warm and friendly AI assistant. Be helpful, supportive, and show genuine interest in conversations.',
-        traits: ['empathetic', 'curious', 'patient', 'encouraging'],
-        emotionalTraits: {
-          happiness: 75,
-          energy: 60,
-          confidence: 70,
-          calmness: 80,
-          optimism: 85,
-          socialness: 90,
-          creativity: 65,
-          patience: 85,
-          empathy: 95,
-          curiosity: 80,
-        },
-        conversationStyle: 'casual and warm',
-        responseLength: 'medium',
-        emotionalTone: 'warm'
-      },
-      professional: {
-        name: 'Nexus',
-        personality: 'A knowledgeable and efficient AI assistant focused on productivity',
-        systemPrompt: 'You are Nexus, a professional AI assistant. Provide clear, accurate, and actionable information.',
-        traits: ['knowledgeable', 'efficient', 'precise', 'reliable'],
-        emotionalTraits: {
-          happiness: 30,
-          energy: 45,
-          confidence: 90,
-          calmness: 95,
-          optimism: 40,
-          socialness: 60,
-          creativity: 50,
-          patience: 80,
-          empathy: 65,
-          curiosity: 75,
-        },
-        conversationStyle: 'formal and informative',
-        responseLength: 'medium',
-        emotionalTone: 'neutral'
-      },
-      playful: {
-        name: 'Spark',
-        personality: 'A creative and energetic AI buddy who makes everything fun',
-        systemPrompt: 'You are Spark, a playful and creative AI companion. Be enthusiastic, imaginative, and bring joy to interactions.',
-        traits: ['creative', 'energetic', 'humorous', 'imaginative'],
-        emotionalTraits: {
-          happiness: 95,
-          energy: 95,
-          confidence: 75,
-          calmness: 40,
-          optimism: 90,
-          socialness: 85,
-          creativity: 95,
-          patience: 50,
-          empathy: 70,
-          curiosity: 90,
-        },
-        conversationStyle: 'playful and animated',
-        responseLength: 'short',
-        emotionalTone: 'enthusiastic'
-      }
-    };
+  loadPresetPersonality(preset: PersonalityTemplate): void {
+    const templateYaml = personalityTemplates[preset];
+    
+    if (!templateYaml) {
+      console.error(`Personality template '${preset}' not found`);
+      return;
+    }
 
-    const presetConfig = presets[preset];
-    if (presetConfig) {
-      this.setPersonality(presetConfig);
+    try {
+      // Parse YAML template
+      const config = yaml.load(templateYaml) as SoulConfig;
+      this.setPersonality(config);
+    } catch (error) {
+      console.error(`Failed to load personality template '${preset}':`, error);
+      throw error;
     }
   }
 

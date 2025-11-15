@@ -3256,7 +3256,22 @@ window.loadPersonalityFromSelector = function() {
   if (!value) return;
   
   // Check if it's a built-in template
-  if (['friendly', 'professional', 'playful'].includes(value)) {
+  const builtInTemplates = [
+    // Core templates
+    'friendly', 'playful', 'professional',
+    // Creative & Inspiring
+    'mentor', 'adventurer', 'coach', 'artistic', 'storyteller',
+    // Analytical & Thoughtful
+    'scientist', 'detective', 'witty', 'mysterious',
+    // Calm & Supportive
+    'zen', 'empathic',
+    // Bold & Unconventional
+    'rebel',
+    // Challenging personalities
+    'grumpy', 'cynical', 'sarcastic', 'melancholic', 'angry'
+  ];
+  
+  if (builtInTemplates.includes(value)) {
     window.loadPersonality(value);
     return;
   }

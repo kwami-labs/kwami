@@ -64,5 +64,9 @@ export type {
   EventHandlers,
 } from './src/types';
 
+// Soul personality templates
+export type { PersonalityTemplate } from './src/core/soul/templates/loader';
+export { getAvailablePersonalities, getPersonalityTemplate } from './src/core/soul/templates/loader';
+
 // Default export
 export { Kwami as default } from './src/core/Kwami';
