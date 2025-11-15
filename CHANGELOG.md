@@ -178,6 +178,15 @@ Migrating from v0.x to v1.x wasn't a refactor—it was a **ground-up architectur
 - 💬 More nuanced communication style parameters
 - 🎨 Better personality differentiation across emotional, cognitive, and social dimensions
 
+### 🎮 Playground UI Enhancements
+
+- 🎭 **Soul Sidebar**: All 20 personality templates now accessible via dropdown menu
+- 🎯 **Emotional Traits UI**: Compact, modern gray design with improved layout
+- 🎯 **Trait Headers**: Value badges perfectly centered using CSS Grid
+- 🧹 **Code Cleanup**: Removed unused responseLength and emotionalTone fields
+- ✨ **Spacing**: Minor UI spacing improvements throughout
+- 📦 **Assets**: Added more media assets for testing and demo purposes
+
 ## [1.3.0] - 2025-11-14
 
 ### ✨ Added / 🎛️ Improved
