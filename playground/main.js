@@ -1146,6 +1146,49 @@ window.clearMediaSelection = function(type) {
   setMediaType('none');
 };
 
+window.uploadMediaFile = function(type) {
+  // Create file input element
+  const input = document.createElement('input');
+  input.type = 'file';
+  input.accept = type === 'image' ? 'image/*' : 'video/*';
+  
+  input.onchange = function(event) {
+    const file = event.target.files[0];
+    if (!file) return;
+    
+    // Validate file type
+    const isValidType = type === 'image' 
+      ? file.type.startsWith('image/')
+      : file.type.startsWith('video/');
+    
+    if (!isValidType) {
+      updateStatus(`⚠️ Please select a valid ${type} file.`);
+      return;
+    }
+    
+    // Create object URL for the file
+    const fileURL = URL.createObjectURL(file);
+    
+    // Apply the uploaded file
+    if (type === 'image') {
+      const imageSelect = document.getElementById('bg-media-image');
+      if (imageSelect) imageSelect.value = '';
+      setMediaType('image');
+      setBackgroundImage(fileURL);
+      updateStatus(`🖼️ Uploaded image applied: ${file.name}`);
+    } else if (type === 'video') {
+      const videoSelect = document.getElementById('bg-media-video');
+      if (videoSelect) videoSelect.value = '';
+      setMediaType('video');
+      setBackgroundVideo(fileURL);
+      updateStatus(`🎥 Uploaded video applied: ${file.name}`);
+    }
+  };
+  
+  // Trigger file picker
+  input.click();
+};
+
 // Blob Texture Functions (independent from background)
 let currentBlobMediaType = 'none';
 
@@ -1702,6 +1745,9 @@ try {
   
   // Enable click interaction by default (includes double-click for conversations)
   window.kwami.enableBlobInteraction(conversationCallbacks);
+
+  // Initialize skills system
+  initializeSkills();
 
   // Initialize body controls event listeners
   initializeBodyControls();
@@ -3400,4 +3446,451 @@ function updateSoulUIFromConfig(config) {
   if (personalityInput) personalityInput.value = config.personality || '';
   if (systemPromptInput) systemPromptInput.value = config.systemPrompt || '';
   if (nameDisplay) nameDisplay.textContent = config.name || 'Kwami';
+}
+
+// ========================================
+// Skills System Functions
+// ========================================
+
+// Skill definitions
+const skillDefinitions = {
+  'minimize-top-right': {
+    name: 'Minimize to Top Right',
+    description: 'Minimizes Kwami and moves it to the top-right corner',
+    actions: 2,
+    autoReverse: false
+  },
+  'rainbow-transition': {
+    name: 'Rainbow Transition',
+    description: 'Cycles through rainbow colors with smooth transitions',
+    actions: 7,
+    autoReverse: false
+  },
+  'energetic-mode': {
+    name: 'Energetic Mode',
+    description: 'High-energy mode with faster movements and vibrant colors',
+    actions: 5,
+    autoReverse: true
+  },
+  'calm-meditation': {
+    name: 'Calm Meditation',
+    description: 'Calming mode with slow movements and soothing colors',
+    actions: 6,
+    autoReverse: false
+  },
+  'focus-session': {
+    name: 'Focus Session',
+    description: 'Pomodoro-style focus mode with greeting and minimization',
+    actions: 5,
+    autoReverse: false
+  },
+  'party-mode': {
+    name: 'Party Mode',
+    description: 'Celebration mode with rapid color changes and energetic movement',
+    actions: 10,
+    autoReverse: false
+  }
+};
+
+let skillsExecutedCount = 0;
+
+// Initialize skills when Kwami is loaded
+async function initializeSkills() {
+  if (!kwami || !kwami.skills) {
+    console.error('Kwami skills not available');
+    return;
+  }
+
+  try {
+    // Load all predefined skills from templates
+    const skillIds = Object.keys(skillDefinitions);
+    for (const skillId of skillIds) {
+      try {
+        await kwami.skills.loadSkillFromUrl(`/src/core/mind/skills/templates/${skillId}.json`);
+        console.log(`[Skills] Loaded skill: ${skillId}`);
+      } catch (error) {
+        console.warn(`[Skills] Failed to load skill ${skillId}:`, error);
+      }
+    }
+
+    // Update stats
+    updateSkillStats();
+  } catch (error) {
+    console.error('[Skills] Failed to initialize skills:', error);
+  }
+}
+
+// Handle skill selection change
+window.addEventListener('DOMContentLoaded', () => {
+  const skillSelector = document.getElementById('skill-selector');
+  if (skillSelector) {
+    skillSelector.addEventListener('change', function() {
+      const selectedSkill = this.value;
+      const executeBtn = document.getElementById('execute-skill-btn');
+      const descriptionDiv = document.getElementById('skill-description');
+      
+      if (selectedSkill && skillDefinitions[selectedSkill]) {
+        // Show description
+        const skill = skillDefinitions[selectedSkill];
+        document.getElementById('skill-description-name').textContent = skill.name;
+        document.getElementById('skill-description-text').textContent = skill.description;
+        document.getElementById('skill-description-actions').textContent = skill.actions;
+        document.getElementById('skill-description-reverse').textContent = skill.autoReverse ? 'Yes' : 'No';
+        descriptionDiv.style.display = 'block';
+        
+        // Enable execute button
+        if (executeBtn) executeBtn.disabled = false;
+      } else {
+        descriptionDiv.style.display = 'none';
+        if (executeBtn) executeBtn.disabled = true;
+      }
+    });
+  }
+});
+
+// Execute selected skill
+window.executeSelectedSkill = async function() {
+  const skillSelector = document.getElementById('skill-selector');
+  const selectedSkill = skillSelector?.value;
+  
+  if (!selectedSkill) {
+    updateStatus('⚠️ Please select a skill first');
+    return;
+  }
+
+  if (!kwami || !kwami.skills) {
+    updateError('Kwami skills not available. Please refresh the page.');
+    return;
+  }
+
+  try {
+    updateStatus(`⏳ Executing skill: ${skillDefinitions[selectedSkill]?.name || selectedSkill}...`);
+    
+    const startTime = Date.now();
+    const result = await kwami.skills.executeSkill(selectedSkill);
+    const duration = Date.now() - startTime;
+    
+    if (result.success) {
+      // Show success message
+      const statusDiv = document.getElementById('skill-execution-status');
+      const messageSpan = document.getElementById('skill-execution-message');
+      const durationSpan = document.getElementById('skill-execution-duration');
+      
+      if (statusDiv && messageSpan && durationSpan) {
+        messageSpan.textContent = `✅ Skill executed successfully`;
+        durationSpan.textContent = `${duration}ms`;
+        statusDiv.style.display = 'block';
+        
+        // Hide after 5 seconds
+        setTimeout(() => {
+          statusDiv.style.display = 'none';
+        }, 5000);
+      }
+      
+      updateStatus(`✅ Skill completed: ${skillDefinitions[selectedSkill]?.name || selectedSkill}`);
+      
+      // Update stats
+      skillsExecutedCount++;
+      updateSkillStats();
+    } else {
+      updateError(`❌ Skill execution failed: ${result.error || 'Unknown error'}`);
+    }
+  } catch (error) {
+    console.error('[Skills] Execution error:', error);
+    updateError(`❌ Failed to execute skill: ${error.message}`);
+  }
+};
+
+// Quick skill actions
+window.quickSkillMinimize = async function() {
+  if (!kwami) return;
+  
+  const skill = {
+    id: 'quick-minimize',
+    name: 'Quick Minimize',
+    description: 'Quick minimize action',
+    version: '1.0.0',
+    actions: [
+      {
+        type: 'body.scale',
+        preset: 'mini',
+        duration: 600,
+        easing: 'ease-in-out'
+      },
+      {
+        type: 'body.position',
+        preset: 'bottom-right',
+        duration: 600,
+        easing: 'ease-in-out'
+      }
+    ]
+  };
+  
+  kwami.skills.registerSkill(skill);
+  await kwami.skills.executeSkill('quick-minimize');
+  skillsExecutedCount++;
+  updateSkillStats();
+  updateStatus('✅ Kwami minimized');
+};
+
+window.quickSkillCenter = async function() {
+  if (!kwami) return;
+  
+  const skill = {
+    id: 'quick-center',
+    name: 'Quick Center',
+    description: 'Center Kwami',
+    version: '1.0.0',
+    actions: [
+      {
+        type: 'body.scale',
+        preset: 'normal',
+        duration: 600,
+        easing: 'ease-in-out'
+      },
+      {
+        type: 'body.position',
+        preset: 'center',
+        duration: 600,
+        easing: 'ease-in-out'
+      }
+    ]
+  };
+  
+  kwami.skills.registerSkill(skill);
+  await kwami.skills.executeSkill('quick-center');
+  skillsExecutedCount++;
+  updateSkillStats();
+  updateStatus('✅ Kwami centered');
+};
+
+window.quickSkillEnergize = async function() {
+  if (!kwami) return;
+  
+  const skill = {
+    id: 'quick-energize',
+    name: 'Quick Energize',
+    description: 'Energize Kwami',
+    version: '1.0.0',
+    actions: [
+      {
+        type: 'sequence',
+        parallel: true,
+        actions: [
+          {
+            type: 'body.colors',
+            primary: '#ff6b35',
+            secondary: '#f7931e',
+            accent: '#fdc300',
+            duration: 500
+          },
+          {
+            type: 'body.spikes',
+            x: 0.8,
+            y: 0.8,
+            z: 0.8
+          },
+          {
+            type: 'body.time',
+            x: 3.0,
+            y: 3.0,
+            z: 3.0
+          }
+        ]
+      }
+    ]
+  };
+  
+  kwami.skills.registerSkill(skill);
+  await kwami.skills.executeSkill('quick-energize');
+  skillsExecutedCount++;
+  updateSkillStats();
+  updateStatus('⚡ Kwami energized');
+};
+
+window.quickSkillCalm = async function() {
+  if (!kwami) return;
+  
+  const skill = {
+    id: 'quick-calm',
+    name: 'Quick Calm',
+    description: 'Calm Kwami',
+    version: '1.0.0',
+    actions: [
+      {
+        type: 'sequence',
+        parallel: true,
+        actions: [
+          {
+            type: 'body.colors',
+            primary: '#3a86ff',
+            secondary: '#8338ec',
+            accent: '#b8b8ff',
+            duration: 1000
+          },
+          {
+            type: 'body.spikes',
+            x: 0.1,
+            y: 0.1,
+            z: 0.1
+          },
+          {
+            type: 'body.time',
+            x: 0.3,
+            y: 0.3,
+            z: 0.3
+          }
+        ]
+      }
+    ]
+  };
+  
+  kwami.skills.registerSkill(skill);
+  await kwami.skills.executeSkill('quick-calm');
+  skillsExecutedCount++;
+  updateSkillStats();
+  updateStatus('🧘 Kwami calmed');
+};
+
+window.quickSkillParty = async function() {
+  if (!kwami) return;
+  
+  try {
+    await kwami.skills.executeSkill('party-mode');
+    skillsExecutedCount++;
+    updateSkillStats();
+    updateStatus('🎉 Party mode activated!');
+  } catch (error) {
+    updateError('Failed to activate party mode');
+  }
+};
+
+window.quickSkillReset = async function() {
+  if (!kwami) return;
+  
+  const skill = {
+    id: 'quick-reset',
+    name: 'Quick Reset',
+    description: 'Reset to defaults',
+    version: '1.0.0',
+    actions: [
+      {
+        type: 'sequence',
+        parallel: true,
+        actions: [
+          {
+            type: 'body.scale',
+            preset: 'normal',
+            duration: 800,
+            easing: 'ease-in-out'
+          },
+          {
+            type: 'body.position',
+            preset: 'center',
+            duration: 800,
+            easing: 'ease-in-out'
+          },
+          {
+            type: 'body.spikes',
+            x: 0.2,
+            y: 0.2,
+            z: 0.2
+          },
+          {
+            type: 'body.time',
+            x: 1.0,
+            y: 1.0,
+            z: 1.0
+          },
+          {
+            type: 'body.rotation',
+            x: 0,
+            y: 0,
+            z: 0
+          }
+        ]
+      }
+    ]
+  };
+  
+  kwami.skills.registerSkill(skill);
+  await kwami.skills.executeSkill('quick-reset');
+  skillsExecutedCount++;
+  updateSkillStats();
+  updateStatus('🔄 Kwami reset to defaults');
+};
+
+// Load custom skill from URL
+window.loadCustomSkill = async function() {
+  const urlInput = document.getElementById('custom-skill-url');
+  const url = urlInput?.value.trim();
+  
+  if (!url) {
+    updateStatus('⚠️ Please enter a skill URL');
+    return;
+  }
+
+  if (!kwami || !kwami.skills) {
+    updateError('Kwami skills not available');
+    return;
+  }
+
+  try {
+    updateStatus('⏳ Loading skill from URL...');
+    await kwami.skills.loadSkillFromUrl(url);
+    updateStatus('✅ Custom skill loaded successfully');
+    updateSkillStats();
+    
+    // Clear input
+    if (urlInput) urlInput.value = '';
+  } catch (error) {
+    console.error('[Skills] Failed to load custom skill:', error);
+    updateError(`❌ Failed to load skill: ${error.message}`);
+  }
+};
+
+// Load skill from file
+window.loadSkillFromFile = async function(event) {
+  const file = event.target.files[0];
+  if (!file) return;
+
+  if (!kwami || !kwami.skills) {
+    updateError('Kwami skills not available');
+    return;
+  }
+
+  try {
+    updateStatus('⏳ Loading skill from file...');
+    
+    const reader = new FileReader();
+    reader.onload = async function(e) {
+      try {
+        const content = e.target.result;
+        kwami.skills.loadSkillFromString(content, 'json');
+        updateStatus(`✅ Loaded skill from ${file.name}`);
+        updateSkillStats();
+      } catch (error) {
+        console.error('[Skills] Failed to parse skill file:', error);
+        updateError(`❌ Invalid skill file: ${error.message}`);
+      }
+    };
+    
+    reader.readAsText(file);
+  } catch (error) {
+    console.error('[Skills] Failed to load skill file:', error);
+    updateError(`❌ Failed to load file: ${error.message}`);
+  }
+};
+
+// Update skill statistics
+function updateSkillStats() {
+  const totalEl = document.getElementById('skills-total');
+  const executedEl = document.getElementById('skills-executed');
+  
+  if (kwami && kwami.skills) {
+    const stats = kwami.skills.getStats();
+    if (totalEl) totalEl.textContent = stats.totalSkills;
+  }
+  
+  if (executedEl) executedEl.textContent = skillsExecutedCount;
 }

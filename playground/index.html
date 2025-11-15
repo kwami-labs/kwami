@@ -352,6 +352,143 @@
         </div>
       </div>
 
+      <!-- Skills Section -->
+      <div class="section" style="margin-top: 40px; border-top: 2px solid var(--border-section); padding-top: 30px;">
+        <div class="section-title">👩🏻‍💻 Skills</div>
+        <p class="subtitle">Program Kwami's Behavior</p>
+
+        <!-- Available Skills -->
+        <div class="section">
+          <div class="parameter-group">
+            <div class="parameter-group-title">Available Skills</div>
+            <p style="color: #888; font-size: 12px; margin-bottom: 10px;">
+              Pre-built behavior templates
+            </p>
+            
+            <div class="input-group">
+              <label>Select Skill</label>
+              <select id="skill-selector">
+                <option value="">-- Choose a skill --</option>
+                <option value="minimize-top-right">🔽 Minimize to Top Right</option>
+                <option value="rainbow-transition">🌈 Rainbow Transition</option>
+                <option value="energetic-mode">⚡ Energetic Mode</option>
+                <option value="calm-meditation">🧘 Calm Meditation</option>
+                <option value="focus-session">🎯 Focus Session</option>
+                <option value="party-mode">🎉 Party Mode</option>
+              </select>
+            </div>
+
+            <div id="skill-description" style="padding: 12px; background: var(--bg-section); border-radius: 8px; margin: 10px 0; display: none;">
+              <div style="font-size: 12px; color: var(--text-secondary); margin-bottom: 8px;">
+                <strong id="skill-description-name"></strong>
+              </div>
+              <div style="font-size: 11px; color: var(--text-tertiary);" id="skill-description-text"></div>
+              <div style="font-size: 10px; color: var(--text-tertiary); margin-top: 8px; padding-top: 8px; border-top: 1px solid var(--border-input);">
+                <div><strong>Actions:</strong> <span id="skill-description-actions">0</span></div>
+                <div><strong>Auto-reverse:</strong> <span id="skill-description-reverse">No</span></div>
+              </div>
+            </div>
+
+            <button onclick="executeSelectedSkill()" id="execute-skill-btn" disabled>
+              ▶️ Execute Skill
+            </button>
+
+            <div id="skill-execution-status" style="margin-top: 10px; display: none;">
+              <div style="padding: 10px; background: var(--bg-section); border-radius: 8px; border-left: 3px solid #4CAF50;">
+                <div style="font-size: 12px; color: #4CAF50; font-weight: 600;">
+                  <span id="skill-execution-message">Skill executed successfully</span>
+                </div>
+                <div style="font-size: 11px; color: var(--text-tertiary); margin-top: 4px;">
+                  Duration: <span id="skill-execution-duration">0ms</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Custom Skill Creator -->
+        <div class="section">
+          <div class="parameter-group">
+            <div class="parameter-group-title">Quick Actions</div>
+            <p style="color: #888; font-size: 12px; margin-bottom: 10px;">
+              Execute common transformations instantly
+            </p>
+
+            <div class="button-row">
+              <button class="button-secondary" onclick="quickSkillMinimize()" title="Minimize Kwami">
+                🔽 Minimize
+              </button>
+              <button class="button-secondary" onclick="quickSkillCenter()" title="Center Kwami">
+                🎯 Center
+              </button>
+            </div>
+
+            <div class="button-row" style="margin-top: 8px;">
+              <button class="button-secondary" onclick="quickSkillEnergize()" title="Energetic mode">
+                ⚡ Energize
+              </button>
+              <button class="button-secondary" onclick="quickSkillCalm()" title="Calm mode">
+                🧘 Calm
+              </button>
+            </div>
+
+            <div class="button-row" style="margin-top: 8px;">
+              <button class="button-secondary" onclick="quickSkillParty()" title="Party mode">
+                🎉 Party
+              </button>
+              <button class="button-secondary" onclick="quickSkillReset()" title="Reset to default">
+                🔄 Reset
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Skill Statistics -->
+        <div class="section">
+          <div class="parameter-group">
+            <div class="parameter-group-title">Statistics</div>
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 10px;">
+              <div style="padding: 10px; background: var(--bg-section); border-radius: 8px; text-align: center;">
+                <div style="font-size: 20px; font-weight: 700; color: #667eea;" id="skills-total">6</div>
+                <div style="font-size: 11px; color: var(--text-tertiary);">Total Skills</div>
+              </div>
+              <div style="padding: 10px; background: var(--bg-section); border-radius: 8px; text-align: center;">
+                <div style="font-size: 20px; font-weight: 700; color: #4CAF50;" id="skills-executed">0</div>
+                <div style="font-size: 11px; color: var(--text-tertiary);">Executed</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Load Custom Skill -->
+        <div class="section">
+          <div class="parameter-group">
+            <div class="parameter-group-title">Load Custom Skill</div>
+            <p style="color: #888; font-size: 12px; margin-bottom: 10px;">
+              Load skills from JSON files or URLs
+            </p>
+
+            <div class="input-group">
+              <label>Skill URL</label>
+              <input type="text" id="custom-skill-url" placeholder="https://example.com/skill.json">
+            </div>
+
+            <button class="button-secondary" onclick="loadCustomSkill()" id="load-skill-btn">
+              📥 Load Skill
+            </button>
+
+            <div style="margin-top: 10px;">
+              <small style="color: #888;">
+                Or upload: <input type="file" id="skill-file-input" accept=".json" style="display: none;" onchange="loadSkillFromFile(event)">
+                <button class="button-secondary" onclick="document.getElementById('skill-file-input').click()" style="width: auto; padding: 6px 12px; margin: 0; font-size: 12px;">
+                  📁 Choose File
+                </button>
+              </small>
+            </div>
+          </div>
+        </div>
+      </div>
+
     </div>
   </template>
 

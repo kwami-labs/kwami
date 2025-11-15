@@ -5,6 +5,7 @@ A powerful system for programming Kwami's behavior through YAML/JSON files or pr
 ## Overview
 
 The Skills system allows you to define and execute complex behaviors for Kwami, including:
+
 - Visual changes (position, scale, colors, animations)
 - Personality adjustments (soul traits)
 - Speech and interaction
@@ -15,58 +16,59 @@ The Skills system allows you to define and execute complex behaviors for Kwami, 
 ### Using Predefined Skills
 
 ```typescript
-import { Kwami } from '@kwami/core';
+import { Kwami } from "@kwami/core";
 
 const kwami = new Kwami(canvas);
 
 // Execute a skill
-await kwami.mind.skills.executeSkill('minimize-top-right');
+await kwami.mind.skills.executeSkill("minimize-top-right");
 ```
 
 ### Loading Skills from JSON
 
 ```typescript
 // Load from URL
-await kwami.mind.skills.loadSkillFromUrl('/skills/my-skill.json');
+await kwami.mind.skills.loadSkillFromUrl("/skills/my-skill.json");
 
 // Load from string
 const skillJson = '{"id": "test", "name": "Test", ...}';
-kwami.mind.skills.loadSkillFromString(skillJson, 'json');
+kwami.mind.skills.loadSkillFromString(skillJson, "json");
 ```
 
 ### Creating Skills Programmatically
 
 ```typescript
-import type { SkillDefinition } from '@kwami/core';
+import type { SkillDefinition } from "@kwami/core";
 
 const mySkill: SkillDefinition = {
-  id: 'my-custom-skill',
-  name: 'My Custom Skill',
-  description: 'Does something cool',
-  version: '1.0.0',
+  id: "my-custom-skill",
+  name: "My Custom Skill",
+  description: "Does something cool",
+  version: "1.0.0",
   actions: [
     {
-      type: 'body.scale',
-      preset: 'mini',
+      type: "body.scale",
+      preset: "mini",
       duration: 800,
-      easing: 'ease-in-out'
+      easing: "ease-in-out",
     },
     {
-      type: 'body.position',
-      preset: 'top-right',
+      type: "body.position",
+      preset: "top-right",
       duration: 800,
-      easing: 'ease-in-out'
-    }
-  ]
+      easing: "ease-in-out",
+    },
+  ],
 };
 
 kwami.mind.skills.registerSkill(mySkill);
-await kwami.mind.skills.executeSkill('my-custom-skill');
+await kwami.mind.skills.executeSkill("my-custom-skill");
 ```
 
 ## Available Actions
 
 ### Body Actions
+
 - `body.position` - Move Kwami to a specific position
 - `body.scale` - Change Kwami's size
 - `body.colors` - Change blob colors
@@ -78,18 +80,22 @@ await kwami.mind.skills.executeSkill('my-custom-skill');
 - `body.background` - Change background
 
 ### Soul Actions
+
 - `soul.trait` - Modify personality traits
 
 ### Mind Actions
+
 - `mind.speak` - Make Kwami speak
 
 ### Control Flow
+
 - `wait` - Pause execution
 - `sequence` - Execute multiple actions (sequential or parallel)
 
 ## Example Skills
 
 See `templates/` directory for complete examples:
+
 - `minimize-top-right.json` - Minimize and move to corner
 - `rainbow-transition.json` - Rainbow color animation
 - `energetic-mode.json` - High-energy mode with auto-reverse
@@ -133,7 +139,9 @@ getStats(): { totalSkills, activeSkills, skillsBySource }
 ## Advanced Features
 
 ### Auto-Reverse
+
 Skills can automatically reverse to original state:
+
 ```json
 {
   "autoReverse": true,
@@ -142,7 +150,9 @@ Skills can automatically reverse to original state:
 ```
 
 ### Parallel Execution
+
 Execute multiple actions simultaneously:
+
 ```json
 {
   "type": "sequence",
@@ -152,7 +162,9 @@ Execute multiple actions simultaneously:
 ```
 
 ### Easing Functions
+
 Smooth animations with easing:
+
 - `linear`
 - `ease-in`
 - `ease-out`
