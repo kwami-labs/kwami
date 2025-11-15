@@ -5,16 +5,19 @@ Welcome to the Kwami documentation. Kwami is an independent, reusable 3D Interac
 ## 📚 Documentation Structure
 
 ### Getting Started
+
 - **[Quick Start](./getting-started/quickstart.md)** - Get up and running in 5 minutes
 - **[Installation](./getting-started/installation.md)** - Detailed installation guide
 - **[Basic Concepts](./getting-started/concepts.md)** - Core concepts and terminology
 
 ### Core Components
+
 - **[Body](./core/body.md)** - Visual 3D blob representation and rendering
 - **[Mind](./core/mind.md)** - AI capabilities (TTS, STT, Conversations)
 - **[Soul](./core/soul.md)** - Personality and emotional intelligence
 
 ### API Reference
+
 - **[Kwami API](./api/kwami.md)** - Main orchestrator class
 - **[Body API](./api/body.md)** - Visual and scene management
 - **[Mind API](./api/mind.md)** - AI provider system
@@ -23,6 +26,7 @@ Welcome to the Kwami documentation. Kwami is an independent, reusable 3D Interac
 - **[Blob API](./api/blob.md)** - 3D mesh and animations
 
 ### Guides
+
 - **[Configuration](./guides/configuration.md)** - Complete configuration reference
 - **[Animations](./guides/animations.md)** - Animation system and states
 - **[Skins & Materials](./guides/skins.md)** - Custom shader materials
@@ -30,11 +34,13 @@ Welcome to the Kwami documentation. Kwami is an independent, reusable 3D Interac
 - **[Provider Integration](./guides/providers.md)** - Adding AI providers
 
 ### Architecture
+
 - **[Mind Architecture](./architecture/mind-architecture.md)** - Provider system internals
 - **[Body Architecture](./architecture/body-architecture.md)** - Rendering pipeline and scene management
 - **[Soul Architecture](./architecture/soul-architecture.md)** - Personality system internals
 
 ### Advanced
+
 - **[Overview](./advanced/overview.md)** - Architecture, performance, custom development
 
 ## 🚀 Quick Links
@@ -62,4 +68,3 @@ Welcome to the Kwami documentation. Kwami is an independent, reusable 3D Interac
 ---
 
 **Made with ❤️ by the Quami team**
-

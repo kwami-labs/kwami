@@ -120,6 +120,30 @@ Migrating from v0.x to v1.x wasn't a refactor—it was a **ground-up architectur
 
 ## [1.3.1] - 2025-11-15
 
+### 📚 Documentation Overhaul
+
+- 📖 **Complete Documentation Structure** - Created comprehensive `/docs` folder with professional documentation
+  - 🚀 Getting Started guides (Quick Start, Installation, Core Concepts)
+  - 📚 Core Component guides (Body, Mind, Soul)
+  - 🏗️ Architecture documentation (Mind, Body, Soul internals)
+  - 🎯 Configuration and Animation guides
+  - 🔧 Advanced topics (Performance, Custom Development)
+  - 📖 API Reference documentation
+- 🔄 **Documentation Centralization** - Moved component READMEs from source code to `/docs/architecture`
+  - `src/core/mind/README.md` → `docs/architecture/mind-architecture.md`
+  - `src/core/body/README.md` → `docs/architecture/body-architecture.md`
+  - `src/core/soul/README.md` → `docs/architecture/soul-architecture.md`
+- ✨ **Main README Remake** - Streamlined main README as documentation gateway
+  - Focused overview with clear feature list
+  - Comprehensive documentation links
+  - Quick start examples
+  - What's New section for v1.3.0
+- 🏗️ **Architecture Overview Update** - Updated ARCHITECTURE.md with high-level overview
+  - Links to detailed architecture docs
+  - System design principles
+  - Data flow diagrams
+- 📝 **SUMMARY.md** - Created comprehensive documentation index and navigation guide
+
 ### ✨ Added
 
 - 🎭 **Personality Template Collection**: Dramatically expanded Soul personality system
