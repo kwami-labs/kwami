@@ -1259,9 +1259,8 @@ window.randomizeBackground = function() {
   // Randomize gradient layout and write values to inputs
   const layout = randomizeGradientLayout({ updateInputs: true });
 
-  // Choose between linear or radial (omit unsupported 'random' style here)
-  const styles = ['linear', 'radial'];
-  const selectedStyle = styles[Math.floor(Math.random() * styles.length)];
+  // Always use 'random' style to create 3 spheres around the screen
+  const selectedStyle = 'random';
 
   // Update the gradient style selector in UI
   const gradientStyleSelect = document.getElementById('bg-gradient-style');
@@ -1284,7 +1283,7 @@ window.randomizeBackground = function() {
   // Apply using the same pathway as manual controls (ensures DOM overlay/scene sync)
   applyBackground();
 
-  updateStatus(`🎲 ${selectedStyle === 'radial' ? 'Radial' : 'Linear'} gradient randomized!`);
+  updateStatus('🎲 Random spheres gradient created!');
 };
 
 window.randomizeMediaSelection = function(type) {

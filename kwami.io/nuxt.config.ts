@@ -40,9 +40,6 @@ export default defineNuxtConfig({
 
   // Modules
   modules: [
-    '@nuxt/hints',
-    '@nuxt/image',
-    '@nuxt/test-utils',
     '@nuxt/ui',
     '@pinia/nuxt',
     '@vueuse/nuxt',
@@ -70,7 +67,6 @@ export default defineNuxtConfig({
 
   // Nitro configuration
   nitro: {
-    preset: 'node-server', // Changed from 'static' to support WebSocket
     esbuild: {
       options: {
         target: 'esnext',
@@ -78,6 +74,9 @@ export default defineNuxtConfig({
     },
     experimental: {
       websocket: true, // Enable WebSocket support
+    },
+    devServer: {
+      watch: ['server/**/*.ts'],
     },
   },
 

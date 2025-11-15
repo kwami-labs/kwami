@@ -1,41 +1,37 @@
 <template>
-  <div class="wallet-connect">
-    <button
+  <div>
+    <UButton
       v-if="!wallet.connected"
+      size="lg"
+      color="primary"
+      :loading="wallet.connecting"
       @click="handleConnect"
-      :disabled="wallet.connecting"
-      class="btn-primary"
     >
-      <span v-if="wallet.connecting">Connecting...</span>
-      <span v-else>Connect Wallet</span>
-    </button>
+      {{ wallet.connecting ? 'Connecting...' : 'Connect Wallet' }}
+    </UButton>
     
-    <div v-else class="flex items-center space-x-4">
+    <div v-else class="flex items-center gap-3">
       <!-- Balance -->
-      <div class="glass-effect px-4 py-2 rounded-lg flex items-center space-x-2">
-        <svg class="w-5 h-5 text-kwami-secondary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-        </svg>
+      <div class="flex items-center gap-2 px-4 py-2 bg-gray-900/50 rounded-lg border border-gray-800">
+        <UIcon name="i-heroicons-currency-dollar" class="w-5 h-5 text-green-400" />
         <span class="font-mono font-semibold">{{ wallet.balance.toFixed(2) }} SOL</span>
       </div>
       
       <!-- Wallet Address -->
-      <div class="glass-effect px-4 py-2 rounded-lg flex items-center space-x-3">
-        <div class="flex items-center space-x-2">
-          <div class="w-2 h-2 bg-kwami-secondary rounded-full animate-pulse"></div>
+      <div class="flex items-center gap-3 px-4 py-2 bg-gray-900/50 rounded-lg border border-gray-800">
+        <div class="flex items-center gap-2">
+          <div class="w-2 h-2 bg-green-400 rounded-full animate-pulse"></div>
           <span class="font-mono text-sm">{{ wallet.shortAddress }}</span>
         </div>
         
         <!-- Disconnect Button -->
-        <button
+        <UButton
+          size="xs"
+          color="gray"
+          variant="ghost"
+          icon="i-heroicons-arrow-right-on-rectangle"
           @click="handleDisconnect"
-          class="text-kwami-gray-400 hover:text-white transition-colors"
-          title="Disconnect"
-        >
-          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
-          </svg>
-        </button>
+        />
       </div>
     </div>
   </div>
@@ -59,11 +55,6 @@ const handleDisconnect = async () => {
 </script>
 
 <style scoped>
-.btn-primary {
-  @apply px-6 py-3 rounded-lg font-semibold text-white transition-all duration-200;
-  @apply bg-gradient-to-r from-kwami-primary to-kwami-secondary;
-  @apply hover:shadow-lg hover:shadow-kwami-primary/50;
-  @apply disabled:opacity-50 disabled:cursor-not-allowed;
-}
+/* Styles are handled by @nuxt/ui */
 </style>
 

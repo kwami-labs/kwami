@@ -1,38 +1,44 @@
 <template>
-  <div class="blob-preview">
-    <div ref="canvasContainer" class="canvas-container w-full h-96 bg-kwami-gray-900 rounded-lg relative overflow-hidden">
+  <div class="space-y-4">
+    <div ref="canvasContainer" class="relative w-full h-96 bg-gray-900 rounded-lg overflow-hidden">
       <!-- Canvas will be injected here by Three.js -->
       <div v-if="loading" class="absolute inset-0 flex items-center justify-center">
         <div class="text-center">
-          <div class="animate-spin rounded-full h-12 w-12 border-t-2 border-kwami-primary mx-auto mb-4"></div>
-          <p class="text-kwami-gray-400">Loading preview...</p>
+          <UIcon name="i-heroicons-arrow-path" class="w-12 h-12 animate-spin text-primary-400 mx-auto mb-4" />
+          <p class="text-gray-400">Loading preview...</p>
         </div>
       </div>
     </div>
     
     <!-- DNA Display -->
-    <div v-if="dna" class="mt-4 glass-effect rounded-lg p-4">
-      <div class="flex items-center justify-between">
-        <span class="text-sm text-kwami-gray-400">DNA Hash</span>
-        <button
-          @click="copyDna"
-          class="text-kwami-primary hover:text-kwami-secondary transition-colors text-sm"
-        >
-          {{ copied ? 'Copied!' : 'Copy' }}
-        </button>
+    <UCard v-if="dna">
+      <div class="space-y-3">
+        <div class="flex items-center justify-between">
+          <span class="text-sm text-gray-400">DNA Hash</span>
+          <UButton
+            size="xs"
+            color="primary"
+            variant="ghost"
+            @click="copyDna"
+          >
+            {{ copied ? 'Copied!' : 'Copy' }}
+          </UButton>
+        </div>
+        <p class="font-mono text-xs break-all text-gray-300">{{ dna }}</p>
       </div>
-      <p class="font-mono text-xs mt-2 break-all text-kwami-gray-300">{{ dna }}</p>
-    </div>
+    </UCard>
     
     <!-- Controls -->
-    <div class="mt-4 space-y-3">
-      <button
-        @click="randomize"
-        class="btn-secondary w-full"
-      >
-        🎲 Randomize
-      </button>
-    </div>
+    <UButton
+      block
+      size="lg"
+      color="gray"
+      variant="soft"
+      @click="randomize"
+      icon="i-heroicons-arrow-path"
+    >
+      Randomize
+    </UButton>
   </div>
 </template>
 
@@ -105,13 +111,6 @@ onUnmounted(() => {
 </script>
 
 <style scoped>
-.canvas-container {
-  background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
-}
-
-.btn-secondary {
-  @apply px-4 py-2 rounded-lg font-medium text-white transition-all;
-  @apply glass-effect hover:bg-white/20;
-}
+/* Styles are handled by @nuxt/ui */
 </style>
 

@@ -1,24 +1,22 @@
 import { Server as SocketIOServer } from 'socket.io'
-import type { NitroApp } from 'nitropack'
+import type { IncomingMessage, ServerResponse } from 'http'
 
 let io: SocketIOServer | null = null
 let connectedUsers = 0
 const userSessions = new Map<string, { id: string; connectedAt: number }>()
 
-export default defineNitroPlugin((nitroApp: NitroApp) => {
-  // Only initialize on server side and if not already initialized
-  if (process.server && !io) {
-    const server = (nitroApp as any).h3App?.stack?.[0]?.handle?.server || (nitroApp as any).server
+// This middleware will initialize Socket.IO when the server is ready
+export default defineEventHandler((event) => {
+  const node = event.node
 
-    if (!server) {
-      console.error('[Socket.IO] Could not find HTTP server')
-      return
-    }
+  // Get the Node.js server
+  if (node.req.socket?.server && !io) {
+    const server = node.req.socket.server
 
-    // Initialize Socket.IO server
+    // Initialize Socket.IO
     io = new SocketIOServer(server, {
       cors: {
-        origin: process.env.NODE_ENV === 'production' 
+        origin: process.env.NODE_ENV === 'production'
           ? ['https://kwami.io', 'https://www.kwami.io']
           : ['http://localhost:3000', 'http://localhost:3001'],
         methods: ['GET', 'POST'],
@@ -31,16 +29,16 @@ export default defineNitroPlugin((nitroApp: NitroApp) => {
     // Connection handling
     io.on('connection', (socket) => {
       connectedUsers++
-      
+
       const userSession = {
         id: socket.id,
         connectedAt: Date.now(),
       }
-      
+
       userSessions.set(socket.id, userSession)
-      
+
       console.log(`[Socket.IO] User connected: ${socket.id} (Total: ${connectedUsers})`)
-      
+
       // Broadcast updated count to all clients
       io!.emit('users:count', {
         count: connectedUsers,
@@ -54,7 +52,7 @@ export default defineNitroPlugin((nitroApp: NitroApp) => {
         connectedAt: userSession.connectedAt,
       })
 
-      // Handle user info updates (wallet connection, etc.)
+      // Handle user info updates
       socket.on('user:update', (data) => {
         const session = userSessions.get(socket.id)
         if (session) {
@@ -65,10 +63,9 @@ export default defineNitroPlugin((nitroApp: NitroApp) => {
         }
       })
 
-      // Handle custom events for future features
+      // Handle KWAMI minting events
       socket.on('kwami:mint:start', (data) => {
         console.log(`[Socket.IO] User ${socket.id} started minting`)
-        // Could broadcast to other users or track minting activity
         io!.emit('kwami:activity', {
           type: 'mint:start',
           userId: socket.id,
@@ -90,9 +87,9 @@ export default defineNitroPlugin((nitroApp: NitroApp) => {
       socket.on('disconnect', (reason) => {
         connectedUsers--
         userSessions.delete(socket.id)
-        
+
         console.log(`[Socket.IO] User disconnected: ${socket.id} (Total: ${connectedUsers}) - Reason: ${reason}`)
-        
+
         // Broadcast updated count
         io!.emit('users:count', {
           count: connectedUsers,
@@ -106,16 +103,12 @@ export default defineNitroPlugin((nitroApp: NitroApp) => {
       })
     })
 
-    console.log('[Socket.IO] Server initialized successfully')
+    console.log('[Socket.IO] Server initialized successfully via middleware')
   }
 })
 
-// Export helper to get IO instance
+// Export helper functions
 export const getIO = () => io
-
-// Export helper to get current user count
 export const getConnectedUsers = () => connectedUsers
-
-// Export helper to get user sessions
 export const getUserSessions = () => Array.from(userSessions.values())
 

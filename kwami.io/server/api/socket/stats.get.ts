@@ -1,4 +1,4 @@
-import { getConnectedUsers, getUserSessions } from '../../plugins/socket'
+import { getConnectedUsers, getUserSessions } from '../../middleware/socket'
 
 export default defineEventHandler((event) => {
   return {
