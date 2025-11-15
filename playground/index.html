@@ -24,6 +24,33 @@
         <span id="menu-toggle-icon">☰</span>
       </button>
       
+      <!-- Color Picker Button -->
+      <button id="color-picker-btn" class="color-picker-btn" type="button" title="Choose App Color">
+        <span id="color-picker-icon">🎨</span>
+      </button>
+      
+      <!-- Color Picker Dropdown -->
+      <div id="color-picker-dropdown" class="color-picker-dropdown hidden">
+        <div class="color-picker-row">
+          <input type="color" id="app-color-input" class="color-picker-input" value="#667eea">
+          <span class="color-picker-label">🖌️ Pick you fav color</span>
+        </div>
+        <div class="color-picker-presets">
+          <button class="color-preset" data-color="#3b82f6" title="Blue"></button>
+          <button class="color-preset" data-color="#6366f1" title="Indigo"></button>
+          <button class="color-preset" data-color="#8b5cf6" title="Violet"></button>
+          <button class="color-preset" data-color="#a855f7" title="Purple"></button>
+          <button class="color-preset" data-color="#ec4899" title="Pink"></button>
+          <button class="color-preset" data-color="#f43f5e" title="Rose"></button>
+          <button class="color-preset" data-color="#ef4444" title="Red"></button>
+          <button class="color-preset" data-color="#f97316" title="Orange"></button>
+          <button class="color-preset" data-color="#f59e0b" title="Amber"></button>
+          <button class="color-preset" data-color="#eab308" title="Yellow"></button>
+          <button class="color-preset" data-color="#22c55e" title="Green"></button>
+          <button class="color-preset" data-color="#06b6d4" title="Cyan"></button>
+        </div>
+      </div>
+      
       <!-- Theme Toggle Button -->
       <button id="theme-toggle-btn" class="theme-toggle-btn" type="button" title="Toggle Theme">
         <span id="theme-toggle-icon">🌙</span>
@@ -98,6 +125,14 @@
       <!-- Version Display (dynamically populated) -->
       <div id="version-display"></div>
       </div>
+
+    <!-- Media Loading Overlay -->
+    <div id="media-loading-overlay">
+      <div class="media-loader-container-overlay">
+        <img id="media-loader-image" class="media-loader-image" src="" alt="Loading...">
+        <div class="media-loader-text">Loading media...</div>
+      </div>
+    </div>
 
     <!-- Right Sidebar -->
     <div id="right-sidebar">

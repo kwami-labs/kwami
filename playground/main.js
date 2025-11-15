@@ -1,5 +1,6 @@
 import { Kwami } from '../index.ts';
 import { createMediaLoaderUI } from './media-loader-ui.js';
+import mediaLoadingManager from './media-loading-manager.js';
 
 window.kwami = null;
 
@@ -605,6 +606,271 @@ function initializeThemeToggle() {
   themeState.initialized = true;
 }
 
+// ========================================
+// COLOR PICKER MANAGEMENT
+// ========================================
+
+// Color Picker State
+const colorPickerState = {
+  initialized: false,
+  currentColor: '#667eea'
+};
+
+// Apply app color to CSS variables
+function applyAppColor(color) {
+  const root = document.documentElement;
+  
+  // Convert hex to RGB for alpha variations
+  const hexToRgb = (hex) => {
+    const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
+    return result ? {
+      r: parseInt(result[1], 16),
+      g: parseInt(result[2], 16),
+      b: parseInt(result[3], 16)
+    } : null;
+  };
+  
+  const rgb = hexToRgb(color);
+  if (!rgb) return;
+  
+  // Generate complementary darker shade (for gradients)
+  const darkerShade = `#${Math.floor(rgb.r * 0.7).toString(16).padStart(2, '0')}${Math.floor(rgb.g * 0.7).toString(16).padStart(2, '0')}${Math.floor(rgb.b * 0.7).toString(16).padStart(2, '0')}`;
+  
+  // Generate lighter shade for hover effects
+  const lighterShade = `#${Math.min(255, Math.floor(rgb.r * 1.2)).toString(16).padStart(2, '0')}${Math.min(255, Math.floor(rgb.g * 1.2)).toString(16).padStart(2, '0')}${Math.min(255, Math.floor(rgb.b * 1.2)).toString(16).padStart(2, '0')}`;
+  
+  // Update CSS variables for global color theme
+  root.style.setProperty('--scrollbar-thumb', color);
+  root.style.setProperty('--scrollbar-thumb-hover', darkerShade);
+  root.style.setProperty('--app-primary-color', color);
+  root.style.setProperty('--app-primary-dark', darkerShade);
+  root.style.setProperty('--app-primary-light', lighterShade);
+  
+  // Update button gradient colors
+  document.querySelectorAll('button:not(.button-secondary):not(.color-preset)').forEach(button => {
+    if (!button.classList.contains('menu-toggle-btn') && 
+        !button.classList.contains('theme-toggle-btn') &&
+        !button.classList.contains('color-picker-btn') &&
+        !button.classList.contains('github-star-btn') &&
+        !button.classList.contains('audio-toggle-btn') &&
+        !button.classList.contains('player-btn') &&
+        !button.classList.contains('audio-close-btn') &&
+        !button.classList.contains('audio-loader-close') &&
+        !button.classList.contains('media-tab') &&
+        !button.classList.contains('provider-tab') &&
+        !button.classList.contains('randomize-colors-btn')) {
+      button.style.background = `linear-gradient(135deg, ${color} 0%, ${darkerShade} 100%)`;
+    }
+  });
+  
+  // Update swap buttons specifically
+  document.querySelectorAll('.swap-button').forEach(button => {
+    button.style.background = `linear-gradient(135deg, ${color} 0%, ${darkerShade} 100%)`;
+  });
+  
+  // Update button-secondary buttons with the selected color
+  document.querySelectorAll('.button-secondary').forEach(button => {
+    button.style.background = color;
+    button.style.color = 'white';
+  });
+  
+  // Update dynamic styles for all purple-themed elements
+  const style = document.createElement('style');
+  style.id = 'dynamic-app-color-styles';
+  
+  // Remove old style if exists
+  const oldStyle = document.getElementById('dynamic-app-color-styles');
+  if (oldStyle) {
+    oldStyle.remove();
+  }
+  
+  style.textContent = `
+    /* Input focus states */
+    input[type="text"]:focus,
+    input[type="password"]:focus,
+    input[type="number"]:focus,
+    textarea:focus,
+    select:focus {
+      border-color: ${color} !important;
+      box-shadow: 0 0 0 3px rgba(${rgb.r}, ${rgb.g}, ${rgb.b}, 0.1) !important;
+    }
+    
+    /* Button hover effects */
+    button:not(.button-secondary):not(.color-preset):not(.menu-toggle-btn):not(.theme-toggle-btn):not(.color-picker-btn):not(.audio-toggle-btn):not(.player-btn):not(.audio-close-btn):not(.audio-loader-close):not(.media-tab):not(.provider-tab):not(.randomize-colors-btn):hover {
+      box-shadow: 0 5px 15px rgba(${rgb.r}, ${rgb.g}, ${rgb.b}, 0.4) !important;
+    }
+    
+    /* Swap button hover effects */
+    .swap-button:hover {
+      box-shadow: 0 4px 12px rgba(${rgb.r}, ${rgb.g}, ${rgb.b}, 0.4) !important;
+    }
+    
+    /* Provider tabs active state */
+    .provider-tab.active {
+      background: linear-gradient(135deg, ${color} 0%, ${darkerShade} 100%) !important;
+      color: white !important;
+    }
+    
+    /* Media tabs active state */
+    .media-tab.active {
+      background: ${color} !important;
+      color: white !important;
+    }
+    
+    /* Slider tracks */
+    input[type="range"]::-webkit-slider-thumb {
+      background: ${color} !important;
+    }
+    
+    input[type="range"]::-moz-range-thumb {
+      background: ${color} !important;
+    }
+    
+    /* Active/selected state colors */
+    .agent-card.selected {
+      border-color: ${color} !important;
+      background: rgba(${rgb.r}, ${rgb.g}, ${rgb.b}, 0.1) !important;
+    }
+    
+    /* Links and accents */
+    a:not(.github-star-btn) {
+      color: ${color} !important;
+    }
+    
+    /* Checkbox and radio when checked */
+    input[type="checkbox"]:checked,
+    input[type="radio"]:checked {
+      accent-color: ${color} !important;
+    }
+    
+    /* Randomize color buttons */
+    .randomize-colors-btn {
+      background: ${color} !important;
+      color: white !important;
+    }
+    
+    .randomize-colors-btn:hover {
+      background: ${darkerShade} !important;
+      box-shadow: 0 2px 8px rgba(${rgb.r}, ${rgb.g}, ${rgb.b}, 0.3) !important;
+    }
+    
+    /* Button secondary hover effects */
+    .button-secondary:hover {
+      background: ${darkerShade} !important;
+      box-shadow: 0 5px 15px rgba(${rgb.r}, ${rgb.g}, ${rgb.b}, 0.3) !important;
+    }
+    
+    /* Parameter group titles */
+    .parameter-group-title {
+      color: ${color} !important;
+    }
+    
+    /* Value displays (slider numbers) */
+    .value-display {
+      color: ${color} !important;
+    }
+    
+    /* Media loader tabs active state */
+    .media-loader-tab.active {
+      color: ${color} !important;
+      border-bottom-color: ${color} !important;
+    }
+  `;
+  
+  document.head.appendChild(style);
+  
+  // Save color preference
+  colorPickerState.currentColor = color;
+  try {
+    localStorage.setItem('kwami-app-color', color);
+  } catch (error) {
+    console.warn('Failed to save color preference:', error);
+  }
+}
+
+// Toggle color picker dropdown
+function toggleColorPicker() {
+  const dropdown = document.getElementById('color-picker-dropdown');
+  if (!dropdown) return;
+  
+  dropdown.classList.toggle('hidden');
+}
+
+// Close color picker when clicking outside
+function closeColorPickerOnClickOutside(event) {
+  const dropdown = document.getElementById('color-picker-dropdown');
+  const button = document.getElementById('color-picker-btn');
+  
+  if (!dropdown || !button) return;
+  
+  // Check if click is outside both the dropdown and the button
+  if (!dropdown.contains(event.target) && !button.contains(event.target)) {
+    dropdown.classList.add('hidden');
+  }
+}
+
+// Initialize Color Picker
+function initializeColorPicker() {
+  if (colorPickerState.initialized) {
+    return;
+  }
+
+  const colorPickerButton = document.getElementById('color-picker-btn');
+  const colorInput = document.getElementById('app-color-input');
+  const dropdown = document.getElementById('color-picker-dropdown');
+  
+  if (!colorPickerButton || !colorInput || !dropdown) {
+    console.warn('Color picker elements not found; skipping initialization');
+    return;
+  }
+
+  // Load saved color preference
+  let savedColor = '#667eea';
+  try {
+    savedColor = localStorage.getItem('kwami-app-color') || '#667eea';
+  } catch (error) {
+    console.warn('Failed to load color preference:', error);
+  }
+
+  // Set initial color
+  colorInput.value = savedColor;
+  applyAppColor(savedColor);
+
+  // Toggle dropdown when button is clicked
+  colorPickerButton.addEventListener('click', (e) => {
+    e.stopPropagation();
+    toggleColorPicker();
+  });
+
+  // Apply color when changed from the color input
+  colorInput.addEventListener('input', (e) => {
+    applyAppColor(e.target.value);
+  });
+
+  // Handle preset color buttons
+  const presetButtons = document.querySelectorAll('.color-preset');
+  presetButtons.forEach(button => {
+    button.addEventListener('click', (e) => {
+      e.stopPropagation();
+      const color = button.getAttribute('data-color');
+      if (color) {
+        colorInput.value = color;
+        applyAppColor(color);
+      }
+    });
+  });
+
+  // Close dropdown when clicking outside
+  document.addEventListener('click', closeColorPickerOnClickOutside);
+
+  // Prevent dropdown from closing when clicking inside it
+  dropdown.addEventListener('click', (e) => {
+    e.stopPropagation();
+  });
+
+  colorPickerState.initialized = true;
+}
+
 // Initialize sidebars
 function initializeSidebars() {
   renderSidebar('left', sidebarState.left);
@@ -1129,10 +1395,25 @@ function setBackgroundImage(imageValue, { silent = false } = {}) {
     if (gradientElement) gradientElement.style.display = 'none';
 
     if (resolved) {
-      window.kwami.body.setBackgroundImage(resolved, { opacity: 1 });
+      // Show loader before loading image
+      mediaLoadingManager.show('Loading background image...');
+      
+      window.kwami.body.setBackgroundImage(resolved, { 
+        opacity: 1,
+        onLoad: () => {
+          // Hide loader when image is actually loaded
+          mediaLoadingManager.hide();
+          if (!silent) updateStatus('🖼️ Background image loaded!');
+        },
+        onError: (error) => {
+          // Hide loader on error
+          mediaLoadingManager.hide();
+          console.error('Failed to load background image:', error);
+          updateError('Failed to load background image');
+        }
+      });
       currentBackgroundImage = imageValue || '';
       currentBackgroundVideo = '';
-      if (!silent) updateStatus('🖼️ Background image applied!');
     } else {
       window.kwami.body.clearBackgroundMedia();
       currentBackgroundImage = '';
@@ -1150,10 +1431,28 @@ function setBackgroundVideo(videoValue, { silent = false } = {}) {
     if (gradientElement) gradientElement.style.display = 'none';
 
     if (resolved) {
-      window.kwami.body.setBackgroundVideo(resolved, { opacity: 1, autoplay: true, loop: true, muted: true });
+      // Show loader before loading video
+      mediaLoadingManager.show('Loading background video...');
+      
+      window.kwami.body.setBackgroundVideo(resolved, { 
+        opacity: 1, 
+        autoplay: true, 
+        loop: true, 
+        muted: true,
+        onLoad: () => {
+          // Hide loader when video is actually loaded
+          mediaLoadingManager.hide();
+          if (!silent) updateStatus('🎞️ Background video loaded!');
+        },
+        onError: (error) => {
+          // Hide loader on error
+          mediaLoadingManager.hide();
+          console.error('Failed to load background video:', error);
+          updateError('Failed to load background video');
+        }
+      });
       currentBackgroundVideo = videoValue || '';
       currentBackgroundImage = '';
-      if (!silent) updateStatus('🎞️ Background video applied!');
     } else {
       window.kwami.body.clearBackgroundMedia();
       currentBackgroundVideo = '';
@@ -1178,23 +1477,27 @@ function setMediaType(type, { silent = false } = {}) {
   } else if (type === 'image') {
     const videoSelect = document.getElementById('bg-media-video');
     if (videoSelect) videoSelect.value = '';
-    setBackgroundVideo('', { silent: true });
+    // Don't clear video immediately - let new image replace it to avoid white flash
     const imageSelect = document.getElementById('bg-media-image');
     const selected = imageSelect?.value;
     if (selected) {
       setBackgroundImage(selected, { silent: true });
     } else {
+      // Only clear if no image selected
+      setBackgroundVideo('', { silent: true });
       setBackgroundImage('', { silent: true });
     }
   } else if (type === 'video') {
     const imageSelect = document.getElementById('bg-media-image');
     if (imageSelect) imageSelect.value = '';
-    setBackgroundImage('', { silent: true });
+    // Don't clear image immediately - let new video replace it to avoid white flash
     const videoSelect = document.getElementById('bg-media-video');
     const selected = videoSelect?.value;
     if (selected) {
       setBackgroundVideo(selected, { silent: true });
     } else {
+      // Only clear if no video selected
+      setBackgroundImage('', { silent: true });
       setBackgroundVideo('', { silent: true });
     }
   }
@@ -1259,8 +1562,11 @@ window.randomizeBackground = function() {
   // Randomize gradient layout and write values to inputs
   const layout = randomizeGradientLayout({ updateInputs: true });
 
-  // Always use 'random' style to create 3 spheres around the screen
-  const selectedStyle = 'random';
+  // Pattern: out of 10 clicks = 4 radial, 3 linear, 3 random
+  // Pattern array: [radial, radial, radial, radial, linear, linear, linear, random, random, random]
+  const stylePattern = ['radial', 'radial', 'radial', 'radial', 'linear', 'linear', 'linear', 'random', 'random', 'random'];
+  const patternIndex = (backgroundRandomizeClickCount - 1) % 10;
+  const selectedStyle = stylePattern[patternIndex];
 
   // Update the gradient style selector in UI
   const gradientStyleSelect = document.getElementById('bg-gradient-style');
@@ -1283,7 +1589,8 @@ window.randomizeBackground = function() {
   // Apply using the same pathway as manual controls (ensures DOM overlay/scene sync)
   applyBackground();
 
-  updateStatus('🎲 Random spheres gradient created!');
+  const styleLabel = selectedStyle === 'random' ? 'Spheres' : (selectedStyle === 'radial' ? 'Radial' : 'Linear');
+  updateStatus(`🎲 ${styleLabel} gradient created!`);
 };
 
 window.randomizeMediaSelection = function(type) {
@@ -1412,13 +1719,17 @@ window.randomizeBlobMedia = function(type) {
   const resolved = resolveMediaPath(value);
 
   if (type === 'image') {
+    mediaLoadingManager.show('Loading blob texture...');
     setBlobMediaType('image');
     window.kwami?.body?.setBlobSurfaceImage(resolved);
     updateStatus(`🖼️ Blob texture: ${value.split('/').pop()}`);
+    setTimeout(() => mediaLoadingManager.hide(), 500);
   } else {
+    mediaLoadingManager.show('Loading blob video texture...');
     setBlobMediaType('video');
     window.kwami?.body?.setBlobSurfaceVideo(resolved, { autoplay: true, loop: true, muted: true });
     updateStatus(`🎥 Blob video texture: ${value.split('/').pop()}`);
+    setTimeout(() => mediaLoadingManager.hide(), 800);
   }
 };
 
@@ -1452,17 +1763,21 @@ window.randomize3DTexture = function() {
 
   // Update UI based on result
   if (result.type === 'image') {
+    mediaLoadingManager.show('Loading random 3D texture...');
     setBlobMediaType('image');
     // Apply the texture
     window.kwami?.body?.setBlobSurfaceImage(result.url);
     const filename = result.url ? result.url.split('/').pop() : 'texture';
     updateStatus(`🎲 Random 3D texture applied: ${filename}`);
+    setTimeout(() => mediaLoadingManager.hide(), 500);
   } else if (result.type === 'video') {
+    mediaLoadingManager.show('Loading random 3D video texture...');
     setBlobMediaType('video');
     // Apply the texture
     window.kwami?.body?.setBlobSurfaceVideo(result.url, { autoplay: true, loop: true, muted: true });
     const filename = result.url ? result.url.split('/').pop() : 'texture';
     updateStatus(`🎲 Random 3D video texture applied: ${filename}`);
+    setTimeout(() => mediaLoadingManager.hide(), 800);
   } else {
     setBlobMediaType('none');
     updateStatus('🧹 Blob texture cleared');
@@ -1833,6 +2148,7 @@ applySidebarVisibility();
 updateMenuToggleButton();
 initializeGitHubStarButton();
 initializeThemeToggle();
+initializeColorPicker();
 
 // Initialize Mind controls since Mind is on the left by default
 setTimeout(() => {
@@ -4216,9 +4532,10 @@ function initializeMediaLoaders() {
         const resolved = resolveMediaPath(url);
         setMediaType('image');
         setBackgroundImage(resolved);
-        updateStatus(`🖼️ Background image loaded from ${source}`);
+        // Status will be updated by the callback in setBackgroundImage
       },
       onError: (error) => {
+        mediaLoadingManager.hide();
         updateError(`Failed to load background image: ${error.message}`);
       }
     });
@@ -4237,9 +4554,10 @@ function initializeMediaLoaders() {
         const resolved = resolveMediaPath(url);
         setMediaType('video');
         setBackgroundVideo(resolved);
-        updateStatus(`🎥 Background video loaded from ${source}`);
+        // Status will be updated by the callback in setBackgroundVideo
       },
       onError: (error) => {
+        mediaLoadingManager.hide();
         updateError(`Failed to load background video: ${error.message}`);
       }
     });
@@ -4256,11 +4574,14 @@ function initializeMediaLoaders() {
       showPresets: true,
       onLoad: (url, source) => {
         const resolved = resolveMediaPath(url);
+        mediaLoadingManager.show('Loading blob texture...');
         setBlobMediaType('image');
         window.kwami?.body?.setBlobSurfaceImage(resolved);
         updateStatus(`🖼️ Blob texture loaded from ${source}`);
+        setTimeout(() => mediaLoadingManager.hide(), 500);
       },
       onError: (error) => {
+        mediaLoadingManager.hide();
         updateError(`Failed to load blob texture: ${error.message}`);
       }
     });
@@ -4277,11 +4598,14 @@ function initializeMediaLoaders() {
       showPresets: true,
       onLoad: (url, source) => {
         const resolved = resolveMediaPath(url);
+        mediaLoadingManager.show('Loading blob video texture...');
         setBlobMediaType('video');
         window.kwami?.body?.setBlobSurfaceVideo(resolved, { autoplay: true, loop: true, muted: true });
         updateStatus(`🎥 Blob video texture loaded from ${source}`);
+        setTimeout(() => mediaLoadingManager.hide(), 800);
       },
       onError: (error) => {
+        mediaLoadingManager.hide();
         updateError(`Failed to load blob video texture: ${error.message}`);
       }
     });
