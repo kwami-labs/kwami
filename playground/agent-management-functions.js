@@ -3,6 +3,42 @@
 // Complete integration of ElevenLabs Agents API into Kwami Playground
 // ============================================================================
 
+// Provider switching functionality
+window.switchProvider = function(providerName) {
+  console.log('Switching to provider:', providerName);
+  
+  // Update tab states
+  const tabs = document.querySelectorAll('.provider-tab');
+  tabs.forEach(tab => {
+    if (tab.dataset.provider === providerName) {
+      tab.classList.add('active');
+    } else {
+      tab.classList.remove('active');
+    }
+  });
+  
+  // Update content visibility
+  const contents = document.querySelectorAll('.provider-content');
+  contents.forEach(content => {
+    content.classList.remove('active');
+  });
+  
+  const activeContent = document.getElementById(`provider-${providerName}`);
+  if (activeContent) {
+    activeContent.classList.add('active');
+  }
+  
+  // Update Kwami Mind provider if initialized
+  if (window.kwami && window.kwami.mind) {
+    try {
+      window.kwami.mind.setProvider(providerName);
+      updateStatus(`Switched to ${providerName} provider`);
+    } catch (error) {
+      console.error('Error switching provider:', error);
+    }
+  }
+};
+
 // Fallback implementations if main.js hasn't loaded yet
 if (typeof window.updateStatus === 'undefined') {
   window.updateStatus = function(message) {

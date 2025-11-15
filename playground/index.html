@@ -92,27 +92,50 @@
   <template id="mind-template">
     <div class="sidebar-content">
       <h1>🤖 Mind</h1>
-      <p class="subtitle">AI Agent Configuration</p>
+      <p class="subtitle">Conversational AI Agents</p>
 
-      <!-- 🤖 AGENT MANAGEMENT SECTION -->
-      <!-- API Key (Required First) -->
+      <!-- Provider Tabs -->
       <div class="section">
-        <div class="section-title">🔑 API Authentication</div>
-        <p style="color: #ffa500; font-size: 14px; margin: 10px 0; font-weight: 500;">
-          ⚠️ Enter your API key to unlock all agent features below
-        </p>
-        
-        <div class="input-group">
-          <label>ElevenLabs API Key (Required)</label>
-          <input type="password" id="api-key-agent" placeholder="Enter your ElevenLabs API Key">
-          <small style="display: block; color: #888; margin-top: 2px;">Get from elevenlabs.io/settings/api-keys</small>
-        </div>
-        
-        <button onclick="initializeAgentManager()" id="init-agent-manager-btn">🚀 Initialize Agent Manager</button>
-        <div id="agent-manager-status" style="margin-top: 10px; display: none;">
-          <small style="color: #4CAF50;">✅ Agent Manager Ready</small>
+        <div class="provider-tabs" id="provider-tabs">
+          <button class="provider-tab active" data-provider="elevenlabs" onclick="switchProvider('elevenlabs')">
+            <span class="provider-icon">🎙️</span>
+            <span class="provider-name">ElevenLabs</span>
+          </button>
+          <button class="provider-tab" data-provider="openai" onclick="switchProvider('openai')" disabled title="Coming Soon">
+            <span class="provider-icon">🧠</span>
+            <span class="provider-name">OpenAI</span>
+          </button>
+          <button class="provider-tab" data-provider="anthropic" onclick="switchProvider('anthropic')" disabled title="Coming Soon">
+            <span class="provider-icon">🤖</span>
+            <span class="provider-name">Anthropic</span>
+          </button>
+          <button class="provider-tab" data-provider="google" onclick="switchProvider('google')" disabled title="Coming Soon">
+            <span class="provider-icon">🔮</span>
+            <span class="provider-name">Google</span>
+          </button>
         </div>
       </div>
+
+      <!-- ElevenLabs Provider Content -->
+      <div id="provider-elevenlabs" class="provider-content active">
+        <!-- API Key (Required First) -->
+        <div class="section">
+          <div class="section-title">🔑 API Authentication</div>
+          <p style="color: #ffa500; font-size: 14px; margin: 10px 0; font-weight: 500;">
+            ⚠️ Enter your API key to unlock all agent features below
+          </p>
+          
+          <div class="input-group">
+            <label>ElevenLabs API Key (Required)</label>
+            <input type="password" id="api-key-agent" placeholder="Enter your ElevenLabs API Key">
+            <small style="display: block; color: #888; margin-top: 2px;">Get from elevenlabs.io/settings/api-keys</small>
+          </div>
+          
+          <button onclick="initializeAgentManager()" id="init-agent-manager-btn">🚀 Initialize Agent Manager</button>
+          <div id="agent-manager-status" style="margin-top: 10px; display: none;">
+            <small style="color: #4CAF50;">✅ Agent Manager Ready</small>
+          </div>
+        </div>
 
       <!-- Agent Creation (Primary Feature) -->
       <div class="section disabled-section" id="agent-creation-section">
@@ -320,327 +343,37 @@
         </div>
       </div>
 
-      <!-- VOICE TESTING & PREVIEW TOOLS -->
-      <div class="divider-section" style="margin: 40px 0; text-align: center; position: relative;">
-        <hr style="border: none; border-top: 1px solid #333;">
-        <span style="position: absolute; top: -12px; left: 50%; transform: translateX(-50%); background: #0a0a0a; padding: 0 15px; color: #666; font-size: 12px; text-transform: uppercase; letter-spacing: 1px;">Voice Testing Tools</span>
-      </div>
-      
-      <div class="info-box" style="background: linear-gradient(135deg, rgba(102, 126, 234, 0.1) 0%, rgba(118, 75, 162, 0.1) 100%); border: 1px solid rgba(102, 126, 234, 0.3); border-radius: 12px; padding: 15px; margin-bottom: 20px;">
-        <p style="color: #aaa; font-size: 14px; margin: 0; line-height: 1.6;">
-          💡 <strong>Pro Tip:</strong> Use the tools below to test and fine-tune voices before creating agents. Once you find the perfect settings, click "🔗 Copy to Agent Creation" to transfer them automatically.
-        </p>
-      </div>
-      
-      <!-- Legacy Authentication (Hidden - using new agent auth) -->
-      <div class="section" style="display: none;">
-        <div class="section-title">🧠 Mind (AI Configuration) - Legacy</div>
-        
-        <div class="input-group">
-          <label>ElevenLabs API Key (Required)</label>
-          <input type="password" id="api-key" placeholder="Enter your ElevenLabs API Key">
-          <small style="display: block; color: #888; margin-top: 2px;">Get from elevenlabs.io/settings/api-keys</small>
-        </div>
-        
-        <div class="input-group">
-          <label>Agent ID (Required for Conversations)</label>
-          <input type="text" id="agent-id" placeholder="Enter your ElevenLabs Agent ID">
-          <small style="display: block; color: #888; margin-top: 2px;">Create at elevenlabs.io/app/conversational-ai</small>
-        </div>
-
-        <button onclick="initializeMind()" id="init-btn">Initialize AI Agent</button>
       </div>
 
-      <!-- Voice Preview & Testing (Use before creating agents) -->
-      <div class="section disabled-section" id="voice-preview-section">
-        <div class="section-title">🎙️ Voice Preview & Testing</div>
-        <p style="color: #888; font-size: 14px; margin-bottom: 15px;">
-          Test voices and settings before adding them to your agents
-        </p>
-        
-        <div class="input-group">
-          <label>Voice Selection</label>
-          <select id="voice-id">
-            <option value="pNInz6obpgDQGcFmaJgB">Adam (Deep, Professional)</option>
-            <option value="EXAVITQu4vr4xnSDxMaL">Bella (Soft, Female)</option>
-            <option value="ErXwobaYiN019PkySvjV">Antoni (Well-rounded, Male)</option>
-            <option value="MF3mGyEYCl7XYWbV9V6O">Elli (Emotional, Female)</option>
-            <option value="TxGEqnHWrfWFTfGW9XjX">Josh (Young, Male)</option>
-            <option value="VR6AewLTigWG4xSOukaG">Arnold (Crisp, Male)</option>
-            <option value="pqHfZKP75CvOlQylNhV4">Bill (Strong, Male)</option>
-            <option value="nPczCjzI2devNBz1zQrb">Brian (Deep, Authoritative)</option>
-            <option value="N2lVS1w4EtoT3dr4eOWO">Callum (Hoarse, Male)</option>
-            <option value="IKne3meq5aSn9XLyUdCD">Charlie (Casual, Male)</option>
-            <option value="XB0fDUnXU5powFXDhCwa">Charlotte (Seductive, Female)</option>
-            <option value="iP95p4xoKVk53GoZ742B">Chris (Casual, American)</option>
-            <option value="onwK4e9ZLuTAKqWW03F9">Daniel (Deep, Authoritative)</option>
-            <option value="cjVigY5qzO86Huf0OWal">Eric (Friendly, Male)</option>
-            <option value="JBFqnCBsd6RMkjVDRZzb">George (Warm, British)</option>
-            <option value="cgSgspJ2msm6clMCkdW9">Jessica (Expressive, Female)</option>
-            <option value="FGY2WhTYpPnrIDTdsKH5">Laura (Upbeat, Female)</option>
-            <option value="jBpfuIE2acCO8z3wKNLl">Lily (Raspy, Female)</option>
-            <option value="t0jbNlBVZ17f02VDIeMI">Matilda (Warm, Female)</option>
-            <option value="custom">Custom Voice ID...</option>
-          </select>
-        </div>
-
-        <div class="input-group">
-          <label>Model</label>
-          <select id="voice-model">
-            <option value="eleven_multilingual_v2" selected>Eleven Multilingual v2 (Recommended)</option>
-            <option value="eleven_turbo_v2">Eleven Turbo v2 (Fastest)</option>
-            <option value="eleven_turbo_v2_5">Eleven Turbo v2.5 (Balanced)</option>
-            <option value="eleven_monolingual_v1">Eleven Monolingual v1 (English Only)</option>
-            <option value="eleven_multilingual_v1">Eleven Multilingual v1 (Legacy)</option>
-          </select>
-        </div>
-
-        <div class="input-group" id="custom-voice-container" style="display: none;">
-          <label>Custom Voice ID</label>
-          <input type="text" id="custom-voice-id" placeholder="Enter custom voice ID">
-        </div>
-
-        <button class="button-secondary" onclick="loadAvailableVoices()">📋 Load My Voices</button>
-        <div id="available-voices-list" style="display: none; margin-top: 10px;">
-          <select id="user-voices" size="5" style="width: 100%;">
-            <!-- Dynamically populated -->
-          </select>
-          <button class="button-secondary" onclick="selectUserVoice()" style="margin-top: 5px;">Use Selected Voice</button>
-        </div>
-
-        <div class="input-group">
-          <label>Language</label>
-          <select id="voice-language">
-            <option value="en">English</option>
-            <option value="es">Spanish</option>
-            <option value="fr">French</option>
-            <option value="de">German</option>
-            <option value="it">Italian</option>
-            <option value="pt">Portuguese</option>
-            <option value="pl">Polish</option>
-            <option value="nl">Dutch</option>
-            <option value="ja">Japanese</option>
-            <option value="zh">Chinese</option>
-            <option value="ko">Korean</option>
-            <option value="ar">Arabic</option>
-            <option value="hi">Hindi</option>
-            <option value="ru">Russian</option>
-            <option value="tr">Turkish</option>
-          </select>
+      <!-- Placeholder for other providers (coming soon) -->
+      <div id="provider-openai" class="provider-content" style="display: none;">
+        <div class="section">
+          <div class="section-title">🧠 OpenAI Agents</div>
+          <p style="color: #888; font-size: 14px; padding: 40px 20px; text-align: center;">
+            OpenAI conversational agent integration coming soon!<br>
+            <small style="color: #666;">Stay tuned for GPT-4 powered voice agents.</small>
+          </p>
         </div>
       </div>
 
-      <button onclick="previewVoice()" id="preview-btn" disabled class="button-secondary">👂 Preview Voice</button>
-      <button onclick="copyTestedSettingsToAgent()" class="button-secondary" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);">🔗 Use in Agent Creation</button>
-
-      <!-- Voice Settings (Fine-tuning for Testing) -->
-      <div class="section disabled-section" id="voice-settings-section">
-        <div class="section-title">🎚️ Voice Fine-Tuning Lab</div>
-        
-        <div class="parameter-group">
-          <div class="parameter-group-title">Voice Characteristics</div>
-          <p class="parameter-info">Fine-tune how the voice sounds</p>
-          
-          <div class="slider-control">
-            <label>Stability <span class="value-display" id="voice-stability-value">0.50</span></label>
-            <input type="range" id="voice-stability" min="0" max="1" step="0.05" value="0.5">
-            <small style="display: block; color: #888; margin-top: 2px;">Low: More expressive | High: More consistent</small>
-          </div>
-          
-          <div class="slider-control">
-            <label>Similarity Boost <span class="value-display" id="voice-similarity-value">0.75</span></label>
-            <input type="range" id="voice-similarity" min="0" max="1" step="0.05" value="0.75">
-            <small style="display: block; color: #888; margin-top: 2px;">Higher values enhance voice clarity</small>
-          </div>
-          
-          <div class="slider-control">
-            <label>Style <span class="value-display" id="voice-style-value">0.00</span></label>
-            <input type="range" id="voice-style" min="0" max="1" step="0.05" value="0">
-            <small style="display: block; color: #888; margin-top: 2px;">Adds expressiveness (use with caution)</small>
-          </div>
-          
-          <div class="input-group">
-            <label>
-              <input type="checkbox" id="voice-speaker-boost" checked>
-              Speaker Boost (Enhanced clarity)
-            </label>
-          </div>
-        </div>
-
-        <button class="button-secondary" onclick="applyVoiceSettings()">✅ Apply Voice Settings</button>
-        <button class="button-secondary" onclick="copyTestedSettingsToAgent()" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); margin-top: 10px;">🔗 Copy to Agent Creation</button>
-      </div>
-
-      <!-- Advanced TTS Options (Testing) -->
-      <div class="section disabled-section" id="tts-options-section">
-        <div class="section-title">⚙️ Advanced TTS Testing</div>
-        
-        <div class="input-group">
-          <label>Output Format</label>
-          <select id="tts-output-format">
-            <option value="mp3_44100_128" selected>MP3 - 44.1kHz, 128kbps (Recommended)</option>
-            <option value="mp3_44100_64">MP3 - 44.1kHz, 64kbps (Smaller size)</option>
-            <option value="mp3_44100_192">MP3 - 44.1kHz, 192kbps (High quality)</option>
-            <option value="pcm_16000">PCM - 16kHz (Low latency)</option>
-            <option value="pcm_22050">PCM - 22.05kHz (Balanced)</option>
-            <option value="pcm_24000">PCM - 24kHz (Good quality)</option>
-            <option value="pcm_44100">PCM - 44.1kHz (CD quality)</option>
-          </select>
-        </div>
-
-        <div class="input-group">
-          <label>
-            <input type="checkbox" id="tts-optimize-latency">
-            Optimize Streaming Latency
-          </label>
-          <small style="display: block; color: #888; margin-top: 2px;">Reduces delay for real-time applications</small>
-        </div>
-
-        <div class="slider-control">
-          <label>Next Text Timeout <span class="value-display" id="tts-next-text-value">1000</span>ms</label>
-          <input type="range" id="tts-next-text" min="100" max="5000" step="100" value="1000">
-          <small style="display: block; color: #888; margin-top: 2px;">Wait time before processing next chunk</small>
+      <div id="provider-anthropic" class="provider-content" style="display: none;">
+        <div class="section">
+          <div class="section-title">🤖 Anthropic Agents</div>
+          <p style="color: #888; font-size: 14px; padding: 40px 20px; text-align: center;">
+            Anthropic Claude agent integration coming soon!<br>
+            <small style="color: #666;">Powered by Claude 3 for natural conversations.</small>
+          </p>
         </div>
       </div>
 
-      <!-- Direct Conversation (Legacy - Use Agent Management Instead) -->
-      <div class="section disabled-section" id="direct-conversation-section">
-        <div class="section-title">💬 Direct Conversation (Legacy)</div>
-        <p style="color: #ffa500; font-size: 14px; margin-bottom: 15px;">
-          ⚠️ Recommended: Use Agent Management above for full conversation features
-        </p>
-        
-        <!-- Conversation status container -->
-        <div id="conversation-status-container" style="display: none; margin-top: 15px; padding: 15px; border-radius: 12px; background: #1a1a1a; border: 1px solid #333;">
-          <div id="conversation-status-message" style="color: #888; font-size: 14px;">
-            <!-- Status messages will appear here -->
-          </div>
+      <div id="provider-google" class="provider-content" style="display: none;">
+        <div class="section">
+          <div class="section-title">🔮 Google Agents</div>
+          <p style="color: #888; font-size: 14px; padding: 40px 20px; text-align: center;">
+            Google Gemini agent integration coming soon!<br>
+            <small style="color: #666;">Multimodal AI conversations with Gemini.</small>
+          </p>
         </div>
-
-        <div class="input-group">
-          <label>First Message</label>
-          <textarea id="conversation-first-message" placeholder="Agent's opening message...">Hello! How can I help you today?</textarea>
-        </div>
-
-        <div class="input-group">
-          <label>Max Duration (seconds)</label>
-          <input type="number" id="conversation-max-duration" min="10" max="3600" value="300" placeholder="300">
-        </div>
-
-        <div class="input-group">
-          <label>
-            <input type="checkbox" id="conversation-interruption">
-            Allow Interruption
-          </label>
-          <small style="display: block; color: #888; margin-top: 2px;">User can interrupt the agent while speaking</small>
-        </div>
-
-        <button onclick="startConversation()" id="start-conversation-btn" disabled>🎙️ Start Conversation</button>
-        <button onclick="stopConversation()" id="stop-conversation-btn" disabled style="display: none;">⏹️ Stop Conversation</button>
-      </div>
-
-      <!-- Speech-to-Text Testing -->
-      <div class="section disabled-section" id="stt-section">
-        <div class="section-title">🎙 Speech-to-Text Testing</div>
-        
-        <div class="input-group">
-          <label>STT Model</label>
-          <select id="stt-model">
-            <option value="base" selected>Base (Fast, less accurate)</option>
-            <option value="small">Small (Balanced)</option>
-            <option value="medium">Medium (Good accuracy)</option>
-            <option value="large">Large (Best accuracy, slower)</option>
-          </select>
-        </div>
-
-        <div class="input-group">
-          <label>
-            <input type="checkbox" id="stt-punctuation" checked>
-            Automatic Punctuation
-          </label>
-        </div>
-
-        <div class="input-group">
-          <label>
-            <input type="checkbox" id="stt-diarization">
-            Speaker Diarization
-          </label>
-          <small style="display: block; color: #888; margin-top: 2px;">Identify different speakers</small>
-        </div>
-
-        <button onclick="testMicrophone()" id="test-mic-btn" disabled>🎤 Test Microphone</button>
-        <div id="mic-status" style="margin-top: 10px; display: none;">
-          <small style="color: #888;">Microphone status: <span id="mic-status-text">Not detected</span></small>
-        </div>
-      </div>
-
-      <!-- Pronunciation Dictionary (Testing) -->
-      <div class="section disabled-section" id="pronunciation-section">
-        <div class="section-title">📖 Pronunciation Dictionary</div>
-        
-        <div class="input-group">
-          <label>Pronunciation Dictionary</label>
-          <textarea id="pronunciation-dict" placeholder="word:pronunciation (one per line)&#10;Example:&#10;Kwami:kwah-mee&#10;AI:ay-eye" style="min-height: 80px;"></textarea>
-          <small style="display: block; color: #888; margin-top: 2px;">Custom pronunciations for specific words</small>
-        </div>
-
-        <div class="input-group">
-          <label>
-            <input type="checkbox" id="use-phonemes">
-            Use IPA Phonemes
-          </label>
-          <small style="display: block; color: #888; margin-top: 2px;">Use International Phonetic Alphabet</small>
-        </div>
-
-        <button class="button-secondary" onclick="applyPronunciation()">✅ Apply Pronunciation Rules</button>
-      </div>
-
-      <!-- Voice Test Lab -->
-      <div class="section disabled-section" id="test-lab-section">
-        <div class="section-title">🎬 Voice Test Lab</div>
-        
-        <div class="input-group">
-          <label>Text to Speak</label>
-          <textarea id="speak-text" placeholder="Enter text for Kwami to speak...">Hello! I am Kwami, your AI companion. Watch as I animate while I speak!</textarea>
-        </div>
-
-        <button onclick="speak()" id="speak-btn" disabled>🎤 Speak Text</button>
-        
-        <div id="generation-status" style="margin-top: 10px; display: none;">
-          <small style="color: #888;">Status: <span id="generation-status-text">Ready</span></small>
-        </div>
-      </div>
-
-      <!-- API Usage Stats -->
-      <div class="section disabled-section" id="usage-section">
-        <div class="section-title">📊 API Usage Stats</div>
-        
-        <button class="button-secondary" onclick="checkUsage()">🔍 Check API Usage</button>
-        
-        <div id="usage-info" style="margin-top: 10px; display: none;">
-          <div style="font-size: 12px; color: #888;">
-            <div>Characters Used: <span id="usage-characters">-</span></div>
-            <div>Character Limit: <span id="usage-limit">-</span></div>
-            <div>Remaining: <span id="usage-remaining">-</span></div>
-          </div>
-        </div>
-      </div>
-
-      <!-- Quick Actions (Testing Tools) -->
-      <div class="section disabled-section" id="quick-actions-section">
-        <div class="section-title">⚡ Quick Testing Tools</div>
-        
-        <div class="parameter-group">
-          <div class="parameter-group-title">Voice Presets</div>
-          <button class="button-secondary" onclick="applyVoicePreset('natural')">🌿 Natural</button>
-          <button class="button-secondary" onclick="applyVoicePreset('expressive')">🎭 Expressive</button>
-          <button class="button-secondary" onclick="applyVoicePreset('stable')">🎯 Stable</button>
-          <button class="button-secondary" onclick="applyVoicePreset('clear')">💎 Clear & Crisp</button>
-    </div>
-
-        <button class="button-secondary" onclick="exportMindConfig()">💾 Export Configuration</button>
-        <button class="button-secondary" onclick="importMindConfig()">📂 Import Configuration</button>
-        <input type="file" id="mind-config-import" accept=".json" style="display: none;">
       </div>
     </div>
   </template>

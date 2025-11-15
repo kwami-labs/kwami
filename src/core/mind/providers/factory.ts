@@ -1,7 +1,7 @@
 import type { MindConfig } from '../../../types';
 import type { MindProvider, MindProviderDependencies } from './types';
 import type { MindProviderType } from '../../../types';
-import { ElevenLabsProvider } from './11labs/ElevenLabsProvider';
+import { ElevenLabsProvider } from './elevenlabs/ElevenLabsProvider';
 import { OpenAIProvider } from './openai/OpenAIProvider';
 
 export function createMindProvider(
