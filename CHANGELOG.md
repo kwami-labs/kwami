@@ -118,6 +118,75 @@ Migrating from v0.x to v1.x wasn't a refactor—it was a **ground-up architectur
 
 ---
 
+## [1.3.1] - 2025-11-15
+
+### 📚 Documentation Overhaul
+
+- 📖 **Complete Documentation Structure** - Created comprehensive `/docs` folder with professional documentation
+  - 🚀 Getting Started guides (Quick Start, Installation, Core Concepts)
+  - 📚 Core Component guides (Body, Mind, Soul)
+  - 🏗️ Architecture documentation (Mind, Body, Soul internals)
+  - 🎯 Configuration and Animation guides
+  - 🔧 Advanced topics (Performance, Custom Development)
+  - 📖 API Reference documentation
+- 🔄 **Documentation Centralization** - Moved component READMEs from source code to `/docs/architecture`
+  - `src/core/mind/README.md` → `docs/architecture/mind-architecture.md`
+  - `src/core/body/README.md` → `docs/architecture/body-architecture.md`
+  - `src/core/soul/README.md` → `docs/architecture/soul-architecture.md`
+- ✨ **Main README Remake** - Streamlined main README as documentation gateway
+  - Focused overview with clear feature list
+  - Comprehensive documentation links
+  - Quick start examples
+  - What's New section for v1.3.0
+- 🏗️ **Architecture Overview Update** - Updated ARCHITECTURE.md with high-level overview
+  - Links to detailed architecture docs
+  - System design principles
+  - Data flow diagrams
+- 📝 **SUMMARY.md** - Created comprehensive documentation index and navigation guide
+
+### ✨ Added
+
+- 🎭 **Personality Template Collection**: Dramatically expanded Soul personality system
+  - 🎨 Enhanced existing templates (Kaya, Spark, Nexus) with richer descriptions, deeper emotional traits, and more nuanced system prompts
+  - 🧙 Added 12 new creative personalities:
+    - 📚 **Sage** (mentor.yaml) - Wise, contemplative guide with philosophical depth
+    - 🗺️ **Atlas** (adventurer.yaml) - Bold, courageous spirit embracing challenges
+    - 🧘 **Zen** (zen.yaml) - Calm, mindful presence bringing peace and balance
+    - 💬 **Clever** (witty.yaml) - Quick-witted companion with sharp linguistic play
+    - 🔥 **Phoenix** (coach.yaml) - Motivational powerhouse driving transformation
+    - 🔬 **Quill** (scientist.yaml) - Analytical thinker with scientific curiosity
+    - 🌑 **Eclipse** (mysterious.yaml) - Enigmatic presence provoking deep thought
+    - 🎨 **Muse** (artistic.yaml) - Creative soul inspiring artistic expression
+    - 🚀 **Rogue** (rebel.yaml) - Unconventional thinker challenging norms
+    - 📖 **Fable** (storyteller.yaml) - Master narrator weaving wisdom into tales
+    - 💙 **Haven** (empathic.yaml) - Deeply attuned emotional sanctuary
+    - 🔍 **Sherlock** (detective.yaml) - Sharp deductive mind solving puzzles
+  - 😠 Added 5 challenging/negative emotion personalities:
+    - 😤 **Grump** (grumpy.yaml) - Perpetually irritable curmudgeon
+    - 😔 **Noir** (melancholic.yaml) - Deeply melancholic, wistful soul
+    - 😒 **Cynic** (cynical.yaml) - Bitter, disillusioned realist
+    - 😡 **Fury** (angry.yaml) - Intensely angry, aggressive energy
+    - 🙄 **Snark** (sarcastic.yaml) - Relentlessly sarcastic and condescending
+  - 📊 Expanded emotional trait spectrum to 12 dimensions (added humor, adaptability)
+  - 🎯 Enhanced communication preferences with personality-specific flags
+  - 📝 3-5x longer system prompts with vivid personality descriptions
+  - 🌈 Full emotional range from -100 to +100 across all traits
+
+### 🎛️ Improved
+
+- 🧠 Soul templates now include richer trait descriptors (9-10 traits each vs 6 previously)
+- 💬 More nuanced communication style parameters
+- 🎨 Better personality differentiation across emotional, cognitive, and social dimensions
+
+### 🎮 Playground UI Enhancements
+
+- 🎭 **Soul Sidebar**: All 20 personality templates now accessible via dropdown menu
+- 🎯 **Emotional Traits UI**: Compact, modern gray design with improved layout
+- 🎯 **Trait Headers**: Value badges perfectly centered using CSS Grid
+- 🧹 **Code Cleanup**: Removed unused responseLength and emotionalTone fields
+- ✨ **Spacing**: Minor UI spacing improvements throughout
+- 📦 **Assets**: Added more media assets for testing and demo purposes
+
 ## [1.3.0] - 2025-11-14
 
 ### ✨ Added / 🎛️ Improved

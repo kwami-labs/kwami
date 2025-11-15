@@ -1,452 +1,162 @@
-# @kwami Architecture
+# Kwami Architecture Overview
 
-## 🏗️ System Overview
+High-level architecture overview for Kwami v1.3.0. For detailed component architecture, see the [architecture documentation](./docs/architecture/).
+
+## System Overview
+
+Kwami follows a **Mind-Body-Soul** architecture pattern:
 
 ```
 ┌─────────────────────────────────────────────────────────┐
 │                         KWAMI                           │
-│  (Main orchestration class)                             │
+│                  (Main Orchestrator)                    │
 │                                                         │
-│  ┌──────────────┐  ┌──────────────┐  ┌──────────────┐   │
-│  │    BODY      │  │    MIND      │  │    SOUL      │   │
-│  │  (Visual)    │  │  (AI/Voice)  │  │ (Personality)│   │
-│  └──────────────┘  └──────────────┘  └──────────────┘   │
-│         │                  │                  │         │
-└─────────┼──────────────────┼──────────────────┼─────────┘
+│  ┌──────────────┐  ┌──────────────┐  ┌──────────────┐  │
+│  │    BODY      │  │    MIND      │  │    SOUL      │  │
+│  │  (Visual)    │  │  (AI/Voice)  │  │ (Personality)│  │
+│  └──────────────┘  └──────────────┘  └──────────────┘  │
+│         │                  │                  │        │
+└─────────┼──────────────────┼──────────────────┼────────┘
           │                  │                  │
           ▼                  ▼                  ▼
     [IMPLEMENTED]      [IMPLEMENTED]      [IMPLEMENTED]
 ```
 
-## 📦 Component Structure
+## Core Components
 
-### 1. Core Layer (`src/core/`)
+### Body - Visual Representation
 
-```
-┌─────────────────────────────────────────────┐
-│              Core Classes                   │
-├─────────────────────────────────────────────┤
-│                                             │
-│  ┌────────────────────────────────────┐     │
-│  │          Kwami.ts                  │     │
-│  │  Main orchestration class          │     │
-│  │  - Manages Body, Mind, Soul        │     │
-│  │  - State management                │     │
-│  │  - High-level API                  │     │
-│  └────────┬───────────────────────────┘     │
-│           │                                 │
-│     ┌─────┴──────┬──────────┐               │
-│     │            │          │               │
-│  ┌──▼──────┐  ┌──▼────┐  ┌──▼────┐          │
-│  │Body.ts  │  │Mind.ts│  │Soul.ts│          │
-│  │-3D Scene│  │-TTS   │  │-Person│          │
-│  │-Renderer│  │-Voice │  │-Traits│          │
-│  │-Camera  │  │-Model │  │-Prompt│          │
-│  │-Blob    │  │-Config│  │-Style │          │
-│  └──┬──────┘  └───────┘  └───────┘          │
-│     │                                       │
-│  ┌──▼────────┐                              │
-│  │ Audio.ts  │                              │
-│  │ -Playback │                              │
-│  │ -Analysis │                              │
-│  │ -Freq Data│                              │
-│  │ -Volume   │                              │
-│  │ -Stream   │                              │
-│  └───────────┘                              │
-│                                             │
-└─────────────────────────────────────────────┘
-```
+The Body manages all visual aspects: 3D rendering, audio playback, and user interaction.
 
-### 2. Blob Layer (`src/blob/`)
+**Key Responsibilities:**
+- WebGL scene management (Three.js)
+- Audio-reactive 3D blob animation
+- Background system (gradients, images, videos)
+- User interaction (touch, click, drag)
+- State-based animations
 
-```
-┌───────────────────────────────────────────┐
-│              Blob System                  │
-├───────────────────────────────────────────┤
-│                                           │
-│  ┌────────────────────────────────────┐   │
-│  │          Blob.ts                   │   │
-│  │  Main blob implementation          │   │
-│  │  - Mesh management                 │   │
-│  │  - Animation control               │   │
-│  │  - Skin switching                  │   │
-│  │  - Customization API               │   │
-│  │  - Interactive touch effects       │   │
-│  │  - State management (NLTS)         │   │
-│  │  - Smooth transitions              │   │
-│  └───────┬──────────────┬─────────────┘   │
-│          │              │                 │
-│     ┌────▼────┐    ┌────▼────┐            │
-│     │geometry │    │animation│            │
-│     │.ts      │    │.ts      │            │
-│     │         │    │- Touch  │            │
-│     │         │    │- States │            │
-│     │         │    │- Blending│           │
-│     └─────────┘    └─────────┘            │
-│          │              │                 │
-│     ┌────▼──────────────▼─────┐           │
-│     │      skins/             │           │
-│     │  ┌──────────┐           │           │
-│     │  │tricolor/ │           │           │
-│     │  │- vertex  │           │           │
-│     │  │- fragment│           │           │
-│     │  │- index   │           │           │
-│     │  └──────────┘           │           │
-│     │  ┌──────────┐           │           │
-│     │  │tricolor2/│           │           │
-│     │  │  (donut) │           │           │
-│     │  │- vertex  │           │           │
-│     │  │- fragment│           │           │
-│     │  │- index   │           │           │
-│     │  └──────────┘           │           │
-│     │  ┌──────────┐           │           │
-│     │  │ zebra/   │           │           │
-│     │  │- vertex  │           │           │
-│     │  │- fragment│           │           │
-│     │  │- index   │           │           │
-│     │  └──────────┘           │           │
-│     └─────────────────────────┘           │
-│                                           │
-└───────────────────────────────────────────┘
-```
+**See:** [Body Architecture](./docs/architecture/body-architecture.md)
 
-### 3. Scene Layer (`src/scene/`)
+### Mind - AI Capabilities
+
+The Mind handles AI features through a provider architecture supporting multiple vendors.
+
+**Key Responsibilities:**
+- Text-to-Speech (TTS)
+- Speech-to-Text (STT) - coming soon
+- Conversational AI (beta)
+- Provider management (ElevenLabs, OpenAI, etc.)
+- Agent configuration
+
+**See:** [Mind Architecture](./docs/architecture/mind-architecture.md)
+
+### Soul - Personality System
+
+The Soul defines personality, emotional traits, and behavioral characteristics.
+
+**Key Responsibilities:**
+- Personality management
+- 10-dimensional emotional spectrum
+- System prompt generation
+- Behavior configuration
+- Preset personalities
+
+**See:** [Soul Architecture](./docs/architecture/soul-architecture.md)
+
+## Data Flow
+
+### Audio Visualization Pipeline
 
 ```
-┌───────────────────────────────────────────┐
-│           Scene Management                │
-├───────────────────────────────────────────┤
-│                                           │
-│  ┌────────────────────────────────────┐   │
-│  │        setup.ts                    │   │
-│  │  - Renderer creation               │   │
-│  │  - Camera setup                    │   │
-│  │  - Lighting configuration          │   │
-│  │  - OrbitControls (optional)        │   │
-│  └────────────────────────────────────┘   │
-│                                           │
-└───────────────────────────────────────────┘
+Audio File → Web Audio API → AnalyserNode → FFT Data
+    ↓
+Frequency Bands (Bass/Mid/High/Ultra)
+    ↓
+Vertex Displacement (Simplex Noise)
+    ↓
+Blob Mesh Animation → Render to Canvas
 ```
 
-### 4. Mind & Soul Layer (`src/core/`)
+### AI Interaction Pipeline
 
 ```
-┌───────────────────────────────────────────┐
-│           AI Components                   │
-├───────────────────────────────────────────┤
-│                                           │
-│  ┌────────────────────────────────────┐   │
-│  │          Mind.ts                   │   │
-│  │  ElevenLabs voice synthesis        │   │
-│  │  - Text-to-Speech                  │   │
-│  │  - Voice configuration             │   │
-│  │  - Model selection                 │   │
-│  │  - Audio streaming                 │   │
-│  │  - Microphone access               │   │
-│  └────────────────────────────────────┘   │
-│                                           │
-│  ┌────────────────────────────────────┐   │
-│  │          Soul.ts                   │   │
-│  │  Personality management            │   │
-│  │  - Traits definition               │   │
-│  │  - System prompt generation        │   │
-│  │  - Personality templates           │   │
-│  │  - Emotional tone control          │   │
-│  │  - Conversation style              │   │
-│  └────────────────────────────────────┘   │
-│                                           │
-└───────────────────────────────────────────┘
+User Input → Mind Provider → Soul Context
+    ↓
+LLM Processing
+    ↓
+TTS Generation → Audio Output → Body Animation
 ```
 
-### 5. Types Layer (`src/types/`)
+### State Management
 
 ```
-┌──────────────────────────────────────────────┐
-│         TypeScript Definitions               │
-├──────────────────────────────────────────────┤
-│                                              │
-│  - KwamiConfig                               │
-│  - KwamiState                                │
-│  - BodyConfig                                │
-│  - MindConfig                                │
-│  - SoulConfig                                │
-│  - VoiceSettings                             │
-│  - AudioConfig                               │
-│  - SceneConfig                               │
-│  - BlobConfig                                │
-│  - BlobSkinType                              │
-│  - SkinConfigs (Tricolor, Zebra)             │
-│  - Event types                               │
-│                                              │
-└──────────────────────────────────────────────┘
+User Action → Kwami.setState()
+    ↓
+Body Animation Update
+    ↓
+Mind State Sync
+    ↓
+Smooth Transition (interpolated)
 ```
 
-### 6. Utils Layer (`src/utils/`)
+## Module Structure
 
 ```
-┌──────────────────────────────────────────────┐
-│           Utility Functions                  │
-├──────────────────────────────────────────────┤
-│                                              │
-│  ┌────────────┐  ┌────────────┐              │
-│  │ randoms.ts │  │recorder.ts │              │
-│  │- UUID      │  │- Speech    │              │
-│  │- Numbers   │  │  synthesis │              │
-│  │- Colors    │  │- Recording │              │
-│  │- Boolean   │  │            │              │
-│  │- DNA       │  │            │              │
-│  └────────────┘  └────────────┘              │
-│                                              │
-└──────────────────────────────────────────────┘
+kwami/
+├── src/
+│   ├── core/
+│   │   ├── Kwami.ts              # Main orchestrator
+│   │   ├── body/
+│   │   │   ├── Body.ts           # Visual management
+│   │   │   ├── Audio.ts          # Audio system
+│   │   │   ├── blob/             # 3D mesh & animation
+│   │   │   └── scene/            # Three.js setup
+│   │   ├── mind/
+│   │   │   ├── Mind.ts           # AI orchestrator
+│   │   │   └── providers/        # Multi-provider support
+│   │   └── soul/
+│   │       ├── Soul.ts           # Personality manager
+│   │       └── personalities/    # Preset personalities
+│   ├── types/                    # TypeScript definitions
+│   └── utils/                    # Utility functions
+├── docs/                         # Documentation
+└── playground/                   # Interactive demo
 ```
 
-## 🔄 Data Flow
-
-### Audio Visualization Flow
-
-```
-┌─────────────┐
-│ Audio File  │
-└──────┬──────┘
-       │
-       ▼
-┌─────────────────┐
-│  HTMLAudio      │
-│  Element        │
-└──────┬──────────┘
-       │
-       ▼
-┌─────────────────┐
-│  Web Audio      │
-│  Context        │
-└──────┬──────────┘
-       │
-       ▼
-┌─────────────────┐
-│  AnalyserNode   │
-│  (Freq Data)    │
-└──────┬──────────┘
-       │
-       ▼
-┌─────────────────┐
-│  Animation      │
-│  Function       │
-│  - Vertex       │
-│    modification │
-│  - Simplex      │
-│    noise        │
-└──────┬──────────┘
-       │
-       ▼
-┌─────────────────┐
-│  Blob Mesh      │
-│  (Visual Output)│
-└─────────────────┘
-```
-
-### Initialization Flow
-
-```
-1. User creates Kwami instance
-   └── new Kwami(canvas, config)
-       │
-       ├── 2. Initialize KwamiBody
-       │   ├── Create scene, renderer, camera
-       │   ├── Initialize KwamiAudio
-       │   └── Create Blob
-       │       ├── Create geometry
-       │       ├── Create materials (skins)
-       │       └── Start animation loop
-       │
-       ├── 3. Initialize KwamiMind
-       │   ├── Set ElevenLabs API key
-       │   ├── Configure voice settings
-       │   └── Setup audio streaming
-       │
-       └── 4. Initialize KwamiSoul
-           ├── Load personality config
-           ├── Set traits and tone
-           └── Generate system prompt
-```
-
-### Animation Loop
-
-```
-┌─────────────────────────────────────────┐
-│      requestAnimationFrame              │
-└────────────┬────────────────────────────┘
-             │
-     ┌───────▼───────┐
-     │ Get frequency │
-     │ data from     │
-     │ audio analyser│
-     └───────┬───────┘
-             │
-     ┌───────▼────────┐
-     │ Update state   │
-     │ transitions    │
-     │ (blend values) │
-     └───────┬────────┘
-             │
-     ┌───────▼────────┐
-     │ Update touch   │
-     │ points decay   │
-     └───────┬────────┘
-             │
-     ┌───────▼────────┐
-     │ Calculate noise│
-     │ for each vertex│
-     │ - Speaking     │
-     │ - Listening    │
-     │ - Thinking     │
-     └───────┬────────┘
-             │
-     ┌───────▼────────┐
-     │ Apply touch    │
-     │ effects        │
-     └───────┬────────┘
-             │
-     ┌───────▼────────┐
-     │ Blend states   │
-     │ (interpolation)│
-     └───────┬────────┘
-             │
-     ┌───────▼────────┐
-     │ Apply scale    │
-     │ based on audio │
-     └───────┬────────┘
-             │
-     ┌───────▼────────┐
-     │ Update mesh    │
-     │ geometry       │
-     └───────┬────────┘
-             │
-     ┌───────▼────────┐
-     │ Apply rotation │
-     └───────┬────────┘
-             │
-     ┌───────▼────────┐
-     │ Render scene   │
-     └───────┬────────┘
-             │
-             └──► Loop back
-```
-
-### Interactive Animation System
-
-```
-┌────────────────────────────────────────────┐
-│         Animation State Machine            │
-├────────────────────────────────────────────┤
-│                                            │
-│  ┌──────────┐   ┌──────────┐              │
-│  │ Neutral  │◄─►│Listening │              │
-│  │(Breathing)│  │(Inward)  │              │
-│  └────┬─────┘   └────┬─────┘              │
-│       │              │                     │
-│       ▼              ▼                     │
-│  ┌──────────┐   ┌──────────┐              │
-│  │Speaking  │◄─►│Thinking  │              │
-│  │(Outward) │   │(Chaotic) │              │
-│  └──────────┘   └──────────┘              │
-│       │              │                     │
-│       └──────┬───────┘                     │
-│              ▼                             │
-│       ┌──────────────┐                     │
-│       │ Interactive  │                     │
-│       │   (Touch)    │                     │
-│       └──────────────┘                     │
-│                                            │
-│  • All transitions are smoothly blended   │
-│  • Multiple states can layer              │
-│  • Configurable transition speed          │
-│  • Natural interpolation curves           │
-└────────────────────────────────────────────┘
-```
-
-### Touch Interaction Flow
-
-```
-┌──────────┐
-│User Click│
-└────┬─────┘
-     │
-     ▼
-┌─────────────┐
-│ Raycasting  │
-│ Detection   │
-└────┬────────┘
-     │
-     ▼
-┌─────────────┐
-│Create Touch │
-│Point Object │
-│- Position   │
-│- Strength   │
-│- Time       │
-│- Duration   │
-└────┬────────┘
-     │
-     ▼
-┌─────────────┐
-│Add to Touch │
-│Points Array │
-│(max limit)  │
-└────┬────────┘
-     │
-     ▼
-┌─────────────────┐
-│Animation Loop:  │
-│- Calculate      │
-│  influence      │
-│- Apply falloff  │
-│- Add ripples    │
-│- Decay over time│
-└────┬────────────┘
-     │
-     ▼
-┌─────────────┐
-│Remove when  │
-│time > dur.  │
-└─────────────┘
-```
-
-## 🎯 Design Principles
+## Design Principles
 
 ### 1. Single Responsibility
 
-Each class has one clear purpose:
+Each component has a clear, focused purpose:
+- **Kwami**: Orchestration and high-level API
+- **Body**: Visual rendering and interaction
+- **Mind**: AI capabilities
+- **Soul**: Personality definition
 
-- `Kwami`: Orchestration and state management
-- `KwamiBody`: Visual management and 3D rendering
-- `KwamiMind`: AI voice synthesis and interaction
-- `KwamiSoul`: Personality and behavior definition
-- `KwamiAudio`: Audio playback, analysis, and streaming
-- `Blob`: 3D mesh representation, animation, and interaction
+### 2. Dependency Injection
 
-### 2. Separation of Concerns
-
-```
-Presentation Layer  → Kwami (API)
-Business Logic      → Body, Audio, Blob
-Data/Configuration  → Types, Config
-Utilities           → Utils
-```
-
-### 3. Dependency Injection
+Components receive dependencies via constructor:
 
 ```typescript
-// Dependencies injected through constructor
-const blob = new Blob({
-  scene,
-  camera,
-  renderer,
-  audio,
-  // ...config
-});
+const body = new KwamiBody(canvas, config);
+const mind = new KwamiMind(audio, config);
+const soul = new KwamiSoul(config);
 ```
 
-### 4. Composition over Inheritance
+### 3. Provider Pattern
+
+The Mind uses providers for AI services:
+
+```typescript
+interface MindProvider {
+  initialize(config: any): Promise<void>;
+  speak(text: string): Promise<void>;
+  startConversation(callbacks: any): Promise<void>;
+  dispose(): void;
+}
+```
+
+### 4. Composition Over Inheritance
 
 ```
 Kwami
@@ -454,196 +164,196 @@ Kwami
  │   ├─ has-a Audio
  │   └─ has-a Blob
  ├─ has-a Mind
+ │   └─ has-a Provider
  └─ has-a Soul
 ```
 
-## 🔌 Extension Points
+## Animation System
 
-### Adding New Skins
+### State Machine
 
-1. Create shader files in `src/blob/skins/newskin/`
-2. Create index.ts with material factory
-3. Update `src/blob/skins/index.ts`
-4. Add type to `BlobSkinType`
+```
+┌──────────┐     ┌──────────┐
+│  Idle    │◄───►│Listening │
+│(Breathing)     │(Inward)  │
+└────┬─────┘     └────┬─────┘
+     │                │
+     ▼                ▼
+┌──────────┐     ┌──────────┐
+│Speaking  │◄───►│Thinking  │
+│(Outward) │     │(Chaotic) │
+└──────────┘     └──────────┘
+```
 
-### Extending AI Capabilities
+All transitions are smoothly blended using interpolation.
 
-1. Add new methods to `src/core/Mind.ts`
-2. Extend personality templates in `assets/personalities/`
-3. Add new voice models or settings
-4. Create custom conversation flows
+### Animation Layers
 
-### Adding New Animations
+1. **Base Animation** - Breathing, rotation
+2. **Audio Reactivity** - Frequency-based vertex displacement
+3. **Touch Effects** - Raycasting-based ripples
+4. **State Animations** - Listening, thinking, speaking
 
-1. Create animation function in `src/blob/`
-2. Add to Blob class
-3. Expose through API
-4. Add configuration parameters as public properties
-5. Implement easing curves and state blending
+## Provider Architecture
 
-### Animation Configuration Parameters
+### Multi-Provider System
 
-All animations can be fine-tuned through public properties:
+```
+KwamiMind
+    ↓
+MindProvider Interface
+    ↓
+┌─────────────┬──────────────┬──────────┐
+│  ElevenLabs │    OpenAI    │  Future  │
+│  (Complete) │(Experimental)│ (Vapi,   │
+│             │              │  Retell) │
+└─────────────┴──────────────┴──────────┘
+```
+
+**Current Providers:**
+- **ElevenLabs** ✅ - Full TTS, Conversational AI, Agents
+- **OpenAI** 🟡 - TTS only (Realtime API pending)
+
+**See:** [Mind Architecture](./docs/architecture/mind-architecture.md#provider-architecture)
+
+## Performance Considerations
+
+### Optimization Strategies
+
+1. **Rendering**
+   - Lower blob resolution on mobile
+   - Disable shadows on low-end devices
+   - Use smaller FFT sizes
+
+2. **Memory**
+   - Dispose resources properly
+   - Reuse audio contexts
+   - Limit texture sizes
+
+3. **Network**
+   - Stream TTS audio
+   - Lazy load personalities
+   - Optimize latency settings
+
+**See:** [Advanced Topics](./docs/advanced/overview.md#performance-optimization)
+
+## Extension Points
+
+### Adding New Features
+
+1. **Custom Skins**
+   - Create shader materials in `src/core/body/blob/skins/`
+   - Register in skin factory
+
+2. **New Providers**
+   - Implement `MindProvider` interface
+   - Register in provider factory
+
+3. **Custom Personalities**
+   - Create YAML files in `src/core/soul/personalities/`
+   - Define emotional traits
+
+**See:** [Advanced Topics](./docs/advanced/overview.md)
+
+## Deployment Architecture
+
+### Production Deployment
+
+```
+GitHub Repository (main branch)
+    ↓
+Render.com Build
+    ↓
+kwami.io (Production)
+```
+
+### Development Workflow
+
+```
+feature/* → dev → main → production
+   ↓         ↓      ↓
+  PR      Testing Deploy
+```
+
+**See:** [Contributing Guide](./CONTRIBUTING.md)
+
+## Browser Support
+
+| Browser | Support | Notes |
+|---------|---------|-------|
+| Chrome/Edge | ✅ Full | Recommended |
+| Firefox | ✅ Full | Recommended |
+| Safari | ✅ Full | WebGL 2.0 required |
+| Mobile Safari | ✅ Full | iOS 15+ |
+| Mobile Chrome | ✅ Full | Android 8+ |
+
+## TypeScript Architecture
+
+### Type System
 
 ```typescript
-// Touch/Click interaction
-blob.touchStrength: number (0-1)      // Impact intensity
-blob.touchDuration: number (ms)       // Effect duration
-blob.maxTouchPoints: number (1-10)    // Simultaneous touches
-
-// State transitions
-blob.transitionSpeed: number (0.5-5)  // Blend speed between states
-
-// Thinking animation
-blob.thinkingDuration: number (ms)    // How long to think
+// Configuration types
+KwamiConfig
+├── BodyConfig
+│   ├── AudioConfig
+│   ├── SceneConfig
+│   └── BlobConfig
+├── MindConfig
+│   ├── ElevenLabsConfig
+│   └── OpenAIConfig
+└── SoulConfig
+    └── EmotionalTraits
 ```
 
-## 📊 Module Dependencies
+### Type Safety
+
+- All public APIs are fully typed
+- Strict mode enabled
+- Runtime validation where needed
+
+## Documentation Structure
+
+Complete documentation is available in the `/docs` folder:
 
 ```
-index.ts
-  ├─→ core/Kwami.ts
-  │     ├─→ core/Body.ts
-  │     │     ├─→ core/Audio.ts
-  │     │     ├─→ blob/Blob.ts
-  │     │     │     ├─→ blob/geometry.ts
-  │     │     │     ├─→ blob/animation.ts
-  │     │     │     └─→ blob/skins/
-  │     │     └─→ scene/setup.ts
-  │     ├─→ core/Mind.ts
-  │     │     └─→ @elevenlabs/elevenlabs-js
-  │     ├─→ core/Soul.ts
-  │     └─→ types/
-  ├─→ utils/randoms.ts
-  └─→ utils/recorder.ts
+docs/
+├── getting-started/     # Quick start, installation, concepts
+├── core/                # Body, Mind, Soul guides
+├── api/                 # API reference
+├── guides/              # Configuration, animations
+├── architecture/        # Detailed architecture docs
+└── advanced/            # Performance, custom development
 ```
 
-## 🎨 Visual Hierarchy
+## Related Documentation
 
-```
-┌──────────────────────────────────────┐
-│           User Code                  │
-└───────────────┬──────────────────────┘
-                │
-┌───────────────▼──────────────────────┐
-│         @kwami/core API              │
-│  (Kwami, KwamiBody, KwamiAudio)      │
-└───────────────┬──────────────────────┘
-                │
-┌───────────────▼──────────────────────┐
-│      Internal Components             │
-│  (Blob, Scene Setup, Skins)          │
-└───────────────┬──────────────────────┘
-                │
-┌───────────────▼──────────────────────┐
-│      THREE.js & Web APIs             │
-│  (WebGL, Web Audio API)              │
-└──────────────────────────────────────┘
-```
+### Component Architecture
+- **[Mind Architecture](./docs/architecture/mind-architecture.md)** - Provider system, WebSocket handling
+- **[Body Architecture](./docs/architecture/body-architecture.md)** - Rendering pipeline, scene management
+- **[Soul Architecture](./docs/architecture/soul-architecture.md)** - Personality system, emotional traits
 
-## 🎮 Playground Architecture
+### Development Guides
+- **[Quick Start](./docs/getting-started/quickstart.md)** - Get started in 5 minutes
+- **[Core Concepts](./docs/getting-started/concepts.md)** - Understand the architecture
+- **[Advanced Topics](./docs/advanced/overview.md)** - Performance, custom development
 
-The interactive playground (`/playground`) demonstrates Kwami's capabilities with a sophisticated UI system:
+### API Reference
+- **[Kwami API](./docs/api/kwami.md)** - Main orchestrator class
+- **[Configuration Guide](./docs/guides/configuration.md)** - Complete configuration reference
+- **[Full Documentation](./docs/README.md)** - Browse all documentation
 
-### Rotating Sidebar System
+## Version History
 
-The playground implements a **3-section, 2-sidebar rotating interface** that allows access to all configuration areas without cluttering the UI:
+- **v1.3.0** (2025-11-14) - Provider architecture, emotional system
+- **v1.2.x** - Background system, glass mode, agents API
+- **v1.1.x** - Playground, personalities
+- **v1.0.x** - Initial release, Mind & Soul integration
 
-```
-┌─────────────────────────────────────────────┐
-│  Sidebar State Management                   │
-├─────────────────────────────────────────────┤
-│  • Three Sections: Mind, Body, Soul         │
-│  • Two Visible Sidebars: Left & Right       │
-│  • One Hidden Section (rotates)             │
-│  • Swap Buttons: Toggle sections            │
-└─────────────────────────────────────────────┘
-```
-
-**Component Structure:**
-
-```
-playground/
-├── index.html
-│   ├── <template id="mind-template">    # Mind configuration UI
-│   ├── <template id="body-template">    # Body configuration UI
-│   └── <template id="soul-template">    # Soul configuration UI
-│
-├── main.js
-│   ├── sidebarState                     # Tracks current layout
-│   ├── initializeSidebars()            # Initial render
-│   ├── renderSidebar(side, section)    # Dynamic content injection
-│   ├── swapLeftSidebar()               # Rotate left sidebar
-│   ├── swapRightSidebar()              # Rotate right sidebar
-│   └── updateSwapButtons()             # Update button labels
-│
-└── styles.css
-    ├── .swap-button                     # Button styling
-    └── .sidebar-content                 # Fade-in animations
-```
-
-**State Flow:**
-
-```
-Initial:  Mind (L) | Body (R) | Soul (H)
-          ↓ Click Left Swap Button
-Step 1:   Soul (L) | Body (R) | Mind (H)
-          ↓ Click Right Swap Button
-Step 2:   Soul (L) | Mind (R) | Body (H)
-          ↓ Click Left Swap Button
-Step 3:   Body (L) | Mind (R) | Soul (H)
-```
-
-### Section Responsibilities
-
-#### 🤖 Mind Section
-
-- **Purpose**: AI Agent configuration
-- **Components**:
-  - ElevenLabs API integration
-  - Voice settings and initialization
-  - Test speech interface
-  - State indicator (IDLE, SPEAKING, etc.)
-- **Data Flow**: `Mind.ts` ← → ElevenLabs API
-
-#### 🎨 Body Section
-
-- **Purpose**: Visual configuration
-- **Components**:
-  - Background controls (gradient/solid/transparent)
-  - Blob parameters (spikes, time, rotation)
-  - Camera position controls
-  - Appearance settings (scale, colors, skins)
-  - Quick actions (randomize, reset)
-- **Data Flow**: UI Controls → `Body.ts` → `Blob.ts` → Three.js Scene
-
-#### ✨ Soul Section
-
-- **Purpose**: Personality configuration
-- **Components**:
-  - Name and identity settings
-  - Personality description
-  - System prompt customization
-  - Response preferences (length, tone)
-  - Preset personality loader
-- **Data Flow**: UI Inputs → `Soul.ts` Config → AI Behavior
-
-### Dynamic Content Management
-
-The playground uses HTML `<template>` elements for efficient section management:
-
-1. **Templates**: Each section is defined once in a `<template>` tag
-2. **Cloning**: When needed, template content is cloned (not moved)
-3. **Injection**: Cloned content is injected into sidebar containers
-4. **Re-initialization**: Event listeners are re-bound after injection
-5. **State Preservation**: Kwami state persists across sidebar swaps
-
-**Benefits:**
-
-- **Memory Efficient**: Content is cloned, not duplicated
-- **No State Loss**: Kwami instance remains intact during swaps
-- **Smooth UX**: Animated transitions between sections
-- **Maintainable**: Each section's HTML is defined once
-- **Extensible**: Easy to add new sections
+See [CHANGELOG](./CHANGELOG.md) for complete version history.
 
 ---
+
+For detailed implementation details, see the component-specific architecture documentation:
+- [Mind Architecture](./docs/architecture/mind-architecture.md)
+- [Body Architecture](./docs/architecture/body-architecture.md)
+- [Soul Architecture](./docs/architecture/soul-architecture.md)
