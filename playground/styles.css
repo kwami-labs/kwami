@@ -590,6 +590,7 @@ h2 {
   line-height: 1.6;
   color: var(--text-quaternary);
   margin: 0;
+  margin-bottom: 10px;
 }
 
 .section {
