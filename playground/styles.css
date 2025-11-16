@@ -293,10 +293,8 @@ body:has(#left-sidebar:not(.hidden)) .menu-toggle-btn {
   display: inline-block;
 }
 
-/* Rotate ghost 180° when sidebars are open */
-body:not(:has(#left-sidebar.hidden)):not(:has(#right-sidebar.hidden)) #menu-toggle-icon,
-body:has(#left-sidebar:not(.hidden)) #menu-toggle-icon,
-body:has(#right-sidebar:not(.hidden)) #menu-toggle-icon {
+/* Rotate ghost 180° when sidebars are open (not hidden) */
+body:has(#left-sidebar:not(.hidden)) #menu-toggle-icon {
   transform: rotate(180deg);
 }
 
@@ -1821,8 +1819,8 @@ input[type="checkbox"] {
 
 .media-loader-tab {
   padding: 10px 16px;
-  background: var(--bg-section);
-  border: none;
+  background: var(--bg-input);
+  border: 2px solid var(--border-input);
   border-bottom: 3px solid transparent;
   color: var(--text-secondary);
   font-size: 13px;
@@ -1839,11 +1837,13 @@ input[type="checkbox"] {
 
 .media-loader-tab:hover:not(.active) {
   color: var(--text-primary);
-  background: var(--bg-input);
+  background: var(--bg-section);
+  border-color: var(--scrollbar-thumb);
 }
 
 .media-loader-tab.active {
   color: white;
+  border-color: var(--scrollbar-thumb);
   border-bottom-color: var(--scrollbar-thumb);
   background: var(--scrollbar-thumb);
 }
