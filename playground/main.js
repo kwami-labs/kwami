@@ -549,6 +549,16 @@ function applyTheme(theme) {
   } catch (error) {
     console.warn('Failed to save theme preference:', error);
   }
+  
+  // Apply the appropriate color for the new theme
+  if (colorPickerState.initialized) {
+    const newColor = theme === 'dark' ? colorPickerState.darkModeColor : colorPickerState.lightModeColor;
+    const colorInput = document.getElementById('app-color-input');
+    if (colorInput) {
+      colorInput.value = newColor;
+    }
+    applyAppColor(newColor);
+  }
 }
 
 function toggleTheme() {
@@ -613,7 +623,9 @@ function initializeThemeToggle() {
 // Color Picker State
 const colorPickerState = {
   initialized: false,
-  currentColor: '#667eea'
+  currentColor: '#667eea',
+  lightModeColor: '#667eea',
+  darkModeColor: '#667eea'
 };
 
 // Apply app color to CSS variables
@@ -813,10 +825,19 @@ function applyAppColor(color) {
   
   document.head.appendChild(style);
   
-  // Save color preference
+  // Save color preference per theme
   colorPickerState.currentColor = color;
+  const currentTheme = themeState.current || 'light';
+  
+  if (currentTheme === 'dark') {
+    colorPickerState.darkModeColor = color;
+  } else {
+    colorPickerState.lightModeColor = color;
+  }
+  
   try {
-    localStorage.setItem('kwami-app-color', color);
+    localStorage.setItem('kwami-app-color-light', colorPickerState.lightModeColor);
+    localStorage.setItem('kwami-app-color-dark', colorPickerState.darkModeColor);
   } catch (error) {
     console.warn('Failed to save color preference:', error);
   }
@@ -858,15 +879,18 @@ function initializeColorPicker() {
     return;
   }
 
-  // Load saved color preference
-  let savedColor = '#667eea';
+  // Load saved color preferences for both themes
   try {
-    savedColor = localStorage.getItem('kwami-app-color') || '#667eea';
+    colorPickerState.lightModeColor = localStorage.getItem('kwami-app-color-light') || '#667eea';
+    colorPickerState.darkModeColor = localStorage.getItem('kwami-app-color-dark') || '#667eea';
   } catch (error) {
     console.warn('Failed to load color preference:', error);
   }
 
-  // Set initial color
+  // Set initial color based on current theme
+  const currentTheme = themeState.current || 'light';
+  const savedColor = currentTheme === 'dark' ? colorPickerState.darkModeColor : colorPickerState.lightModeColor;
+  
   colorInput.value = savedColor;
   applyAppColor(savedColor);
 
