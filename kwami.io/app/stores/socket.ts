@@ -1,42 +1,27 @@
 import { defineStore } from 'pinia'
 
 export const useSocketStore = defineStore('socket', () => {
-  const { 
-    isConnected, 
-    sessionId, 
-    connectedUsers, 
-    lastActivity,
-    connect,
-    disconnect,
-    updateUserInfo,
-    emitMintStart,
-    emitMintSuccess,
-  } = useSocket()
+  // Temporary mock for socket functionality
+  // TODO: Re-implement with proper WebSocket setup
+  const isConnected = ref(false)
+  const sessionId = ref<string | null>(null)
+  const connectedUsers = ref(0)
+  const lastActivity = ref<any>(null)
 
-  // Watch wallet connection and update socket
-  const walletStore = useWalletStore()
-  
-  watch(() => walletStore.connected, (connected) => {
-    if (connected && walletStore.address) {
-      updateUserInfo({
-        walletConnected: true,
-        address: walletStore.address,
-      })
-    } else {
-      updateUserInfo({
-        walletConnected: false,
-        address: null,
-      })
-    }
-  })
+  const connect = () => {
+    console.log('[Socket] Mock connection (disabled)')
+  }
 
-  // Helper to notify about minting
+  const disconnect = () => {
+    console.log('[Socket] Mock disconnection (disabled)')
+  }
+
   const notifyMintStart = () => {
-    emitMintStart()
+    console.log('[Socket] Mock mint start (disabled)')
   }
 
   const notifyMintSuccess = (mint: string) => {
-    emitMintSuccess(mint)
+    console.log('[Socket] Mock mint success (disabled)', mint)
   }
 
   return {

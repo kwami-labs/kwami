@@ -12,9 +12,9 @@ const sidebarState = {
 };
 
 const sectionLabels = {
-  mind: '🧠 Mind >',
-  body: '🧬 Body >',
-  soul: '✨ Soul >'
+  mind: '🧠 Mind',
+  body: '🧬 Body',
+  soul: '✨ Soul'
 };
 
 let menusCollapsed = false;
@@ -1080,6 +1080,38 @@ function updateSwapButtons() {
     rightBtn.textContent = `${sectionLabels[sidebarState.hidden]}`;
   }
 }
+
+// Mobile sidebar tab switching (shows all 3 sections in one sidebar on mobile)
+window.switchMobileSidebarTab = function(section) {
+  // Update tab active states
+  const tabs = document.querySelectorAll('.mobile-sidebar-tab');
+  tabs.forEach(tab => {
+    if (tab.dataset.section === section) {
+      tab.classList.add('active');
+    } else {
+      tab.classList.remove('active');
+    }
+  });
+
+  // Show the selected section in the left sidebar
+  sidebarState.left = section;
+  renderSidebar('left', section);
+  
+  // Re-initialize controls if needed
+  setTimeout(() => {
+    if (window.kwami) {
+      if (section === 'body') {
+        initializeBodyControls();
+        initializeBackgroundControls();
+        initializeCameraControls();
+      } else if (section === 'soul') {
+        initializeSoulControls();
+      } else if (section === 'mind') {
+        initializeMindControls();
+      }
+    }
+  }, 100);
+};
 
 // Initialize Soul controls with current values
 function initializeSoulControls() {

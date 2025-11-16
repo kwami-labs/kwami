@@ -9,11 +9,11 @@
 </head>
 <body>
   <div id="app">
+    <!-- Mobile Sidebar Close Button (fixed, visible only when sidebar is open) -->
+    <button class="sidebar-close-btn" onclick="toggleMenus()" title="Close sidebar">✕</button>
+
     <!-- Left Sidebar -->
     <div id="left-sidebar">
-      <!-- Close button for mobile -->
-      <button class="sidebar-close-btn" onclick="toggleMenus()" title="Close sidebar">✕</button>
-      
       <!-- Mobile Sidebar Tabs (visible on mobile only) -->
       <div class="mobile-sidebar-tabs">
         <button class="mobile-sidebar-tab active" data-section="mind" onclick="switchMobileSidebarTab('mind')">

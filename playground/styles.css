@@ -2633,32 +2633,44 @@ input[type="checkbox"] {
 /* Sidebar Close Button (visible on mobile only) */
 .sidebar-close-btn {
   display: none;
-  position: absolute;
-  top: 15px;
-  right: 15px;
-  z-index: 10;
-  width: 24px;
-  height: 24px;
-  background: transparent;
+  position: fixed;
+  top: 20px;
+  right: 20px;
+  z-index: 10000;
+  width: 40px;
+  height: 40px;
+  background: var(--bg-button);
+  backdrop-filter: blur(10px);
   border: none;
-  color: var(--text-tertiary);
-  font-size: 20px;
-  font-weight: 300;
+  border-radius: 50%;
+  color: var(--text-primary);
+  font-size: 18px;
+  font-weight: 400;
   cursor: pointer;
-  transition: all 0.2s ease;
+  transition: all 0.3s ease;
   padding: 0;
   align-items: center;
   justify-content: center;
   line-height: 1;
+  box-shadow: 0 4px 20px var(--shadow-button);
+  opacity: 0;
+  pointer-events: none;
+}
+
+/* Show close button only when sidebar is open on mobile */
+body:has(#left-sidebar:not(.hidden)) .sidebar-close-btn {
+  opacity: 1;
+  pointer-events: auto;
 }
 
 .sidebar-close-btn:hover {
-  color: var(--text-primary);
-  transform: rotate(90deg);
+  background: var(--bg-button-hover);
+  box-shadow: 0 6px 25px var(--shadow-button-hover);
+  transform: scale(1.1) rotate(90deg);
 }
 
 .sidebar-close-btn:active {
-  transform: rotate(90deg) scale(0.9);
+  transform: scale(0.95) rotate(90deg);
 }
 
 /* Mobile Sidebar Tabs */
@@ -2903,6 +2915,13 @@ input[type="checkbox"] {
     height: 36px;
   }
 
+  .sidebar-close-btn {
+    width: 36px;
+    height: 36px;
+    top: 15px;
+    right: 15px;
+  }
+
   .color-picker-btn {
     right: 95px;
   }
@@ -3033,9 +3052,16 @@ input[type="checkbox"] {
   .menu-toggle-btn,
   .color-picker-btn,
   .theme-toggle-btn,
-  .github-star-btn {
+  .github-star-btn,
+  .sidebar-close-btn {
     width: 32px;
     height: 32px;
+  }
+
+  .sidebar-close-btn {
+    top: 12px;
+    right: 12px;
+    font-size: 16px;
   }
 
   .menu-toggle-btn,
