@@ -828,8 +828,9 @@ function applyAppColor(color) {
     
     /* Media loader tabs active state */
     .media-loader-tab.active {
-      color: ${color} !important;
+      background: ${color} !important;
       border-bottom-color: ${color} !important;
+      color: white !important;
     }
     
     /* Section titles (h2) */

@@ -1828,15 +1828,15 @@ input[type="checkbox"] {
   border-radius: 6px 6px 0 0;
 }
 
-.media-loader-tab:hover {
+.media-loader-tab:hover:not(.active) {
   color: var(--text-primary);
   background: var(--bg-input);
 }
 
 .media-loader-tab.active {
-  color: var(--scrollbar-thumb);
+  color: white;
   border-bottom-color: var(--scrollbar-thumb);
-  background: var(--bg-input);
+  background: var(--scrollbar-thumb);
 }
 
 /* Tab Content */
