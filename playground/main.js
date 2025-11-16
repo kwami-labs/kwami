@@ -646,6 +646,9 @@ function applyAppColor(color) {
   root.style.setProperty('--app-primary-dark', darkerShade);
   root.style.setProperty('--app-primary-light', lighterShade);
   
+  // Force update scrollbar colors for Firefox
+  document.documentElement.style.scrollbarColor = `${color} var(--scrollbar-track)`;
+  
   // Update button gradient colors
   document.querySelectorAll('button:not(.button-secondary):not(.color-preset)').forEach(button => {
     if (!button.classList.contains('menu-toggle-btn') && 
@@ -774,6 +777,37 @@ function applyAppColor(color) {
     .media-loader-tab.active {
       color: ${color} !important;
       border-bottom-color: ${color} !important;
+    }
+    
+    /* Section titles (h2) */
+    h2 {
+      color: ${color} !important;
+    }
+    
+    /* All purple borders */
+    input[type="color"]:hover,
+    .provider-tab:hover:not(:disabled),
+    .provider-tab.active,
+    .media-loader-url-input:focus,
+    .media-loader-upload-btn:hover,
+    .media-loader-dropzone:hover,
+    .media-loader-dropzone.dragover,
+    .media-loader-preset-select:focus,
+    .audio-controls-row .player-btn:hover:not(:disabled) {
+      border-color: ${color} !important;
+    }
+    
+    /* Scrollbar styling for all elements */
+    ::-webkit-scrollbar-thumb {
+      background: ${color} !important;
+    }
+    
+    ::-webkit-scrollbar-thumb:hover {
+      background: ${darkerShade} !important;
+    }
+    
+    * {
+      scrollbar-color: ${color} var(--scrollbar-track) !important;
     }
   `;
   
