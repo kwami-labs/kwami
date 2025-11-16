@@ -550,14 +550,24 @@ function applyTheme(theme) {
     console.warn('Failed to save theme preference:', error);
   }
   
-  // Apply the appropriate color for the new theme
+  // Apply the opposite color for the new theme
   if (colorPickerState.initialized) {
-    const newColor = theme === 'dark' ? colorPickerState.darkModeColor : colorPickerState.lightModeColor;
+    const currentColor = colorPickerState.currentColor;
+    const oppositeColor = getOppositeColor(currentColor);
+    
+    // Update state and UI
+    if (theme === 'dark') {
+      colorPickerState.darkModeColor = oppositeColor;
+    } else {
+      colorPickerState.lightModeColor = oppositeColor;
+    }
+    
     const colorInput = document.getElementById('app-color-input');
     if (colorInput) {
-      colorInput.value = newColor;
+      colorInput.value = oppositeColor;
     }
-    applyAppColor(newColor);
+    
+    applyAppColor(oppositeColor);
   }
 }
 
@@ -627,6 +637,37 @@ const colorPickerState = {
   lightModeColor: '#667eea',
   darkModeColor: '#667eea'
 };
+
+// Generate opposite/contrasting color for theme switching
+function getOppositeColor(hexColor) {
+  // Remove # if present
+  const hex = hexColor.replace('#', '');
+  
+  // Convert to RGB
+  const r = parseInt(hex.substr(0, 2), 16);
+  const g = parseInt(hex.substr(2, 2), 16);
+  const b = parseInt(hex.substr(4, 2), 16);
+  
+  // Calculate luminance to determine if color is dark or light
+  const luminance = (0.299 * r + 0.587 * g + 0.114 * b) / 255;
+  
+  // If the color is very dark (like black), return white
+  // If the color is very light (like white), return black
+  // Otherwise, invert the color
+  if (luminance < 0.15) {
+    // Very dark color -> return white or very light version
+    return '#ffffff';
+  } else if (luminance > 0.85) {
+    // Very light color -> return black or very dark version
+    return '#000000';
+  } else {
+    // Invert the color
+    const invertedR = (255 - r).toString(16).padStart(2, '0');
+    const invertedG = (255 - g).toString(16).padStart(2, '0');
+    const invertedB = (255 - b).toString(16).padStart(2, '0');
+    return `#${invertedR}${invertedG}${invertedB}`;
+  }
+}
 
 // Apply app color to CSS variables
 function applyAppColor(color) {
