@@ -288,8 +288,16 @@ body:has(#left-sidebar:not(.hidden)) .menu-toggle-btn {
 }
 
 #menu-toggle-icon {
-  font-weight: bold;
+  font-size: 24px;
   transition: transform 0.3s ease;
+  display: inline-block;
+}
+
+/* Rotate ghost 180° when sidebars are open */
+body:not(:has(#left-sidebar.hidden)):not(:has(#right-sidebar.hidden)) #menu-toggle-icon,
+body:has(#left-sidebar:not(.hidden)) #menu-toggle-icon,
+body:has(#right-sidebar:not(.hidden)) #menu-toggle-icon {
+  transform: rotate(180deg);
 }
 
 /* Color Picker Button */
@@ -1486,10 +1494,10 @@ input[type="checkbox"] {
 .media-tab {
   flex: 1;
   padding: 6px 10px;
-  border: 1px solid rgba(255, 255, 255, 0.12);
+  border: 1px solid var(--border-input);
   border-radius: 8px;
-  background: rgba(255, 255, 255, 0.04);
-  color: inherit;
+  background: var(--bg-section);
+  color: var(--text-secondary);
   cursor: pointer;
   transition: all 0.2s ease;
   font-size: 12px;
@@ -1497,14 +1505,15 @@ input[type="checkbox"] {
   letter-spacing: 0.05em;
 }
 
-.media-tab:hover {
-  background: rgba(255, 255, 255, 0.08);
+.media-tab:hover:not(.active) {
+  background: var(--bg-input);
+  color: var(--text-primary);
 }
 
 .media-tab.active {
-  background: rgba(102, 126, 234, 0.25);
-  border-color: rgba(102, 126, 234, 0.6);
-  color: #fff;
+  background: var(--scrollbar-thumb);
+  border-color: var(--scrollbar-thumb);
+  color: white;
 }
 
 .media-controls {
@@ -1869,12 +1878,12 @@ input[type="checkbox"] {
 /* URL Input Group */
 .media-loader-url-input-group {
   display: flex;
+  flex-direction: column;
   gap: 8px;
-  align-items: center;
 }
 
 .media-loader-url-input {
-  flex: 1;
+  width: 100%;
   padding: 10px 14px;
   background: var(--bg-input);
   border: 2px solid var(--border-input);
@@ -1897,8 +1906,8 @@ input[type="checkbox"] {
 }
 
 .media-loader-url-btn {
+  width: 100%;
   padding: 10px 16px;
-  min-width: 90px;
   display: flex;
   align-items: center;
   justify-content: center;
