@@ -537,7 +537,7 @@ body:has(#right-sidebar:not(.hidden)) .github-star-btn {
   background: var(--bg-button-hover);
   box-shadow: 0 6px 25px var(--shadow-button-hover);
   transform: translateY(-2px);
-  color: #667eea;
+  color: var(--scrollbar-thumb);
 }
 
 .github-star-btn:active {
@@ -554,11 +554,11 @@ body:has(#right-sidebar:not(.hidden)) .github-star-btn {
 }
 
 #star-count {
-  background: rgba(102, 126, 234, 0.1);
+  background: var(--bg-section);
   padding: 2px 8px;
   border-radius: 10px;
   font-size: 12px;
-  color: #667eea;
+  color: var(--text-primary);
   font-weight: 700;
 }
 
@@ -1812,7 +1812,7 @@ input[type="checkbox"] {
 
 .media-loader-tab {
   padding: 10px 16px;
-  background: transparent;
+  background: var(--bg-section);
   border: none;
   border-bottom: 3px solid transparent;
   color: var(--text-secondary);
@@ -1825,17 +1825,18 @@ input[type="checkbox"] {
   gap: 6px;
   position: relative;
   margin-bottom: -2px;
+  border-radius: 6px 6px 0 0;
 }
 
 .media-loader-tab:hover {
   color: var(--text-primary);
-  background: var(--bg-section);
+  background: var(--bg-input);
 }
 
 .media-loader-tab.active {
   color: var(--scrollbar-thumb);
   border-bottom-color: var(--scrollbar-thumb);
-  background: var(--bg-section);
+  background: var(--bg-input);
 }
 
 /* Tab Content */
