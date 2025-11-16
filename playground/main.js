@@ -35,7 +35,8 @@ function updateMenuToggleButton() {
   const toggleButton = document.getElementById('menu-toggle-btn');
 
   if (icon) {
-    icon.textContent = menusCollapsed ? '☰' : '✕';
+    // Keep the ghost emoji always, rotation is handled by CSS
+    icon.textContent = '👻';
   }
 
   if (toggleButton) {
@@ -730,6 +731,11 @@ function applyAppColor(color) {
     button.style.color = 'white';
   });
   
+  // Update media loader Load button
+  document.querySelectorAll('.media-loader-url-btn').forEach(button => {
+    button.style.background = color;
+  });
+  
   // Update dynamic styles for all purple-themed elements
   const style = document.createElement('style');
   style.id = 'dynamic-app-color-styles';
@@ -814,6 +820,11 @@ function applyAppColor(color) {
     .button-secondary:hover {
       background: ${darkerShade} !important;
       box-shadow: 0 5px 15px rgba(${rgb.r}, ${rgb.g}, ${rgb.b}, 0.3) !important;
+    }
+    
+    /* Media loader Load button hover */
+    .media-loader-url-btn:hover {
+      box-shadow: 0 6px 16px rgba(${rgb.r}, ${rgb.g}, ${rgb.b}, 0.4) !important;
     }
     
     /* Parameter group titles */

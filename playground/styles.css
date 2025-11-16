@@ -81,7 +81,7 @@ body {
   top: 0;
   height: 100vh;
   z-index: 1000;
-  transition: transform 0.3s ease, opacity 0.3s ease, width 0.3s ease, padding 0.3s ease, box-shadow 0.3s ease, background 0.3s ease;
+  transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.3s ease, width 0.3s ease, padding 0.3s ease, box-shadow 0.3s ease, background 0.3s ease;
   
   /* Firefox scrollbar styling */
   scrollbar-width: thin;
@@ -266,7 +266,7 @@ canvas.conversation-ready {
   align-items: center;
   justify-content: center;
   box-shadow: 0 4px 20px var(--shadow-button);
-  transition: left 0.3s ease, background 0.3s ease, box-shadow 0.3s ease, transform 0.3s ease;
+  transition: left 0.3s cubic-bezier(0.4, 0, 0.2, 1), background 0.3s ease, box-shadow 0.3s ease, transform 0.3s ease;
   font-size: 18px;
   color: #667eea;
   padding: 0;
@@ -288,9 +288,12 @@ body:has(#left-sidebar:not(.hidden)) .menu-toggle-btn {
 }
 
 #menu-toggle-icon {
-  font-size: 24px;
+  font-size: 20px;
   transition: transform 0.3s ease;
-  display: inline-block;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  line-height: 1;
 }
 
 /* Rotate ghost 180° when sidebars are open (not hidden) */
@@ -316,7 +319,7 @@ body:has(#left-sidebar:not(.hidden)) #menu-toggle-icon {
   justify-content: center;
   box-shadow: 0 4px 20px var(--shadow-button);
   transition: right 0.3s ease, background 0.3s ease, box-shadow 0.3s ease, transform 0.3s ease;
-  font-size: 16px;
+  font-size: 18px;
   padding: 0;
 }
 
@@ -488,7 +491,7 @@ body:has(#right-sidebar:not(.hidden)) .color-picker-dropdown {
   justify-content: center;
   box-shadow: 0 4px 20px var(--shadow-button);
   transition: right 0.3s ease, background 0.3s ease, box-shadow 0.3s ease, transform 0.3s ease;
-  font-size: 16px;
+  font-size: 18px;
   padding: 0;
 }
 
@@ -612,7 +615,7 @@ body:has(#right-sidebar:not(.hidden)) .github-star-btn {
 }
 
 .audio-toggle-icon {
-  font-size: 22px;
+  font-size: 18px;
   line-height: 1;
 }
 
@@ -1912,7 +1915,7 @@ input[type="checkbox"] {
   align-items: center;
   justify-content: center;
   gap: 6px;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: var(--scrollbar-thumb);
   border: none;
   border-radius: 8px;
   color: white;
@@ -1920,7 +1923,7 @@ input[type="checkbox"] {
   font-weight: 600;
   cursor: pointer;
   transition: all 0.3s ease;
-  box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
 }
 
 .media-loader-url-btn:hover {
