@@ -11,6 +11,22 @@
   <div id="app">
     <!-- Left Sidebar -->
     <div id="left-sidebar">
+      <!-- Close button for mobile -->
+      <button class="sidebar-close-btn" onclick="toggleMenus()" title="Close sidebar">✕</button>
+      
+      <!-- Mobile Sidebar Tabs (visible on mobile only) -->
+      <div class="mobile-sidebar-tabs">
+        <button class="mobile-sidebar-tab active" data-section="mind" onclick="switchMobileSidebarTab('mind')">
+          🧠 Mind
+        </button>
+        <button class="mobile-sidebar-tab" data-section="body" onclick="switchMobileSidebarTab('body')">
+          🧬 Body
+        </button>
+        <button class="mobile-sidebar-tab" data-section="soul" onclick="switchMobileSidebarTab('soul')">
+          ✨ Soul
+        </button>
+      </div>
+      
       <button class="swap-button" id="left-swap-btn" onclick="swapLeftSidebar()">
         <span id="left-swap-text">Soul</span>
       </button>
@@ -36,18 +52,28 @@
           <span class="color-picker-label">🖌️ Pick you fav color</span>
         </div>
         <div class="color-picker-presets">
-          <button class="color-preset" data-color="#3b82f6" title="Blue"></button>
-          <button class="color-preset" data-color="#6366f1" title="Indigo"></button>
-          <button class="color-preset" data-color="#8b5cf6" title="Violet"></button>
-          <button class="color-preset" data-color="#a855f7" title="Purple"></button>
-          <button class="color-preset" data-color="#ec4899" title="Pink"></button>
-          <button class="color-preset" data-color="#f43f5e" title="Rose"></button>
+          <button class="color-preset" data-color="#64748b" title="Slate"></button>
+          <button class="color-preset" data-color="#6b7280" title="Gray"></button>
+          <button class="color-preset" data-color="#71717a" title="Zinc"></button>
+          <button class="color-preset" data-color="#737373" title="Neutral"></button>
+          <button class="color-preset" data-color="#78716c" title="Stone"></button>
           <button class="color-preset" data-color="#ef4444" title="Red"></button>
           <button class="color-preset" data-color="#f97316" title="Orange"></button>
           <button class="color-preset" data-color="#f59e0b" title="Amber"></button>
           <button class="color-preset" data-color="#eab308" title="Yellow"></button>
+          <button class="color-preset" data-color="#84cc16" title="Lime"></button>
           <button class="color-preset" data-color="#22c55e" title="Green"></button>
+          <button class="color-preset" data-color="#10b981" title="Emerald"></button>
+          <button class="color-preset" data-color="#14b8a6" title="Teal"></button>
           <button class="color-preset" data-color="#06b6d4" title="Cyan"></button>
+          <button class="color-preset" data-color="#0ea5e9" title="Sky"></button>
+          <button class="color-preset" data-color="#3b82f6" title="Blue"></button>
+          <button class="color-preset" data-color="#6366f1" title="Indigo"></button>
+          <button class="color-preset" data-color="#8b5cf6" title="Violet"></button>
+          <button class="color-preset" data-color="#a855f7" title="Purple"></button>
+          <button class="color-preset" data-color="#d946ef" title="Fuchsia"></button>
+          <button class="color-preset" data-color="#ec4899" title="Pink"></button>
+          <button class="color-preset" data-color="#f43f5e" title="Rose"></button>
         </div>
       </div>
       
@@ -156,7 +182,7 @@
             <span class="provider-icon">
               <img src="assets/img/logo/elevenlabs.webp" alt="ElevenLabs" class="provider-logo">
             </span>
-            <span class="provider-name">11labs</span>
+            <span class="provider-name">ElevenLabs</span>
           </button>
           <button class="provider-tab" data-provider="openai" onclick="switchProvider('openai')" disabled title="Coming Soon">
             <span class="provider-icon">

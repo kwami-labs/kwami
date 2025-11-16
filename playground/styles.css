@@ -353,7 +353,7 @@ body:has(#right-sidebar:not(.hidden)) .color-picker-btn {
   border-radius: 12px;
   padding: 15px;
   box-shadow: 0 8px 32px var(--shadow-sidebar);
-  min-width: 240px;
+  min-width: 250px;
   transition: opacity 0.2s ease, transform 0.2s ease, right 0.3s ease;
   opacity: 1;
   transform: translateY(0);
@@ -399,54 +399,52 @@ body:has(#right-sidebar:not(.hidden)) .color-picker-dropdown {
 
 .color-picker-presets {
   display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  gap: 8px;
+  grid-template-columns: repeat(6, 1fr);
+  gap: 6px;
+  padding: 5px 0;
 }
 
 .color-preset {
-  width: 100%;
-  height: 36px;
+  width: 28px;
+  height: 28px;
   border: 2px solid var(--border-input);
-  border-radius: 6px;
+  border-radius: 50%;
   cursor: pointer;
   transition: transform 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease;
   padding: 0;
   margin: 0;
+  justify-self: center;
 }
 
 .color-preset:hover {
-  transform: scale(1.1);
+  transform: scale(1.2);
   border-color: var(--text-primary);
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
 }
 
 .color-preset:active {
-  transform: scale(0.95);
+  transform: scale(1.0);
 }
 
-/* Individual preset colors - Tailwind Palette */
-.color-picker-dropdown .color-preset[data-color="#3b82f6"] {
-  background: #3b82f6 !important; /* Blue 500 */
+/* Individual preset colors - Full Tailwind Palette (500 shades) */
+.color-picker-dropdown .color-preset[data-color="#64748b"] {
+  background: #64748b !important; /* Slate 500 */
 }
 
-.color-picker-dropdown .color-preset[data-color="#6366f1"] {
-  background: #6366f1 !important; /* Indigo 500 */
+.color-picker-dropdown .color-preset[data-color="#6b7280"] {
+  background: #6b7280 !important; /* Gray 500 */
 }
 
-.color-picker-dropdown .color-preset[data-color="#8b5cf6"] {
-  background: #8b5cf6 !important; /* Violet 500 */
+.color-picker-dropdown .color-preset[data-color="#71717a"] {
+  background: #71717a !important; /* Zinc 500 */
 }
 
-.color-picker-dropdown .color-preset[data-color="#a855f7"] {
-  background: #a855f7 !important; /* Purple 500 */
+.color-picker-dropdown .color-preset[data-color="#737373"] {
+  background: #737373 !important; /* Neutral 500 */
 }
 
-.color-picker-dropdown .color-preset[data-color="#ec4899"] {
-  background: #ec4899 !important; /* Pink 500 */
-}
-
-.color-picker-dropdown .color-preset[data-color="#f43f5e"] {
-  background: #f43f5e !important; /* Rose 500 */
+.color-picker-dropdown .color-preset[data-color="#78716c"] {
+  background: #78716c !important; /* Stone 500 */
 }
 
 .color-picker-dropdown .color-preset[data-color="#ef4444"] {
@@ -465,12 +463,56 @@ body:has(#right-sidebar:not(.hidden)) .color-picker-dropdown {
   background: #eab308 !important; /* Yellow 500 */
 }
 
+.color-picker-dropdown .color-preset[data-color="#84cc16"] {
+  background: #84cc16 !important; /* Lime 500 */
+}
+
 .color-picker-dropdown .color-preset[data-color="#22c55e"] {
   background: #22c55e !important; /* Green 500 */
 }
 
+.color-picker-dropdown .color-preset[data-color="#10b981"] {
+  background: #10b981 !important; /* Emerald 500 */
+}
+
+.color-picker-dropdown .color-preset[data-color="#14b8a6"] {
+  background: #14b8a6 !important; /* Teal 500 */
+}
+
 .color-picker-dropdown .color-preset[data-color="#06b6d4"] {
   background: #06b6d4 !important; /* Cyan 500 */
+}
+
+.color-picker-dropdown .color-preset[data-color="#0ea5e9"] {
+  background: #0ea5e9 !important; /* Sky 500 */
+}
+
+.color-picker-dropdown .color-preset[data-color="#3b82f6"] {
+  background: #3b82f6 !important; /* Blue 500 */
+}
+
+.color-picker-dropdown .color-preset[data-color="#6366f1"] {
+  background: #6366f1 !important; /* Indigo 500 */
+}
+
+.color-picker-dropdown .color-preset[data-color="#8b5cf6"] {
+  background: #8b5cf6 !important; /* Violet 500 */
+}
+
+.color-picker-dropdown .color-preset[data-color="#a855f7"] {
+  background: #a855f7 !important; /* Purple 500 */
+}
+
+.color-picker-dropdown .color-preset[data-color="#d946ef"] {
+  background: #d946ef !important; /* Fuchsia 500 */
+}
+
+.color-picker-dropdown .color-preset[data-color="#ec4899"] {
+  background: #ec4899 !important; /* Pink 500 */
+}
+
+.color-picker-dropdown .color-preset[data-color="#f43f5e"] {
+  background: #f43f5e !important; /* Rose 500 */
 }
 
 /* Theme Toggle Button */
@@ -777,7 +819,7 @@ h1 {
 
 h2 {
   font-size: 24px;
-  margin-top: 10px;
+  margin-top: 30px;
   margin-bottom: 10px;
   color: var(--scrollbar-thumb);
 }
@@ -1469,17 +1511,17 @@ input[type="checkbox"] {
   letter-spacing: 0.3px;
 }
 
-/* Left sidebar button - rounded on left, extends to right edge */
+/* Left sidebar button - fully rounded, extends to right edge */
 #left-sidebar .swap-button {
   margin-left: -30px;
-  border-radius: 100px 0 0 100px;
+  border-radius: 100px;
   border-right: none;
 }
 
-/* Right sidebar button - rounded on right, extends to left edge */
+/* Right sidebar button - fully rounded, extends to left edge */
 #right-sidebar .swap-button {
   margin-right: -30px;
-  border-radius: 0 100px 100px 0;
+  border-radius: 100px;
   border-left: none;
 }
 
@@ -1499,16 +1541,23 @@ input[type="checkbox"] {
 }
 
 .swap-button::after {
-  content: '→';
+  content: '>';
+  position: absolute;
+  top: 50%;
+  right: 20px;
   opacity: 0;
-  transform: translateX(-8px);
+  transform: translate(-8px, -50%);
   transition: all 0.3s ease;
   font-size: 16px;
+  line-height: 1;
+  font-weight: bold;
 }
 
 #right-sidebar .swap-button::after {
-  content: '←';
-  transform: translateX(8px);
+  content: '<';
+  left: 20px;
+  right: auto;
+  transform: translate(8px, -50%);
 }
 
 .swap-button:hover {
@@ -1528,7 +1577,7 @@ input[type="checkbox"] {
 
 .swap-button:hover::after {
   opacity: 1;
-  transform: translateX(0);
+  transform: translate(0, -50%);
 }
 
 .swap-button:active {
@@ -2585,17 +2634,16 @@ input[type="checkbox"] {
 .sidebar-close-btn {
   display: none;
   position: absolute;
-  top: 12px;
-  right: 12px;
+  top: 15px;
+  right: 15px;
   z-index: 10;
-  width: 32px;
-  height: 32px;
-  background: var(--bg-section);
-  border: 2px solid var(--border-input);
-  border-radius: 50%;
-  color: var(--text-secondary);
-  font-size: 18px;
-  font-weight: bold;
+  width: 24px;
+  height: 24px;
+  background: transparent;
+  border: none;
+  color: var(--text-tertiary);
+  font-size: 20px;
+  font-weight: 300;
   cursor: pointer;
   transition: all 0.2s ease;
   padding: 0;
@@ -2605,21 +2653,19 @@ input[type="checkbox"] {
 }
 
 .sidebar-close-btn:hover {
-  background: var(--bg-button-hover);
   color: var(--text-primary);
-  border-color: var(--scrollbar-thumb);
-  transform: scale(1.1);
+  transform: rotate(90deg);
 }
 
 .sidebar-close-btn:active {
-  transform: scale(0.95);
+  transform: rotate(90deg) scale(0.9);
 }
 
 /* Mobile Sidebar Tabs */
 .mobile-sidebar-tabs {
   display: none;
   gap: 6px;
-  margin-bottom: 15px;
+  margin-bottom: 55px;
 }
 
 .mobile-sidebar-tab {
@@ -2691,61 +2737,89 @@ input[type="checkbox"] {
     height: 100vh;
   }
 
-  /* Adjust menu toggle button */
+  /* Move menu toggle button to bottom left */
   .menu-toggle-btn {
-    top: 20px;
-    left: 10px;
+    top: auto;
+    bottom: 80px;
+    left: 20px;
   }
 
   body:has(#left-sidebar:not(.hidden)) .menu-toggle-btn {
-    left: calc(min(100vw, 400px) + 10px);
+    left: 20px;
   }
 
   /* Adjust top buttons for mobile */
   .color-picker-btn {
     top: 20px;
-    right: 155px;
+    right: 115px;
   }
 
   body:has(#left-sidebar:not(.hidden)) .color-picker-btn {
-    right: 155px;
+    right: 115px;
   }
 
   .color-picker-dropdown {
     top: 70px;
-    right: 155px;
+    right: 115px;
   }
 
   body:has(#left-sidebar:not(.hidden)) .color-picker-dropdown {
-    right: 155px;
+    right: 115px;
   }
 
   .theme-toggle-btn {
     top: 20px;
-    right: 105px;
+    right: 65px;
   }
 
   body:has(#left-sidebar:not(.hidden)) .theme-toggle-btn {
-    right: 105px;
+    right: 65px;
   }
 
+  /* GitHub button - make it rounded with cat emoji */
   .github-star-btn {
     top: 20px;
     right: 10px;
+    width: 40px;
+    height: 40px;
+    padding: 0;
+    border-radius: 50%;
+    min-width: 40px;
+  }
+
+  .github-star-btn svg {
+    display: none;
+  }
+
+  .github-star-btn span:not(#star-count) {
+    display: none;
+  }
+
+  .github-star-btn::before {
+    content: '🐱';
+    font-size: 20px;
+    line-height: 1;
+  }
+
+  #star-count {
+    display: none;
   }
 
   body:has(#left-sidebar:not(.hidden)) .github-star-btn {
     right: 10px;
   }
 
-  /* Adjust audio player */
+  /* Move audio toggle button to bottom */
   .audio-toggle-btn {
-    top: 20px;
+    top: auto;
+    bottom: 80px;
+    left: 70px;
   }
 
   #audio-player {
-    top: 20px;
-    min-width: 320px;
+    top: auto;
+    bottom: 130px;
+    min-width: 280px;
     max-width: calc(100vw - 40px);
     padding: 12px 16px;
     grid-template-columns: 1fr;
@@ -2763,13 +2837,13 @@ input[type="checkbox"] {
 
   /* Messages container */
   #messages-container {
-    bottom: 20px;
+    bottom: 140px;
     max-width: calc(100vw - 40px);
   }
 
   /* State indicator */
   #canvas-container .state-indicator {
-    bottom: 100px;
+    bottom: 160px;
     font-size: 11px;
     padding: 8px 16px;
   }
@@ -2790,13 +2864,14 @@ input[type="checkbox"] {
     width: 100vw;
   }
 
+  /* Menu toggle stays at bottom left */
   body:has(#left-sidebar:not(.hidden)) .menu-toggle-btn {
-    left: calc(100vw - 50px);
+    left: 20px;
   }
 
   /* Stack audio player controls vertically */
   #audio-player {
-    min-width: 280px;
+    min-width: 260px;
     padding: 10px 12px;
   }
 
@@ -2826,34 +2901,24 @@ input[type="checkbox"] {
   .github-star-btn {
     width: 36px;
     height: 36px;
-    font-size: 16px;
-  }
-
-  .github-star-btn {
-    padding: 8px 12px;
-    font-size: 11px;
-  }
-
-  #star-count {
-    font-size: 10px;
-    padding: 1px 6px;
   }
 
   .color-picker-btn {
-    right: 135px;
+    right: 95px;
   }
 
   .color-picker-dropdown {
-    right: 135px;
+    right: 95px;
     min-width: 200px;
   }
 
   .theme-toggle-btn {
-    right: 90px;
+    right: 52px;
   }
 
   .github-star-btn {
     right: 10px;
+    font-size: 18px;
   }
 
   /* Reduce sidebar padding */
@@ -2967,37 +3032,38 @@ input[type="checkbox"] {
   /* Further reduce top button sizes */
   .menu-toggle-btn,
   .color-picker-btn,
-  .theme-toggle-btn {
+  .theme-toggle-btn,
+  .github-star-btn {
     width: 32px;
     height: 32px;
+  }
+
+  .menu-toggle-btn,
+  .color-picker-btn,
+  .theme-toggle-btn {
     font-size: 14px;
   }
 
   .color-picker-btn {
-    right: 115px;
+    right: 80px;
   }
 
   .color-picker-dropdown {
-    right: 115px;
+    right: 80px;
   }
 
   .theme-toggle-btn {
-    right: 75px;
+    right: 44px;
   }
 
   .github-star-btn {
-    padding: 6px 10px;
-    font-size: 10px;
-  }
-
-  .github-star-btn svg {
-    width: 12px;
-    height: 12px;
+    right: 10px;
+    font-size: 16px;
   }
 
   /* Audio player - more compact */
   #audio-player {
-    min-width: 240px;
+    min-width: 220px;
   }
 
   .audio-controls-row {
@@ -3076,20 +3142,34 @@ input[type="checkbox"] {
     padding-top: 48px;
   }
 
+  /* Keep menu toggle and audio at bottom even in landscape */
   .menu-toggle-btn,
+  .audio-toggle-btn {
+    bottom: 60px;
+  }
+
+  /* Top buttons stay at top */
   .color-picker-btn,
   .theme-toggle-btn,
-  .github-star-btn,
-  .audio-toggle-btn {
-    top: 20px;
+  .github-star-btn {
+    top: 15px;
   }
 
   #audio-player {
-    top: 20px;
+    bottom: 110px;
   }
 
   .color-picker-dropdown {
-    top: 70px;
+    top: 65px;
+  }
+
+  /* Messages and state indicator */
+  #messages-container {
+    bottom: 120px;
+  }
+
+  #canvas-container .state-indicator {
+    bottom: 140px;
   }
 
   /* Reduce sidebar max height */
