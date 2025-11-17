@@ -1,27 +1,58 @@
 import './style.css';
 import { Kwami } from 'kwami';
 
-// Color palettes for different sections (16 sections)
-const colorPalettes = [
-  { primary: '#667eea', secondary: '#764ba2', accent: '#f093fb' }, // 00 - Purple gradient
-  { primary: '#ff6b6b', secondary: '#ee5a6f', accent: '#f093fb' }, // 01 - Red-pink
-  { primary: '#4ecdc4', secondary: '#44a08d', accent: '#96e6a1' }, // 02 - Teal-green
-  { primary: '#f7971e', secondary: '#ffd200', accent: '#ffeb3b' }, // 03 - Orange-yellow
-  { primary: '#667eea', secondary: '#f093fb', accent: '#c471ed' }, // 04 - Purple-pink
-  { primary: '#00b4db', secondary: '#0083b0', accent: '#667eea' }, // 05 - Blue gradient
-  { primary: '#e94b3c', secondary: '#6a2c70', accent: '#f38181' }, // 06 - Red-purple
-  { primary: '#11998e', secondary: '#38ef7d', accent: '#a8e6cf' }, // 07 - Emerald
-  { primary: '#fc466b', secondary: '#3f5efb', accent: '#8e54e9' }, // 08 - Pink-blue
-  { primary: '#fdbb2d', secondary: '#22c1c3', accent: '#66d9e8' }, // 09 - Yellow-cyan
-  { primary: '#8e2de2', secondary: '#4a00e0', accent: '#b794f6' }, // 10 - Deep purple
-  { primary: '#ff9a56', secondary: '#ff6a88', accent: '#ffafbd' }, // 11 - Coral-pink
-  { primary: '#2af598', secondary: '#009efd', accent: '#7dd3fc' }, // 12 - Cyan-blue
-  { primary: '#f12711', secondary: '#f5af19', accent: '#fbbf24' }, // 13 - Fire gradient
-  { primary: '#9333ea', secondary: '#ec4899', accent: '#f472b6' }, // 14 - Purple-pink
-  { primary: '#14b8a6', secondary: '#0891b2', accent: '#22d3ee' }, // 15 - Teal-sky
+// Tailwind -500 colors ordered from top to bottom of color spectrum
+const tailwindColors500 = [
+  '#ef4444', // red-500
+  '#f97316', // orange-500
+  '#f59e0b', // amber-500
+  '#eab308', // yellow-500
+  '#84cc16', // lime-500
+  '#22c55e', // green-500
+  '#10b981', // emerald-500
+  '#14b8a6', // teal-500
+  '#06b6d4', // cyan-500
+  '#0ea5e9', // sky-500
+  '#3b82f6', // blue-500
+  '#6366f1', // indigo-500
+  '#8b5cf6', // violet-500
+  '#a855f7', // purple-500
+  '#d946ef', // fuchsia-500
+  '#ec4899', // pink-500
+  '#f43f5e', // rose-500
 ];
 
-// Blob configurations for different sections (16 sections)
+// Helper function to blend two hex colors for middle gradient
+function blendColors(color1: string, color2: string): string {
+  const r1 = parseInt(color1.slice(1, 3), 16);
+  const g1 = parseInt(color1.slice(3, 5), 16);
+  const b1 = parseInt(color1.slice(5, 7), 16);
+  
+  const r2 = parseInt(color2.slice(1, 3), 16);
+  const g2 = parseInt(color2.slice(3, 5), 16);
+  const b2 = parseInt(color2.slice(5, 7), 16);
+  
+  const r = Math.round((r1 + r2) / 2);
+  const g = Math.round((g1 + g2) / 2);
+  const b = Math.round((b1 + b2) / 2);
+  
+  return `#${r.toString(16).padStart(2, '0')}${g.toString(16).padStart(2, '0')}${b.toString(16).padStart(2, '0')}`;
+}
+
+// Generate color palettes for 17 sections using sequential 2-color gradients
+// Each section uses colors[i] and colors[i+1] with a blended middle color for Kwami
+const colorPalettes = tailwindColors500.slice(0, 17).map((color, index) => {
+  const nextColor = tailwindColors500[(index + 1) % tailwindColors500.length];
+  const middleColor = blendColors(color, nextColor);
+  
+  return {
+    primary: color,        // Color 1 for Kwami blob
+    secondary: nextColor,  // Color 2 for Kwami blob  
+    accent: middleColor    // Blended middle color for Kwami blob
+  };
+});
+
+// Blob configurations for different sections (23 sections)
 const blobConfigs = [
   { // Section 00 - Circle (calm)
     spikeX: 0.2, spikeY: 0.2, spikeZ: 0.2,
@@ -79,15 +110,110 @@ const blobConfigs = [
     spikeX: 4.5, spikeY: 4.5, spikeZ: 0.5,
     timeX: 7, timeY: 7, timeZ: 14
   },
-  { // Section 14 - Gentle (smooth)
+  { // Section 14 - NFT crystalline (unique DNA)
+    spikeX: 6.5, spikeY: 6.5, spikeZ: 6.5,
+    timeX: 9, timeY: 9, timeZ: 9
+  },
+  { // Section 15 - Gentle (smooth)
     spikeX: 1.5, spikeY: 2.0, spikeZ: 1.5,
     timeX: 6, timeY: 8, timeZ: 6
   },
-  { // Section 15 - Celebration (dynamic)
+  { // Section 16 - State transitions (flowing)
+    spikeX: 3.2, spikeY: 3.8, spikeZ: 3.5,
+    timeX: 14, timeY: 11, timeZ: 12
+  },
+  { // Section 17 - Audio waves (reactive)
+    spikeX: 4.5, spikeY: 2.8, spikeZ: 3.5,
+    timeX: 16, timeY: 8, timeZ: 12
+  },
+  { // Section 18 - Provider matrix (structured)
+    spikeX: 7.5, spikeY: 7.5, spikeZ: 2.0,
+    timeX: 11, timeY: 11, timeZ: 15
+  },
+  { // Section 19 - Ecosystem network (interconnected)
+    spikeX: 5.0, spikeY: 6.0, spikeZ: 5.5,
+    timeX: 9, timeY: 10, timeZ: 8
+  },
+  { // Section 20 - Performance optimized (efficient)
+    spikeX: 1.2, spikeY: 1.2, spikeZ: 1.2,
+    timeX: 20, timeY: 20, timeZ: 20
+  },
+  { // Section 21 - Community pulse (vibrant)
+    spikeX: 4.0, spikeY: 5.5, spikeZ: 4.5,
+    timeX: 13, timeY: 9, timeZ: 11
+  },
+  { // Section 22 - Celebration (dynamic)
     spikeX: 5.5, spikeY: 5.5, spikeZ: 5.5,
     timeX: 10, timeY: 10, timeZ: 10
   }
 ];
+
+// Sidebar Navigation Manager
+class SidebarNavigator {
+  private sphereElements: HTMLElement[] = [];
+  private container: HTMLElement | null = null;
+  private totalSections = 17;
+
+  constructor() {
+    this.container = document.getElementById('sphere-container');
+    if (this.container) {
+      this.generateSpheres();
+    }
+  }
+
+  private generateSpheres() {
+    if (!this.container) return;
+
+    // Generate 17 sphere buttons
+    for (let i = 0; i < this.totalSections; i++) {
+      const sphere = document.createElement('button');
+      sphere.className = 'nav-sphere';
+      sphere.setAttribute('data-section', i.toString());
+      sphere.setAttribute('aria-label', `Navigate to section ${String(i).padStart(2, '0')}`);
+      
+      // Apply linear gradient background from color palettes (primary to secondary)
+      const palette = colorPalettes[i];
+      sphere.style.background = `linear-gradient(135deg, ${palette.primary}, ${palette.secondary})`;
+      
+      // Add click handler for navigation
+      sphere.addEventListener('click', () => this.navigateToSection(i));
+      
+      this.sphereElements.push(sphere);
+      this.container!.appendChild(sphere);
+    }
+  }
+
+  private navigateToSection(sectionIndex: number) {
+    const docHeight = document.documentElement.scrollHeight;
+    const sectionHeight = docHeight / this.totalSections;
+    const targetScroll = sectionIndex * sectionHeight;
+    
+    window.scrollTo({
+      top: targetScroll,
+      behavior: 'smooth'
+    });
+  }
+
+  public updateActiveSphere(sectionIndex: number) {
+    this.sphereElements.forEach((sphere, index) => {
+      if (index === sectionIndex) {
+        sphere.classList.add('active');
+      } else {
+        sphere.classList.remove('active');
+      }
+    });
+  }
+
+  public updateSphereColors(sectionIndex: number) {
+    // Update the active sphere's glow to match current color palette
+    const sphere = this.sphereElements[sectionIndex];
+    if (sphere) {
+      const palette = colorPalettes[sectionIndex];
+      // Update box-shadow to match the palette
+      sphere.style.setProperty('--sphere-glow-color', palette.primary);
+    }
+  }
+}
 
 // Main scroll handler
 class ScrollManager {
@@ -96,10 +222,12 @@ class ScrollManager {
   private kwami: Kwami | null = null;
   private root: HTMLElement;
   private isTransitioning = false;
+  private sidebarNav: SidebarNavigator;
 
   constructor() {
     this.sections = document.querySelectorAll('.text-section');
     this.root = document.documentElement;
+    this.sidebarNav = new SidebarNavigator();
     
     this.init();
     window.addEventListener('scroll', this.handleScroll.bind(this));
@@ -155,7 +283,7 @@ class ScrollManager {
             }
           },
           scene: {
-            cameraPosition: { x: -0.9, y: 7.3, z: -1.8 },
+            cameraPosition: { x: 4.5, y: 7.3, z: -1.8 },
             enableControls: true
           }
         }
@@ -207,11 +335,15 @@ class ScrollManager {
     // Update active section
     this.updateActiveSection(section);
 
+    // Update sidebar navigation spheres
+    this.sidebarNav.updateActiveSphere(section);
+
     // Update colors and blob config based on section
     if (section !== this.currentSection && !this.isTransitioning) {
       this.currentSection = section;
       this.updateColors(section);
       this.updateKwamiConfig(section);
+      this.sidebarNav.updateSphereColors(section);
     }
 
     // Add random color variations
@@ -347,7 +479,7 @@ const tailwindColors500Harmonic = [
 // Get harmonic gradient for a section
 function getHarmonicGradient(sectionIndex: number) {
   const totalColors = tailwindColors500Harmonic.length;
-  const totalSections = 16;
+  const totalSections = 23;
   
   // Calculate color indices for smooth progression
   const baseIndex = Math.floor((sectionIndex / totalSections) * totalColors);
