@@ -73,15 +73,21 @@ class ScrollManager {
         height: container.offsetHeight
       });
 
-      // Create canvas element
+      // Create canvas element with explicit dimensions
       const canvas = document.createElement('canvas');
       canvas.style.width = '100%';
       canvas.style.height = '100%';
+      canvas.style.display = 'block';
       container.appendChild(canvas);
+
+      // Wait a tick for the canvas to be in the DOM
+      await new Promise(resolve => setTimeout(resolve, 10));
 
       console.log('Canvas created:', {
         width: canvas.offsetWidth,
-        height: canvas.offsetHeight
+        height: canvas.offsetHeight,
+        clientWidth: canvas.clientWidth,
+        clientHeight: canvas.clientHeight
       });
 
       this.kwami = new Kwami(canvas, {
@@ -103,10 +109,13 @@ class ScrollManager {
       });
 
       console.log('✨ Kwami initialized successfully!');
-      console.log('Kwami object:', this.kwami);
+      console.log('Kwami instance:', this.kwami);
+      console.log('Body:', this.kwami.body);
       console.log('Blob:', this.kwami.body.blob);
+      console.log('Blob mesh:', this.kwami.body.blob.getMesh());
     } catch (error) {
       console.error('❌ Failed to initialize Kwami:', error);
+      console.error('Error stack:', error instanceof Error ? error.stack : 'No stack');
       // Show error in the container
       const container = document.getElementById('kwami-container');
       if (container) {
@@ -114,6 +123,7 @@ class ScrollManager {
           <div style="color: white; text-align: center; padding: 2rem;">
             <h3>Failed to load Kwami</h3>
             <p>${error instanceof Error ? error.message : 'Unknown error'}</p>
+            <pre style="font-size: 12px; text-align: left; overflow: auto; max-height: 200px;">${error instanceof Error ? error.stack : ''}</pre>
           </div>
         `;
       }
