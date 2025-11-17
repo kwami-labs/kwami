@@ -51,29 +51,319 @@
           <input type="color" id="app-color-input" class="color-picker-input" value="#667eea">
           <span class="color-picker-label">🖌️ Pick you fav color</span>
         </div>
-        <div class="color-picker-presets">
-          <button class="color-preset" data-color="#64748b" title="Slate"></button>
-          <button class="color-preset" data-color="#6b7280" title="Gray"></button>
-          <button class="color-preset" data-color="#71717a" title="Zinc"></button>
-          <button class="color-preset" data-color="#737373" title="Neutral"></button>
-          <button class="color-preset" data-color="#78716c" title="Stone"></button>
-          <button class="color-preset" data-color="#ef4444" title="Red"></button>
-          <button class="color-preset" data-color="#f97316" title="Orange"></button>
-          <button class="color-preset" data-color="#f59e0b" title="Amber"></button>
-          <button class="color-preset" data-color="#eab308" title="Yellow"></button>
-          <button class="color-preset" data-color="#84cc16" title="Lime"></button>
-          <button class="color-preset" data-color="#22c55e" title="Green"></button>
-          <button class="color-preset" data-color="#10b981" title="Emerald"></button>
-          <button class="color-preset" data-color="#14b8a6" title="Teal"></button>
-          <button class="color-preset" data-color="#06b6d4" title="Cyan"></button>
-          <button class="color-preset" data-color="#0ea5e9" title="Sky"></button>
-          <button class="color-preset" data-color="#3b82f6" title="Blue"></button>
-          <button class="color-preset" data-color="#6366f1" title="Indigo"></button>
-          <button class="color-preset" data-color="#8b5cf6" title="Violet"></button>
-          <button class="color-preset" data-color="#a855f7" title="Purple"></button>
-          <button class="color-preset" data-color="#d946ef" title="Fuchsia"></button>
-          <button class="color-preset" data-color="#ec4899" title="Pink"></button>
-          <button class="color-preset" data-color="#f43f5e" title="Rose"></button>
+        
+        <!-- White & Black -->
+        <div class="color-picker-palette-row">
+          <button class="color-preset" data-color="#ffffff" title="White"></button>
+          <button class="color-preset" data-color="#000000" title="Black"></button>
+        </div>
+        
+        <!-- Slate -->
+        <div class="color-picker-palette-row">
+          <button class="color-preset" data-color="#f8fafc" title="Slate 50"></button>
+          <button class="color-preset" data-color="#f1f5f9" title="Slate 100"></button>
+          <button class="color-preset" data-color="#e2e8f0" title="Slate 200"></button>
+          <button class="color-preset" data-color="#cbd5e1" title="Slate 300"></button>
+          <button class="color-preset" data-color="#94a3b8" title="Slate 400"></button>
+          <button class="color-preset" data-color="#64748b" title="Slate 500"></button>
+          <button class="color-preset" data-color="#475569" title="Slate 600"></button>
+          <button class="color-preset" data-color="#334155" title="Slate 700"></button>
+          <button class="color-preset" data-color="#1e293b" title="Slate 800"></button>
+          <button class="color-preset" data-color="#0f172a" title="Slate 900"></button>
+        </div>
+        
+        <!-- Gray -->
+        <div class="color-picker-palette-row">
+          <button class="color-preset" data-color="#f9fafb" title="Gray 50"></button>
+          <button class="color-preset" data-color="#f3f4f6" title="Gray 100"></button>
+          <button class="color-preset" data-color="#e5e7eb" title="Gray 200"></button>
+          <button class="color-preset" data-color="#d1d5db" title="Gray 300"></button>
+          <button class="color-preset" data-color="#9ca3af" title="Gray 400"></button>
+          <button class="color-preset" data-color="#6b7280" title="Gray 500"></button>
+          <button class="color-preset" data-color="#4b5563" title="Gray 600"></button>
+          <button class="color-preset" data-color="#374151" title="Gray 700"></button>
+          <button class="color-preset" data-color="#1f2937" title="Gray 800"></button>
+          <button class="color-preset" data-color="#111827" title="Gray 900"></button>
+        </div>
+        
+        <!-- Zinc -->
+        <div class="color-picker-palette-row">
+          <button class="color-preset" data-color="#fafafa" title="Zinc 50"></button>
+          <button class="color-preset" data-color="#f4f4f5" title="Zinc 100"></button>
+          <button class="color-preset" data-color="#e4e4e7" title="Zinc 200"></button>
+          <button class="color-preset" data-color="#d4d4d8" title="Zinc 300"></button>
+          <button class="color-preset" data-color="#a1a1aa" title="Zinc 400"></button>
+          <button class="color-preset" data-color="#71717a" title="Zinc 500"></button>
+          <button class="color-preset" data-color="#52525b" title="Zinc 600"></button>
+          <button class="color-preset" data-color="#3f3f46" title="Zinc 700"></button>
+          <button class="color-preset" data-color="#27272a" title="Zinc 800"></button>
+          <button class="color-preset" data-color="#18181b" title="Zinc 900"></button>
+        </div>
+        
+        <!-- Neutral -->
+        <div class="color-picker-palette-row">
+          <button class="color-preset" data-color="#fafafa" title="Neutral 50"></button>
+          <button class="color-preset" data-color="#f5f5f5" title="Neutral 100"></button>
+          <button class="color-preset" data-color="#e5e5e5" title="Neutral 200"></button>
+          <button class="color-preset" data-color="#d4d4d4" title="Neutral 300"></button>
+          <button class="color-preset" data-color="#a3a3a3" title="Neutral 400"></button>
+          <button class="color-preset" data-color="#737373" title="Neutral 500"></button>
+          <button class="color-preset" data-color="#525252" title="Neutral 600"></button>
+          <button class="color-preset" data-color="#404040" title="Neutral 700"></button>
+          <button class="color-preset" data-color="#262626" title="Neutral 800"></button>
+          <button class="color-preset" data-color="#171717" title="Neutral 900"></button>
+        </div>
+        
+        <!-- Stone -->
+        <div class="color-picker-palette-row">
+          <button class="color-preset" data-color="#fafaf9" title="Stone 50"></button>
+          <button class="color-preset" data-color="#f5f5f4" title="Stone 100"></button>
+          <button class="color-preset" data-color="#e7e5e4" title="Stone 200"></button>
+          <button class="color-preset" data-color="#d6d3d1" title="Stone 300"></button>
+          <button class="color-preset" data-color="#a8a29e" title="Stone 400"></button>
+          <button class="color-preset" data-color="#78716c" title="Stone 500"></button>
+          <button class="color-preset" data-color="#57534e" title="Stone 600"></button>
+          <button class="color-preset" data-color="#44403c" title="Stone 700"></button>
+          <button class="color-preset" data-color="#292524" title="Stone 800"></button>
+          <button class="color-preset" data-color="#1c1917" title="Stone 900"></button>
+        </div>
+        
+        <!-- Red -->
+        <div class="color-picker-palette-row">
+          <button class="color-preset" data-color="#fef2f2" title="Red 50"></button>
+          <button class="color-preset" data-color="#fee2e2" title="Red 100"></button>
+          <button class="color-preset" data-color="#fecaca" title="Red 200"></button>
+          <button class="color-preset" data-color="#fca5a5" title="Red 300"></button>
+          <button class="color-preset" data-color="#f87171" title="Red 400"></button>
+          <button class="color-preset" data-color="#ef4444" title="Red 500"></button>
+          <button class="color-preset" data-color="#dc2626" title="Red 600"></button>
+          <button class="color-preset" data-color="#b91c1c" title="Red 700"></button>
+          <button class="color-preset" data-color="#991b1b" title="Red 800"></button>
+          <button class="color-preset" data-color="#7f1d1d" title="Red 900"></button>
+        </div>
+        
+        <!-- Orange -->
+        <div class="color-picker-palette-row">
+          <button class="color-preset" data-color="#fff7ed" title="Orange 50"></button>
+          <button class="color-preset" data-color="#ffedd5" title="Orange 100"></button>
+          <button class="color-preset" data-color="#fed7aa" title="Orange 200"></button>
+          <button class="color-preset" data-color="#fdba74" title="Orange 300"></button>
+          <button class="color-preset" data-color="#fb923c" title="Orange 400"></button>
+          <button class="color-preset" data-color="#f97316" title="Orange 500"></button>
+          <button class="color-preset" data-color="#ea580c" title="Orange 600"></button>
+          <button class="color-preset" data-color="#c2410c" title="Orange 700"></button>
+          <button class="color-preset" data-color="#9a3412" title="Orange 800"></button>
+          <button class="color-preset" data-color="#7c2d12" title="Orange 900"></button>
+        </div>
+        
+        <!-- Amber -->
+        <div class="color-picker-palette-row">
+          <button class="color-preset" data-color="#fffbeb" title="Amber 50"></button>
+          <button class="color-preset" data-color="#fef3c7" title="Amber 100"></button>
+          <button class="color-preset" data-color="#fde68a" title="Amber 200"></button>
+          <button class="color-preset" data-color="#fcd34d" title="Amber 300"></button>
+          <button class="color-preset" data-color="#fbbf24" title="Amber 400"></button>
+          <button class="color-preset" data-color="#f59e0b" title="Amber 500"></button>
+          <button class="color-preset" data-color="#d97706" title="Amber 600"></button>
+          <button class="color-preset" data-color="#b45309" title="Amber 700"></button>
+          <button class="color-preset" data-color="#92400e" title="Amber 800"></button>
+          <button class="color-preset" data-color="#78350f" title="Amber 900"></button>
+        </div>
+        
+        <!-- Yellow -->
+        <div class="color-picker-palette-row">
+          <button class="color-preset" data-color="#fefce8" title="Yellow 50"></button>
+          <button class="color-preset" data-color="#fef9c3" title="Yellow 100"></button>
+          <button class="color-preset" data-color="#fef08a" title="Yellow 200"></button>
+          <button class="color-preset" data-color="#fde047" title="Yellow 300"></button>
+          <button class="color-preset" data-color="#facc15" title="Yellow 400"></button>
+          <button class="color-preset" data-color="#eab308" title="Yellow 500"></button>
+          <button class="color-preset" data-color="#ca8a04" title="Yellow 600"></button>
+          <button class="color-preset" data-color="#a16207" title="Yellow 700"></button>
+          <button class="color-preset" data-color="#854d0e" title="Yellow 800"></button>
+          <button class="color-preset" data-color="#713f12" title="Yellow 900"></button>
+        </div>
+        
+        <!-- Lime -->
+        <div class="color-picker-palette-row">
+          <button class="color-preset" data-color="#f7fee7" title="Lime 50"></button>
+          <button class="color-preset" data-color="#ecfccb" title="Lime 100"></button>
+          <button class="color-preset" data-color="#d9f99d" title="Lime 200"></button>
+          <button class="color-preset" data-color="#bef264" title="Lime 300"></button>
+          <button class="color-preset" data-color="#a3e635" title="Lime 400"></button>
+          <button class="color-preset" data-color="#84cc16" title="Lime 500"></button>
+          <button class="color-preset" data-color="#65a30d" title="Lime 600"></button>
+          <button class="color-preset" data-color="#4d7c0f" title="Lime 700"></button>
+          <button class="color-preset" data-color="#3f6212" title="Lime 800"></button>
+          <button class="color-preset" data-color="#365314" title="Lime 900"></button>
+        </div>
+        
+        <!-- Green -->
+        <div class="color-picker-palette-row">
+          <button class="color-preset" data-color="#f0fdf4" title="Green 50"></button>
+          <button class="color-preset" data-color="#dcfce7" title="Green 100"></button>
+          <button class="color-preset" data-color="#bbf7d0" title="Green 200"></button>
+          <button class="color-preset" data-color="#86efac" title="Green 300"></button>
+          <button class="color-preset" data-color="#4ade80" title="Green 400"></button>
+          <button class="color-preset" data-color="#22c55e" title="Green 500"></button>
+          <button class="color-preset" data-color="#16a34a" title="Green 600"></button>
+          <button class="color-preset" data-color="#15803d" title="Green 700"></button>
+          <button class="color-preset" data-color="#166534" title="Green 800"></button>
+          <button class="color-preset" data-color="#14532d" title="Green 900"></button>
+        </div>
+        
+        <!-- Emerald -->
+        <div class="color-picker-palette-row">
+          <button class="color-preset" data-color="#ecfdf5" title="Emerald 50"></button>
+          <button class="color-preset" data-color="#d1fae5" title="Emerald 100"></button>
+          <button class="color-preset" data-color="#a7f3d0" title="Emerald 200"></button>
+          <button class="color-preset" data-color="#6ee7b7" title="Emerald 300"></button>
+          <button class="color-preset" data-color="#34d399" title="Emerald 400"></button>
+          <button class="color-preset" data-color="#10b981" title="Emerald 500"></button>
+          <button class="color-preset" data-color="#059669" title="Emerald 600"></button>
+          <button class="color-preset" data-color="#047857" title="Emerald 700"></button>
+          <button class="color-preset" data-color="#065f46" title="Emerald 800"></button>
+          <button class="color-preset" data-color="#064e3b" title="Emerald 900"></button>
+        </div>
+        
+        <!-- Teal -->
+        <div class="color-picker-palette-row">
+          <button class="color-preset" data-color="#f0fdfa" title="Teal 50"></button>
+          <button class="color-preset" data-color="#ccfbf1" title="Teal 100"></button>
+          <button class="color-preset" data-color="#99f6e4" title="Teal 200"></button>
+          <button class="color-preset" data-color="#5eead4" title="Teal 300"></button>
+          <button class="color-preset" data-color="#2dd4bf" title="Teal 400"></button>
+          <button class="color-preset" data-color="#14b8a6" title="Teal 500"></button>
+          <button class="color-preset" data-color="#0d9488" title="Teal 600"></button>
+          <button class="color-preset" data-color="#0f766e" title="Teal 700"></button>
+          <button class="color-preset" data-color="#115e59" title="Teal 800"></button>
+          <button class="color-preset" data-color="#134e4a" title="Teal 900"></button>
+        </div>
+        
+        <!-- Cyan -->
+        <div class="color-picker-palette-row">
+          <button class="color-preset" data-color="#ecfeff" title="Cyan 50"></button>
+          <button class="color-preset" data-color="#cffafe" title="Cyan 100"></button>
+          <button class="color-preset" data-color="#a5f3fc" title="Cyan 200"></button>
+          <button class="color-preset" data-color="#67e8f9" title="Cyan 300"></button>
+          <button class="color-preset" data-color="#22d3ee" title="Cyan 400"></button>
+          <button class="color-preset" data-color="#06b6d4" title="Cyan 500"></button>
+          <button class="color-preset" data-color="#0891b2" title="Cyan 600"></button>
+          <button class="color-preset" data-color="#0e7490" title="Cyan 700"></button>
+          <button class="color-preset" data-color="#155e75" title="Cyan 800"></button>
+          <button class="color-preset" data-color="#164e63" title="Cyan 900"></button>
+        </div>
+        
+        <!-- Sky -->
+        <div class="color-picker-palette-row">
+          <button class="color-preset" data-color="#f0f9ff" title="Sky 50"></button>
+          <button class="color-preset" data-color="#e0f2fe" title="Sky 100"></button>
+          <button class="color-preset" data-color="#bae6fd" title="Sky 200"></button>
+          <button class="color-preset" data-color="#7dd3fc" title="Sky 300"></button>
+          <button class="color-preset" data-color="#38bdf8" title="Sky 400"></button>
+          <button class="color-preset" data-color="#0ea5e9" title="Sky 500"></button>
+          <button class="color-preset" data-color="#0284c7" title="Sky 600"></button>
+          <button class="color-preset" data-color="#0369a1" title="Sky 700"></button>
+          <button class="color-preset" data-color="#075985" title="Sky 800"></button>
+          <button class="color-preset" data-color="#0c4a6e" title="Sky 900"></button>
+        </div>
+        
+        <!-- Blue -->
+        <div class="color-picker-palette-row">
+          <button class="color-preset" data-color="#eff6ff" title="Blue 50"></button>
+          <button class="color-preset" data-color="#dbeafe" title="Blue 100"></button>
+          <button class="color-preset" data-color="#bfdbfe" title="Blue 200"></button>
+          <button class="color-preset" data-color="#93c5fd" title="Blue 300"></button>
+          <button class="color-preset" data-color="#60a5fa" title="Blue 400"></button>
+          <button class="color-preset" data-color="#3b82f6" title="Blue 500"></button>
+          <button class="color-preset" data-color="#2563eb" title="Blue 600"></button>
+          <button class="color-preset" data-color="#1d4ed8" title="Blue 700"></button>
+          <button class="color-preset" data-color="#1e40af" title="Blue 800"></button>
+          <button class="color-preset" data-color="#1e3a8a" title="Blue 900"></button>
+        </div>
+        
+        <!-- Indigo -->
+        <div class="color-picker-palette-row">
+          <button class="color-preset" data-color="#eef2ff" title="Indigo 50"></button>
+          <button class="color-preset" data-color="#e0e7ff" title="Indigo 100"></button>
+          <button class="color-preset" data-color="#c7d2fe" title="Indigo 200"></button>
+          <button class="color-preset" data-color="#a5b4fc" title="Indigo 300"></button>
+          <button class="color-preset" data-color="#818cf8" title="Indigo 400"></button>
+          <button class="color-preset" data-color="#6366f1" title="Indigo 500"></button>
+          <button class="color-preset" data-color="#4f46e5" title="Indigo 600"></button>
+          <button class="color-preset" data-color="#4338ca" title="Indigo 700"></button>
+          <button class="color-preset" data-color="#3730a3" title="Indigo 800"></button>
+          <button class="color-preset" data-color="#312e81" title="Indigo 900"></button>
+        </div>
+        
+        <!-- Violet -->
+        <div class="color-picker-palette-row">
+          <button class="color-preset" data-color="#f5f3ff" title="Violet 50"></button>
+          <button class="color-preset" data-color="#ede9fe" title="Violet 100"></button>
+          <button class="color-preset" data-color="#ddd6fe" title="Violet 200"></button>
+          <button class="color-preset" data-color="#c4b5fd" title="Violet 300"></button>
+          <button class="color-preset" data-color="#a78bfa" title="Violet 400"></button>
+          <button class="color-preset" data-color="#8b5cf6" title="Violet 500"></button>
+          <button class="color-preset" data-color="#7c3aed" title="Violet 600"></button>
+          <button class="color-preset" data-color="#6d28d9" title="Violet 700"></button>
+          <button class="color-preset" data-color="#5b21b6" title="Violet 800"></button>
+          <button class="color-preset" data-color="#4c1d95" title="Violet 900"></button>
+        </div>
+        
+        <!-- Purple -->
+        <div class="color-picker-palette-row">
+          <button class="color-preset" data-color="#faf5ff" title="Purple 50"></button>
+          <button class="color-preset" data-color="#f3e8ff" title="Purple 100"></button>
+          <button class="color-preset" data-color="#e9d5ff" title="Purple 200"></button>
+          <button class="color-preset" data-color="#d8b4fe" title="Purple 300"></button>
+          <button class="color-preset" data-color="#c084fc" title="Purple 400"></button>
+          <button class="color-preset" data-color="#a855f7" title="Purple 500"></button>
+          <button class="color-preset" data-color="#9333ea" title="Purple 600"></button>
+          <button class="color-preset" data-color="#7e22ce" title="Purple 700"></button>
+          <button class="color-preset" data-color="#6b21a8" title="Purple 800"></button>
+          <button class="color-preset" data-color="#581c87" title="Purple 900"></button>
+        </div>
+        
+        <!-- Fuchsia -->
+        <div class="color-picker-palette-row">
+          <button class="color-preset" data-color="#fdf4ff" title="Fuchsia 50"></button>
+          <button class="color-preset" data-color="#fae8ff" title="Fuchsia 100"></button>
+          <button class="color-preset" data-color="#f5d0fe" title="Fuchsia 200"></button>
+          <button class="color-preset" data-color="#f0abfc" title="Fuchsia 300"></button>
+          <button class="color-preset" data-color="#e879f9" title="Fuchsia 400"></button>
+          <button class="color-preset" data-color="#d946ef" title="Fuchsia 500"></button>
+          <button class="color-preset" data-color="#c026d3" title="Fuchsia 600"></button>
+          <button class="color-preset" data-color="#a21caf" title="Fuchsia 700"></button>
+          <button class="color-preset" data-color="#86198f" title="Fuchsia 800"></button>
+          <button class="color-preset" data-color="#701a75" title="Fuchsia 900"></button>
+        </div>
+        
+        <!-- Pink -->
+        <div class="color-picker-palette-row">
+          <button class="color-preset" data-color="#fdf2f8" title="Pink 50"></button>
+          <button class="color-preset" data-color="#fce7f3" title="Pink 100"></button>
+          <button class="color-preset" data-color="#fbcfe8" title="Pink 200"></button>
+          <button class="color-preset" data-color="#f9a8d4" title="Pink 300"></button>
+          <button class="color-preset" data-color="#f472b6" title="Pink 400"></button>
+          <button class="color-preset" data-color="#ec4899" title="Pink 500"></button>
+          <button class="color-preset" data-color="#db2777" title="Pink 600"></button>
+          <button class="color-preset" data-color="#be185d" title="Pink 700"></button>
+          <button class="color-preset" data-color="#9d174d" title="Pink 800"></button>
+          <button class="color-preset" data-color="#831843" title="Pink 900"></button>
+        </div>
+        
+        <!-- Rose -->
+        <div class="color-picker-palette-row">
+          <button class="color-preset" data-color="#fff1f2" title="Rose 50"></button>
+          <button class="color-preset" data-color="#ffe4e6" title="Rose 100"></button>
+          <button class="color-preset" data-color="#fecdd3" title="Rose 200"></button>
+          <button class="color-preset" data-color="#fda4af" title="Rose 300"></button>
+          <button class="color-preset" data-color="#fb7185" title="Rose 400"></button>
+          <button class="color-preset" data-color="#f43f5e" title="Rose 500"></button>
+          <button class="color-preset" data-color="#e11d48" title="Rose 600"></button>
+          <button class="color-preset" data-color="#be123c" title="Rose 700"></button>
+          <button class="color-preset" data-color="#9f1239" title="Rose 800"></button>
+          <button class="color-preset" data-color="#881337" title="Rose 900"></button>
         </div>
       </div>
       

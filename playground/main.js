@@ -306,7 +306,8 @@ function initializeAudioPlayer() {
     const track = audioPlayerState.playlist[index];
 
     try {
-      await kwamiAudio.loadAudioFile(track.url);
+      // Use loadAudioSource for URL strings, not loadAudioFile (which expects File objects)
+      kwamiAudio.loadAudioSource(track.url);
       setDisplayName(track.name);
       updateNavigationButtons();
       updatePlayPauseState();
@@ -320,7 +321,8 @@ function initializeAudioPlayer() {
 
   const loadCustomTrack = async (url, name) => {
     try {
-      await kwamiAudio.loadAudioFile(url);
+      // Use loadAudioSource for URL strings, not loadAudioFile (which expects File objects)
+      kwamiAudio.loadAudioSource(url);
       audioPlayerState.isCustomTrack = true;
       setDisplayName(name || 'Custom Audio');
       updateNavigationButtons();
@@ -2335,6 +2337,46 @@ try {
 
   initializeAudioPlayer();
 
+  // Skill definitions - declared here before initializeSkills() call to avoid temporal dead zone issues
+  window.skillDefinitions = {
+    'minimize-top-right': {
+      name: 'Minimize to Top Right',
+      description: 'Minimizes Kwami and moves it to the top-right corner',
+      actions: 2,
+      autoReverse: false
+    },
+    'rainbow-transition': {
+      name: 'Rainbow Transition',
+      description: 'Cycles through rainbow colors with smooth transitions',
+      actions: 7,
+      autoReverse: false
+    },
+    'energetic-mode': {
+      name: 'Energetic Mode',
+      description: 'High-energy mode with faster movements and vibrant colors',
+      actions: 5,
+      autoReverse: true
+    },
+    'calm-meditation': {
+      name: 'Calm Meditation',
+      description: 'Calming mode with slow movements and soothing colors',
+      actions: 6,
+      autoReverse: false
+    },
+    'focus-session': {
+      name: 'Focus Session',
+      description: 'Pomodoro-style focus mode with greeting and minimization',
+      actions: 5,
+      autoReverse: false
+    },
+    'party-mode': {
+      name: 'Party Mode',
+      description: 'Celebration mode with rapid color changes and energetic movement',
+      actions: 10,
+      autoReverse: false
+    }
+  };
+
   // Create conversation callbacks for blob interaction
   const conversationCallbacks = {
     onAgentResponse: (text) => {
@@ -3571,6 +3613,163 @@ function updateAllControlsFromBlob() {
   }
 }
 
+// Store original blob parameters for restoring after effects
+let originalBlobParams = null;
+let isRelaxed = false;
+
+// Store original blob parameters
+function saveOriginalBlobParams() {
+  const blob = window.kwami?.body?.blob;
+  if (!blob) return;
+
+  originalBlobParams = {
+    spikeX: blob.spikeX,
+    spikeY: blob.spikeY,
+    spikeZ: blob.spikeZ,
+    amplitudeX: blob.amplitudeX,
+    amplitudeY: blob.amplitudeY,
+    amplitudeZ: blob.amplitudeZ,
+    timeX: blob.timeX,
+    timeY: blob.timeY,
+    timeZ: blob.timeZ,
+    scale: blob.getScale(),
+  };
+}
+
+// Restore original blob parameters
+function restoreOriginalBlobParams() {
+  const blob = window.kwami?.body?.blob;
+  if (!blob || !originalBlobParams) return;
+
+  blob.setSpikes(originalBlobParams.spikeX, originalBlobParams.spikeY, originalBlobParams.spikeZ);
+  blob.setAmplitudes(originalBlobParams.amplitudeX, originalBlobParams.amplitudeY, originalBlobParams.amplitudeZ);
+  blob.setTime(originalBlobParams.timeX, originalBlobParams.timeY, originalBlobParams.timeZ);
+  blob.setScale(originalBlobParams.scale);
+
+  // Update UI sliders
+  updateValueDisplay('spike-x-value', originalBlobParams.spikeX, 1);
+  updateValueDisplay('spike-y-value', originalBlobParams.spikeY, 1);
+  updateValueDisplay('spike-z-value', originalBlobParams.spikeZ, 1);
+  updateValueDisplay('amplitude-x-value', originalBlobParams.amplitudeX, 1);
+  updateValueDisplay('amplitude-y-value', originalBlobParams.amplitudeY, 1);
+  updateValueDisplay('amplitude-z-value', originalBlobParams.amplitudeZ, 1);
+  updateValueDisplay('time-x-value', originalBlobParams.timeX, 1);
+  updateValueDisplay('time-y-value', originalBlobParams.timeY, 1);
+  updateValueDisplay('time-z-value', originalBlobParams.timeZ, 1);
+  updateValueDisplay('scale-value', originalBlobParams.scale, 1);
+
+  document.getElementById('spike-x').value = originalBlobParams.spikeX;
+  document.getElementById('spike-y').value = originalBlobParams.spikeY;
+  document.getElementById('spike-z').value = originalBlobParams.spikeZ;
+  document.getElementById('amplitude-x').value = originalBlobParams.amplitudeX;
+  document.getElementById('amplitude-y').value = originalBlobParams.amplitudeY;
+  document.getElementById('amplitude-z').value = originalBlobParams.amplitudeZ;
+  document.getElementById('time-x').value = originalBlobParams.timeX;
+  document.getElementById('time-y').value = originalBlobParams.timeY;
+  document.getElementById('time-z').value = originalBlobParams.timeZ;
+  document.getElementById('scale').value = originalBlobParams.scale;
+}
+
+// Relax action: Make blob more rounded, less spiky, slower animation
+async function relaxBlob() {
+  const blob = window.kwami?.body?.blob;
+  if (!blob) return;
+
+  if (isRelaxed) {
+    // Restore original parameters
+    restoreOriginalBlobParams();
+    isRelaxed = false;
+    updateStatus('😌 Blob returned to normal state');
+  } else {
+    // Save current parameters if not already saved
+    if (!originalBlobParams) {
+      saveOriginalBlobParams();
+    }
+
+    // Apply relax effect: more rounded (lower spikes), slower animation
+    const relaxParams = {
+      spikeX: 0.05,
+      spikeY: 0.05,
+      spikeZ: 0.05,
+      amplitudeX: 0.3,
+      amplitudeY: 0.3,
+      amplitudeZ: 0.3,
+      timeX: 1.0,
+      timeY: 1.0,
+      timeZ: 1.0,
+    };
+
+    blob.setSpikes(relaxParams.spikeX, relaxParams.spikeY, relaxParams.spikeZ);
+    blob.setAmplitudes(relaxParams.amplitudeX, relaxParams.amplitudeY, relaxParams.amplitudeZ);
+    blob.setTime(relaxParams.timeX, relaxParams.timeY, relaxParams.timeZ);
+
+    // Update UI sliders
+    updateValueDisplay('spike-x-value', relaxParams.spikeX, 1);
+    updateValueDisplay('spike-y-value', relaxParams.spikeY, 1);
+    updateValueDisplay('spike-z-value', relaxParams.spikeZ, 1);
+    updateValueDisplay('amplitude-x-value', relaxParams.amplitudeX, 1);
+    updateValueDisplay('amplitude-y-value', relaxParams.amplitudeY, 1);
+    updateValueDisplay('amplitude-z-value', relaxParams.amplitudeZ, 1);
+    updateValueDisplay('time-x-value', relaxParams.timeX, 1);
+    updateValueDisplay('time-y-value', relaxParams.timeY, 1);
+    updateValueDisplay('time-z-value', relaxParams.timeZ, 1);
+
+    document.getElementById('spike-x').value = relaxParams.spikeX;
+    document.getElementById('spike-y').value = relaxParams.spikeY;
+    document.getElementById('spike-z').value = relaxParams.spikeZ;
+    document.getElementById('amplitude-x').value = relaxParams.amplitudeX;
+    document.getElementById('amplitude-y').value = relaxParams.amplitudeY;
+    document.getElementById('amplitude-z').value = relaxParams.amplitudeZ;
+    document.getElementById('time-x').value = relaxParams.timeX;
+    document.getElementById('time-y').value = relaxParams.timeY;
+    document.getElementById('time-z').value = relaxParams.timeZ;
+
+    isRelaxed = true;
+    updateStatus('🧘 Blob is now in relaxed state - Double-click again to restore');
+  }
+}
+
+// Update blob interaction with custom double-click action
+function updateBlobInteractionWithCustomAction() {
+  const customActionSelect = document.getElementById('custom-double-click-action');
+  if (!customActionSelect) return;
+
+  const action = customActionSelect.value;
+
+  // Create custom callback based on selected action
+  window.kwami.enableBlobInteraction(async () => {
+    switch (action) {
+      case 'listen':
+        if (window.kwami.body.isListening()) {
+          window.kwami.body.stopListening();
+          window.kwami.setState('idle');
+          updateStatus('👂 Stopped listening');
+        } else {
+          await window.kwami.body.startListening();
+          updateStatus('👂 Listening mode activated');
+        }
+        break;
+      
+      case 'speak':
+        if (window.kwami.getState() === 'speaking') {
+          window.kwami.setState('idle');
+          updateStatus('🔇 Stopped speaking');
+        } else {
+          window.kwami.setState('speaking');
+          updateStatus('🗣️ Speaking mode activated');
+        }
+        break;
+      
+      case 'relax':
+        await relaxBlob();
+        break;
+      
+      default:
+        updateStatus('⚠️ Unknown action');
+    }
+  });
+}
+
 // Initialize body controls event listeners
 function initializeBodyControls() {
   if (!window.kwami) return;
@@ -3711,6 +3910,47 @@ function initializeBodyControls() {
         window.kwami.disableBlobInteraction();
         updateStatus('🚫 Click interaction disabled');
       }
+    });
+  }
+
+  // Double-click conversation disable checkbox
+  const disableDoubleClickCheckbox = document.getElementById('disable-double-click-conversation');
+  const customActionSelector = document.getElementById('custom-action-selector-container');
+  const customActionSelect = document.getElementById('custom-double-click-action');
+  
+  if (disableDoubleClickCheckbox && customActionSelector) {
+    disableDoubleClickCheckbox.addEventListener('change', (e) => {
+      if (e.target.checked) {
+        customActionSelector.style.display = 'block';
+        // Re-enable blob interaction with custom action
+        updateBlobInteractionWithCustomAction();
+        updateStatus('🎯 Double-click conversation disabled - Custom action mode enabled');
+      } else {
+        customActionSelector.style.display = 'none';
+        
+        // Restore any active effects before switching back
+        if (isRelaxed) {
+          restoreOriginalBlobParams();
+          isRelaxed = false;
+        }
+        if (window.kwami.body.isListening()) {
+          window.kwami.body.stopListening();
+        }
+        window.kwami.setState('idle');
+        
+        // Re-enable normal conversation interaction
+        window.kwami.enableBlobInteraction(window.conversationCallbacks);
+        updateStatus('💬 Double-click conversation re-enabled');
+      }
+    });
+  }
+
+  // Custom action selector
+  if (customActionSelect) {
+    customActionSelect.addEventListener('change', () => {
+      updateBlobInteractionWithCustomAction();
+      const actionName = customActionSelect.options[customActionSelect.selectedIndex].text;
+      updateStatus(`🎯 Double-click action set to: ${actionName}`);
     });
   }
   
@@ -4090,45 +4330,8 @@ function updateSoulUIFromConfig(config) {
 // Skills System Functions
 // ========================================
 
-// Skill definitions
-const skillDefinitions = {
-  'minimize-top-right': {
-    name: 'Minimize to Top Right',
-    description: 'Minimizes Kwami and moves it to the top-right corner',
-    actions: 2,
-    autoReverse: false
-  },
-  'rainbow-transition': {
-    name: 'Rainbow Transition',
-    description: 'Cycles through rainbow colors with smooth transitions',
-    actions: 7,
-    autoReverse: false
-  },
-  'energetic-mode': {
-    name: 'Energetic Mode',
-    description: 'High-energy mode with faster movements and vibrant colors',
-    actions: 5,
-    autoReverse: true
-  },
-  'calm-meditation': {
-    name: 'Calm Meditation',
-    description: 'Calming mode with slow movements and soothing colors',
-    actions: 6,
-    autoReverse: false
-  },
-  'focus-session': {
-    name: 'Focus Session',
-    description: 'Pomodoro-style focus mode with greeting and minimization',
-    actions: 5,
-    autoReverse: false
-  },
-  'party-mode': {
-    name: 'Party Mode',
-    description: 'Celebration mode with rapid color changes and energetic movement',
-    actions: 10,
-    autoReverse: false
-  }
-};
+// Note: skillDefinitions is declared earlier in the file (around line 2341) as window.skillDefinitions
+// to avoid temporal dead zone issues
 
 let skillsExecutedCount = 0;
 
@@ -4140,14 +4343,162 @@ async function initializeSkills() {
   }
 
   try {
-    // Load all predefined skills from templates
-    const skillIds = Object.keys(skillDefinitions);
+    // Register all predefined skills inline (avoiding external file dependencies)
+    const skillTemplates = {
+      'minimize-top-right': {
+        id: 'minimize-top-right',
+        name: 'Minimize to Top Right',
+        description: 'Minimizes Kwami and moves it to the top-right corner of the screen',
+        version: '1.0.0',
+        author: 'Kwami Team',
+        tags: ['position', 'scale', 'ui'],
+        trigger: 'manual',
+        autoReverse: false,
+        actions: [
+          { type: 'body.scale', preset: 'mini', duration: 800, easing: 'ease-in-out' },
+          { type: 'body.position', preset: 'top-right', duration: 800, easing: 'ease-in-out' }
+        ]
+      },
+      'rainbow-transition': {
+        id: 'rainbow-transition',
+        name: 'Rainbow Color Transition',
+        description: 'Cycles through rainbow colors with smooth transitions',
+        version: '1.0.0',
+        author: 'Kwami Team',
+        tags: ['colors', 'animation', 'visual'],
+        trigger: 'manual',
+        actions: [
+          {
+            type: 'sequence',
+            actions: [
+              { type: 'body.colors', primary: '#ff0000', secondary: '#ff7700', accent: '#ffff00', duration: 1000 },
+              { type: 'wait', duration: 500 },
+              { type: 'body.colors', primary: '#00ff00', secondary: '#00ff77', accent: '#00ffff', duration: 1000 },
+              { type: 'wait', duration: 500 },
+              { type: 'body.colors', primary: '#0000ff', secondary: '#7700ff', accent: '#ff00ff', duration: 1000 }
+            ]
+          }
+        ]
+      },
+      'energetic-mode': {
+        id: 'energetic-mode',
+        name: 'Energetic Mode',
+        description: 'Makes Kwami more energetic with faster movements and vibrant colors',
+        version: '1.0.0',
+        author: 'Kwami Team',
+        tags: ['mood', 'animation', 'personality'],
+        trigger: 'manual',
+        autoReverse: true,
+        reverseDelay: 5000,
+        actions: [
+          {
+            type: 'sequence',
+            parallel: true,
+            actions: [
+              { type: 'body.colors', primary: '#ff6b35', secondary: '#f7931e', accent: '#fdc300', duration: 500 },
+              { type: 'body.spikes', x: 0.8, y: 0.8, z: 0.8 },
+              { type: 'body.time', x: 3.0, y: 3.0, z: 3.0 },
+              { type: 'soul.trait', trait: 'energy', value: 80 },
+              { type: 'soul.trait', trait: 'happiness', value: 70 }
+            ]
+          }
+        ]
+      },
+      'calm-meditation': {
+        id: 'calm-meditation',
+        name: 'Calm Meditation Mode',
+        description: 'Creates a calm, meditative atmosphere with slow movements and soothing colors',
+        version: '1.0.0',
+        author: 'Kwami Team',
+        tags: ['mood', 'meditation', 'calm'],
+        trigger: 'manual',
+        actions: [
+          {
+            type: 'sequence',
+            parallel: true,
+            actions: [
+              { type: 'body.colors', primary: '#3a86ff', secondary: '#8338ec', accent: '#b8b8ff', duration: 2000 },
+              { type: 'body.spikes', x: 0.1, y: 0.1, z: 0.1 },
+              { type: 'body.time', x: 0.3, y: 0.3, z: 0.3 },
+              { type: 'body.rotation', x: 0.001, y: 0.002, z: 0.001 },
+              { type: 'soul.trait', trait: 'calmness', value: 90 },
+              { type: 'soul.trait', trait: 'patience', value: 85 }
+            ]
+          }
+        ]
+      },
+      'focus-session': {
+        id: 'focus-session',
+        name: 'Focus Session',
+        description: 'Pomodoro-style focus mode with greeting and minimization',
+        version: '1.0.0',
+        author: 'Kwami Team',
+        tags: ['productivity', 'focus', 'pomodoro'],
+        trigger: 'manual',
+        actions: [
+          {
+            type: 'sequence',
+            actions: [
+              { type: 'mind.speak', text: "Starting your focus session. I'll minimize myself to the corner so you can concentrate. Good luck!" },
+              { type: 'wait', duration: 2000 },
+              {
+                type: 'sequence',
+                parallel: true,
+                actions: [
+                  { type: 'body.scale', preset: 'mini', duration: 1000, easing: 'ease-in-out' },
+                  { type: 'body.position', preset: 'top-right', duration: 1000, easing: 'ease-in-out' },
+                  { type: 'body.colors', primary: '#667eea', secondary: '#764ba2', accent: '#f093fb', duration: 1000 }
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      'party-mode': {
+        id: 'party-mode',
+        name: 'Party Mode',
+        description: 'Celebration mode with rapid color changes and energetic movement',
+        version: '1.0.0',
+        author: 'Kwami Team',
+        tags: ['celebration', 'animation', 'fun'],
+        trigger: 'manual',
+        loop: false,
+        actions: [
+          {
+            type: 'sequence',
+            parallel: true,
+            actions: [
+              { type: 'body.scale', preset: 'large', duration: 500, easing: 'bounce' },
+              { type: 'body.spikes', x: 1.5, y: 1.5, z: 1.5 },
+              { type: 'body.time', x: 5.0, y: 5.0, z: 5.0 },
+              { type: 'body.rotation', x: 0.005, y: 0.008, z: 0.003 }
+            ]
+          },
+          {
+            type: 'sequence',
+            actions: [
+              { type: 'body.colors', primary: '#ff006e', secondary: '#8338ec', accent: '#ffbe0b', duration: 300 },
+              { type: 'body.colors', primary: '#3a86ff', secondary: '#ff006e', accent: '#06ffa5', duration: 300 },
+              { type: 'body.colors', primary: '#ffbe0b', secondary: '#fb5607', accent: '#ff006e', duration: 300 },
+              { type: 'body.colors', primary: '#06ffa5', secondary: '#3a86ff', accent: '#8338ec', duration: 300 }
+            ]
+          }
+        ]
+      }
+    };
+
+    // Register all skills
+    const skillIds = Object.keys(window.skillDefinitions);
     for (const skillId of skillIds) {
       try {
-        await kwami.skills.loadSkillFromUrl(`/src/core/mind/skills/templates/${skillId}.json`);
-        console.log(`[Skills] Loaded skill: ${skillId}`);
+        if (skillTemplates[skillId]) {
+          kwami.skills.registerSkill(skillTemplates[skillId]);
+          console.log(`[Skills] Registered skill: ${skillId}`);
+        } else {
+          console.warn(`[Skills] No template found for skill: ${skillId}`);
+        }
       } catch (error) {
-        console.warn(`[Skills] Failed to load skill ${skillId}:`, error);
+        console.warn(`[Skills] Failed to register skill ${skillId}:`, error);
       }
     }
 
@@ -4167,9 +4518,9 @@ window.addEventListener('DOMContentLoaded', () => {
       const executeBtn = document.getElementById('execute-skill-btn');
       const descriptionDiv = document.getElementById('skill-description');
       
-      if (selectedSkill && skillDefinitions[selectedSkill]) {
+      if (selectedSkill && window.skillDefinitions[selectedSkill]) {
         // Show description
-        const skill = skillDefinitions[selectedSkill];
+        const skill = window.skillDefinitions[selectedSkill];
         document.getElementById('skill-description-name').textContent = skill.name;
         document.getElementById('skill-description-text').textContent = skill.description;
         document.getElementById('skill-description-actions').textContent = skill.actions;
@@ -4202,7 +4553,7 @@ window.executeSelectedSkill = async function() {
   }
 
   try {
-    updateStatus(`⏳ Executing skill: ${skillDefinitions[selectedSkill]?.name || selectedSkill}...`);
+    updateStatus(`⏳ Executing skill: ${window.skillDefinitions[selectedSkill]?.name || selectedSkill}...`);
     
     const startTime = Date.now();
     const result = await kwami.skills.executeSkill(selectedSkill);
@@ -4225,7 +4576,7 @@ window.executeSelectedSkill = async function() {
         }, 5000);
       }
       
-      updateStatus(`✅ Skill completed: ${skillDefinitions[selectedSkill]?.name || selectedSkill}`);
+      updateStatus(`✅ Skill completed: ${window.skillDefinitions[selectedSkill]?.name || selectedSkill}`);
       
       // Update stats
       skillsExecutedCount++;
