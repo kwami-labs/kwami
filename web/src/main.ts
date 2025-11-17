@@ -1,41 +1,91 @@
 import './style.css';
 import { Kwami } from 'kwami';
 
-// Color palettes for different sections
+// Color palettes for different sections (16 sections)
 const colorPalettes = [
-  { primary: '#667eea', secondary: '#764ba2', accent: '#f093fb' }, // Purple gradient
-  { primary: '#ff6b6b', secondary: '#ee5a6f', accent: '#f093fb' }, // Red-pink
-  { primary: '#4ecdc4', secondary: '#44a08d', accent: '#96e6a1' }, // Teal-green
-  { primary: '#f7971e', secondary: '#ffd200', accent: '#ffeb3b' }, // Orange-yellow
-  { primary: '#667eea', secondary: '#f093fb', accent: '#c471ed' }, // Purple-pink
-  { primary: '#00b4db', secondary: '#0083b0', accent: '#667eea' }, // Blue gradient
+  { primary: '#667eea', secondary: '#764ba2', accent: '#f093fb' }, // 00 - Purple gradient
+  { primary: '#ff6b6b', secondary: '#ee5a6f', accent: '#f093fb' }, // 01 - Red-pink
+  { primary: '#4ecdc4', secondary: '#44a08d', accent: '#96e6a1' }, // 02 - Teal-green
+  { primary: '#f7971e', secondary: '#ffd200', accent: '#ffeb3b' }, // 03 - Orange-yellow
+  { primary: '#667eea', secondary: '#f093fb', accent: '#c471ed' }, // 04 - Purple-pink
+  { primary: '#00b4db', secondary: '#0083b0', accent: '#667eea' }, // 05 - Blue gradient
+  { primary: '#e94b3c', secondary: '#6a2c70', accent: '#f38181' }, // 06 - Red-purple
+  { primary: '#11998e', secondary: '#38ef7d', accent: '#a8e6cf' }, // 07 - Emerald
+  { primary: '#fc466b', secondary: '#3f5efb', accent: '#8e54e9' }, // 08 - Pink-blue
+  { primary: '#fdbb2d', secondary: '#22c1c3', accent: '#66d9e8' }, // 09 - Yellow-cyan
+  { primary: '#8e2de2', secondary: '#4a00e0', accent: '#b794f6' }, // 10 - Deep purple
+  { primary: '#ff9a56', secondary: '#ff6a88', accent: '#ffafbd' }, // 11 - Coral-pink
+  { primary: '#2af598', secondary: '#009efd', accent: '#7dd3fc' }, // 12 - Cyan-blue
+  { primary: '#f12711', secondary: '#f5af19', accent: '#fbbf24' }, // 13 - Fire gradient
+  { primary: '#9333ea', secondary: '#ec4899', accent: '#f472b6' }, // 14 - Purple-pink
+  { primary: '#14b8a6', secondary: '#0891b2', accent: '#22d3ee' }, // 15 - Teal-sky
 ];
 
-// Blob configurations for different sections
+// Blob configurations for different sections (16 sections)
 const blobConfigs = [
-  { // Section 0 - Circle (calm)
+  { // Section 00 - Circle (calm)
     spikeX: 0.2, spikeY: 0.2, spikeZ: 0.2,
     timeX: 5, timeY: 5, timeZ: 5
   },
-  { // Section 1 - Star-like (energetic)
+  { // Section 01 - Star-like (energetic)
     spikeX: 2.5, spikeY: 2.5, spikeZ: 2.5,
     timeX: 8, timeY: 8, timeZ: 8
   },
-  { // Section 2 - Squiggly (organic)
+  { // Section 02 - Squiggly (organic)
     spikeX: 5.0, spikeY: 3.0, spikeZ: 4.0,
     timeX: 10, timeY: 7, timeZ: 8
   },
-  { // Section 3 - Pulsing (alive)
+  { // Section 03 - Pulsing (alive)
     spikeX: 1.0, spikeY: 1.0, spikeZ: 1.0,
     timeX: 15, timeY: 15, timeZ: 15
   },
-  { // Section 4 - Spiral (dynamic)
+  { // Section 04 - Spiral (dynamic)
     spikeX: 8.0, spikeY: 2.0, spikeZ: 5.0,
     timeX: 12, timeY: 6, timeZ: 9
   },
-  { // Section 5 - Heart-like (soft)
+  { // Section 05 - Heart-like (soft)
     spikeX: 3.0, spikeY: 4.0, spikeZ: 2.5,
     timeX: 7, timeY: 9, timeZ: 6
+  },
+  { // Section 06 - Wavy (flowing)
+    spikeX: 4.0, spikeY: 4.0, spikeZ: 1.5,
+    timeX: 6, timeY: 6, timeZ: 10
+  },
+  { // Section 07 - Sharp (angular)
+    spikeX: 6.0, spikeY: 1.0, spikeZ: 6.0,
+    timeX: 8, timeY: 12, timeZ: 8
+  },
+  { // Section 08 - Bubble (soft)
+    spikeX: 0.8, spikeY: 0.8, spikeZ: 0.8,
+    timeX: 4, timeY: 4, timeZ: 4
+  },
+  { // Section 09 - Complex (intricate)
+    spikeX: 7.0, spikeY: 5.0, spikeZ: 3.0,
+    timeX: 11, timeY: 9, timeZ: 7
+  },
+  { // Section 10 - Slow wave (meditative)
+    spikeX: 2.0, spikeY: 3.0, spikeZ: 2.0,
+    timeX: 3, timeY: 3, timeZ: 3
+  },
+  { // Section 11 - Fast pulse (excited)
+    spikeX: 3.5, spikeY: 3.5, spikeZ: 3.5,
+    timeX: 18, timeY: 18, timeZ: 18
+  },
+  { // Section 12 - Asymmetric (unique)
+    spikeX: 9.0, spikeY: 2.5, spikeZ: 6.5,
+    timeX: 13, timeY: 5, timeZ: 9
+  },
+  { // Section 13 - Geometric (structured)
+    spikeX: 4.5, spikeY: 4.5, spikeZ: 0.5,
+    timeX: 7, timeY: 7, timeZ: 14
+  },
+  { // Section 14 - Gentle (smooth)
+    spikeX: 1.5, spikeY: 2.0, spikeZ: 1.5,
+    timeX: 6, timeY: 8, timeZ: 6
+  },
+  { // Section 15 - Celebration (dynamic)
+    spikeX: 5.5, spikeY: 5.5, spikeZ: 5.5,
+    timeX: 10, timeY: 10, timeZ: 10
   }
 ];
 
@@ -92,21 +142,30 @@ class ScrollManager {
 
       this.kwami = new Kwami(canvas, {
         body: {
+          initialSkin: 'Poles',
           blob: {
+            resolution: 180,
             spikes: { x: 0.2, y: 0.2, z: 0.2 },
-            time: { x: 5, y: 5, z: 5 },
-            rotation: { x: 0, y: 0.001, z: 0 },
+            time: { x: 1, y: 1, z: 1 },
+            rotation: { x: 0, y: 0, z: 0 },
             colors: {
-              x: '#667eea',
-              y: '#764ba2',
-              z: '#f093fb'
+              x: '#ff0066',
+              y: '#00ff66',
+              z: '#6600ff'
             }
           },
           scene: {
-            cameraPosition: { x: -0.9, y: 7.3, z: -1.8 }
+            cameraPosition: { x: -0.9, y: 7.3, z: -1.8 },
+            enableControls: true
           }
         }
       });
+
+      // Set blob scale to match playground
+      this.kwami.body.blob.setScale(4.0);
+
+      // Enable click interaction for touch effects
+      this.kwami.body.blob.setClickEnabled(true);
 
       console.log('✨ Kwami initialized successfully!');
       console.log('Kwami instance:', this.kwami);
@@ -264,9 +323,87 @@ document.querySelectorAll('a[href^="#"]').forEach(anchor => {
   });
 });
 
+// Tailwind colors at -500 tone ordered harmonically (by hue)
+const tailwindColors500Harmonic = [
+  '#ef4444', // red-500
+  '#f43f5e', // rose-500
+  '#ec4899', // pink-500
+  '#d946ef', // fuchsia-500
+  '#a855f7', // purple-500
+  '#8b5cf6', // violet-500
+  '#6366f1', // indigo-500
+  '#3b82f6', // blue-500
+  '#0ea5e9', // sky-500
+  '#06b6d4', // cyan-500
+  '#14b8a6', // teal-500
+  '#10b981', // emerald-500
+  '#22c55e', // green-500
+  '#84cc16', // lime-500
+  '#eab308', // yellow-500
+  '#f59e0b', // amber-500
+  '#f97316', // orange-500
+];
+
+// Get harmonic gradient for a section
+function getHarmonicGradient(sectionIndex: number) {
+  const totalColors = tailwindColors500Harmonic.length;
+  const totalSections = 16;
+  
+  // Calculate color indices for smooth progression
+  const baseIndex = Math.floor((sectionIndex / totalSections) * totalColors);
+  const color1Index = baseIndex % totalColors;
+  const color2Index = (baseIndex + 3) % totalColors;
+  const color3Index = (baseIndex + 6) % totalColors;
+  
+  return {
+    color1: tailwindColors500Harmonic[color1Index],
+    color2: tailwindColors500Harmonic[color2Index],
+    color3: tailwindColors500Harmonic[color3Index]
+  };
+}
+
+function applyHarmonicColorsToSection(sectionIndex: number) {
+  const gradient = getHarmonicGradient(sectionIndex);
+  const gradientStyle = `linear-gradient(135deg, ${gradient.color1}, ${gradient.color2}, ${gradient.color3})`;
+  
+  // Apply to section numbers
+  const sectionNumbers = document.querySelectorAll('.section-number');
+  if (sectionNumbers[sectionIndex]) {
+    const numberEl = sectionNumbers[sectionIndex] as HTMLElement;
+    numberEl.style.background = gradientStyle;
+    numberEl.style.backgroundSize = '200% 200%';
+    numberEl.style.webkitBackgroundClip = 'text';
+    numberEl.style.backgroundClip = 'text';
+    numberEl.style.webkitTextFillColor = 'transparent';
+  }
+  
+  // Apply to titles (h1/h2)
+  const sections = document.querySelectorAll('.text-section');
+  if (sections[sectionIndex]) {
+    const titleEl = sections[sectionIndex].querySelector('h1, h2') as HTMLElement;
+    if (titleEl) {
+      titleEl.style.background = gradientStyle;
+      titleEl.style.backgroundSize = '200% 200%';
+      titleEl.style.webkitBackgroundClip = 'text';
+      titleEl.style.backgroundClip = 'text';
+      titleEl.style.webkitTextFillColor = 'transparent';
+    }
+  }
+}
+
+function initializeAllSectionColors() {
+  const totalSections = document.querySelectorAll('.text-section').length;
+  for (let i = 0; i < totalSections; i++) {
+    applyHarmonicColorsToSection(i);
+  }
+}
+
 // Initialize
 document.addEventListener('DOMContentLoaded', () => {
   new ScrollManager();
+  
+  // Apply harmonic colors to all sections
+  initializeAllSectionColors();
 });
 
 // Add scroll indicator on first section
