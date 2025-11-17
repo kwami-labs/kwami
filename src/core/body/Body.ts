@@ -167,6 +167,11 @@ export class KwamiBody {
       ...config?.blob,
     });
 
+    // Apply initial position if provided in config
+    if (config?.blob?.position) {
+      this.blob.position.set(config.blob.position.x, config.blob.position.y);
+    }
+
     // Add blob to scene
     this.scene.add(this.blob.getMesh());
 

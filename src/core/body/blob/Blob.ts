@@ -16,6 +16,7 @@ import { createBlobGeometry } from './geometry';
 import { animateBlob } from './animation';
 import { createSkin } from './skins';
 import { defaultBlobConfig } from './config';
+import { BlobPosition } from './position';
 import {
   getRandomBetween,
   getRandomBoolean,
@@ -110,6 +111,9 @@ export class Blob {
   public dna = '';
   private backgroundTexture: Texture | null = null;
   private glassModeEnabled = false;
+  
+  // Position management system
+  public position: BlobPosition;
 
   constructor(private options: BlobOptions) {
     this.currentSkin = this.normalizeSkin(options.skin || 'tricolor');
@@ -143,10 +147,21 @@ export class Blob {
     this.updateMaterialOpacity(this.opacity);
     this.updateLightIntensityUniforms();
 
+    // Initialize position system
+    this.position = new BlobPosition(
+      this.mesh,
+      options.camera,
+      options.renderer.domElement as HTMLCanvasElement
+    );
+
     // Apply initial configuration
     if (options.spikes) this.spikes = options.spikes;
     if (options.time) this.time = options.time;
     if (options.rotation) this.rotation = options.rotation;
+    
+    // Apply initial position if provided in config
+    // Note: position config comes from the parent BlobConfig, not BlobOptions
+    // This will be handled by the Body class after blob creation
 
     // Start animation loop
     this.startAnimation();

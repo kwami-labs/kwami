@@ -1,7 +1,7 @@
 import './style.css';
 import { Kwami } from 'kwami';
 
-// Tailwind -500 colors ordered from top to bottom of color spectrum
+// Tailwind -500 colors ordered from top to bottom of color spectrum (28 colors)
 const tailwindColors500 = [
   '#ef4444', // red-500
   '#f97316', // orange-500
@@ -20,6 +20,17 @@ const tailwindColors500 = [
   '#d946ef', // fuchsia-500
   '#ec4899', // pink-500
   '#f43f5e', // rose-500
+  '#dc2626', // red-600 (deeper red)
+  '#ea580c', // orange-600
+  '#d97706', // amber-600
+  '#ca8a04', // yellow-600
+  '#65a30d', // lime-600
+  '#16a34a', // green-600
+  '#059669', // emerald-600
+  '#0d9488', // teal-600
+  '#0891b2', // cyan-600
+  '#0284c7', // sky-600
+  '#2563eb', // blue-600
 ];
 
 // Helper function to blend two hex colors for middle gradient
@@ -39,9 +50,9 @@ function blendColors(color1: string, color2: string): string {
   return `#${r.toString(16).padStart(2, '0')}${g.toString(16).padStart(2, '0')}${b.toString(16).padStart(2, '0')}`;
 }
 
-// Generate color palettes for 17 sections using sequential 2-color gradients
+// Generate color palettes for 28 sections using sequential 2-color gradients
 // Each section uses colors[i] and colors[i+1] with a blended middle color for Kwami
-const colorPalettes = tailwindColors500.slice(0, 17).map((color, index) => {
+const colorPalettes = tailwindColors500.map((color, index) => {
   const nextColor = tailwindColors500[(index + 1) % tailwindColors500.length];
   const middleColor = blendColors(color, nextColor);
   
@@ -52,7 +63,7 @@ const colorPalettes = tailwindColors500.slice(0, 17).map((color, index) => {
   };
 });
 
-// Blob configurations for different sections (23 sections)
+// Blob configurations for different sections (28 sections)
 const blobConfigs = [
   { // Section 00 - Circle (calm)
     spikeX: 0.2, spikeY: 0.2, spikeZ: 0.2,
@@ -145,39 +156,90 @@ const blobConfigs = [
   { // Section 22 - Celebration (dynamic)
     spikeX: 5.5, spikeY: 5.5, spikeZ: 5.5,
     timeX: 10, timeY: 10, timeZ: 10
+  },
+  { // Section 23 - Advanced rendering (sophisticated)
+    spikeX: 6.8, spikeY: 4.2, spikeZ: 5.5,
+    timeX: 17, timeY: 13, timeZ: 15
+  },
+  { // Section 24 - Future roadmap (progressive)
+    spikeX: 3.8, spikeY: 6.5, spikeZ: 4.8,
+    timeX: 19, timeY: 11, timeZ: 14
+  },
+  { // Section 25 - Learning resources (educational)
+    spikeX: 2.2, spikeY: 2.8, spikeZ: 2.5,
+    timeX: 8, timeY: 10, timeZ: 9
+  },
+  { // Section 26 - Premium features (refined)
+    spikeX: 7.8, spikeY: 6.8, spikeZ: 7.2,
+    timeX: 12, timeY: 14, timeZ: 13
+  },
+  { // Section 27 - Join revolution (explosive)
+    spikeX: 9.5, spikeY: 9.5, spikeZ: 9.5,
+    timeX: 16, timeY: 16, timeZ: 16
   }
 ];
 
-// Bottom Navigation Sphere Manager
-class BottomNavigator {
-  private sphere: HTMLElement | null = null;
-  private totalSections = 17;
-  private currentSection = 0;
+// Custom Cursor Light Manager
+class CursorLight {
+  private light: HTMLElement | null = null;
+  private isActive = false;
 
   constructor() {
-    this.sphere = document.getElementById('bottom-nav-sphere');
-    if (this.sphere) {
-      this.sphere.addEventListener('click', () => this.navigateToNext());
+    this.light = document.getElementById('cursor-light');
+    if (this.light) {
+      this.init();
     }
   }
 
-  private navigateToNext() {
-    const nextSection = (this.currentSection + 1) % this.totalSections;
-    const docHeight = document.documentElement.scrollHeight;
-    const sectionHeight = docHeight / this.totalSections;
-    const targetScroll = nextSection * sectionHeight;
-    
-    window.scrollTo({
-      top: targetScroll,
-      behavior: 'smooth'
+  private init() {
+    // Track mouse movement
+    document.addEventListener('mousemove', (e: MouseEvent) => {
+      if (this.light) {
+        this.light.style.left = `${e.clientX}px`;
+        this.light.style.top = `${e.clientY}px`;
+        
+        // Activate light on first movement
+        if (!this.isActive) {
+          this.isActive = true;
+          this.light.classList.add('active');
+        }
+      }
+    });
+
+    // Hide when mouse leaves window
+    document.addEventListener('mouseleave', () => {
+      if (this.light) {
+        this.light.classList.remove('active');
+        this.isActive = false;
+      }
+    });
+
+    // Show when mouse enters window
+    document.addEventListener('mouseenter', () => {
+      if (this.light && this.isActive) {
+        this.light.classList.add('active');
+      }
     });
   }
 
-  public updateColors(sectionIndex: number, palette: { primary: string, secondary: string, accent: string }) {
-    this.currentSection = sectionIndex;
-    if (this.sphere) {
-      // Apply gradient matching the current page colors
-      this.sphere.style.background = `radial-gradient(circle at 50% 30%, ${palette.accent}, ${palette.primary} 50%, ${palette.secondary})`;
+  public updateColors(palette: { primary: string, secondary: string, accent: string }) {
+    if (this.light) {
+      // Convert hex colors to rgba with transparency
+      const hexToRgba = (hex: string, alpha: number): string => {
+        const r = parseInt(hex.slice(1, 3), 16);
+        const g = parseInt(hex.slice(3, 5), 16);
+        const b = parseInt(hex.slice(5, 7), 16);
+        return `rgba(${r}, ${g}, ${b}, ${alpha})`;
+      };
+
+      // Update gradient colors dynamically based on current section
+      this.light.style.background = `radial-gradient(
+        circle at center,
+        ${hexToRgba(palette.primary, 0.25)} 0%,
+        ${hexToRgba(palette.secondary, 0.15)} 25%,
+        ${hexToRgba(palette.accent, 0.08)} 50%,
+        transparent 70%
+      )`;
     }
   }
 }
@@ -186,7 +248,9 @@ class BottomNavigator {
 class SidebarNavigator {
   private sphereElements: HTMLElement[] = [];
   private container: HTMLElement | null = null;
-  private totalSections = 17;
+  private totalSections = 28;
+  private scrollManager: ScrollManager | null = null;
+  private isAnimating = false;
 
   constructor() {
     this.container = document.getElementById('sphere-container');
@@ -195,10 +259,14 @@ class SidebarNavigator {
     }
   }
 
+  public setScrollManager(manager: ScrollManager) {
+    this.scrollManager = manager;
+  }
+
   private generateSpheres() {
     if (!this.container) return;
 
-    // Generate 17 sphere buttons
+    // Generate 28 sphere buttons
     for (let i = 0; i < this.totalSections; i++) {
       const sphere = document.createElement('button');
       sphere.className = 'nav-sphere';
@@ -209,12 +277,35 @@ class SidebarNavigator {
       const palette = colorPalettes[i];
       sphere.style.background = `linear-gradient(135deg, ${palette.primary}, ${palette.secondary})`;
       
-      // Add click handler for navigation
-      sphere.addEventListener('click', () => this.navigateToSection(i));
+      // Add click handler for navigation with animated color transitions
+      sphere.addEventListener('click', () => this.navigateToSectionAnimated(i));
       
       this.sphereElements.push(sphere);
       this.container!.appendChild(sphere);
     }
+  }
+
+  private async navigateToSectionAnimated(targetSection: number) {
+    if (this.isAnimating || !this.scrollManager) return;
+    
+    const currentSection = this.scrollManager.getCurrentSection();
+    if (currentSection === targetSection) return;
+    
+    this.isAnimating = true;
+    const docHeight = document.documentElement.scrollHeight;
+    const sectionHeight = docHeight / this.totalSections;
+    const targetScroll = targetSection * sectionHeight;
+    
+    // Single smooth scroll through all pages - let the scroll event handler update colors
+    window.scrollTo({
+      top: targetScroll,
+      behavior: 'smooth'
+    });
+    
+    // Reset animation flag after scroll completes
+    setTimeout(() => {
+      this.isAnimating = false;
+    }, 1000);
   }
 
   private navigateToSection(sectionIndex: number) {
@@ -257,23 +348,36 @@ class ScrollManager {
   private root: HTMLElement;
   private isTransitioning = false;
   private sidebarNav: SidebarNavigator;
-  private bottomNav: BottomNavigator;
+  private cursorLight: CursorLight;
+  private recognition: any = null;
+  private isListening = false;
 
   constructor() {
     this.sections = document.querySelectorAll('.text-section');
     this.root = document.documentElement;
     this.sidebarNav = new SidebarNavigator();
-    this.bottomNav = new BottomNavigator();
+    this.cursorLight = new CursorLight();
+    
+    // Pass reference to ScrollManager so SidebarNavigator can access current section
+    this.sidebarNav.setScrollManager(this);
     
     this.init();
     window.addEventListener('scroll', this.handleScroll.bind(this));
     this.handleScroll(); // Initial call
   }
 
+  public getCurrentSection(): number {
+    return this.currentSection;
+  }
+
+  public getKwami(): Kwami | null {
+    return this.kwami;
+  }
+
   private async init() {
     // Set initial colors
     this.updateColors(0);
-    this.bottomNav.updateColors(0, colorPalettes[0]);
+    this.cursorLight.updateColors(colorPalettes[0]);
     
     // Initialize Kwami
     try {
@@ -332,6 +436,7 @@ class ScrollManager {
       // Position blob more to the right (desktop only)
       const blobMesh = this.kwami.body.blob.getMesh();
       const isMobile = window.innerWidth <= 1024;
+      // Use direct world coordinates - x:8 positions it in center of right half
       blobMesh.position.set(isMobile ? 0 : 8, 0, 0);
 
       // Enable auto-rotation on Y-axis only (rotates in place)
@@ -346,17 +451,19 @@ class ScrollManager {
       window.addEventListener('resize', () => {
         const mobile = window.innerWidth <= 1024;
         blobMesh.position.set(mobile ? 0 : 8, 0, 0);
-        this.kwami.body.blob.setScale(mobile ? 3.5 : 5.5);
+        this.kwami?.body.blob.setScale(mobile ? 4.0 : 6.0);
       });
 
       // Enable click interaction for touch effects
-      this.kwami.body.blob.enableClickInteraction();
+      this.kwami?.body.blob.enableClickInteraction();
+
+      // Setup voice recognition for "kwami" keyword
+      this.setupVoiceRecognition(canvas);
 
       // Add double-click handler to randomize blob
       canvas.addEventListener('dblclick', () => {
         if (this.kwami?.body) {
-          this.kwami.body.randomizeBlob();
-          console.log('🎲 Blob randomized!');
+          this.performFullRandomization();
         }
       });
 
@@ -410,7 +517,7 @@ class ScrollManager {
       this.updateColors(section);
       this.updateKwamiConfig(section);
       this.sidebarNav.updateSphereColors(section);
-      this.bottomNav.updateColors(section, palette);
+      this.cursorLight.updateColors(palette);
     }
 
     // Add random color variations
@@ -425,22 +532,6 @@ class ScrollManager {
         sec.classList.remove('active');
       }
     });
-    
-    // Update bottom sphere with next section's color
-    this.updateBottomSphereColor(section);
-  }
-
-  private updateBottomSphereColor(currentSection: number) {
-    const bottomSphere = document.getElementById('bottom-nav-sphere');
-    if (!bottomSphere) return;
-
-    // Get next section (or first section if on last page)
-    const nextSection = (currentSection + 1) % this.sections.length;
-    const nextPalette = colorPalettes[nextSection];
-
-    // Update sphere color
-    const gradient = `radial-gradient(circle at 30% 30%, ${nextPalette.secondary}, ${nextPalette.primary})`;
-    (bottomSphere as HTMLElement).style.background = gradient;
   }
 
   private updateColors(section: number) {
@@ -467,14 +558,130 @@ class ScrollManager {
       // Update colors
       this.kwami.body.blob.setColors(palette.primary, palette.secondary, palette.accent);
 
-      // Small delay before allowing next transition
+      // Much shorter delay for smooth transitions
       setTimeout(() => {
         this.isTransitioning = false;
-      }, 800);
+      }, 100);
     } catch (error) {
       console.error('Error updating Kwami config:', error);
       this.isTransitioning = false;
     }
+  }
+
+  private setupVoiceRecognition(canvas: HTMLCanvasElement) {
+    // Check if browser supports speech recognition
+    const SpeechRecognition = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
+    
+    if (!SpeechRecognition) {
+      console.warn('⚠️ Speech recognition not supported in this browser');
+      return;
+    }
+
+    this.recognition = new SpeechRecognition();
+    this.recognition.continuous = true;
+    this.recognition.interimResults = true;
+    this.recognition.lang = 'en-US';
+
+    this.recognition.onresult = (event: any) => {
+      const transcript = Array.from(event.results)
+        .map((result: any) => result[0])
+        .map((result: any) => result.transcript)
+        .join('');
+
+      console.log('🎤 Heard:', transcript);
+
+      // Check if "kwami" was said
+      if (transcript.toLowerCase().includes('kwami')) {
+        console.log('✨ "Kwami" detected! Randomizing blob...');
+        this.randomizeBlobAndSkin();
+      }
+    };
+
+    this.recognition.onerror = (event: any) => {
+      console.error('Speech recognition error:', event.error);
+      this.isListening = false;
+    };
+
+    this.recognition.onend = () => {
+      console.log('🎤 Listening stopped');
+      this.isListening = false;
+    };
+
+    // Add click handler to start/stop listening
+    canvas.addEventListener('click', (e: MouseEvent) => {
+      // Ignore if it's part of a double-click
+      if (e.detail === 2) return;
+
+      if (this.isListening) {
+        this.stopListening();
+      } else {
+        this.startListening();
+      }
+    });
+  }
+
+  private startListening() {
+    if (!this.recognition) {
+      console.warn('⚠️ Speech recognition not available');
+      return;
+    }
+
+    try {
+      this.recognition.start();
+      this.isListening = true;
+      console.log('🎤 Started listening for "kwami"...');
+      
+      // Visual feedback: change blob state to listening
+      if (this.kwami) {
+        this.kwami.setState('listening');
+      }
+    } catch (error) {
+      console.error('Error starting recognition:', error);
+    }
+  }
+
+  private stopListening() {
+    if (!this.recognition) return;
+
+    try {
+      this.recognition.stop();
+      this.isListening = false;
+      console.log('🛑 Stopped listening');
+      
+      // Return to idle state
+      if (this.kwami) {
+        this.kwami.setState('idle');
+      }
+    } catch (error) {
+      console.error('Error stopping recognition:', error);
+    }
+  }
+
+  private performFullRandomization() {
+    if (!this.kwami) return;
+
+    // Randomize blob shape and colors
+    this.kwami.body.randomizeBlob();
+    
+    // Also randomize skin type exactly like the playground
+    // Skin distribution: Donut (50%), Poles (40%), Vintage (10%)
+    const skinTypes = [
+      'Donut', 'Donut', 'Donut', 'Donut', 'Donut',  // 50%
+      'Poles', 'Poles', 'Poles', 'Poles',            // 40%
+      'Vintage'                                      // 10%
+    ];
+    const randomSkin = skinTypes[Math.floor(Math.random() * skinTypes.length)];
+    this.kwami.body.blob.setSkin(randomSkin);
+    
+    console.log(`🎲 Blob randomized with ${randomSkin} skin!`);
+  }
+
+  private randomizeBlobAndSkin() {
+    // Perform full randomization
+    this.performFullRandomization();
+    
+    // Stop listening after detecting "kwami"
+    this.stopListening();
   }
 
   private addColorVariations(progress: number) {
@@ -588,8 +795,11 @@ class ModeSwitcher {
 
 // Initialize
 document.addEventListener('DOMContentLoaded', () => {
-  new ScrollManager();
+  const scrollManager = new ScrollManager();
   new ModeSwitcher();
+  
+  // Make scrollManager accessible globally for music functions
+  (window as any).scrollManager = scrollManager;
 });
 
 // Add scroll indicator on first section
@@ -606,10 +816,156 @@ window.addEventListener('scroll', () => {
   }
 });
 
+// Music files from assets/aud/music/
+// Note: Files are copied to web/public/music/ for easier serving
+const MUSIC_FILES = [
+  '/music/habits.mp3',  // Tove Lo - Habits (Stay High) - Hippie Sabotage Remix
+  // Add more music files here as they're added to the assets folder
+];
+
+// Music player state
+let currentMusicIndex = -1;
+let isPlaying = false;
+
+// Bottom tabs functionality
+document.querySelectorAll('.tab-btn').forEach(button => {
+  button.addEventListener('click', async function(this: HTMLButtonElement) {
+    // Remove active class from all tabs
+    document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+    
+    // Add active class to clicked tab
+    this.classList.add('active');
+    
+    // Get tab type
+    const tabType = this.getAttribute('data-tab');
+    console.log(`🎵 Switched to ${tabType} tab`);
+    
+    // Handle Music tab
+    if (tabType === 'music') {
+      await playRandomMusic();
+    } else if (tabType === 'voice') {
+      // Stop music when switching to voice mode
+      stopMusic();
+    } else if (tabType === 'video') {
+      // Stop music when switching to video mode
+      stopMusic();
+    }
+  });
+});
+
+// Play random music function
+async function playRandomMusic() {
+  console.log('🎵 playRandomMusic() called');
+  
+  if (MUSIC_FILES.length === 0) {
+    console.warn('⚠️ No music files available');
+    return;
+  }
+
+  const scrollManager = (window as any).scrollManager;
+  console.log('ScrollManager:', scrollManager);
+  
+  const kwami = scrollManager?.getKwami();
+  console.log('Kwami instance:', kwami);
+  
+  if (!kwami) {
+    console.warn('⚠️ Kwami not initialized yet');
+    return;
+  }
+
+  if (!kwami.body?.audio) {
+    console.error('⚠️ Kwami audio system not available');
+    return;
+  }
+
+  try {
+    // Pick a random song (different from current if possible)
+    let newIndex;
+    if (MUSIC_FILES.length === 1) {
+      newIndex = 0;
+    } else {
+      do {
+        newIndex = Math.floor(Math.random() * MUSIC_FILES.length);
+      } while (newIndex === currentMusicIndex && MUSIC_FILES.length > 1);
+    }
+    
+    currentMusicIndex = newIndex;
+    const selectedSong = MUSIC_FILES[newIndex];
+    const songName = selectedSong.split('/').pop()?.replace('.mp3', '') || 'Unknown';
+    
+    console.log(`🎵 Loading: ${songName}`);
+    console.log(`🎵 File path: ${selectedSong}`);
+    
+    // Fetch the audio file as an ArrayBuffer
+    console.log('🎵 Fetching audio file...');
+    const response = await fetch(selectedSong);
+    console.log('🎵 Response status:', response.status, response.statusText);
+    console.log('🎵 Response headers:', response.headers.get('content-type'));
+    
+    if (!response.ok) {
+      throw new Error(`Failed to fetch audio: ${response.status} ${response.statusText}`);
+    }
+    
+    const arrayBuffer = await response.arrayBuffer();
+    console.log('🎵 ArrayBuffer size:', arrayBuffer.byteLength, 'bytes');
+    
+    // Load the audio using ArrayBuffer method
+    await kwami.body.audio.loadAudio(arrayBuffer);
+    console.log('🎵 Audio loaded into Kwami');
+    
+    // Play the audio
+    console.log('🎵 Starting playback...');
+    await kwami.body.audio.play();
+    
+    // Set blob to speaking state for audio reactivity
+    kwami.setState('speaking');
+    isPlaying = true;
+    
+    console.log(`✅ Now playing: ${songName}`);
+    
+    // Listen for when song ends
+    const audioElement = kwami.body.audio.getAudioElement();
+    audioElement.addEventListener('ended', () => {
+      console.log('🎵 Song ended');
+      kwami.setState('idle');
+      isPlaying = false;
+    }, { once: true });
+    
+    // Also listen for errors
+    audioElement.addEventListener('error', (e) => {
+      console.error('🎵 Audio element error:', e);
+      kwami.setState('idle');
+      isPlaying = false;
+    }, { once: true });
+    
+  } catch (error) {
+    console.error('❌ Failed to play music:', error);
+    if (error instanceof Error) {
+      console.error('Error details:', error.message, error.stack);
+    }
+  }
+}
+
+// Stop music function
+function stopMusic() {
+  const scrollManager = (window as any).scrollManager;
+  const kwami = scrollManager?.getKwami();
+  
+  if (kwami && isPlaying) {
+    kwami.body.audio.pause();
+    kwami.setState('idle');
+    isPlaying = false;
+    console.log('🛑 Music stopped');
+  }
+}
+
 // Console message
 console.log(`
   🎨 Kwami - Interactive AI Companion
   👻 https://github.com/alexcolls/kwami
   
   Tip: Scroll to see the real Kwami blob morph!
+  Tip: Double-click the blob to randomize it! 🎲
+  Tip: Click the blob to start listening, then say "kwami" to randomize! 🎤
+  Tip: Click the Music tab to play a random song! 🎵
 `);

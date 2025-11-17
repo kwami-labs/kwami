@@ -83,6 +83,7 @@ export interface BlobConfig {
   colors?: { x: string; y: string; z: string };
   shininess?: number;
   wireframe?: boolean;
+  position?: { x: number; y: number }; // Normalized position (0-1), default is (0.5, 0.5) - center
 }
 
 /**
