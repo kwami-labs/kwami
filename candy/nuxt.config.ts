@@ -2,6 +2,11 @@
 export default defineNuxtConfig({
   compatibilityDate: '2025-07-15',
   devtools: { enabled: true },
+
+  // Avoid dev manifest fetch 404s
+  experimental: {
+    appManifest: false,
+  },
   
   // Disable SSR for Web3 compatibility
   ssr: false,
@@ -49,15 +54,20 @@ export default defineNuxtConfig({
   vite: {
     define: {
       'process.env': {},
+      global: 'globalThis',
+    },
+    resolve: {
+      alias: {
+        buffer: 'buffer',
+      },
     },
     optimizeDeps: {
-      include: [
-        '@solana/web3.js',
-        '@solana/wallet-adapter-base',
-        '@coral-xyz/anchor',
-      ],
+      exclude: ['@solana/web3.js', '@coral-xyz/anchor'],
       esbuildOptions: {
         target: 'esnext',
+        define: {
+          global: 'globalThis',
+        },
       }
     },
     build: {

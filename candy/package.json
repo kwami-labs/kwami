@@ -30,20 +30,26 @@
     "@vueuse/core": "^10.11.0",
     "@vueuse/nuxt": "^10.11.0",
     "bs58": "^5.0.0",
+    "buffer": "^6.0.3",
     "crypto-js": "^4.2.0",
     "nuxt": "^4.2.1",
     "pinia": "^2.1.7",
+    "process": "^0.11.10",
     "socket.io": "^4.8.1",
     "socket.io-client": "^4.8.1",
+    "stream-browserify": "^3.0.0",
     "three": "^0.169.0",
     "typescript": "^5.6.3",
+    "util": "^0.12.5",
     "vue": "^3.5.24",
     "vue-router": "^4.6.3"
   },
   "devDependencies": {
+    "@rollup/plugin-commonjs": "^29.0.0",
     "@types/crypto-js": "^4.2.2",
     "@types/three": "^0.169.0",
     "eslint": "^9.12.0",
+    "vite-plugin-node-polyfills": "^0.24.0",
     "vue-tsc": "^2.1.6"
   },
   "engines": {
