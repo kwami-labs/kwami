@@ -1,0 +1,87 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>👻</text></svg>" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Kwami - Your Interactive AI Companion</title>
+  </head>
+  <body>
+    <div id="app">
+      <!-- Left half: Animated text content -->
+      <div class="content-left">
+        <div class="text-section" data-section="0">
+          <h1 class="animate-text">Meet Kwami</h1>
+          <p class="animate-text delay-1">Your interactive 3D AI companion</p>
+          <p class="animate-text delay-2">Scroll down to discover more →</p>
+        </div>
+
+        <div class="text-section" data-section="1">
+          <h2 class="animate-text">🧠 Mind</h2>
+          <p class="animate-text delay-1">Powered by conversational AI agents</p>
+          <p class="animate-text delay-2">ElevenLabs integration for natural voice interactions</p>
+          <p class="animate-text delay-3">Customizable personality and behavior</p>
+        </div>
+
+        <div class="text-section" data-section="2">
+          <h2 class="animate-text">🧬 Body</h2>
+          <p class="animate-text delay-1">Beautiful 3D blob with morphing animations</p>
+          <p class="animate-text delay-2">Audio-reactive visualizations</p>
+          <p class="animate-text delay-3">Customizable colors, textures, and materials</p>
+        </div>
+
+        <div class="text-section" data-section="3">
+          <h2 class="animate-text">✨ Soul</h2>
+          <p class="animate-text delay-1">Deep personality configuration</p>
+          <p class="animate-text delay-2">Emotional traits and characteristics</p>
+          <p class="animate-text delay-3">Multiple personality templates to choose from</p>
+        </div>
+
+        <div class="text-section" data-section="4">
+          <h2 class="animate-text">🎨 Customization</h2>
+          <p class="animate-text delay-1">Fine-tune every visual parameter</p>
+          <p class="animate-text delay-2">Real-time preview of changes</p>
+          <p class="animate-text delay-3">Export your creation as GLB</p>
+        </div>
+
+        <div class="text-section" data-section="5">
+          <h2 class="animate-text">🚀 Get Started</h2>
+          <p class="animate-text delay-1">Open source and ready to use</p>
+          <p class="animate-text delay-2">Available on npm, deno, and bun</p>
+          <div class="cta-section animate-text delay-3">
+            <a href="https://github.com/alexcolls/kwami" target="_blank" class="cta-button">
+              View on GitHub
+            </a>
+            <a href="https://www.npmjs.com/package/kwami" target="_blank" class="cta-button secondary">
+              npm install kwami
+            </a>
+          </div>
+        </div>
+      </div>
+
+      <!-- Right half: Animated Kwami -->
+      <div class="content-right">
+        <svg id="kwami-svg" width="400" height="400" viewBox="0 0 400 400">
+          <defs>
+            <linearGradient id="kwami-gradient" x1="0%" y1="0%" x2="100%" y2="100%">
+              <stop offset="0%" class="stop1" />
+              <stop offset="50%" class="stop2" />
+              <stop offset="100%" class="stop3" />
+            </linearGradient>
+            <filter id="goo">
+              <feGaussianBlur in="SourceGraphic" stdDeviation="10" result="blur" />
+              <feColorMatrix in="blur" mode="matrix" values="1 0 0 0 0  0 1 0 0 0  0 0 1 0 0  0 0 0 19 -9" result="goo" />
+              <feComposite in="SourceGraphic" in2="goo" operator="atop"/>
+            </filter>
+          </defs>
+          <g id="kwami-blob" filter="url(#goo)">
+            <!-- Blob circles will be generated here -->
+          </g>
+        </svg>
+        <div class="kwami-label">Kwami</div>
+      </div>
+    </div>
+    
+    <script type="module" src="/src/main.ts"></script>
+  </body>
+</html>
