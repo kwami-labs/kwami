@@ -14,6 +14,22 @@
           <h1 class="animate-text">Meet Kwami</h1>
           <p class="animate-text delay-1">Your interactive 3D AI companion</p>
           <p class="animate-text delay-2">Scroll down to discover more →</p>
+          
+          <!-- Small SVG Logo at bottom -->
+          <div class="logo-small animate-text delay-3">
+            <svg width="100" height="100" viewBox="0 0 400 400">
+              <defs>
+                <linearGradient id="logo-gradient-0" x1="0%" y1="0%" x2="100%" y2="100%">
+                  <stop offset="0%" class="logo-stop1" />
+                  <stop offset="50%" class="logo-stop2" />
+                  <stop offset="100%" class="logo-stop3" />
+                </linearGradient>
+              </defs>
+              <g class="logo-blob">
+                <circle cx="200" cy="200" r="80" fill="url(#logo-gradient-0)" />
+              </g>
+            </svg>
+          </div>
         </div>
 
         <div class="text-section" data-section="1">
@@ -21,6 +37,19 @@
           <p class="animate-text delay-1">Powered by conversational AI agents</p>
           <p class="animate-text delay-2">ElevenLabs integration for natural voice interactions</p>
           <p class="animate-text delay-3">Customizable personality and behavior</p>
+          
+          <div class="logo-small animate-text delay-3">
+            <svg width="100" height="100" viewBox="0 0 400 400">
+              <defs>
+                <linearGradient id="logo-gradient-1" x1="0%" y1="0%" x2="100%" y2="100%">
+                  <stop offset="0%" class="logo-stop1" />
+                  <stop offset="50%" class="logo-stop2" />
+                  <stop offset="100%" class="logo-stop3" />
+                </linearGradient>
+              </defs>
+              <circle cx="200" cy="200" r="80" fill="url(#logo-gradient-1)" />
+            </svg>
+          </div>
         </div>
 
         <div class="text-section" data-section="2">
@@ -28,6 +57,19 @@
           <p class="animate-text delay-1">Beautiful 3D blob with morphing animations</p>
           <p class="animate-text delay-2">Audio-reactive visualizations</p>
           <p class="animate-text delay-3">Customizable colors, textures, and materials</p>
+          
+          <div class="logo-small animate-text delay-3">
+            <svg width="100" height="100" viewBox="0 0 400 400">
+              <defs>
+                <linearGradient id="logo-gradient-2" x1="0%" y1="0%" x2="100%" y2="100%">
+                  <stop offset="0%" class="logo-stop1" />
+                  <stop offset="50%" class="logo-stop2" />
+                  <stop offset="100%" class="logo-stop3" />
+                </linearGradient>
+              </defs>
+              <circle cx="200" cy="200" r="80" fill="url(#logo-gradient-2)" />
+            </svg>
+          </div>
         </div>
 
         <div class="text-section" data-section="3">
@@ -35,6 +77,19 @@
           <p class="animate-text delay-1">Deep personality configuration</p>
           <p class="animate-text delay-2">Emotional traits and characteristics</p>
           <p class="animate-text delay-3">Multiple personality templates to choose from</p>
+          
+          <div class="logo-small animate-text delay-3">
+            <svg width="100" height="100" viewBox="0 0 400 400">
+              <defs>
+                <linearGradient id="logo-gradient-3" x1="0%" y1="0%" x2="100%" y2="100%">
+                  <stop offset="0%" class="logo-stop1" />
+                  <stop offset="50%" class="logo-stop2" />
+                  <stop offset="100%" class="logo-stop3" />
+                </linearGradient>
+              </defs>
+              <circle cx="200" cy="200" r="80" fill="url(#logo-gradient-3)" />
+            </svg>
+          </div>
         </div>
 
         <div class="text-section" data-section="4">
@@ -42,6 +97,19 @@
           <p class="animate-text delay-1">Fine-tune every visual parameter</p>
           <p class="animate-text delay-2">Real-time preview of changes</p>
           <p class="animate-text delay-3">Export your creation as GLB</p>
+          
+          <div class="logo-small animate-text delay-3">
+            <svg width="100" height="100" viewBox="0 0 400 400">
+              <defs>
+                <linearGradient id="logo-gradient-4" x1="0%" y1="0%" x2="100%" y2="100%">
+                  <stop offset="0%" class="logo-stop1" />
+                  <stop offset="50%" class="logo-stop2" />
+                  <stop offset="100%" class="logo-stop3" />
+                </linearGradient>
+              </defs>
+              <circle cx="200" cy="200" r="80" fill="url(#logo-gradient-4)" />
+            </svg>
+          </div>
         </div>
 
         <div class="text-section" data-section="5">
@@ -56,28 +124,25 @@
               npm install kwami
             </a>
           </div>
+          
+          <div class="logo-small animate-text delay-3">
+            <svg width="100" height="100" viewBox="0 0 400 400">
+              <defs>
+                <linearGradient id="logo-gradient-5" x1="0%" y1="0%" x2="100%" y2="100%">
+                  <stop offset="0%" class="logo-stop1" />
+                  <stop offset="50%" class="logo-stop2" />
+                  <stop offset="100%" class="logo-stop3" />
+                </linearGradient>
+              </defs>
+              <circle cx="200" cy="200" r="80" fill="url(#logo-gradient-5)" />
+            </svg>
+          </div>
         </div>
       </div>
 
-      <!-- Right half: Animated Kwami -->
+      <!-- Right half: Real Kwami Blob -->
       <div class="content-right">
-        <svg id="kwami-svg" width="400" height="400" viewBox="0 0 400 400">
-          <defs>
-            <linearGradient id="kwami-gradient" x1="0%" y1="0%" x2="100%" y2="100%">
-              <stop offset="0%" class="stop1" />
-              <stop offset="50%" class="stop2" />
-              <stop offset="100%" class="stop3" />
-            </linearGradient>
-            <filter id="goo">
-              <feGaussianBlur in="SourceGraphic" stdDeviation="10" result="blur" />
-              <feColorMatrix in="blur" mode="matrix" values="1 0 0 0 0  0 1 0 0 0  0 0 1 0 0  0 0 0 19 -9" result="goo" />
-              <feComposite in="SourceGraphic" in2="goo" operator="atop"/>
-            </filter>
-          </defs>
-          <g id="kwami-blob" filter="url(#goo)">
-            <!-- Blob circles will be generated here -->
-          </g>
-        </svg>
+        <div id="kwami-container"></div>
         <div class="kwami-label">Kwami</div>
       </div>
     </div>

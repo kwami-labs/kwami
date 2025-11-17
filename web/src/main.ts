@@ -1,4 +1,5 @@
 import './style.css';
+import { Kwami } from 'kwami';
 
 // Color palettes for different sections
 const colorPalettes = [
@@ -10,136 +11,88 @@ const colorPalettes = [
   { primary: '#00b4db', secondary: '#0083b0', accent: '#667eea' }, // Blue gradient
 ];
 
-// Kwami blob configuration
-interface BlobCircle {
-  x: number;
-  y: number;
-  radius: number;
-  element: SVGCircleElement;
-}
-
-class KwamiBlob {
-  private circles: BlobCircle[] = [];
-  private blobGroup: SVGGElement;
-  private numCircles = 8;
-  private baseRadius = 80;
-  private centerX = 200;
-  private centerY = 200;
-  private time = 0;
-  private animationFrame: number | null = null;
-
-  constructor() {
-    const blobElement = document.getElementById('kwami-blob');
-    if (!blobElement) {
-      throw new Error('Kwami blob element not found');
-    }
-    this.blobGroup = blobElement as unknown as SVGGElement;
-    this.init();
-    this.animate();
+// Blob configurations for different sections
+const blobConfigs = [
+  { // Section 0 - Circle (calm)
+    spikeX: 0.2, spikeY: 0.2, spikeZ: 0.2,
+    timeX: 5, timeY: 5, timeZ: 5
+  },
+  { // Section 1 - Star-like (energetic)
+    spikeX: 2.5, spikeY: 2.5, spikeZ: 2.5,
+    timeX: 8, timeY: 8, timeZ: 8
+  },
+  { // Section 2 - Squiggly (organic)
+    spikeX: 5.0, spikeY: 3.0, spikeZ: 4.0,
+    timeX: 10, timeY: 7, timeZ: 8
+  },
+  { // Section 3 - Pulsing (alive)
+    spikeX: 1.0, spikeY: 1.0, spikeZ: 1.0,
+    timeX: 15, timeY: 15, timeZ: 15
+  },
+  { // Section 4 - Spiral (dynamic)
+    spikeX: 8.0, spikeY: 2.0, spikeZ: 5.0,
+    timeX: 12, timeY: 6, timeZ: 9
+  },
+  { // Section 5 - Heart-like (soft)
+    spikeX: 3.0, spikeY: 4.0, spikeZ: 2.5,
+    timeX: 7, timeY: 9, timeZ: 6
   }
-
-  private init() {
-    // Create blob circles
-    for (let i = 0; i < this.numCircles; i++) {
-      const angle = (i / this.numCircles) * Math.PI * 2;
-      const distance = this.baseRadius;
-      const x = this.centerX + Math.cos(angle) * distance;
-      const y = this.centerY + Math.sin(angle) * distance;
-
-      const circle = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
-      circle.setAttribute('cx', x.toString());
-      circle.setAttribute('cy', y.toString());
-      circle.setAttribute('r', '60');
-      circle.setAttribute('fill', 'url(#kwami-gradient)');
-      circle.classList.add('blob-circle');
-
-      this.blobGroup.appendChild(circle);
-      this.circles.push({ x, y, radius: 60, element: circle });
-    }
-  }
-
-  public updateShape(scrollProgress: number, section: number) {
-    // Change blob shape based on scroll and section
-    const morphFactor = Math.sin(scrollProgress * Math.PI * 2) * 0.3;
-    const sectionOffset = section * 0.5;
-
-    this.circles.forEach((circle, i) => {
-      const angle = (i / this.numCircles) * Math.PI * 2 + sectionOffset;
-      
-      // Create different shapes for different sections
-      let distance = this.baseRadius;
-      const radiusVariation = 60;
-
-      switch (section) {
-        case 0: // Circle
-          distance = this.baseRadius;
-          circle.radius = radiusVariation;
-          break;
-        case 1: // Star-like
-          distance = this.baseRadius + (i % 2 === 0 ? 30 : -20) + morphFactor * 20;
-          circle.radius = radiusVariation + (i % 2 === 0 ? 10 : -10);
-          break;
-        case 2: // Squiggly
-          distance = this.baseRadius + Math.sin(angle * 3) * 25;
-          circle.radius = radiusVariation + Math.cos(angle * 2) * 15;
-          break;
-        case 3: // Pulsing
-          distance = this.baseRadius + Math.sin(this.time * 2 + i) * 20;
-          circle.radius = radiusVariation + Math.cos(this.time * 3 + i) * 10;
-          break;
-        case 4: // Spiral
-          distance = this.baseRadius + i * 8 + morphFactor * 30;
-          circle.radius = radiusVariation - i * 3;
-          break;
-        case 5: // Heart-like
-          const t = angle;
-          distance = this.baseRadius * (0.8 + 0.2 * Math.sin(t) * Math.cos(t));
-          circle.radius = radiusVariation + Math.sin(t * 2) * 10;
-          break;
-      }
-
-      circle.x = this.centerX + Math.cos(angle) * distance;
-      circle.y = this.centerY + Math.sin(angle) * distance;
-
-      // Apply positions
-      circle.element.setAttribute('cx', circle.x.toString());
-      circle.element.setAttribute('cy', circle.y.toString());
-      circle.element.setAttribute('r', circle.radius.toString());
-    });
-  }
-
-  private animate = () => {
-    this.time += 0.02;
-    this.animationFrame = requestAnimationFrame(this.animate);
-  };
-
-  public destroy() {
-    if (this.animationFrame) {
-      cancelAnimationFrame(this.animationFrame);
-    }
-  }
-}
+];
 
 // Main scroll handler
 class ScrollManager {
   private sections: NodeListOf<Element>;
   private currentSection = 0;
-  private kwamiBlob: KwamiBlob;
+  private kwami: Kwami | null = null;
   private root: HTMLElement;
+  private isTransitioning = false;
 
   constructor() {
     this.sections = document.querySelectorAll('.text-section');
     this.root = document.documentElement;
-    this.kwamiBlob = new KwamiBlob();
     
     this.init();
     window.addEventListener('scroll', this.handleScroll.bind(this));
     this.handleScroll(); // Initial call
   }
 
-  private init() {
+  private async init() {
     // Set initial colors
     this.updateColors(0);
+    
+    // Initialize Kwami
+    try {
+      const container = document.getElementById('kwami-container');
+      if (!container) {
+        throw new Error('Kwami container not found');
+      }
+
+      // Create canvas element
+      const canvas = document.createElement('canvas');
+      container.appendChild(canvas);
+
+      this.kwami = new Kwami(canvas, {
+        body: {
+          blob: {
+            spikes: { x: 0.2, y: 0.2, z: 0.2 },
+            time: { x: 5, y: 5, z: 5 },
+            rotation: { x: 0, y: 0.001, z: 0 },
+            colors: {
+              x: '#667eea',
+              y: '#764ba2',
+              z: '#f093fb'
+            }
+          },
+          scene: {
+            cameraPosition: { x: -0.9, y: 7.3, z: -1.8 }
+          }
+        }
+      });
+
+      console.log('✨ Kwami initialized successfully!');
+    } catch (error) {
+      console.error('Failed to initialize Kwami:', error);
+    }
   }
 
   private handleScroll() {
@@ -160,14 +113,12 @@ class ScrollManager {
     // Update active section
     this.updateActiveSection(section);
 
-    // Update colors based on section
-    if (section !== this.currentSection) {
+    // Update colors and blob config based on section
+    if (section !== this.currentSection && !this.isTransitioning) {
       this.currentSection = section;
       this.updateColors(section);
+      this.updateKwamiConfig(section);
     }
-
-    // Update kwami shape
-    this.kwamiBlob.updateShape(sectionProgress, section);
 
     // Add random color variations
     this.addColorVariations(sectionProgress);
@@ -192,13 +143,34 @@ class ScrollManager {
     this.root.style.setProperty('--color-accent', palette.accent);
   }
 
+  private async updateKwamiConfig(section: number) {
+    if (!this.kwami) return;
+
+    this.isTransitioning = true;
+    const config = blobConfigs[section % blobConfigs.length];
+    const palette = colorPalettes[section % colorPalettes.length];
+
+    try {
+      // Update blob geometry
+      this.kwami.body.blob.setSpikes(config.spikeX, config.spikeY, config.spikeZ);
+      this.kwami.body.blob.setTime(config.timeX, config.timeY, config.timeZ);
+
+      // Update colors
+      this.kwami.body.blob.setColors(palette.primary, palette.secondary, palette.accent);
+
+      // Small delay before allowing next transition
+      setTimeout(() => {
+        this.isTransitioning = false;
+      }, 800);
+    } catch (error) {
+      console.error('Error updating Kwami config:', error);
+      this.isTransitioning = false;
+    }
+  }
+
   private addColorVariations(progress: number) {
     // Add subtle random variations to the gradient stops
-    const stops = [
-      document.querySelector('.stop1'),
-      document.querySelector('.stop2'),
-      document.querySelector('.stop3')
-    ];
+    const stops = document.querySelectorAll('.logo-stop1, .logo-stop2, .logo-stop3');
 
     stops.forEach((stop, index) => {
       if (stop) {
@@ -260,15 +232,6 @@ document.querySelectorAll('a[href^="#"]').forEach(anchor => {
 // Initialize
 document.addEventListener('DOMContentLoaded', () => {
   new ScrollManager();
-  
-  // Add loading animation
-  const svg = document.getElementById('kwami-svg');
-  if (svg) {
-    svg.classList.add('loading');
-    setTimeout(() => {
-      svg.classList.remove('loading');
-    }, 1000);
-  }
 });
 
 // Add scroll indicator on first section
@@ -285,18 +248,10 @@ window.addEventListener('scroll', () => {
   }
 });
 
-// Easter egg: Click on kwami to randomize colors
-document.getElementById('kwami-svg')?.addEventListener('click', () => {
-  const root = document.documentElement;
-  root.style.setProperty('--color-primary', generateRandomColor());
-  root.style.setProperty('--color-secondary', generateRandomColor());
-  root.style.setProperty('--color-accent', generateRandomColor());
-});
-
 // Console message
 console.log(`
   🎨 Kwami - Interactive AI Companion
   👻 https://github.com/alexcolls/kwami
   
-  Tip: Click on the Kwami blob to randomize colors!
+  Tip: Scroll to see the real Kwami blob morph!
 `);
