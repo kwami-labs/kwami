@@ -1,0 +1,49 @@
+{
+  "name": "Kwami Collection",
+  "symbol": "KWAMI",
+  "description": "Unique AI companion NFTs with DNA-based uniqueness validation. Each Kwami has a distinct body configuration stored on Arweave with mind and soul customization.",
+  "seller_fee_basis_points": 500,
+  "image": "collection-image.png",
+  "external_url": "https://quami.io",
+  "attributes": [
+    {
+      "trait_type": "Collection",
+      "value": "Kwami"
+    },
+    {
+      "trait_type": "Standard",
+      "value": "Metaplex NFT"
+    },
+    {
+      "trait_type": "Blockchain",
+      "value": "Solana"
+    },
+    {
+      "trait_type": "Storage",
+      "value": "Arweave"
+    },
+    {
+      "trait_type": "Version",
+      "value": "0.2.0"
+    }
+  ],
+  "properties": {
+    "files": [
+      {
+        "uri": "collection-image.png",
+        "type": "image/png"
+      }
+    ],
+    "category": "vfx",
+    "creators": [
+      {
+        "address": "REPLACE_WITH_CREATOR_WALLET",
+        "share": 100
+      }
+    ]
+  },
+  "collection": {
+    "name": "Kwami Collection",
+    "family": "Quami"
+  }
+}
