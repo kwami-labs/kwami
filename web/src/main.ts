@@ -1,6 +1,7 @@
 import './style.css';
 import { Kwami } from 'kwami';
 import videoLinks from '../../assets/vid/links.json';
+import { t, changeLanguage, getCurrentLanguage, updatePageTranslations } from './i18n';
 
 // Tailwind -500 colors ordered from top to bottom of color spectrum (22 colors)
 const tailwindColors500 = [
@@ -150,14 +151,36 @@ const blobConfigs = [
   }
 ];
 
-// Custom Cursor Light Manager
+// Custom Cursor Light Manager with dual lights (fast + delayed)
 class CursorLight {
-  private light: HTMLElement | null = null;
+  private lightFast: HTMLElement | null = null;
+  private lightSlow: HTMLElement | null = null;
   private isActive = false;
+  private positionHistory: Array<{ x: number, y: number, timestamp: number }> = [];
+  private readonly DELAY_MS = 3000; // 3 seconds delay for second light
+  private currentPalette: { primary: string, secondary: string, accent: string } | null = null;
 
   constructor() {
-    this.light = document.getElementById('cursor-light');
-    if (this.light) {
+    this.lightFast = document.getElementById('cursor-light');
+    
+    // Create second, delayed light
+    this.lightSlow = document.createElement('div');
+    this.lightSlow.id = 'cursor-light-slow';
+    this.lightSlow.style.cssText = `
+      position: fixed;
+      width: 600px;
+      height: 600px;
+      border-radius: 50%;
+      pointer-events: none;
+      z-index: 9998;
+      transform: translate(-50%, -50%);
+      opacity: 0;
+      transition: opacity 0.5s ease;
+      mix-blend-mode: screen;
+    `;
+    document.body.appendChild(this.lightSlow);
+    
+    if (this.lightFast) {
       this.init();
     }
   }
@@ -165,51 +188,109 @@ class CursorLight {
   private init() {
     // Track mouse movement
     document.addEventListener('mousemove', (e: MouseEvent) => {
-      if (this.light) {
-        this.light.style.left = `${e.clientX}px`;
-        this.light.style.top = `${e.clientY}px`;
-        
-        // Activate light on first movement
-        if (!this.isActive) {
-          this.isActive = true;
-          this.light.classList.add('active');
-        }
+      const now = Date.now();
+      
+      // Update fast light immediately
+      if (this.lightFast) {
+        this.lightFast.style.left = `${e.clientX}px`;
+        this.lightFast.style.top = `${e.clientY}px`;
+      }
+      
+      // Store position in history with timestamp
+      this.positionHistory.push({
+        x: e.clientX,
+        y: e.clientY,
+        timestamp: now
+      });
+      
+      // Clean up old positions (keep only last 5 seconds of history)
+      const cutoffTime = now - 5000;
+      this.positionHistory = this.positionHistory.filter(pos => pos.timestamp > cutoffTime);
+      
+      // Update delayed light position
+      this.updateDelayedLight(now);
+      
+      // Activate lights on first movement
+      if (!this.isActive) {
+        this.isActive = true;
+        if (this.lightFast) this.lightFast.classList.add('active');
+        if (this.lightSlow) this.lightSlow.style.opacity = '1';
       }
     });
 
     // Hide when mouse leaves window
     document.addEventListener('mouseleave', () => {
-      if (this.light) {
-        this.light.classList.remove('active');
-        this.isActive = false;
+      if (this.lightFast) {
+        this.lightFast.classList.remove('active');
       }
+      if (this.lightSlow) {
+        this.lightSlow.style.opacity = '0';
+      }
+      this.isActive = false;
     });
 
     // Show when mouse enters window
     document.addEventListener('mouseenter', () => {
-      if (this.light && this.isActive) {
-        this.light.classList.add('active');
+      if (this.isActive) {
+        if (this.lightFast) this.lightFast.classList.add('active');
+        if (this.lightSlow) this.lightSlow.style.opacity = '1';
       }
     });
   }
 
-  public updateColors(palette: { primary: string, secondary: string, accent: string }) {
-    if (this.light) {
-      // Convert hex colors to rgba with transparency
-      const hexToRgba = (hex: string, alpha: number): string => {
-        const r = parseInt(hex.slice(1, 3), 16);
-        const g = parseInt(hex.slice(3, 5), 16);
-        const b = parseInt(hex.slice(5, 7), 16);
-        return `rgba(${r}, ${g}, ${b}, ${alpha})`;
-      };
+  private updateDelayedLight(currentTime: number) {
+    // Find the position from 700ms ago
+    const targetTime = currentTime - this.DELAY_MS;
+    
+    // Find the closest position in history to our target time
+    let closestPos = null;
+    let minDiff = Infinity;
+    
+    for (const pos of this.positionHistory) {
+      const diff = Math.abs(pos.timestamp - targetTime);
+      if (diff < minDiff) {
+        minDiff = diff;
+        closestPos = pos;
+      }
+    }
+    
+    // Update delayed light position
+    if (closestPos && this.lightSlow) {
+      this.lightSlow.style.left = `${closestPos.x}px`;
+      this.lightSlow.style.top = `${closestPos.y}px`;
+    }
+  }
 
-      // Update gradient colors dynamically based on current section
-      this.light.style.background = `radial-gradient(
+  public updateColors(palette: { primary: string, secondary: string, accent: string }) {
+    this.currentPalette = palette;
+    
+    // Convert hex colors to rgba with transparency
+    const hexToRgba = (hex: string, alpha: number): string => {
+      const r = parseInt(hex.slice(1, 3), 16);
+      const g = parseInt(hex.slice(3, 5), 16);
+      const b = parseInt(hex.slice(5, 7), 16);
+      return `rgba(${r}, ${g}, ${b}, ${alpha})`;
+    };
+
+    // Update fast light (original multi-color gradient)
+    if (this.lightFast) {
+      this.lightFast.style.background = `radial-gradient(
         circle at center,
         ${hexToRgba(palette.primary, 0.25)} 0%,
         ${hexToRgba(palette.secondary, 0.15)} 25%,
         ${hexToRgba(palette.accent, 0.08)} 50%,
         transparent 70%
+      )`;
+    }
+
+    // Update slow light (primary color only, bigger, more subtle)
+    if (this.lightSlow) {
+      this.lightSlow.style.background = `radial-gradient(
+        circle at center,
+        ${hexToRgba(palette.primary, 0.08)} 0%,
+        ${hexToRgba(palette.primary, 0.04)} 30%,
+        ${hexToRgba(palette.primary, 0.02)} 50%,
+        transparent 80%
       )`;
     }
   }
@@ -390,6 +471,7 @@ class ScrollManager {
             spikes: { x: 0.2, y: 0.2, z: 0.2 },
             time: { x: 1, y: 1, z: 1 },
             rotation: { x: 0, y: 0, z: 0 },
+            wireframe: true,
             colors: {
               x: '#ff0066',
               y: '#00ff66',
@@ -405,6 +487,9 @@ class ScrollManager {
 
       // Set blob scale
       this.kwami.body.blob.setScale(5.5);
+
+      // Enable wireframe mode
+      this.kwami.body.blob.setWireframe(true);
 
       // Position blob more to the right (desktop only)
       const blobMesh = this.kwami.body.blob.getMesh();
@@ -577,11 +662,13 @@ class ScrollManager {
     this.recognition.onerror = (event: any) => {
       console.error('Speech recognition error:', event.error);
       this.isListening = false;
+      this.applyListeningVisualState(false);
     };
 
     this.recognition.onend = () => {
       console.log('🎤 Listening stopped');
       this.isListening = false;
+      this.applyListeningVisualState(false);
     };
 
     // Cancel any pending single-click action when a double-click is detected
@@ -632,6 +719,9 @@ class ScrollManager {
   }
 
   private startListening() {
+    this.isListening = true;
+    this.applyListeningVisualState(true);
+
     if (!this.recognition) {
       console.warn('⚠️ Speech recognition not available');
       return;
@@ -639,30 +729,21 @@ class ScrollManager {
 
     try {
       this.recognition.start();
-      this.isListening = true;
       console.log('🎤 Started listening for "kwami"...');
-      
-      // Visual feedback: change blob state to listening
-      if (this.kwami) {
-        this.kwami.setState('listening');
-      }
     } catch (error) {
       console.error('Error starting recognition:', error);
     }
   }
 
   private stopListening() {
+    this.applyListeningVisualState(false);
+    this.isListening = false;
+
     if (!this.recognition) return;
 
     try {
       this.recognition.stop();
-      this.isListening = false;
       console.log('🛑 Stopped listening');
-      
-      // Return to idle state
-      if (this.kwami) {
-        this.kwami.setState('idle');
-      }
     } catch (error) {
       console.error('Error stopping recognition:', error);
     }
@@ -693,6 +774,43 @@ class ScrollManager {
     
     // Stop listening after detecting "kwami"
     this.stopListening();
+  }
+
+  private applyListeningVisualState(active: boolean) {
+    if (!this.kwami) return;
+    if (active) {
+      this.kwami.setState('listening');
+      this.setMusicFilter('lowpass', { frequency: 200, q: 0.95 });
+    } else {
+      const audioPlaying = Boolean(this.kwami.body?.audio?.isPlaying());
+      this.kwami.setState(audioPlaying ? 'speaking' : 'idle');
+      this.setMusicFilter(null);
+    }
+  }
+
+  private setMusicFilter(
+    mode: 'highpass' | 'lowpass' | null,
+    options?: { frequency?: number; q?: number }
+  ) {
+    const audio = this.kwami?.body?.audio;
+    if (!audio) return;
+
+    if (mode === 'highpass') {
+      audio.disableLowpassFilter();
+      audio.enableHighpassFilter({
+        frequency: options?.frequency ?? 1500,
+        q: options?.q ?? 0.95,
+      });
+    } else if (mode === 'lowpass') {
+      audio.disableHighpassFilter();
+      audio.enableLowpassFilter({
+        frequency: options?.frequency ?? 200,
+        q: options?.q ?? 0.95,
+      });
+    } else {
+      audio.disableHighpassFilter();
+      audio.disableLowpassFilter();
+    }
   }
 
   private addColorVariations(progress: number) {
@@ -815,91 +933,91 @@ const PLAYGROUND_URL = 'https://playground.kwami.io';
 const ACTION_ROUTES: Record<string, ActionConfig> = {
   'launch-playground': {
     url: PLAYGROUND_URL,
-    message: 'Opening the live playground...'
+    message: t('action_feedback.launch_playground')
   },
   'view-demo': {
     url: `${PLAYGROUND_URL}?view=demo`,
-    message: 'Loading the demo layout...'
+    message: t('action_feedback.view_demo')
   },
   'run-playground': {
     copy: 'npm run playground',
-    message: 'Copied: npm run playground'
+    message: t('action_feedback.run_playground')
   },
   'swap-sidebars': {
     url: `${PLAYGROUND_URL}?panel=layout`,
-    message: 'Swap the sidebars inside the playground'
+    message: t('action_feedback.swap_sidebars')
   },
   'init-mind': {
     url: `${PLAYGROUND_URL}?panel=mind#initialize`,
-    message: 'Mind controls opened in a new tab'
+    message: t('action_feedback.init_mind')
   },
   'randomize-blob': {
     url: `${PLAYGROUND_URL}?panel=body&action=randomize-blob`,
-    message: 'Hit 🎲 Randomize Blob in the playground'
+    message: t('action_feedback.randomize_blob')
   },
   'apply-soul': {
     url: `${PLAYGROUND_URL}?panel=soul&action=apply`,
-    message: 'Soul presets ready to apply'
+    message: t('action_feedback.apply_soul')
   },
   'test-listening': {
     url: `${PLAYGROUND_URL}?action=test-listening`,
-    message: 'Listening mode queued in the playground'
+    message: t('action_feedback.test_listening')
   },
   'set-background': {
     url: `${PLAYGROUND_URL}?panel=body&action=background`,
-    message: 'Background controls opened'
+    message: t('action_feedback.set_background')
   },
   'speak': {
     url: `${PLAYGROUND_URL}?action=speak`,
-    message: 'Ready to send a new line to ElevenLabs'
+    message: t('action_feedback.speak')
   },
   'switch-provider': {
     url: 'https://github.com/alexcolls/kwami/blob/dev/docs/api/kwami.md#mindprovider',
-    message: 'Mind provider contract opened'
+    message: t('action_feedback.switch_provider')
   },
   'adjust-spikes': {
     url: `${PLAYGROUND_URL}?panel=body&action=spikes`,
-    message: 'Spike sliders ready in playground'
+    message: t('action_feedback.adjust_spikes')
   },
   'download-glb': {
     url: `${PLAYGROUND_URL}?action=download-glb`,
-    message: 'Export your blob as a GLB'
+    message: t('action_feedback.download_glb')
   },
   'test-thinking': {
     url: `${PLAYGROUND_URL}?action=test-thinking`,
-    message: 'Thinking mode engaged'
+    message: t('action_feedback.test_thinking')
   },
   'upload-audio': {
     url: `${PLAYGROUND_URL}?action=upload-audio`,
-    message: 'Upload a track in the audio player'
+    message: t('action_feedback.upload_audio')
   },
   'connect-services': {
     url: 'https://quami.io',
-    message: 'Opening the quami.io service hub'
+    message: t('action_feedback.connect_services')
   },
   'mint-nft': {
     url: 'https://candy.kwami.io',
-    message: 'Mint a Kwami on Solana'
+    message: t('action_feedback.mint_nft')
   },
   'view-roadmap': {
     url: 'https://github.com/alexcolls/kwami/blob/dev/STATUS.md',
-    message: 'Roadmap opened on GitHub'
+    message: t('action_feedback.view_roadmap')
   },
   'open-guides': {
     url: 'https://github.com/alexcolls/kwami/tree/dev/docs',
-    message: 'Docs opened in a new tab'
+    message: t('action_feedback.open_guides')
   },
   'join-discord': {
     url: 'https://discord.gg/kwami',
-    message: 'Discord invite opened'
+    message: t('action_feedback.join_discord')
   },
   'contact-team': {
     url: 'mailto:hello@kwami.io?subject=Kwami%20Enterprise',
-    message: 'Say hello to the Kwami team'
+    message: t('action_feedback.contact_team')
   },
   'create-session': {
     url: `${PLAYGROUND_URL}?action=start-session`,
-    message: 'Start a fresh playground session'
+    message: t('action_feedback.create_session')
   }
 };
 
@@ -984,11 +1102,88 @@ class ActionButtonManager {
   }
 }
 
+// Language Switcher Manager
+class LanguageSwitcher {
+  private langBtn: HTMLElement | null = null;
+  private langMenu: HTMLElement | null = null;
+  private currentLangDisplay: HTMLElement | null = null;
+  private isOpen = false;
+
+  constructor() {
+    this.langBtn = document.getElementById('lang-btn');
+    this.langMenu = document.getElementById('lang-menu');
+    this.currentLangDisplay = document.getElementById('current-lang');
+    
+    if (this.langBtn && this.langMenu) {
+      this.init();
+    }
+  }
+
+  private init() {
+    // Update current language display
+    this.updateCurrentLanguageDisplay();
+    
+    // Toggle menu on button click
+    this.langBtn!.addEventListener('click', (e) => {
+      e.stopPropagation();
+      this.toggleMenu();
+    });
+    
+    // Handle language selection
+    const langOptions = this.langMenu!.querySelectorAll('.lang-option');
+    langOptions.forEach(option => {
+      option.addEventListener('click', async (e) => {
+        const target = e.currentTarget as HTMLElement;
+        const lang = target.getAttribute('data-lang');
+        if (lang) {
+          await this.changeLanguage(lang);
+          this.closeMenu();
+        }
+      });
+    });
+    
+    // Close menu when clicking outside
+    document.addEventListener('click', (e) => {
+      if (this.isOpen && !this.langMenu!.contains(e.target as Node) && !this.langBtn!.contains(e.target as Node)) {
+        this.closeMenu();
+      }
+    });
+  }
+
+  private toggleMenu() {
+    this.isOpen = !this.isOpen;
+    this.langMenu!.classList.toggle('open', this.isOpen);
+  }
+
+  private closeMenu() {
+    this.isOpen = false;
+    this.langMenu!.classList.remove('open');
+  }
+
+  private async changeLanguage(lang: string) {
+    await changeLanguage(lang);
+    this.updateCurrentLanguageDisplay();
+    // Update all text content
+    updatePageTranslations();
+  }
+
+  private updateCurrentLanguageDisplay() {
+    if (this.currentLangDisplay) {
+      const lang = getCurrentLanguage().toUpperCase().substring(0, 2);
+      this.currentLangDisplay.textContent = lang;
+    }
+  }
+}
+
 // Initialize
 document.addEventListener('DOMContentLoaded', () => {
   const scrollManager = new ScrollManager();
   new ModeSwitcher();
   new ActionButtonManager();
+  new LanguageSwitcher();
+  
+  // Update initial translations
+  updatePageTranslations();
   
   // Make scrollManager accessible globally for music functions
   (window as any).scrollManager = scrollManager;
@@ -1034,6 +1229,7 @@ let isVideoLoading = false;
 let isVideoPlayingInBlob = false;
 let activeVideoStream: MediaStream | null = null;
 let videoElementCleanup: (() => void) | null = null;
+type VideoAttachResult = 'success' | 'no-audio' | 'stream-error';
 
 // Music player state
 let currentMusicIndex = -1;
@@ -1228,30 +1424,53 @@ function hideSongTitle() {
   songTitleDisplay.style.animation = 'none';
 }
 
+function getKwamiVideoElement(kwami: Kwami): HTMLVideoElement | null {
+  const body = kwami.body as any;
+  if (!body) {
+    return null;
+  }
+
+  const candidates = [
+    typeof body.getBackgroundVideoElement === 'function' ? body.getBackgroundVideoElement() : undefined,
+    body.backgroundVideoElement,
+    typeof body.getBlobSurfaceVideoElement === 'function' ? body.getBlobSurfaceVideoElement() : undefined,
+    body.blobSurfaceVideoElement,
+  ];
+
+  for (const candidate of candidates) {
+    if (candidate instanceof HTMLVideoElement) {
+      return candidate;
+    }
+  }
+
+  return null;
+}
+
 function getKwamiInstance(): Kwami | null {
   const scrollManager = (window as any).scrollManager;
   return scrollManager?.getKwami?.() ?? null;
 }
 
-function pickRandomVideoUrl(): string | null {
+function pickRandomVideoUrl(exclude: Set<string> = new Set()): string | null {
   if (!PLAYABLE_VIDEO_LINKS.length) {
     return null;
   }
 
-  if (PLAYABLE_VIDEO_LINKS.length === 1) {
-    return PLAYABLE_VIDEO_LINKS[0];
+  const candidates = PLAYABLE_VIDEO_LINKS.filter(link => !exclude.has(link));
+  if (!candidates.length) {
+    return null;
   }
 
-  let selected = currentVideoUrl;
-  let attempts = 0;
-  const maxAttempts = 6;
-
-  while (selected === currentVideoUrl && attempts < maxAttempts) {
-    selected = PLAYABLE_VIDEO_LINKS[Math.floor(Math.random() * PLAYABLE_VIDEO_LINKS.length)];
-    attempts += 1;
+  let selectionPool = candidates;
+  if (candidates.length > 1 && currentVideoUrl) {
+    const filtered = candidates.filter(link => link !== currentVideoUrl);
+    if (filtered.length) {
+      selectionPool = filtered;
+    }
   }
 
-  return selected ?? PLAYABLE_VIDEO_LINKS[0];
+  const randomIndex = Math.floor(Math.random() * selectionPool.length);
+  return selectionPool[randomIndex];
 }
 
 function cleanupVideoElementListeners() {
@@ -1281,7 +1500,19 @@ function stopVideoPlayback(explicitKwami?: Kwami | null) {
     return;
   }
 
-  kwami.body.setBlobSurfaceVideo(null);
+  const activeVideo = getKwamiVideoElement(kwami);
+  if (activeVideo) {
+    try {
+      activeVideo.pause();
+    } catch (error) {
+      console.warn('🎥 Failed to pause video element:', error);
+    }
+  }
+
+  kwami.body.clearBackgroundMedia();
+  if (typeof kwami.body.setBlobSurfaceVideo === 'function') {
+    kwami.body.setBlobSurfaceVideo(null);
+  }
   kwami.body.audio.disconnectMediaStream();
 
   if (isVideoPlayingInBlob) {
@@ -1293,19 +1524,25 @@ function stopVideoPlayback(explicitKwami?: Kwami | null) {
   currentVideoUrl = null;
 }
 
-async function waitForBlobSurfaceVideoElement(kwami: Kwami, timeout = 7000): Promise<HTMLVideoElement | null> {
+async function waitForKwamiVideoElement(kwami: Kwami, timeout = 7000): Promise<HTMLVideoElement | null> {
   const start = performance.now();
 
   return new Promise(resolve => {
+    let latestElement: HTMLVideoElement | null = null;
+
     const tick = () => {
-      const videoElement = kwami.body.getBlobSurfaceVideoElement?.() ?? null;
-      if (videoElement && videoElement.readyState >= 2) {
-        resolve(videoElement);
+      const videoElement = getKwamiVideoElement(kwami);
+      if (videoElement) {
+        latestElement = videoElement;
+      }
+
+      if (latestElement && latestElement.readyState >= 2) {
+        resolve(latestElement);
         return;
       }
 
       if (performance.now() - start >= timeout) {
-        resolve(videoElement);
+        resolve(latestElement);
         return;
       }
 
@@ -1316,7 +1553,7 @@ async function waitForBlobSurfaceVideoElement(kwami: Kwami, timeout = 7000): Pro
   });
 }
 
-async function attachVideoAudioToKwami(kwami: Kwami, videoElement: HTMLVideoElement, sourceUrl: string) {
+async function attachVideoAudioToKwami(kwami: Kwami, videoElement: HTMLVideoElement, sourceUrl: string): Promise<VideoAttachResult> {
   cleanupVideoElementListeners();
 
   const handleEnded = () => {
@@ -1346,14 +1583,20 @@ async function attachVideoAudioToKwami(kwami: Kwami, videoElement: HTMLVideoElem
 
   if (typeof captureStream !== 'function') {
     console.warn('🎥 captureStream() not supported in this browser; skipping audio visualization for video.');
-    return;
+    return 'stream-error';
   }
 
   try {
     const stream = captureStream.call(videoElement);
     if (!stream) {
       console.warn('🎥 Failed to capture MediaStream from video element.');
-      return;
+      return 'stream-error';
+    }
+
+    const hasAudioTrack = stream.getAudioTracks().length > 0;
+    if (!hasAudioTrack) {
+      // No audio track available; allow the video to keep playing visually
+      return 'no-audio';
     }
 
     releaseActiveVideoStream();
@@ -1367,8 +1610,10 @@ async function attachVideoAudioToKwami(kwami: Kwami, videoElement: HTMLVideoElem
 
     kwami.setState('speaking');
     console.log(`🎥 Blob video audio stream attached: ${sourceUrl}`);
+    return 'success';
   } catch (error) {
     console.error('🎥 Unable to connect video audio stream:', error);
+    return 'stream-error';
   }
 }
 
@@ -1389,46 +1634,85 @@ async function playRandomVideoInBlob() {
     return;
   }
 
-  const nextUrl = pickRandomVideoUrl();
-  if (!nextUrl) {
-    console.warn('🎥 Failed to select a video URL');
-    return;
-  }
+  const attempted = new Set<string>();
+  let playbackStarted = false;
 
   isVideoLoading = true;
   stopVideoPlayback(kwami);
-  currentVideoUrl = nextUrl;
-
-  console.log(`🎥 Loading blob video stream: ${nextUrl}`);
 
   try {
-    kwami.body.setBlobSurfaceVideo(nextUrl, { autoplay: true, loop: true, muted: false });
-    const videoElement = await waitForBlobSurfaceVideoElement(kwami);
+    while (attempted.size < PLAYABLE_VIDEO_LINKS.length) {
+      const nextUrl = pickRandomVideoUrl(attempted);
+      if (!nextUrl) {
+        break;
+      }
 
-    if (!videoElement) {
-      throw new Error('Video element was not ready in time');
+      attempted.add(nextUrl);
+      currentVideoUrl = nextUrl;
+
+      console.log(`🎥 Loading blob video stream: ${nextUrl}`);
+
+      try {
+        kwami.body.setBackgroundVideo(nextUrl, {
+          autoplay: true,
+          loop: true,
+          muted: true,
+          fit: 'cover',
+        });
+        const videoElement = await waitForKwamiVideoElement(kwami);
+
+        if (!videoElement) {
+          console.warn('🎥 Video element was not ready, trying another source...');
+          stopVideoPlayback(kwami);
+          continue;
+        }
+
+        videoElement.muted = true;
+        videoElement.volume = 0;
+
+        const attachResult = await attachVideoAudioToKwami(kwami, videoElement, nextUrl);
+
+        if (attachResult === 'success') {
+          isVideoPlayingInBlob = true;
+          playbackStarted = true;
+          console.log('🎥 Video streaming with audio-reactive blob!');
+          break;
+        }
+
+        if (attachResult === 'no-audio') {
+          console.warn('🎥 Video has no audio track. Playing visual-only mode (no audio reactivity).');
+          kwami.setState('thinking');
+          isVideoPlayingInBlob = true;
+          playbackStarted = true;
+          break;
+        }
+
+        console.warn('🎥 Unable to attach the video audio stream, trying another clip...');
+      } catch (error) {
+        console.error('🎥 Error while loading blob video:', error);
+      }
+
+      stopVideoPlayback(kwami);
     }
 
-    videoElement.muted = false;
-    videoElement.volume = 1;
-
-    await attachVideoAudioToKwami(kwami, videoElement, nextUrl);
-    isVideoPlayingInBlob = true;
-  } catch (error) {
-    console.error('🎥 Failed to start blob video playback:', error);
-    stopVideoPlayback(kwami);
+    if (!playbackStarted) {
+      console.warn('🎥 Could not find any video with an audio track from links.json');
+    }
   } finally {
+    if (!playbackStarted) {
+      stopVideoPlayback(kwami);
+    }
     isVideoLoading = false;
   }
 }
 
 // Console message
 console.log(`
-  🎨 Kwami - Interactive AI Companion
-  👻 https://github.com/alexcolls/kwami
+  ${t('console.welcome')}
+  ${t('console.github')}
   
-  Tip: Scroll to see the real Kwami blob morph!
-  Tip: Double-click the blob to randomize it! 🎲
-  Tip: Click the blob to start listening, then say "kwami" to randomize! 🎤
-  Tip: Click the Music tab to play a random song! 🎵
+  ${t('console.tip_scroll')}
+  ${t('console.tip_double_click')}
+  ${t('console.tip_voice')}
+  ${t('console.tip_music')}
 `);
