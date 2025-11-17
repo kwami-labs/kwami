@@ -75,17 +75,17 @@ const audioPlayerState = {
 
 // Build music playlist from assets
 const MUSIC_PLAYLIST = [
-  { name: 'Track 1', url: 'assets/aud/music/0.mp3' },
-  { name: 'Track 2', url: 'assets/aud/music/1.mp3' },
-  { name: 'Track 3', url: 'assets/aud/music/2.mp3' },
-  { name: 'Track 4', url: 'assets/aud/music/3.mp3' },
-  { name: 'Track 5', url: 'assets/aud/music/4.mp3' },
-  { name: 'Track 6', url: 'assets/aud/music/5.mp3' },
-  { name: 'Track 7', url: 'assets/aud/music/6.mp3' },
-  { name: 'Track 8', url: 'assets/aud/music/7.mp3' },
-  { name: 'Track 9', url: 'assets/aud/music/8.mp3' },
-  { name: 'Track 10', url: 'assets/aud/music/9.mp3' },
-  { name: 'Track 11', url: 'assets/aud/music/10.mp3' }
+  { name: 'Track 1', url: '/assets/aud/music/0.mp3' },
+  { name: 'Track 2', url: '/assets/aud/music/1.mp3' },
+  { name: 'Track 3', url: '/assets/aud/music/2.mp3' },
+  { name: 'Track 4', url: '/assets/aud/music/3.mp3' },
+  { name: 'Track 5', url: '/assets/aud/music/4.mp3' },
+  { name: 'Track 6', url: '/assets/aud/music/5.mp3' },
+  { name: 'Track 7', url: '/assets/aud/music/6.mp3' },
+  { name: 'Track 8', url: '/assets/aud/music/7.mp3' },
+  { name: 'Track 9', url: '/assets/aud/music/8.mp3' },
+  { name: 'Track 10', url: '/assets/aud/music/9.mp3' },
+  { name: 'Track 11', url: '/assets/aud/music/10.mp3' }
 ];
 
 const githubStarState = {

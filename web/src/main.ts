@@ -283,14 +283,18 @@ class ScrollManager {
             }
           },
           scene: {
-            cameraPosition: { x: 4.5, y: 7.3, z: -1.8 },
+            cameraPosition: { x: 0, y: 0, z: 12 },
             enableControls: true
           }
         }
       });
 
-      // Set blob scale to match playground
-      this.kwami.body.blob.setScale(4.0);
+      // Set blob scale larger
+      this.kwami.body.blob.setScale(7.0);
+
+      // Position blob to the right
+      const blobMesh = this.kwami.body.blob.getMesh();
+      blobMesh.position.set(6, 0, 0);
 
       // Enable click interaction for touch effects
       this.kwami.body.blob.enableClickInteraction();

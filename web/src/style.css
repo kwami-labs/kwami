@@ -256,9 +256,8 @@ body {
   background: var(--bg-dark);
   display: flex;
   flex-direction: column;
-  align-items: flex-end;
+  align-items: center;
   justify-content: center;
-  padding-right: 10%;
 }
 
 /* Right Header with Emoji Buttons */
@@ -458,7 +457,7 @@ body {
 /* Sidebar Navigation */
 .sidebar-navigation {
   position: fixed;
-  left: 1.5rem;
+  right: 1.5rem;
   top: 50%;
   transform: translateY(-50%);
   z-index: 9999;
@@ -473,7 +472,6 @@ body {
   flex-direction: column;
   gap: 0.8rem;
   align-items: center;
-  margin-right: 2.5rem;
 }
 
 .nav-sphere {
