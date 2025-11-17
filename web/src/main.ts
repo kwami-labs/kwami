@@ -1,7 +1,8 @@
 import './style.css';
 import { Kwami } from 'kwami';
+import videoLinks from '../../assets/vid/links.json';
 
-// Tailwind -500 colors ordered from top to bottom of color spectrum (28 colors)
+// Tailwind -500 colors ordered from top to bottom of color spectrum (22 colors)
 const tailwindColors500 = [
   '#ef4444', // red-500
   '#f97316', // orange-500
@@ -25,12 +26,6 @@ const tailwindColors500 = [
   '#d97706', // amber-600
   '#ca8a04', // yellow-600
   '#65a30d', // lime-600
-  '#16a34a', // green-600
-  '#059669', // emerald-600
-  '#0d9488', // teal-600
-  '#0891b2', // cyan-600
-  '#0284c7', // sky-600
-  '#2563eb', // blue-600
 ];
 
 // Helper function to blend two hex colors for middle gradient
@@ -50,7 +45,7 @@ function blendColors(color1: string, color2: string): string {
   return `#${r.toString(16).padStart(2, '0')}${g.toString(16).padStart(2, '0')}${b.toString(16).padStart(2, '0')}`;
 }
 
-// Generate color palettes for 28 sections using sequential 2-color gradients
+// Generate color palettes for 22 sections using sequential 2-color gradients
 // Each section uses colors[i] and colors[i+1] with a blended middle color for Kwami
 const colorPalettes = tailwindColors500.map((color, index) => {
   const nextColor = tailwindColors500[(index + 1) % tailwindColors500.length];
@@ -63,119 +58,95 @@ const colorPalettes = tailwindColors500.map((color, index) => {
   };
 });
 
-// Blob configurations for different sections (28 sections)
+// Blob configurations for different sections (22 sections)
 const blobConfigs = [
-  { // Section 00 - Circle (calm)
+  { // Section 00 - Introduction (calm)
     spikeX: 0.2, spikeY: 0.2, spikeZ: 0.2,
     timeX: 5, timeY: 5, timeZ: 5
   },
-  { // Section 01 - Star-like (energetic)
+  { // Section 01 - Why Kwami (energetic)
     spikeX: 2.5, spikeY: 2.5, spikeZ: 2.5,
     timeX: 8, timeY: 8, timeZ: 8
   },
-  { // Section 02 - Squiggly (organic)
+  { // Section 02 - Quick Start (organic)
     spikeX: 5.0, spikeY: 3.0, spikeZ: 4.0,
     timeX: 10, timeY: 7, timeZ: 8
   },
-  { // Section 03 - Pulsing (alive)
+  { // Section 03 - Architecture (pulsing)
     spikeX: 1.0, spikeY: 1.0, spikeZ: 1.0,
     timeX: 15, timeY: 15, timeZ: 15
   },
-  { // Section 04 - Spiral (dynamic)
+  { // Section 04 - Mind Layer (spiral)
     spikeX: 8.0, spikeY: 2.0, spikeZ: 5.0,
     timeX: 12, timeY: 6, timeZ: 9
   },
-  { // Section 05 - Heart-like (soft)
+  { // Section 05 - Body Layer (fluid)
     spikeX: 3.0, spikeY: 4.0, spikeZ: 2.5,
     timeX: 7, timeY: 9, timeZ: 6
   },
-  { // Section 06 - Wavy (flowing)
+  { // Section 06 - Soul Layer (wavy)
     spikeX: 4.0, spikeY: 4.0, spikeZ: 1.5,
     timeX: 6, timeY: 6, timeZ: 10
   },
-  { // Section 07 - Sharp (angular)
+  { // Section 07 - Interaction Flow (angular)
     spikeX: 6.0, spikeY: 1.0, spikeZ: 6.0,
     timeX: 8, timeY: 12, timeZ: 8
   },
-  { // Section 08 - Bubble (soft)
+  { // Section 08 - Visual Styles (bubble)
     spikeX: 0.8, spikeY: 0.8, spikeZ: 0.8,
     timeX: 4, timeY: 4, timeZ: 4
   },
-  { // Section 09 - Complex (intricate)
+  { // Section 09 - Audio & Voice (intricate)
     spikeX: 7.0, spikeY: 5.0, spikeZ: 3.0,
     timeX: 11, timeY: 9, timeZ: 7
   },
-  { // Section 10 - Slow wave (meditative)
+  { // Section 10 - Provider Architecture (meditative)
     spikeX: 2.0, spikeY: 3.0, spikeZ: 2.0,
     timeX: 3, timeY: 3, timeZ: 3
   },
-  { // Section 11 - Fast pulse (excited)
+  { // Section 11 - Customization (fast pulse)
     spikeX: 3.5, spikeY: 3.5, spikeZ: 3.5,
     timeX: 18, timeY: 18, timeZ: 18
   },
-  { // Section 12 - Asymmetric (unique)
+  { // Section 12 - Developer Toolkit (asymmetric)
     spikeX: 9.0, spikeY: 2.5, spikeZ: 6.5,
     timeX: 13, timeY: 5, timeZ: 9
   },
-  { // Section 13 - Geometric (structured)
+  { // Section 13 - Performance (geometric)
     spikeX: 4.5, spikeY: 4.5, spikeZ: 0.5,
     timeX: 7, timeY: 7, timeZ: 14
   },
-  { // Section 14 - NFT crystalline (unique DNA)
+  { // Section 14 - Use Cases (crystalline)
     spikeX: 6.5, spikeY: 6.5, spikeZ: 6.5,
     timeX: 9, timeY: 9, timeZ: 9
   },
-  { // Section 15 - Gentle (smooth)
+  { // Section 15 - Connected Ecosystem (gentle)
     spikeX: 1.5, spikeY: 2.0, spikeZ: 1.5,
     timeX: 6, timeY: 8, timeZ: 6
   },
-  { // Section 16 - State transitions (flowing)
+  { // Section 16 - Ownership & Web3 (flowing)
     spikeX: 3.2, spikeY: 3.8, spikeZ: 3.5,
     timeX: 14, timeY: 11, timeZ: 12
   },
-  { // Section 17 - Audio waves (reactive)
+  { // Section 17 - Roadmap (reactive)
     spikeX: 4.5, spikeY: 2.8, spikeZ: 3.5,
     timeX: 16, timeY: 8, timeZ: 12
   },
-  { // Section 18 - Provider matrix (structured)
+  { // Section 18 - Learning Path (structured)
     spikeX: 7.5, spikeY: 7.5, spikeZ: 2.0,
     timeX: 11, timeY: 11, timeZ: 15
   },
-  { // Section 19 - Ecosystem network (interconnected)
+  { // Section 19 - Community (networked)
     spikeX: 5.0, spikeY: 6.0, spikeZ: 5.5,
     timeX: 9, timeY: 10, timeZ: 8
   },
-  { // Section 20 - Performance optimized (efficient)
+  { // Section 20 - Pro & Enterprise (efficient)
     spikeX: 1.2, spikeY: 1.2, spikeZ: 1.2,
     timeX: 20, timeY: 20, timeZ: 20
   },
-  { // Section 21 - Community pulse (vibrant)
+  { // Section 21 - Launch (vibrant)
     spikeX: 4.0, spikeY: 5.5, spikeZ: 4.5,
     timeX: 13, timeY: 9, timeZ: 11
-  },
-  { // Section 22 - Celebration (dynamic)
-    spikeX: 5.5, spikeY: 5.5, spikeZ: 5.5,
-    timeX: 10, timeY: 10, timeZ: 10
-  },
-  { // Section 23 - Advanced rendering (sophisticated)
-    spikeX: 6.8, spikeY: 4.2, spikeZ: 5.5,
-    timeX: 17, timeY: 13, timeZ: 15
-  },
-  { // Section 24 - Future roadmap (progressive)
-    spikeX: 3.8, spikeY: 6.5, spikeZ: 4.8,
-    timeX: 19, timeY: 11, timeZ: 14
-  },
-  { // Section 25 - Learning resources (educational)
-    spikeX: 2.2, spikeY: 2.8, spikeZ: 2.5,
-    timeX: 8, timeY: 10, timeZ: 9
-  },
-  { // Section 26 - Premium features (refined)
-    spikeX: 7.8, spikeY: 6.8, spikeZ: 7.2,
-    timeX: 12, timeY: 14, timeZ: 13
-  },
-  { // Section 27 - Join revolution (explosive)
-    spikeX: 9.5, spikeY: 9.5, spikeZ: 9.5,
-    timeX: 16, timeY: 16, timeZ: 16
   }
 ];
 
@@ -248,11 +219,12 @@ class CursorLight {
 class SidebarNavigator {
   private sphereElements: HTMLElement[] = [];
   private container: HTMLElement | null = null;
-  private totalSections = 28;
+  private totalSections: number;
   private scrollManager: ScrollManager | null = null;
   private isAnimating = false;
 
-  constructor() {
+  constructor(totalSections: number) {
+    this.totalSections = totalSections;
     this.container = document.getElementById('sphere-container');
     if (this.container) {
       this.generateSpheres();
@@ -266,7 +238,7 @@ class SidebarNavigator {
   private generateSpheres() {
     if (!this.container) return;
 
-    // Generate 28 sphere buttons
+    // Generate sphere buttons for each section
     for (let i = 0; i < this.totalSections; i++) {
       const sphere = document.createElement('button');
       sphere.className = 'nav-sphere';
@@ -355,7 +327,8 @@ class ScrollManager {
   constructor() {
     this.sections = document.querySelectorAll('.text-section');
     this.root = document.documentElement;
-    this.sidebarNav = new SidebarNavigator();
+    this.root.style.setProperty('--section-count', this.sections.length.toString());
+    this.sidebarNav = new SidebarNavigator(this.sections.length);
     this.cursorLight = new CursorLight();
     
     // Pass reference to ScrollManager so SidebarNavigator can access current section
@@ -454,18 +427,19 @@ class ScrollManager {
         this.kwami?.body.blob.setScale(mobile ? 4.0 : 6.0);
       });
 
+      // Setup custom double-click behavior to randomize blob
+      if (this.kwami?.body?.blob) {
+        this.kwami.body.blob.onDoubleClick = () => {
+          console.log('🎲 Double-click detected, randomizing blob');
+          this.performFullRandomization();
+        };
+      }
+
       // Enable click interaction for touch effects
       this.kwami?.body.blob.enableClickInteraction();
 
       // Setup voice recognition for "kwami" keyword
       this.setupVoiceRecognition(canvas);
-
-      // Add double-click handler to randomize blob
-      canvas.addEventListener('dblclick', () => {
-        if (this.kwami?.body) {
-          this.performFullRandomization();
-        }
-      });
 
       console.log('✨ Kwami initialized successfully!');
       console.log('Kwami instance:', this.kwami);
@@ -568,6 +542,9 @@ class ScrollManager {
     }
   }
 
+  private clickTimer: number | null = null;
+  private readonly SINGLE_CLICK_DELAY = 500; // ms delay to distinguish single vs double click
+
   private setupVoiceRecognition(canvas: HTMLCanvasElement) {
     // Check if browser supports speech recognition
     const SpeechRecognition = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
@@ -607,16 +584,50 @@ class ScrollManager {
       this.isListening = false;
     };
 
-    // Add click handler to start/stop listening
-    canvas.addEventListener('click', (e: MouseEvent) => {
-      // Ignore if it's part of a double-click
-      if (e.detail === 2) return;
+    // Cancel any pending single-click action when a double-click is detected
+    canvas.addEventListener('dblclick', () => {
+      if (this.clickTimer) {
+        clearTimeout(this.clickTimer);
+        this.clickTimer = null;
+      }
 
+      // Ensure mic stays off when double-click occurs
       if (this.isListening) {
         this.stopListening();
-      } else {
-        this.startListening();
       }
+    });
+
+    // Add click handler with delay to distinguish from double-click
+    canvas.addEventListener('click', (e: MouseEvent) => {
+      console.log('🖱️ Click detected, detail:', e.detail);
+      
+      // Ignore if this is part of a multi-click (detail >= 2 for double/triple clicks)
+      if (e.detail >= 2) {
+        console.log('🖱️ Multi-click detected, ignoring for voice recognition');
+        // Clear any pending timer from the first click
+        if (this.clickTimer) {
+          clearTimeout(this.clickTimer);
+          this.clickTimer = null;
+        }
+        return;
+      }
+
+      // Clear any existing timer
+      if (this.clickTimer) {
+        clearTimeout(this.clickTimer);
+      }
+
+      // Wait a bit to see if a second click comes (double-click)
+      this.clickTimer = window.setTimeout(() => {
+        console.log('🎤 Single click confirmed, toggling voice recognition');
+        // If we get here, it was a true single click
+        if (this.isListening) {
+          this.stopListening();
+        } else {
+          this.startListening();
+        }
+        this.clickTimer = null;
+      }, this.SINGLE_CLICK_DELAY);
     });
   }
 
@@ -670,7 +681,7 @@ class ScrollManager {
       'Poles', 'Poles', 'Poles', 'Poles',            // 40%
       'Vintage'                                      // 10%
     ];
-    const randomSkin = skinTypes[Math.floor(Math.random() * skinTypes.length)];
+    const randomSkin = skinTypes[Math.floor(Math.random() * skinTypes.length)] as 'Donut' | 'Poles' | 'Vintage';
     this.kwami.body.blob.setSkin(randomSkin);
     
     console.log(`🎲 Blob randomized with ${randomSkin} skin!`);
@@ -793,10 +804,191 @@ class ModeSwitcher {
   }
 }
 
+interface ActionConfig {
+  url?: string;
+  copy?: string;
+  message: string;
+}
+
+const PLAYGROUND_URL = 'https://playground.kwami.io';
+
+const ACTION_ROUTES: Record<string, ActionConfig> = {
+  'launch-playground': {
+    url: PLAYGROUND_URL,
+    message: 'Opening the live playground...'
+  },
+  'view-demo': {
+    url: `${PLAYGROUND_URL}?view=demo`,
+    message: 'Loading the demo layout...'
+  },
+  'run-playground': {
+    copy: 'npm run playground',
+    message: 'Copied: npm run playground'
+  },
+  'swap-sidebars': {
+    url: `${PLAYGROUND_URL}?panel=layout`,
+    message: 'Swap the sidebars inside the playground'
+  },
+  'init-mind': {
+    url: `${PLAYGROUND_URL}?panel=mind#initialize`,
+    message: 'Mind controls opened in a new tab'
+  },
+  'randomize-blob': {
+    url: `${PLAYGROUND_URL}?panel=body&action=randomize-blob`,
+    message: 'Hit 🎲 Randomize Blob in the playground'
+  },
+  'apply-soul': {
+    url: `${PLAYGROUND_URL}?panel=soul&action=apply`,
+    message: 'Soul presets ready to apply'
+  },
+  'test-listening': {
+    url: `${PLAYGROUND_URL}?action=test-listening`,
+    message: 'Listening mode queued in the playground'
+  },
+  'set-background': {
+    url: `${PLAYGROUND_URL}?panel=body&action=background`,
+    message: 'Background controls opened'
+  },
+  'speak': {
+    url: `${PLAYGROUND_URL}?action=speak`,
+    message: 'Ready to send a new line to ElevenLabs'
+  },
+  'switch-provider': {
+    url: 'https://github.com/alexcolls/kwami/blob/dev/docs/api/kwami.md#mindprovider',
+    message: 'Mind provider contract opened'
+  },
+  'adjust-spikes': {
+    url: `${PLAYGROUND_URL}?panel=body&action=spikes`,
+    message: 'Spike sliders ready in playground'
+  },
+  'download-glb': {
+    url: `${PLAYGROUND_URL}?action=download-glb`,
+    message: 'Export your blob as a GLB'
+  },
+  'test-thinking': {
+    url: `${PLAYGROUND_URL}?action=test-thinking`,
+    message: 'Thinking mode engaged'
+  },
+  'upload-audio': {
+    url: `${PLAYGROUND_URL}?action=upload-audio`,
+    message: 'Upload a track in the audio player'
+  },
+  'connect-services': {
+    url: 'https://quami.io',
+    message: 'Opening the quami.io service hub'
+  },
+  'mint-nft': {
+    url: 'https://candy.kwami.io',
+    message: 'Mint a Kwami on Solana'
+  },
+  'view-roadmap': {
+    url: 'https://github.com/alexcolls/kwami/blob/dev/STATUS.md',
+    message: 'Roadmap opened on GitHub'
+  },
+  'open-guides': {
+    url: 'https://github.com/alexcolls/kwami/tree/dev/docs',
+    message: 'Docs opened in a new tab'
+  },
+  'join-discord': {
+    url: 'https://discord.gg/kwami',
+    message: 'Discord invite opened'
+  },
+  'contact-team': {
+    url: 'mailto:hello@kwami.io?subject=Kwami%20Enterprise',
+    message: 'Say hello to the Kwami team'
+  },
+  'create-session': {
+    url: `${PLAYGROUND_URL}?action=start-session`,
+    message: 'Start a fresh playground session'
+  }
+};
+
+class ActionButtonManager {
+  private buttons: NodeListOf<HTMLButtonElement>;
+
+  constructor() {
+    this.buttons = document.querySelectorAll('[data-action-key]');
+    if (!this.buttons.length) return;
+    this.attachListeners();
+  }
+
+  private attachListeners() {
+    this.buttons.forEach(button => {
+      button.addEventListener('click', this.handleClick.bind(this));
+    });
+  }
+
+  private async handleClick(event: Event) {
+    event.preventDefault();
+    const button = event.currentTarget as HTMLButtonElement;
+    const key = button.dataset.actionKey;
+    if (!key) return;
+    const config = ACTION_ROUTES[key];
+    if (!config) return;
+
+    button.classList.add('triggered');
+    window.setTimeout(() => button.classList.remove('triggered'), 400);
+
+    if (config.copy) {
+      const success = await this.copyToClipboard(config.copy);
+      this.showFeedback(button, success ? config.message : 'Copy unavailable');
+      return;
+    }
+
+    if (config.url) {
+      window.open(config.url, '_blank', 'noopener,noreferrer');
+    }
+
+    this.showFeedback(button, config.message);
+  }
+
+  private async copyToClipboard(value: string): Promise<boolean> {
+    try {
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        await navigator.clipboard.writeText(value);
+        return true;
+      }
+    } catch (error) {
+      console.warn('Clipboard API failed, attempting fallback', error);
+    }
+
+    try {
+      const textarea = document.createElement('textarea');
+      textarea.value = value;
+      textarea.style.position = 'fixed';
+      textarea.style.opacity = '0';
+      document.body.appendChild(textarea);
+      textarea.focus();
+      textarea.select();
+      const success = document.execCommand('copy');
+      textarea.remove();
+      return success;
+    } catch (error) {
+      console.error('Fallback clipboard copy failed', error);
+      return false;
+    }
+  }
+
+  private showFeedback(button: HTMLElement, message: string) {
+    const existing = button.querySelector('.action-feedback');
+    if (existing) {
+      existing.remove();
+    }
+    const note = document.createElement('span');
+    note.className = 'action-feedback';
+    note.textContent = message;
+    button.appendChild(note);
+    window.setTimeout(() => {
+      note.remove();
+    }, 1400);
+  }
+}
+
 // Initialize
 document.addEventListener('DOMContentLoaded', () => {
   const scrollManager = new ScrollManager();
   new ModeSwitcher();
+  new ActionButtonManager();
   
   // Make scrollManager accessible globally for music functions
   (window as any).scrollManager = scrollManager;
@@ -819,13 +1011,56 @@ window.addEventListener('scroll', () => {
 // Music files from assets/aud/music/
 // Note: Files are copied to web/public/music/ for easier serving
 const MUSIC_FILES = [
-  '/music/habits.mp3',  // Tove Lo - Habits (Stay High) - Hippie Sabotage Remix
-  // Add more music files here as they're added to the assets folder
+  '/music/Tove Lo - Habits (Stay High) - Hippie Sabotage Remix.mp3',
+  '/music/Alexiane - A Million on My Soul (From Valerian and the City of a Thousand Planets).mp3',
+  '/music/Benson Boone - Beautiful Things (Live from the 67th GRAMMY Awards).mp3',
+  '/music/RagnBone Man - Human (Official Video).mp3',
+  '/music/Sigma ft Paloma Faith - Changing (Official Video).mp3',
+  "/music/BLACKPINK - 'Pink Venom' MV.mp3",
+  "/music/BLACKPINK - 'Shut Down' MV.mp3",
+  "/music/BLACKPINK - '뛰어(JUMP)' MV.mp3",
+  '/music/Dennis Lloyd - GFY (Official Video).mp3',
+  '/music/Eladio Carrion - Branzino.mp3',
+  '/music/OTYKEN - STORM (Official Music Video).mp3',
 ];
+
+const VIDEO_LIBRARY: string[] = Array.isArray(videoLinks) ? (videoLinks as string[]) : [];
+const PLAYABLE_VIDEO_LINKS = VIDEO_LIBRARY
+  .map(link => (typeof link === 'string' ? link.trim() : ''))
+  .filter(link => link.length > 0 && !/youtube\.com/i.test(link) && /\.(mp4|webm|mov)(\?|$)/i.test(link));
+
+let currentVideoUrl: string | null = null;
+let isVideoLoading = false;
+let isVideoPlayingInBlob = false;
+let activeVideoStream: MediaStream | null = null;
+let videoElementCleanup: (() => void) | null = null;
 
 // Music player state
 let currentMusicIndex = -1;
 let isPlaying = false;
+
+// Create song title display element
+const songTitleDisplay = document.createElement('div');
+songTitleDisplay.id = 'song-title-display';
+songTitleDisplay.style.cssText = `
+  position: fixed;
+  bottom: 8vh;
+  left: 50%;
+  transform: translateX(-50%);
+  color: rgba(255, 255, 255, 0.5);
+  font-size: 0.75rem;
+  font-weight: 400;
+  z-index: 9998;
+  max-width: 320px;
+  width: min(80vw, 320px);
+  white-space: nowrap;
+  overflow: hidden;
+  text-align: center;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+  pointer-events: none;
+`;
+document.body.appendChild(songTitleDisplay);
 
 // Bottom tabs functionality
 document.querySelectorAll('.tab-btn').forEach(button => {
@@ -840,15 +1075,18 @@ document.querySelectorAll('.tab-btn').forEach(button => {
     const tabType = this.getAttribute('data-tab');
     console.log(`🎵 Switched to ${tabType} tab`);
     
-    // Handle Music tab
+    // Handle Media tabs
     if (tabType === 'music') {
+      stopVideoPlayback();
       await playRandomMusic();
     } else if (tabType === 'voice') {
-      // Stop music when switching to voice mode
+      // Stop any audio when switching to voice mode
       stopMusic();
+      stopVideoPlayback();
     } else if (tabType === 'video') {
-      // Stop music when switching to video mode
+      // Switch to blob video playback
       stopMusic();
+      await playRandomVideoInBlob();
     }
   });
 });
@@ -893,6 +1131,9 @@ async function playRandomMusic() {
     const selectedSong = MUSIC_FILES[newIndex];
     const songName = selectedSong.split('/').pop()?.replace('.mp3', '') || 'Unknown';
     
+    // Show song title with scrolling animation
+    showSongTitle(songName);
+    
     console.log(`🎵 Loading: ${songName}`);
     console.log(`🎵 File path: ${selectedSong}`);
     
@@ -929,10 +1170,11 @@ async function playRandomMusic() {
       console.log('🎵 Song ended');
       kwami.setState('idle');
       isPlaying = false;
+      hideSongTitle();
     }, { once: true });
     
     // Also listen for errors
-    audioElement.addEventListener('error', (e) => {
+    audioElement.addEventListener('error', (e: Event) => {
       console.error('🎵 Audio element error:', e);
       kwami.setState('idle');
       isPlaying = false;
@@ -955,7 +1197,228 @@ function stopMusic() {
     kwami.body.audio.pause();
     kwami.setState('idle');
     isPlaying = false;
+    hideSongTitle();
     console.log('🛑 Music stopped');
+  }
+}
+
+// Show song title with marquee effect for long titles
+function showSongTitle(title: string) {
+  songTitleDisplay.textContent = title;
+  songTitleDisplay.style.opacity = '1';
+  
+  // If title is long, add scrolling animation
+  const titleWidth = songTitleDisplay.scrollWidth;
+  const containerWidth = 300; // max-width
+  
+  if (titleWidth > containerWidth) {
+    // Add marquee animation for long titles
+    songTitleDisplay.style.animation = 'none';
+    setTimeout(() => {
+      songTitleDisplay.style.animation = 'marquee 15s linear infinite';
+    }, 10);
+  } else {
+    songTitleDisplay.style.animation = 'none';
+  }
+}
+
+// Hide song title
+function hideSongTitle() {
+  songTitleDisplay.style.opacity = '0';
+  songTitleDisplay.style.animation = 'none';
+}
+
+function getKwamiInstance(): Kwami | null {
+  const scrollManager = (window as any).scrollManager;
+  return scrollManager?.getKwami?.() ?? null;
+}
+
+function pickRandomVideoUrl(): string | null {
+  if (!PLAYABLE_VIDEO_LINKS.length) {
+    return null;
+  }
+
+  if (PLAYABLE_VIDEO_LINKS.length === 1) {
+    return PLAYABLE_VIDEO_LINKS[0];
+  }
+
+  let selected = currentVideoUrl;
+  let attempts = 0;
+  const maxAttempts = 6;
+
+  while (selected === currentVideoUrl && attempts < maxAttempts) {
+    selected = PLAYABLE_VIDEO_LINKS[Math.floor(Math.random() * PLAYABLE_VIDEO_LINKS.length)];
+    attempts += 1;
+  }
+
+  return selected ?? PLAYABLE_VIDEO_LINKS[0];
+}
+
+function cleanupVideoElementListeners() {
+  if (videoElementCleanup) {
+    videoElementCleanup();
+    videoElementCleanup = null;
+  }
+}
+
+function releaseActiveVideoStream() {
+  if (activeVideoStream) {
+    activeVideoStream.getTracks().forEach(track => track.stop());
+    activeVideoStream = null;
+  }
+}
+
+function stopVideoPlayback(explicitKwami?: Kwami | null) {
+  const kwami = explicitKwami ?? getKwamiInstance();
+
+  cleanupVideoElementListeners();
+  releaseActiveVideoStream();
+
+  if (!kwami) {
+    currentVideoUrl = null;
+    isVideoPlayingInBlob = false;
+    isVideoLoading = false;
+    return;
+  }
+
+  kwami.body.setBlobSurfaceVideo(null);
+  kwami.body.audio.disconnectMediaStream();
+
+  if (isVideoPlayingInBlob) {
+    kwami.setState('idle');
+  }
+
+  isVideoPlayingInBlob = false;
+  isVideoLoading = false;
+  currentVideoUrl = null;
+}
+
+async function waitForBlobSurfaceVideoElement(kwami: Kwami, timeout = 7000): Promise<HTMLVideoElement | null> {
+  const start = performance.now();
+
+  return new Promise(resolve => {
+    const tick = () => {
+      const videoElement = kwami.body.getBlobSurfaceVideoElement?.() ?? null;
+      if (videoElement && videoElement.readyState >= 2) {
+        resolve(videoElement);
+        return;
+      }
+
+      if (performance.now() - start >= timeout) {
+        resolve(videoElement);
+        return;
+      }
+
+      requestAnimationFrame(tick);
+    };
+
+    tick();
+  });
+}
+
+async function attachVideoAudioToKwami(kwami: Kwami, videoElement: HTMLVideoElement, sourceUrl: string) {
+  cleanupVideoElementListeners();
+
+  const handleEnded = () => {
+    if (videoElement.loop) {
+      return;
+    }
+    isVideoPlayingInBlob = false;
+    kwami.setState('idle');
+  };
+
+  const handleError = (event: Event) => {
+    console.error('🎥 Blob surface video error:', event);
+    stopVideoPlayback(kwami);
+  };
+
+  videoElement.addEventListener('ended', handleEnded);
+  videoElement.addEventListener('error', handleError);
+  videoElementCleanup = () => {
+    videoElement.removeEventListener('ended', handleEnded);
+    videoElement.removeEventListener('error', handleError);
+  };
+
+  const captureStream: (() => MediaStream | null) | undefined =
+    (videoElement as any).captureStream ||
+    (videoElement as any).mozCaptureStream ||
+    (videoElement as any).webkitCaptureStream;
+
+  if (typeof captureStream !== 'function') {
+    console.warn('🎥 captureStream() not supported in this browser; skipping audio visualization for video.');
+    return;
+  }
+
+  try {
+    const stream = captureStream.call(videoElement);
+    if (!stream) {
+      console.warn('🎥 Failed to capture MediaStream from video element.');
+      return;
+    }
+
+    releaseActiveVideoStream();
+    activeVideoStream = stream;
+
+    await kwami.body.audio.connectMediaStream(stream);
+
+    if (videoElement.paused) {
+      await videoElement.play().catch(() => {});
+    }
+
+    kwami.setState('speaking');
+    console.log(`🎥 Blob video audio stream attached: ${sourceUrl}`);
+  } catch (error) {
+    console.error('🎥 Unable to connect video audio stream:', error);
+  }
+}
+
+async function playRandomVideoInBlob() {
+  if (isVideoLoading) {
+    console.warn('🎥 A video is already loading, please wait...');
+    return;
+  }
+
+  if (!PLAYABLE_VIDEO_LINKS.length) {
+    console.warn('🎥 No playable video links available in links.json');
+    return;
+  }
+
+  const kwami = getKwamiInstance();
+  if (!kwami) {
+    console.warn('🎥 Kwami instance not ready yet');
+    return;
+  }
+
+  const nextUrl = pickRandomVideoUrl();
+  if (!nextUrl) {
+    console.warn('🎥 Failed to select a video URL');
+    return;
+  }
+
+  isVideoLoading = true;
+  stopVideoPlayback(kwami);
+  currentVideoUrl = nextUrl;
+
+  console.log(`🎥 Loading blob video stream: ${nextUrl}`);
+
+  try {
+    kwami.body.setBlobSurfaceVideo(nextUrl, { autoplay: true, loop: true, muted: false });
+    const videoElement = await waitForBlobSurfaceVideoElement(kwami);
+
+    if (!videoElement) {
+      throw new Error('Video element was not ready in time');
+    }
+
+    videoElement.muted = false;
+    videoElement.volume = 1;
+
+    await attachVideoAudioToKwami(kwami, videoElement, nextUrl);
+    isVideoPlayingInBlob = true;
+  } catch (error) {
+    console.error('🎥 Failed to start blob video playback:', error);
+    stopVideoPlayback(kwami);
+  } finally {
+    isVideoLoading = false;
   }
 }
 

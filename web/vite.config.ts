@@ -6,7 +6,7 @@ export default defineConfig({
   optimizeDeps: {
     exclude: ['kwami']
   },
-  publicDir: resolve(__dirname, '../assets'),
+  publicDir: 'public',
   server: {
     fs: {
       allow: ['..']

@@ -1848,6 +1848,14 @@ export class KwamiBody {
     if (video.autoplay) video.play().catch(() => {});
   }
 
+  /**
+   * Expose the current HTMLVideoElement used for the blob surface
+   * This allows external consumers to tap into the MediaStream (e.g., for audio reactivity)
+   */
+  getBlobSurfaceVideoElement(): HTMLVideoElement | null {
+    return this.blobSurfaceVideoElement;
+  }
+
   clearBlobSurfaceMedia(): void {
     if (this.blobSurfaceTexture) {
       this.blobSurfaceTexture.dispose();

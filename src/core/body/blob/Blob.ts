@@ -71,6 +71,9 @@ export class Blob {
   // Conversation callback
   public onConversationToggle?: () => Promise<void>;
   
+  // Custom double-click callback (overrides default behavior)
+  public onDoubleClick?: () => void | Promise<void>;
+  
   // Listening mode (inverts spikes)
   public isListening = false;
   private listeningTransition = 0; // 0 to 1
@@ -104,6 +107,8 @@ export class Blob {
     reactivity: 1.9,
     sensitivity: 0.075,
     breathing: 0.035,
+    responseSpeed: 0.75,
+    transientBoost: 0.5,
   };
   public colors = { x: '#ff0000', y: '#00ff00', z: '#0000ff' };
   public opacity = 1;
@@ -840,11 +845,16 @@ export class Blob {
       const intersects = raycaster.intersectObject(this.mesh);
       
       if (intersects.length > 0) {
-        // Toggle conversation if callback is set
-        if (this.onConversationToggle) {
+        // Priority 1: Custom double-click callback (user-defined behavior)
+        if (this.onDoubleClick) {
+          await this.onDoubleClick();
+        }
+        // Priority 2: Toggle conversation if callback is set
+        else if (this.onConversationToggle) {
           await this.onConversationToggle();
-        } else {
-          // Fallback to listening mode if no conversation callback
+        }
+        // Priority 3: Fallback to listening mode if no callbacks
+        else {
           if (this.isListening) {
             this.stopListening();
           } else {
