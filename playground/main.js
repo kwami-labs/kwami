@@ -973,6 +973,53 @@ function initializeColorPicker() {
     });
   });
 
+  // Handle random color button
+  const randomColorBtn = document.getElementById('random-color-btn');
+  if (randomColorBtn) {
+    randomColorBtn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      // Generate a random color
+      const randomColor = '#' + Math.floor(Math.random()*16777215).toString(16).padStart(6, '0');
+      colorInput.value = randomColor;
+      applyAppColor(randomColor);
+    });
+  }
+
+  // Handle glass effect checkbox for UI glassmorphism
+  const glassEffectCheckbox = document.getElementById('glass-effect-checkbox');
+  if (glassEffectCheckbox) {
+    // Load saved preference
+    try {
+      const savedGlassEffect = localStorage.getItem('kwami-ui-glass-effect');
+      if (savedGlassEffect === 'true') {
+        glassEffectCheckbox.checked = true;
+        document.body.classList.add('glass-ui');
+      }
+    } catch (error) {
+      console.warn('Failed to load glass effect preference:', error);
+    }
+    
+    glassEffectCheckbox.addEventListener('change', (e) => {
+      e.stopPropagation();
+      
+      if (e.target.checked) {
+        document.body.classList.add('glass-ui');
+        try {
+          localStorage.setItem('kwami-ui-glass-effect', 'true');
+        } catch (error) {
+          console.warn('Failed to save glass effect preference:', error);
+        }
+      } else {
+        document.body.classList.remove('glass-ui');
+        try {
+          localStorage.setItem('kwami-ui-glass-effect', 'false');
+        } catch (error) {
+          console.warn('Failed to save glass effect preference:', error);
+        }
+      }
+    });
+  }
+
   // Close dropdown when clicking outside
   document.addEventListener('click', closeColorPickerOnClickOutside);
 

@@ -8,7 +8,9 @@
   /* Light theme colors */
   --bg-body: #ffffff;
   --bg-sidebar: rgba(255, 255, 255, 0.95);
+  --bg-sidebar-rgb: 255, 255, 255;
   --bg-button: rgba(255, 255, 255, 0.95);
+  --bg-button-rgb: 255, 255, 255;
   --bg-button-hover: rgba(255, 255, 255, 0.98);
   --bg-input: white;
   --bg-section: #f9f9f9;
@@ -33,7 +35,9 @@ body.dark-mode {
   /* Dark theme colors */
   --bg-body: #0f0f0f;
   --bg-sidebar: rgba(26, 26, 26, 0.95);
+  --bg-sidebar-rgb: 26, 26, 26;
   --bg-button: rgba(40, 40, 40, 0.95);
+  --bg-button-rgb: 40, 40, 40;
   --bg-button-hover: rgba(50, 50, 50, 0.98);
   --bg-input: #1a1a1a;
   --bg-section: #1a1a1a;
@@ -394,6 +398,151 @@ body:has(#right-sidebar:not(.hidden)) .color-picker-dropdown {
   right: 555px;
 }
 
+/* Glass UI Effect - Glassmorphism for UI elements */
+body.glass-ui #left-sidebar,
+body.glass-ui #right-sidebar {
+  background: rgba(var(--bg-sidebar-rgb), 0.7) !important;
+  backdrop-filter: blur(20px) saturate(180%);
+  -webkit-backdrop-filter: blur(20px) saturate(180%);
+  border-right: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+body.glass-ui #right-sidebar {
+  border-right: none;
+  border-left: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+body.glass-ui #audio-player {
+  background: rgba(var(--bg-sidebar-rgb), 0.75) !important;
+  backdrop-filter: blur(20px) saturate(180%);
+  -webkit-backdrop-filter: blur(20px) saturate(180%);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+body.glass-ui .menu-toggle-btn,
+body.glass-ui .color-picker-btn,
+body.glass-ui .theme-toggle-btn,
+body.glass-ui .github-star-btn,
+body.glass-ui .audio-toggle-btn {
+  background: rgba(var(--bg-button-rgb), 0.7) !important;
+  backdrop-filter: blur(15px) saturate(180%);
+  -webkit-backdrop-filter: blur(15px) saturate(180%);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+body.glass-ui .color-picker-dropdown {
+  background: rgba(var(--bg-sidebar-rgb), 0.8) !important;
+  backdrop-filter: blur(25px) saturate(180%);
+  -webkit-backdrop-filter: blur(25px) saturate(180%);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+}
+
+body.glass-ui .audio-loader-modal-content {
+  background: rgba(var(--bg-sidebar-rgb), 0.85) !important;
+  backdrop-filter: blur(25px) saturate(180%);
+  -webkit-backdrop-filter: blur(25px) saturate(180%);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+}
+
+body.glass-ui #media-loading-overlay .media-loader-container-overlay {
+  background: rgba(var(--bg-sidebar-rgb), 0.9) !important;
+  backdrop-filter: blur(30px) saturate(180%);
+  -webkit-backdrop-filter: blur(30px) saturate(180%);
+}
+
+/* Glass UI hover effects */
+body.glass-ui .menu-toggle-btn:hover,
+body.glass-ui .color-picker-btn:hover,
+body.glass-ui .theme-toggle-btn:hover,
+body.glass-ui .github-star-btn:hover,
+body.glass-ui .audio-toggle-btn:hover {
+  background: rgba(var(--bg-button-rgb), 0.85) !important;
+  border-color: rgba(255, 255, 255, 0.2);
+}
+
+/* Smooth transitions for glass effect */
+#left-sidebar,
+#right-sidebar,
+#audio-player,
+.menu-toggle-btn,
+.color-picker-btn,
+.theme-toggle-btn,
+.github-star-btn,
+.audio-toggle-btn,
+.color-picker-dropdown {
+  transition: background 0.3s ease, backdrop-filter 0.3s ease, border 0.3s ease;
+}
+
+.color-picker-header {
+  margin-bottom: 15px;
+  padding-bottom: 10px;
+  border-bottom: 1px solid var(--border-input);
+}
+
+.color-picker-title {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text-primary);
+  margin: 0;
+}
+
+.color-picker-controls {
+  display: grid;
+  grid-template-columns: 40px 40px 1fr;
+  gap: 8px;
+  align-items: center;
+  margin-bottom: 15px;
+}
+
+.random-color-btn {
+  width: 40px;
+  height: 40px;
+  border-radius: 6px;
+  border: 2px solid var(--border-input);
+  background: var(--bg-button);
+  color: var(--text-primary);
+  cursor: pointer;
+  transition: all 0.2s ease;
+  font-size: 18px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  flex-shrink: 0;
+}
+
+.random-color-btn:hover {
+  background: var(--bg-button-hover);
+  border-color: var(--scrollbar-thumb);
+  transform: scale(1.1);
+}
+
+.random-color-btn:active {
+  transform: scale(0.95);
+}
+
+.glass-effect-toggle {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  cursor: pointer;
+  user-select: none;
+}
+
+.glass-effect-toggle input[type="checkbox"] {
+  width: 16px;
+  height: 16px;
+  cursor: pointer;
+  accent-color: var(--scrollbar-thumb);
+}
+
+.glass-effect-label {
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--text-secondary);
+  white-space: nowrap;
+}
+
 .color-picker-row {
   display: flex;
   align-items: center;
@@ -402,10 +551,10 @@ body:has(#right-sidebar:not(.hidden)) .color-picker-dropdown {
 }
 
 .color-picker-input {
-  width: 50px;
-  height: 50px;
+  width: 40px;
+  height: 40px;
   border: 2px solid var(--border-input);
-  border-radius: 8px;
+  border-radius: 6px;
   cursor: pointer;
   transition: border-color 0.2s ease;
   flex-shrink: 0;
@@ -423,16 +572,16 @@ body:has(#right-sidebar:not(.hidden)) .color-picker-dropdown {
 }
 
 .color-picker-presets {
-  display: grid;
-  grid-template-columns: repeat(6, 1fr);
-  gap: 6px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
   padding: 5px 0;
 }
 
 .color-picker-palette-row {
   display: flex;
   gap: 4px;
-  padding: 6px 0;
+  padding: 3px 0;
   align-items: center;
   justify-content: flex-start;
   flex-wrap: nowrap;
