@@ -88,6 +88,13 @@ export default defineNuxtConfig({
     devServer: {
       watch: ['server/**/*.ts'],
     },
+    publicAssets: [
+      {
+        dir: '../assets',
+        maxAge: 60 * 60 * 24 * 365, // 1 year
+        baseURL: 'assets'
+      }
+    ],
   },
 
   // TypeScript configuration
