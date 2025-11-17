@@ -148,6 +148,40 @@ const blobConfigs = [
   }
 ];
 
+// Bottom Navigation Sphere Manager
+class BottomNavigator {
+  private sphere: HTMLElement | null = null;
+  private totalSections = 17;
+  private currentSection = 0;
+
+  constructor() {
+    this.sphere = document.getElementById('bottom-nav-sphere');
+    if (this.sphere) {
+      this.sphere.addEventListener('click', () => this.navigateToNext());
+    }
+  }
+
+  private navigateToNext() {
+    const nextSection = (this.currentSection + 1) % this.totalSections;
+    const docHeight = document.documentElement.scrollHeight;
+    const sectionHeight = docHeight / this.totalSections;
+    const targetScroll = nextSection * sectionHeight;
+    
+    window.scrollTo({
+      top: targetScroll,
+      behavior: 'smooth'
+    });
+  }
+
+  public updateColors(sectionIndex: number, palette: { primary: string, secondary: string, accent: string }) {
+    this.currentSection = sectionIndex;
+    if (this.sphere) {
+      // Apply gradient matching the current page colors
+      this.sphere.style.background = `radial-gradient(circle at 50% 30%, ${palette.accent}, ${palette.primary} 50%, ${palette.secondary})`;
+    }
+  }
+}
+
 // Sidebar Navigation Manager
 class SidebarNavigator {
   private sphereElements: HTMLElement[] = [];
@@ -223,11 +257,13 @@ class ScrollManager {
   private root: HTMLElement;
   private isTransitioning = false;
   private sidebarNav: SidebarNavigator;
+  private bottomNav: BottomNavigator;
 
   constructor() {
     this.sections = document.querySelectorAll('.text-section');
     this.root = document.documentElement;
     this.sidebarNav = new SidebarNavigator();
+    this.bottomNav = new BottomNavigator();
     
     this.init();
     window.addEventListener('scroll', this.handleScroll.bind(this));
@@ -237,6 +273,7 @@ class ScrollManager {
   private async init() {
     // Set initial colors
     this.updateColors(0);
+    this.bottomNav.updateColors(0, colorPalettes[0]);
     
     // Initialize Kwami
     try {
@@ -284,20 +321,44 @@ class ScrollManager {
           },
           scene: {
             cameraPosition: { x: 0, y: 0, z: 12 },
-            enableControls: true
+            enableControls: false  // Disable controls to prevent camera movement
           }
         }
       });
 
-      // Set blob scale larger
-      this.kwami.body.blob.setScale(7.0);
+      // Set blob scale
+      this.kwami.body.blob.setScale(5.5);
 
-      // Position blob to the right
+      // Position blob more to the right (desktop only)
       const blobMesh = this.kwami.body.blob.getMesh();
-      blobMesh.position.set(6, 0, 0);
+      const isMobile = window.innerWidth <= 1024;
+      blobMesh.position.set(isMobile ? 0 : 8, 0, 0);
+
+      // Enable auto-rotation on Y-axis only (rotates in place)
+      blobMesh.rotation.y = 0;
+      const animate = () => {
+        blobMesh.rotation.y += 0.002; // Slow rotation
+        requestAnimationFrame(animate);
+      };
+      animate();
+
+      // Adjust on resize
+      window.addEventListener('resize', () => {
+        const mobile = window.innerWidth <= 1024;
+        blobMesh.position.set(mobile ? 0 : 8, 0, 0);
+        this.kwami.body.blob.setScale(mobile ? 3.5 : 5.5);
+      });
 
       // Enable click interaction for touch effects
       this.kwami.body.blob.enableClickInteraction();
+
+      // Add double-click handler to randomize blob
+      canvas.addEventListener('dblclick', () => {
+        if (this.kwami?.body) {
+          this.kwami.body.randomizeBlob();
+          console.log('🎲 Blob randomized!');
+        }
+      });
 
       console.log('✨ Kwami initialized successfully!');
       console.log('Kwami instance:', this.kwami);
@@ -345,9 +406,11 @@ class ScrollManager {
     // Update colors and blob config based on section
     if (section !== this.currentSection && !this.isTransitioning) {
       this.currentSection = section;
+      const palette = colorPalettes[section % colorPalettes.length];
       this.updateColors(section);
       this.updateKwamiConfig(section);
       this.sidebarNav.updateSphereColors(section);
+      this.bottomNav.updateColors(section, palette);
     }
 
     // Add random color variations
@@ -362,6 +425,22 @@ class ScrollManager {
         sec.classList.remove('active');
       }
     });
+    
+    // Update bottom sphere with next section's color
+    this.updateBottomSphereColor(section);
+  }
+
+  private updateBottomSphereColor(currentSection: number) {
+    const bottomSphere = document.getElementById('bottom-nav-sphere');
+    if (!bottomSphere) return;
+
+    // Get next section (or first section if on last page)
+    const nextSection = (currentSection + 1) % this.sections.length;
+    const nextPalette = colorPalettes[nextSection];
+
+    // Update sphere color
+    const gradient = `radial-gradient(circle at 30% 30%, ${nextPalette.secondary}, ${nextPalette.primary})`;
+    (bottomSphere as HTMLElement).style.background = gradient;
   }
 
   private updateColors(section: number) {
@@ -459,87 +538,58 @@ document.querySelectorAll('a[href^="#"]').forEach(anchor => {
   });
 });
 
-// Tailwind colors at -500 tone ordered harmonically (by hue)
-const tailwindColors500Harmonic = [
-  '#ef4444', // red-500
-  '#f43f5e', // rose-500
-  '#ec4899', // pink-500
-  '#d946ef', // fuchsia-500
-  '#a855f7', // purple-500
-  '#8b5cf6', // violet-500
-  '#6366f1', // indigo-500
-  '#3b82f6', // blue-500
-  '#0ea5e9', // sky-500
-  '#06b6d4', // cyan-500
-  '#14b8a6', // teal-500
-  '#10b981', // emerald-500
-  '#22c55e', // green-500
-  '#84cc16', // lime-500
-  '#eab308', // yellow-500
-  '#f59e0b', // amber-500
-  '#f97316', // orange-500
-];
+// Mode Switcher Handler
+class ModeSwitcher {
+  private currentMode: 'voice' | 'music' | 'video' = 'voice';
+  private switcher: HTMLElement | null = null;
+  private buttons: NodeListOf<HTMLElement> | null = null;
 
-// Get harmonic gradient for a section
-function getHarmonicGradient(sectionIndex: number) {
-  const totalColors = tailwindColors500Harmonic.length;
-  const totalSections = 23;
-  
-  // Calculate color indices for smooth progression
-  const baseIndex = Math.floor((sectionIndex / totalSections) * totalColors);
-  const color1Index = baseIndex % totalColors;
-  const color2Index = (baseIndex + 3) % totalColors;
-  const color3Index = (baseIndex + 6) % totalColors;
-  
-  return {
-    color1: tailwindColors500Harmonic[color1Index],
-    color2: tailwindColors500Harmonic[color2Index],
-    color3: tailwindColors500Harmonic[color3Index]
-  };
-}
-
-function applyHarmonicColorsToSection(sectionIndex: number) {
-  const gradient = getHarmonicGradient(sectionIndex);
-  const gradientStyle = `linear-gradient(135deg, ${gradient.color1}, ${gradient.color2}, ${gradient.color3})`;
-  
-  // Apply to section numbers
-  const sectionNumbers = document.querySelectorAll('.section-number');
-  if (sectionNumbers[sectionIndex]) {
-    const numberEl = sectionNumbers[sectionIndex] as HTMLElement;
-    numberEl.style.background = gradientStyle;
-    numberEl.style.backgroundSize = '200% 200%';
-    numberEl.style.webkitBackgroundClip = 'text';
-    numberEl.style.backgroundClip = 'text';
-    numberEl.style.webkitTextFillColor = 'transparent';
-  }
-  
-  // Apply to titles (h1/h2)
-  const sections = document.querySelectorAll('.text-section');
-  if (sections[sectionIndex]) {
-    const titleEl = sections[sectionIndex].querySelector('h1, h2') as HTMLElement;
-    if (titleEl) {
-      titleEl.style.background = gradientStyle;
-      titleEl.style.backgroundSize = '200% 200%';
-      titleEl.style.webkitBackgroundClip = 'text';
-      titleEl.style.backgroundClip = 'text';
-      titleEl.style.webkitTextFillColor = 'transparent';
+  constructor() {
+    this.switcher = document.querySelector('.mode-switcher');
+    this.buttons = document.querySelectorAll('.mode-btn');
+    
+    if (this.switcher && this.buttons) {
+      this.init();
     }
   }
-}
 
-function initializeAllSectionColors() {
-  const totalSections = document.querySelectorAll('.text-section').length;
-  for (let i = 0; i < totalSections; i++) {
-    applyHarmonicColorsToSection(i);
+  private init() {
+    this.switcher!.setAttribute('data-active', this.currentMode);
+    
+    this.buttons!.forEach(btn => {
+      btn.addEventListener('click', () => {
+        const mode = btn.getAttribute('data-mode') as 'voice' | 'music' | 'video';
+        this.setMode(mode);
+      });
+    });
+  }
+
+  private setMode(mode: 'voice' | 'music' | 'video') {
+    this.currentMode = mode;
+    this.switcher!.setAttribute('data-active', mode);
+    
+    // Update active button
+    this.buttons!.forEach(btn => {
+      if (btn.getAttribute('data-mode') === mode) {
+        btn.classList.add('active');
+      } else {
+        btn.classList.remove('active');
+      }
+    });
+
+    console.log(`Mode switched to: ${mode}`);
+    // TODO: Add mode-specific behavior here
+  }
+
+  public getMode() {
+    return this.currentMode;
   }
 }
 
 // Initialize
 document.addEventListener('DOMContentLoaded', () => {
   new ScrollManager();
-  
-  // Apply harmonic colors to all sections
-  initializeAllSectionColors();
+  new ModeSwitcher();
 });
 
 // Add scroll indicator on first section

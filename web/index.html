@@ -7,12 +7,33 @@
     <title>Kwami - Your Interactive AI Companion</title>
   </head>
   <body>
+    <!-- Mode Switcher at Top Center -->
+    <div class="mode-switcher">
+      <button class="mode-btn active" data-mode="voice" aria-label="Voice Mode">
+        <span class="mode-emoji">🎙️</span>
+        <span class="mode-label">Voice</span>
+      </button>
+      <button class="mode-btn" data-mode="music" aria-label="Music Mode">
+        <span class="mode-emoji">🎵</span>
+        <span class="mode-label">Music</span>
+      </button>
+      <button class="mode-btn" data-mode="video" aria-label="Video Mode">
+        <span class="mode-emoji">🎬</span>
+        <span class="mode-label">Video</span>
+      </button>
+      <div class="mode-slider"></div>
+    </div>
+
     <!-- Sidebar Navigation -->
     <nav id="sidebar-nav" class="sidebar-navigation">
       <div class="sphere-container" id="sphere-container">
         <!-- Spheres will be dynamically generated via TypeScript -->
       </div>
     </nav>
+
+    <!-- Bottom Navigation Sphere -->
+    <button id="bottom-nav-sphere" class="bottom-nav-sphere" aria-label="Next section">
+    </button>
 
     <div id="app">
       <!-- Left half: Animated text content -->
@@ -22,22 +43,6 @@
           <h1 class="animate-text">👋 Meet Kwami</h1>
           <p class="main-description animate-text delay-1">An open-source library that brings AI companions to life with stunning 3D visuals, natural voice interactions, and deep emotional intelligence.</p>
           <p class="animate-text delay-2">Transform any web application into an engaging, personality-driven experience</p>
-          
-          <!-- Small SVG Logo at bottom -->
-          <div class="logo-small animate-text delay-3">
-            <svg width="100" height="100" viewBox="0 0 400 400">
-              <defs>
-                <linearGradient id="logo-gradient-0" x1="0%" y1="0%" x2="100%" y2="100%">
-                  <stop offset="0%" class="logo-stop1" />
-                  <stop offset="50%" class="logo-stop2" />
-                  <stop offset="100%" class="logo-stop3" />
-                </linearGradient>
-              </defs>
-              <g class="logo-blob">
-                <circle cx="200" cy="200" r="80" fill="url(#logo-gradient-0)" />
-              </g>
-            </svg>
-          </div>
         </div>
 
         <div class="text-section" data-section="1">
@@ -46,19 +51,6 @@
           <p class="main-description animate-text delay-1">The AI brain powering conversations with ultra-realistic text-to-speech and streaming capabilities.</p>
           <p class="animate-text delay-2">Multi-provider architecture supports ElevenLabs (29+ languages, 5000+ voices) and OpenAI</p>
           <p class="animate-text delay-3">Built-in conversational AI with WebSocket streaming for real-time voice interactions</p>
-          
-          <div class="logo-small animate-text delay-3">
-            <svg width="100" height="100" viewBox="0 0 400 400">
-              <defs>
-                <linearGradient id="logo-gradient-1" x1="0%" y1="0%" x2="100%" y2="100%">
-                  <stop offset="0%" class="logo-stop1" />
-                  <stop offset="50%" class="logo-stop2" />
-                  <stop offset="100%" class="logo-stop3" />
-                </linearGradient>
-              </defs>
-              <circle cx="200" cy="200" r="80" fill="url(#logo-gradient-1)" />
-            </svg>
-          </div>
         </div>
 
         <div class="text-section" data-section="2">
@@ -67,19 +59,6 @@
           <p class="main-description animate-text delay-1">A mesmerizing 3D blob that responds to sound, touch, and emotions with WebGL rendering at 60fps.</p>
           <p class="animate-text delay-2">Real-time audio reactivity analyzes frequency bands to create organic, living animations</p>
           <p class="animate-text delay-3">Interactive touch with liquid-like ripples, multiple shader skins, and custom materials</p>
-          
-          <div class="logo-small animate-text delay-3">
-            <svg width="100" height="100" viewBox="0 0 400 400">
-              <defs>
-                <linearGradient id="logo-gradient-2" x1="0%" y1="0%" x2="100%" y2="100%">
-                  <stop offset="0%" class="logo-stop1" />
-                  <stop offset="50%" class="logo-stop2" />
-                  <stop offset="100%" class="logo-stop3" />
-                </linearGradient>
-              </defs>
-              <circle cx="200" cy="200" r="80" fill="url(#logo-gradient-2)" />
-            </svg>
-          </div>
         </div>
 
         <div class="text-section" data-section="3">
@@ -88,19 +67,6 @@
           <p class="main-description animate-text delay-1">A revolutionary 10-dimensional emotional personality system that makes AI feel genuinely human.</p>
           <p class="animate-text delay-2">Emotions: happiness, energy, confidence, calmness, optimism, socialness, creativity, patience, empathy, curiosity</p>
           <p class="animate-text delay-3">Preset personalities include Kaya (friendly), Nexus (professional), and Spark (playful)</p>
-          
-          <div class="logo-small animate-text delay-3">
-            <svg width="100" height="100" viewBox="0 0 400 400">
-              <defs>
-                <linearGradient id="logo-gradient-3" x1="0%" y1="0%" x2="100%" y2="100%">
-                  <stop offset="0%" class="logo-stop1" />
-                  <stop offset="50%" class="logo-stop2" />
-                  <stop offset="100%" class="logo-stop3" />
-                </linearGradient>
-              </defs>
-              <circle cx="200" cy="200" r="80" fill="url(#logo-gradient-3)" />
-            </svg>
-          </div>
         </div>
 
         <div class="text-section" data-section="4">
@@ -109,19 +75,6 @@
           <p class="main-description animate-text delay-1">Complete control over every aspect of your companion's appearance and behavior.</p>
           <p class="animate-text delay-2">Adjust spike intensity, rotation speed, colors, shininess, opacity, and animation states in real-time</p>
           <p class="animate-text delay-3">Export as GLB 3D model, generate unique DNA hashes, or save as YAML/JSON configurations</p>
-          
-          <div class="logo-small animate-text delay-3">
-            <svg width="100" height="100" viewBox="0 0 400 400">
-              <defs>
-                <linearGradient id="logo-gradient-4" x1="0%" y1="0%" x2="100%" y2="100%">
-                  <stop offset="0%" class="logo-stop1" />
-                  <stop offset="50%" class="logo-stop2" />
-                  <stop offset="100%" class="logo-stop3" />
-                </linearGradient>
-              </defs>
-              <circle cx="200" cy="200" r="80" fill="url(#logo-gradient-4)" />
-            </svg>
-          </div>
         </div>
 
         <div class="text-section" data-section="5">
@@ -130,19 +83,6 @@
           <p class="main-description animate-text delay-1">Kwami is an independent, reusable JavaScript library for creating engaging 3D AI companions.</p>
           <p class="animate-text delay-2">Combines Three.js visual rendering, Web Audio API, and cutting-edge AI voice technology into one unified package</p>
           <p class="animate-text delay-3">Framework agnostic - integrates seamlessly with React, Vue, Svelte, Angular, or vanilla JavaScript</p>
-          
-          <div class="logo-small animate-text delay-3">
-            <svg width="100" height="100" viewBox="0 0 400 400">
-              <defs>
-                <linearGradient id="logo-gradient-5" x1="0%" y1="0%" x2="100%" y2="100%">
-                  <stop offset="0%" class="logo-stop1" />
-                  <stop offset="50%" class="logo-stop2" />
-                  <stop offset="100%" class="logo-stop3" />
-                </linearGradient>
-              </defs>
-              <circle cx="200" cy="200" r="80" fill="url(#logo-gradient-5)" />
-            </svg>
-          </div>
         </div>
 
         <div class="text-section" data-section="6">
@@ -152,19 +92,6 @@
           <p class="animate-text delay-2">Body: WebGL scene with animated blob mesh, audio analysis via FFT, and simplex noise deformation</p>
           <p class="animate-text delay-3">Mind: Provider-based AI system with hot-swappable backends for TTS, STT, and conversations</p>
           <p class="animate-text delay-3">Soul: Emotional trait spectrum that generates contextual system prompts for personality-aware AI</p>
-          
-          <div class="logo-small animate-text delay-3">
-            <svg width="100" height="100" viewBox="0 0 400 400">
-              <defs>
-                <linearGradient id="logo-gradient-6" x1="0%" y1="0%" x2="100%" y2="100%">
-                  <stop offset="0%" class="logo-stop1" />
-                  <stop offset="50%" class="logo-stop2" />
-                  <stop offset="100%" class="logo-stop3" />
-                </linearGradient>
-              </defs>
-              <circle cx="200" cy="200" r="80" fill="url(#logo-gradient-6)" />
-            </svg>
-          </div>
         </div>
 
         <div class="text-section" data-section="7">
@@ -173,19 +100,6 @@
           <p class="main-description animate-text delay-1">Rich interaction system that responds to user input, audio, and AI states.</p>
           <p class="animate-text delay-2">Click/touch creates liquid-like ripples using raycasting and vertex displacement with configurable strength and duration</p>
           <p class="animate-text delay-3">Four animation states: idle (breathing), listening (inward spikes), thinking (chaotic), speaking (outward spikes)</p>
-          
-          <div class="logo-small animate-text delay-3">
-            <svg width="100" height="100" viewBox="0 0 400 400">
-              <defs>
-                <linearGradient id="logo-gradient-7" x1="0%" y1="0%" x2="100%" y2="100%">
-                  <stop offset="0%" class="logo-stop1" />
-                  <stop offset="50%" class="logo-stop2" />
-                  <stop offset="100%" class="logo-stop3" />
-                </linearGradient>
-              </defs>
-              <circle cx="200" cy="200" r="80" fill="url(#logo-gradient-7)" />
-            </svg>
-          </div>
         </div>
 
         <div class="text-section" data-section="8">
@@ -194,19 +108,6 @@
           <p class="main-description animate-text delay-1">Stunning shader-based visual system with multiple skins and rendering modes.</p>
           <p class="animate-text delay-2">3Colors collection: Poles (polar gradient), Donut (toroidal), Vintage (zebra stripes) - all with customizable tricolor palettes</p>
           <p class="animate-text delay-3">Advanced backgrounds: Three.js gradients, DOM overlays, images, videos, glass mode with stencil effects</p>
-          
-          <div class="logo-small animate-text delay-3">
-            <svg width="100" height="100" viewBox="0 0 400 400">
-              <defs>
-                <linearGradient id="logo-gradient-8" x1="0%" y1="0%" x2="100%" y2="100%">
-                  <stop offset="0%" class="logo-stop1" />
-                  <stop offset="50%" class="logo-stop2" />
-                  <stop offset="100%" class="logo-stop3" />
-                </linearGradient>
-              </defs>
-              <circle cx="200" cy="200" r="80" fill="url(#logo-gradient-8)" />
-            </svg>
-          </div>
         </div>
 
         <div class="text-section" data-section="9">
@@ -215,19 +116,6 @@
           <p class="main-description animate-text delay-1">Deep emotional intelligence with 10 dimensions ranging from -100 to +100 for nuanced personality.</p>
           <p class="animate-text delay-2">Each trait affects behavior: high empathy = emotional support, high energy = enthusiastic responses, high creativity = metaphors</p>
           <p class="animate-text delay-3">Load from YAML/JSON files, create custom personalities, or blend multiple personalities with weighted mixing</p>
-          
-          <div class="logo-small animate-text delay-3">
-            <svg width="100" height="100" viewBox="0 0 400 400">
-              <defs>
-                <linearGradient id="logo-gradient-9" x1="0%" y1="0%" x2="100%" y2="100%">
-                  <stop offset="0%" class="logo-stop1" />
-                  <stop offset="50%" class="logo-stop2" />
-                  <stop offset="100%" class="logo-stop3" />
-                </linearGradient>
-              </defs>
-              <circle cx="200" cy="200" r="80" fill="url(#logo-gradient-9)" />
-            </svg>
-          </div>
         </div>
 
         <div class="text-section" data-section="10">
@@ -236,19 +124,6 @@
           <p class="main-description animate-text delay-1">Production-ready voice AI with enterprise-grade providers and streaming capabilities.</p>
           <p class="animate-text delay-2">ElevenLabs: 5000+ voices, 29 languages, voice cloning, &lt;300ms latency with Turbo v2.5 model</p>
           <p class="animate-text delay-3">Full conversational AI with agent management, WebSocket streaming, voice fine-tuning (stability, similarity, style)</p>
-          
-          <div class="logo-small animate-text delay-3">
-            <svg width="100" height="100" viewBox="0 0 400 400">
-              <defs>
-                <linearGradient id="logo-gradient-10" x1="0%" y1="0%" x2="100%" y2="100%">
-                  <stop offset="0%" class="logo-stop1" />
-                  <stop offset="50%" class="logo-stop2" />
-                  <stop offset="100%" class="logo-stop3" />
-                </linearGradient>
-              </defs>
-              <circle cx="200" cy="200" r="80" fill="url(#logo-gradient-10)" />
-            </svg>
-          </div>
         </div>
 
         <div class="text-section" data-section="11">
@@ -257,19 +132,6 @@
           <p class="main-description animate-text delay-1">Versatile library powering everything from entertainment to enterprise applications.</p>
           <p class="animate-text delay-2">Music visualization: Real-time audio-reactive displays for streaming platforms, DJs, and music players</p>
           <p class="animate-text delay-3">AI assistants: Voice-enabled chatbots, customer service, educational tools, mental health companions, virtual pets</p>
-          
-          <div class="logo-small animate-text delay-3">
-            <svg width="100" height="100" viewBox="0 0 400 400">
-              <defs>
-                <linearGradient id="logo-gradient-11" x1="0%" y1="0%" x2="100%" y2="100%">
-                  <stop offset="0%" class="logo-stop1" />
-                  <stop offset="50%" class="logo-stop2" />
-                  <stop offset="100%" class="logo-stop3" />
-                </linearGradient>
-              </defs>
-              <circle cx="200" cy="200" r="80" fill="url(#logo-gradient-11)" />
-            </svg>
-          </div>
         </div>
 
         <div class="text-section" data-section="12">
@@ -278,19 +140,6 @@
           <p class="main-description animate-text delay-1">Get started in seconds with your favorite package manager - all dependencies included.</p>
           <p class="animate-text delay-2">npm install kwami - Traditional npm installation with automatic dependency resolution</p>
           <p class="animate-text delay-3">bun add kwami - Recommended for blazing fast installs | deno add npm:kwami - For Deno runtime</p>
-          
-          <div class="logo-small animate-text delay-3">
-            <svg width="100" height="100" viewBox="0 0 400 400">
-              <defs>
-                <linearGradient id="logo-gradient-12" x1="0%" y1="0%" x2="100%" y2="100%">
-                  <stop offset="0%" class="logo-stop1" />
-                  <stop offset="50%" class="logo-stop2" />
-                  <stop offset="100%" class="logo-stop3" />
-                </linearGradient>
-              </defs>
-              <circle cx="200" cy="200" r="80" fill="url(#logo-gradient-12)" />
-            </svg>
-          </div>
         </div>
 
         <div class="text-section" data-section="13">
@@ -299,19 +148,6 @@
           <p class="main-description animate-text delay-1">Powerful yet simple API following the "sensible defaults with full control" philosophy.</p>
           <p class="animate-text delay-2">Full TypeScript support with exported types: KwamiConfig, BodyConfig, MindConfig, SoulConfig, EmotionalTraits</p>
           <p class="animate-text delay-3">Minimal: new Kwami(canvas) works out-of-box | Full: Customize every parameter from FFT size to emotional traits</p>
-          
-          <div class="logo-small animate-text delay-3">
-            <svg width="100" height="100" viewBox="0 0 400 400">
-              <defs>
-                <linearGradient id="logo-gradient-13" x1="0%" y1="0%" x2="100%" y2="100%">
-                  <stop offset="0%" class="logo-stop1" />
-                  <stop offset="50%" class="logo-stop2" />
-                  <stop offset="100%" class="logo-stop3" />
-                </linearGradient>
-              </defs>
-              <circle cx="200" cy="200" r="80" fill="url(#logo-gradient-13)" />
-            </svg>
-          </div>
         </div>
 
         <div class="text-section" data-section="14">
@@ -320,19 +156,6 @@
           <p class="main-description animate-text delay-1">Own your unique Kwami as an NFT on the Solana blockchain - limited to 1 Trillion mints.</p>
           <p class="animate-text delay-2">Each Kwami has a unique DNA hash based on its body configuration stored permanently on-chain</p>
           <p class="animate-text delay-3">Owning a Kwami NFT grants access to quami.io - a revolutionary Web2/Web3 platform where your companion interacts with Instagram, Gmail, WhatsApp, and more</p>
-          
-          <div class="logo-small animate-text delay-3">
-            <svg width="100" height="100" viewBox="0 0 400 400">
-              <defs>
-                <linearGradient id="logo-gradient-14" x1="0%" y1="0%" x2="100%" y2="100%">
-                  <stop offset="0%" class="logo-stop1" />
-                  <stop offset="50%" class="logo-stop2" />
-                  <stop offset="100%" class="logo-stop3" />
-                </linearGradient>
-              </defs>
-              <circle cx="200" cy="200" r="80" fill="url(#logo-gradient-14)" />
-            </svg>
-          </div>
         </div>
 
         <div class="text-section" data-section="15">
@@ -341,19 +164,6 @@
           <p class="main-description animate-text delay-1">Built for extensibility with clean architecture patterns and comprehensive documentation.</p>
           <p class="animate-text delay-2">Provider pattern: Implement MindProvider interface to add new AI services | Create custom shader skins with Three.js</p>
           <p class="animate-text delay-3">Events: Audio play/pause/ended, conversation start/end, state changes | Memory management with proper dispose() methods</p>
-          
-          <div class="logo-small animate-text delay-3">
-            <svg width="100" height="100" viewBox="0 0 400 400">
-              <defs>
-                <linearGradient id="logo-gradient-15" x1="0%" y1="0%" x2="100%" y2="100%">
-                  <stop offset="0%" class="logo-stop1" />
-                  <stop offset="50%" class="logo-stop2" />
-                  <stop offset="100%" class="logo-stop3" />
-                </linearGradient>
-              </defs>
-              <circle cx="200" cy="200" r="80" fill="url(#logo-gradient-15)" />
-            </svg>
-          </div>
         </div>
 
         <div class="text-section" data-section="16">
@@ -362,19 +172,6 @@
           <p class="main-description animate-text delay-1">Four distinct animation states create lifelike behaviors: idle, listening, thinking, and speaking.</p>
           <p class="animate-text delay-2">Idle: Gentle breathing with subtle oscillation | Listening: Inward spikes reactive to microphone input</p>
           <p class="animate-text delay-3">Thinking: Chaotic organic movement simulating cognition | Speaking: Outward spikes synced with TTS audio</p>
-          
-          <div class="logo-small animate-text delay-3">
-            <svg width="100" height="100" viewBox="0 0 400 400">
-              <defs>
-                <linearGradient id="logo-gradient-16" x1="0%" y1="0%" x2="100%" y2="100%">
-                  <stop offset="0%" class="logo-stop1" />
-                  <stop offset="50%" class="logo-stop2" />
-                  <stop offset="100%" class="logo-stop3" />
-                </linearGradient>
-              </defs>
-              <circle cx="200" cy="200" r="80" fill="url(#logo-gradient-16)" />
-            </svg>
-          </div>
         </div>
 
         <div class="text-section" data-section="17">
@@ -383,19 +180,6 @@
           <p class="main-description animate-text delay-1">Advanced Web Audio API integration with real-time frequency analysis and vertex displacement.</p>
           <p class="animate-text delay-2">Frequency bands: Bass (20-250Hz), Mid (250-4000Hz), High (4000-8000Hz), Ultra (8000Hz+)</p>
           <p class="animate-text delay-3">Configurable FFT size, smoothing constants, and custom audio effect mappings for each frequency band</p>
-          
-          <div class="logo-small animate-text delay-3">
-            <svg width="100" height="100" viewBox="0 0 400 400">
-              <defs>
-                <linearGradient id="logo-gradient-17" x1="0%" y1="0%" x2="100%" y2="100%">
-                  <stop offset="0%" class="logo-stop1" />
-                  <stop offset="50%" class="logo-stop2" />
-                  <stop offset="100%" class="logo-stop3" />
-                </linearGradient>
-              </defs>
-              <circle cx="200" cy="200" r="80" fill="url(#logo-gradient-17)" />
-            </svg>
-          </div>
         </div>
 
         <div class="text-section" data-section="18">
@@ -404,19 +188,6 @@
           <p class="main-description animate-text delay-1">Contract-based multi-vendor AI system with hot-swappable providers at runtime.</p>
           <p class="animate-text delay-2">MindProvider interface ensures consistent behavior across vendors: ElevenLabs, OpenAI, Vapi, Retell, Deepgram, Cartesia</p>
           <p class="animate-text delay-3">Zero-overhead abstraction with fail-safe design - switch providers dynamically without app restart</p>
-          
-          <div class="logo-small animate-text delay-3">
-            <svg width="100" height="100" viewBox="0 0 400 400">
-              <defs>
-                <linearGradient id="logo-gradient-18" x1="0%" y1="0%" x2="100%" y2="100%">
-                  <stop offset="0%" class="logo-stop1" />
-                  <stop offset="50%" class="logo-stop2" />
-                  <stop offset="100%" class="logo-stop3" />
-                </linearGradient>
-              </defs>
-              <circle cx="200" cy="200" r="80" fill="url(#logo-gradient-18)" />
-            </svg>
-          </div>
         </div>
 
         <div class="text-section" data-section="19">
@@ -425,19 +196,6 @@
           <p class="main-description animate-text delay-1">Three interconnected platforms forming a complete Web2/Web3 operating system.</p>
           <p class="animate-text delay-2">kwami.io: NFT candy machine | qwami.io: Energy token & AI payments | quami.io: Web2/Web3 OS platform</p>
           <p class="animate-text delay-3">Your Kwami NFT is your access key - connect with Instagram, Gmail, WhatsApp, and manage your digital life with MCP connectors</p>
-          
-          <div class="logo-small animate-text delay-3">
-            <svg width="100" height="100" viewBox="0 0 400 400">
-              <defs>
-                <linearGradient id="logo-gradient-19" x1="0%" y1="0%" x2="100%" y2="100%">
-                  <stop offset="0%" class="logo-stop1" />
-                  <stop offset="50%" class="logo-stop2" />
-                  <stop offset="100%" class="logo-stop3" />
-                </linearGradient>
-              </defs>
-              <circle cx="200" cy="200" r="80" fill="url(#logo-gradient-19)" />
-            </svg>
-          </div>
         </div>
 
         <div class="text-section" data-section="20">
@@ -446,19 +204,6 @@
           <p class="main-description animate-text delay-1">Production-ready with comprehensive testing, optimization strategies, and quality assurance.</p>
           <p class="animate-text delay-2">60fps WebGL rendering, configurable resolution and FFT size, memory management with proper disposal</p>
           <p class="animate-text delay-3">Vitest test suite, TypeScript strict mode, ESLint configuration, and browser compatibility for Chrome, Firefox, Safari</p>
-          
-          <div class="logo-small animate-text delay-3">
-            <svg width="100" height="100" viewBox="0 0 400 400">
-              <defs>
-                <linearGradient id="logo-gradient-20" x1="0%" y1="0%" x2="100%" y2="100%">
-                  <stop offset="0%" class="logo-stop1" />
-                  <stop offset="50%" class="logo-stop2" />
-                  <stop offset="100%" class="logo-stop3" />
-                </linearGradient>
-              </defs>
-              <circle cx="200" cy="200" r="80" fill="url(#logo-gradient-20)" />
-            </svg>
-          </div>
         </div>
 
         <div class="text-section" data-section="21">
@@ -467,19 +212,6 @@
           <p class="main-description animate-text delay-1">Join a growing community of developers building the next generation of AI companions.</p>
           <p class="animate-text delay-2">Complete documentation, GitHub Discussions, issue tracking, and contribution guidelines</p>
           <p class="animate-text delay-3">Built with Three.js, simplex-noise, ElevenLabs API - Apache 2.0 license for personal/non-commercial use</p>
-          
-          <div class="logo-small animate-text delay-3">
-            <svg width="100" height="100" viewBox="0 0 400 400">
-              <defs>
-                <linearGradient id="logo-gradient-21" x1="0%" y1="0%" x2="100%" y2="100%">
-                  <stop offset="0%" class="logo-stop1" />
-                  <stop offset="50%" class="logo-stop2" />
-                  <stop offset="100%" class="logo-stop3" />
-                </linearGradient>
-              </defs>
-              <circle cx="200" cy="200" r="80" fill="url(#logo-gradient-21)" />
-            </svg>
-          </div>
         </div>
 
         <div class="text-section" data-section="22">
@@ -494,19 +226,6 @@
             <a href="https://www.npmjs.com/package/kwami" target="_blank" class="cta-button secondary">
               npm install kwami
             </a>
-          </div>
-          
-          <div class="logo-small animate-text delay-3">
-            <svg width="100" height="100" viewBox="0 0 400 400">
-              <defs>
-                <linearGradient id="logo-gradient-22" x1="0%" y1="0%" x2="100%" y2="100%">
-                  <stop offset="0%" class="logo-stop1" />
-                  <stop offset="50%" class="logo-stop2" />
-                  <stop offset="100%" class="logo-stop3" />
-                </linearGradient>
-              </defs>
-              <circle cx="200" cy="200" r="80" fill="url(#logo-gradient-22)" />
-            </svg>
           </div>
         </div>
       </div>
@@ -526,8 +245,24 @@
           </a>
         </div>
         
+        <!-- Bottom Tabs for Voice/Music/Video -->
+        <div class="bottom-tabs">
+          <button class="tab-btn active" data-tab="voice">
+            <span>🎤</span>
+            <span>Voice</span>
+          </button>
+          <button class="tab-btn" data-tab="music">
+            <span>🎵</span>
+            <span>Music</span>
+          </button>
+          <button class="tab-btn" data-tab="video">
+            <span>🎬</span>
+            <span>Video</span>
+          </button>
+        </div>
+        
         <div id="kwami-container"></div>
-        <div class="kwami-label">Kwami</div>
+        <div class="kwami-label"><span>👻</span>Kwami</div>
       </div>
     </div>
     
