@@ -67,9 +67,22 @@ class ScrollManager {
         throw new Error('Kwami container not found');
       }
 
+      console.log('🎨 Initializing Kwami...');
+      console.log('Container dimensions:', {
+        width: container.offsetWidth,
+        height: container.offsetHeight
+      });
+
       // Create canvas element
       const canvas = document.createElement('canvas');
+      canvas.style.width = '100%';
+      canvas.style.height = '100%';
       container.appendChild(canvas);
+
+      console.log('Canvas created:', {
+        width: canvas.offsetWidth,
+        height: canvas.offsetHeight
+      });
 
       this.kwami = new Kwami(canvas, {
         body: {
@@ -90,8 +103,20 @@ class ScrollManager {
       });
 
       console.log('✨ Kwami initialized successfully!');
+      console.log('Kwami object:', this.kwami);
+      console.log('Blob:', this.kwami.body.blob);
     } catch (error) {
-      console.error('Failed to initialize Kwami:', error);
+      console.error('❌ Failed to initialize Kwami:', error);
+      // Show error in the container
+      const container = document.getElementById('kwami-container');
+      if (container) {
+        container.innerHTML = `
+          <div style="color: white; text-align: center; padding: 2rem;">
+            <h3>Failed to load Kwami</h3>
+            <p>${error instanceof Error ? error.message : 'Unknown error'}</p>
+          </div>
+        `;
+      }
     }
   }
 

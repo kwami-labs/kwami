@@ -47,16 +47,20 @@
       
       <!-- Color Picker Dropdown -->
       <div id="color-picker-dropdown" class="color-picker-dropdown hidden">
+        <div class="color-picker-header">
+          <h3 class="color-picker-title">🖌️ Pick you fav color</h3>
+          <button id="random-color-btn" class="random-color-btn" type="button" title="Random Color">🎲</button>
+        </div>
         <div class="color-picker-row">
           <input type="color" id="app-color-input" class="color-picker-input" value="#667eea">
-          <span class="color-picker-label">🖌️ Pick you fav color</span>
         </div>
+        <div class="color-picker-presets">
         
         <!-- White & Black -->
-        <div class="color-picker-palette-row">
+        <!-- <div class="color-picker-palette-row">
           <button class="color-preset" data-color="#ffffff" title="White"></button>
           <button class="color-preset" data-color="#000000" title="Black"></button>
-        </div>
+        </div> -->
         
         <!-- Slate -->
         <div class="color-picker-palette-row">
@@ -365,6 +369,7 @@
           <button class="color-preset" data-color="#9f1239" title="Rose 800"></button>
           <button class="color-preset" data-color="#881337" title="Rose 900"></button>
         </div>
+        </div><!-- End color-picker-presets -->
       </div>
       
       <!-- Theme Toggle Button -->
