@@ -165,7 +165,7 @@ class ScrollManager {
       this.kwami.body.blob.setScale(4.0);
 
       // Enable click interaction for touch effects
-      this.kwami.body.blob.setClickEnabled(true);
+      this.kwami.body.blob.enableClickInteraction();
 
       console.log('✨ Kwami initialized successfully!');
       console.log('Kwami instance:', this.kwami);
