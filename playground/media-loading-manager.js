@@ -6,7 +6,7 @@
  */
 
 // Import loader GIFs using Vite's asset handling
-const loaderModules = import.meta.glob('../playground/assets/img/loader/*.gif', {
+const loaderModules = import.meta.glob('../assets/img/loader/*.gif', {
   query: '?url',
   import: 'default',
   eager: true,
