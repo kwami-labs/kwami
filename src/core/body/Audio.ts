@@ -12,6 +12,20 @@ export class KwamiAudio {
   private analyser: AnalyserNode | null = null;
   private audioContext: AudioContext | null = null;
   private streamSource: MediaStreamAudioSourceNode | null = null;
+  private sourceNode: MediaElementAudioSourceNode | null = null;
+  private highpassFilter: BiquadFilterNode | null = null;
+  private isHighpassEnabled = false;
+  private highpassDefaults = {
+    frequency: 1200,
+    q: 0.85,
+  };
+  private lowpassFilters: BiquadFilterNode[] = [];
+  private readonly maxLowpassStages = 3;
+  private isLowpassEnabled = false;
+  private lowpassDefaults = {
+    frequency: 220,
+    q: 0.85,
+  };
   public parentKwami: any; // Reference to parent Kwami instance for state management
 
   constructor(audioFiles: string[] = [], config?: AudioConfig) {
@@ -42,6 +56,7 @@ export class KwamiAudio {
 
       const sourceNode = audioContext.createMediaElementSource(this.instance);
       const analyser = audioContext.createAnalyser();
+      this.sourceNode = sourceNode;
       this.analyser = analyser;
 
       // Configure analyser for liquid, natural frequency response
@@ -53,13 +68,96 @@ export class KwamiAudio {
       analyser.minDecibels = -90;
       analyser.maxDecibels = -10;
 
-      sourceNode.connect(analyser);
-      analyser.connect(audioContext.destination);
+      this.ensureHighpassFilter();
+      this.ensureLowpassFilters();
+      this.rebuildAudioGraph();
 
       this.frequencyData = new Uint8Array(analyser.frequencyBinCount);
     } catch (error) {
       console.warn('Failed to initialize Web Audio API:', error);
     }
+  }
+
+  private ensureHighpassFilter(): void {
+    if (!this.audioContext || this.highpassFilter) {
+      return;
+    }
+
+    const filter = this.audioContext.createBiquadFilter();
+    filter.type = 'highpass';
+    filter.frequency.value = this.highpassDefaults.frequency;
+    filter.Q.value = this.highpassDefaults.q;
+    this.highpassFilter = filter;
+  }
+
+  private ensureLowpassFilters(): void {
+    if (!this.audioContext) {
+      return;
+    }
+
+    if (this.lowpassFilters.length === this.maxLowpassStages) {
+      return;
+    }
+
+    while (this.lowpassFilters.length < this.maxLowpassStages) {
+      const filter = this.audioContext.createBiquadFilter();
+      filter.type = 'lowpass';
+      filter.frequency.value = this.lowpassDefaults.frequency;
+      filter.Q.value = this.lowpassDefaults.q;
+      this.lowpassFilters.push(filter);
+    }
+  }
+
+  private rebuildAudioGraph(): void {
+    if (!this.audioContext || !this.analyser || !this.sourceNode) {
+      return;
+    }
+
+    try {
+      this.sourceNode.disconnect();
+    } catch {
+      // Ignore disconnect errors when nodes aren't connected yet
+    }
+
+    if (this.highpassFilter) {
+      try {
+        this.highpassFilter.disconnect();
+      } catch {
+        // Ignore disconnect errors
+      }
+    }
+
+    this.lowpassFilters.forEach(filter => {
+      try {
+        filter.disconnect();
+      } catch {
+        // Ignore disconnect errors
+      }
+    });
+
+    try {
+      this.analyser.disconnect();
+    } catch {
+      // Ignore disconnect errors
+    }
+
+    let currentNode: AudioNode = this.sourceNode;
+
+    if (this.isHighpassEnabled && this.highpassFilter) {
+      currentNode.connect(this.highpassFilter);
+      currentNode = this.highpassFilter;
+    }
+
+    if (this.isLowpassEnabled && this.lowpassFilters.length > 0) {
+      this.lowpassFilters.forEach(filter => {
+        currentNode.connect(filter);
+        currentNode = filter;
+      });
+    }
+
+    currentNode.connect(this.analyser);
+
+    this.analyser.connect(this.audioContext.destination);
   }
 
   /**
@@ -152,6 +250,12 @@ export class KwamiAudio {
       // Reinitialize audio context if needed
       if (!this.analyser) {
         this.initialize();
+      }
+      if (
+        (this.highpassFilter && this.isHighpassEnabled)
+        || (this.lowpassFilters.length > 0 && this.isLowpassEnabled)
+      ) {
+        this.rebuildAudioGraph();
       }
     } catch (error) {
       console.error('Failed to load audio from ArrayBuffer:', error);
@@ -324,6 +428,99 @@ export class KwamiAudio {
   }
 
   /**
+   * Enable a highpass filter for playback
+   */
+  enableHighpassFilter(settings?: { frequency?: number; q?: number }): void {
+    if (settings?.frequency) {
+      this.highpassDefaults.frequency = settings.frequency;
+    }
+    if (settings?.q) {
+      this.highpassDefaults.q = settings.q;
+    }
+
+    if (!this.analyser || !this.audioContext || !this.sourceNode) {
+      this.initialize();
+    }
+
+    this.ensureHighpassFilter();
+
+    if (this.highpassFilter) {
+      this.highpassFilter.frequency.value = this.highpassDefaults.frequency;
+      this.highpassFilter.Q.value = this.highpassDefaults.q;
+    }
+
+    this.isHighpassEnabled = true;
+    this.rebuildAudioGraph();
+  }
+
+  /**
+   * Disable the highpass filter and revert to the dry signal
+   */
+  disableHighpassFilter(): void {
+    if (!this.isHighpassEnabled) return;
+
+    this.isHighpassEnabled = false;
+    this.rebuildAudioGraph();
+  }
+
+  /**
+   * Returns whether the highpass filter is currently active
+   */
+  isHighpassFilterEnabled(): boolean {
+    return this.isHighpassEnabled;
+  }
+
+  /**
+   * Enable a lowpass filter for playback
+   */
+  enableLowpassFilter(settings?: { frequency?: number; q?: number }): void {
+    if (settings?.frequency) {
+      this.lowpassDefaults.frequency = settings.frequency;
+    }
+    if (settings?.q) {
+      this.lowpassDefaults.q = settings.q;
+    }
+
+    if (!this.analyser || !this.audioContext || !this.sourceNode) {
+      this.initialize();
+    }
+
+    this.ensureLowpassFilters();
+
+    if (this.lowpassFilters.length > 0) {
+      const baseFreq = this.lowpassDefaults.frequency;
+      const baseQ = this.lowpassDefaults.q;
+
+      this.lowpassFilters.forEach((filter, index) => {
+        const stageFreq = Math.max(10, baseFreq * Math.pow(0.6, index));
+        const stageQ = baseQ + index * 0.35;
+        filter.frequency.value = stageFreq;
+        filter.Q.value = stageQ;
+      });
+    }
+
+    this.isLowpassEnabled = true;
+    this.rebuildAudioGraph();
+  }
+
+  /**
+   * Disable the lowpass filter and revert to the dry/highpass chain
+   */
+  disableLowpassFilter(): void {
+    if (!this.isLowpassEnabled) return;
+
+    this.isLowpassEnabled = false;
+    this.rebuildAudioGraph();
+  }
+
+  /**
+   * Returns whether the lowpass filter is currently active
+   */
+  isLowpassFilterEnabled(): boolean {
+    return this.isLowpassEnabled;
+  }
+
+  /**
    * Connect a MediaStream (e.g., from ElevenLabs) to the audio analyzer
    * This allows real-time audio visualization from streamed sources
    * 
@@ -420,6 +617,28 @@ export class KwamiAudio {
   dispose(): void {
     this.pause();
     this.stopMicrophoneListening();
+    try {
+      this.sourceNode?.disconnect();
+    } catch {
+      // ignore
+    }
+    try {
+      this.highpassFilter?.disconnect();
+    } catch {
+      // ignore
+    }
+    this.lowpassFilters.forEach(filter => {
+      try {
+        filter.disconnect();
+      } catch {
+        // ignore
+      }
+    });
+    this.highpassFilter = null;
+    this.lowpassFilters = [];
+    this.sourceNode = null;
+    this.isHighpassEnabled = false;
+    this.isLowpassEnabled = false;
     if (this.audioContext) {
       this.audioContext.close().catch(() => {
         // Ignore errors during cleanup

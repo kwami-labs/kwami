@@ -619,6 +619,14 @@ export class KwamiBody {
   }
 
   /**
+   * Expose the current HTMLVideoElement used for the background media plane
+   * Useful for attaching audio streams or custom controls
+   */
+  getBackgroundVideoElement(): HTMLVideoElement | null {
+    return this.backgroundVideoElement;
+  }
+
+  /**
    * Set transparent background
    */
   setBackgroundTransparent(): void {
