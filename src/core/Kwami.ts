@@ -1,6 +1,7 @@
 import { KwamiBody } from './body/Body';
 import { KwamiMind } from './mind/Mind';
 import { KwamiSoul } from './soul/Soul';
+import { SkillManager } from './mind/skills/SkillManager';
 import type { KwamiConfig, KwamiState } from '../types/index';
 
 /**
@@ -30,6 +31,7 @@ export class Kwami {
   public body: KwamiBody;
   public mind: KwamiMind;
   public soul: KwamiSoul;
+  public skills: SkillManager;
 
   private state: KwamiState = 'idle';
 
@@ -38,7 +40,7 @@ export class Kwami {
    * @returns The version string (e.g., "2.2.0")
    */
   static getVersion(): string {
-    return '1.3.1';
+    return '1.3.4';
   }
 
   constructor(canvas: HTMLCanvasElement, config?: KwamiConfig) {
@@ -50,6 +52,9 @@ export class Kwami {
 
     // Initialize mind (AI capabilities) with reference to audio for visualization
     this.mind = new KwamiMind(this.body.audio, config?.mind);
+    
+    // Initialize skills system (behavior programming)
+    this.skills = new SkillManager(this);
     
     // Set parent reference in audio for state management during conversations
     this.body.audio.parentKwami = this;

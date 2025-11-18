@@ -1,0 +1,337 @@
+/* Welcome Layer Styles */
+@import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;500;600;700;800;900&family=Rajdhani:wght@300;400;500;600;700&display=swap');
+
+.loader-container {
+  position: fixed;
+  top: 0;
+  left: 0;
+  z-index: 9999;
+  background-color: #000000;
+  background: radial-gradient(
+      circle at center,
+      #0a0a0a 0%,
+      #050505 45%,
+      #000000 100%
+    );
+  overflow: hidden;
+  text-align: center;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 100vh;
+  width: 100vw;
+  margin: 0;
+  padding: 0;
+  transition: opacity 3s ease;
+}
+
+.welcome-kwami-container {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 600px;
+  height: 600px;
+  cursor: pointer;
+  z-index: 10000;
+  animation: fadeInScale 1s ease-out, floatAnimation 3s ease-in-out infinite;
+  transition: transform 0.3s ease;
+}
+
+.welcome-kwami-container:hover {
+  transform: translate(-50%, -50%)
+}
+
+.welcome-info {
+  position: absolute;
+  bottom: 10%;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  direction: ltr;
+  text-align: center;
+  flex-direction: column;
+  gap: 0.5rem;
+  max-width: 100%;
+  width: min(95vw, 100%);
+  padding: 0 2rem;
+  text-align: center;
+  color: rgba(255, 255, 255, 0.95);
+  z-index: 10001;
+  pointer-events: none;
+  font-family: -apple-system, BlinkMacSystemFont, 'Inter', 'SF Pro Display', 'Segoe UI', system-ui, sans-serif;
+}
+
+.info-line {
+  margin: 0.2rem 0;
+  font-size: 1.05rem;
+  font-weight: 500;
+  line-height: 1.5;
+  letter-spacing: 0.08em;
+  font-family: 'Rajdhani', 'Orbitron', 'Courier New', monospace;
+  text-transform: uppercase;
+  color: rgba(255, 255, 255, 0.95);
+  text-shadow: 
+    0 0 8px rgba(255, 255, 255, 0.2),
+    0 0 15px rgba(255, 255, 255, 0.1);
+}
+
+.info-line.heading {
+  font-size: 1.5rem;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  margin-bottom: 0.8rem;
+  font-family: 'Orbitron', 'Rajdhani', 'Courier New', monospace;
+  text-transform: uppercase;
+  background: linear-gradient(135deg, #ffffff 0%, #e0e0e0 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  text-shadow: none;
+  filter: drop-shadow(0 0 3px rgba(255, 255, 255, 0.3));
+}
+
+.info-line.subtle {
+  font-size: 0.92rem;
+  opacity: 0.85;
+  font-weight: 400;
+  letter-spacing: 0.1em;
+  text-shadow: 
+    0 0 6px rgba(255, 255, 255, 0.15),
+    0 0 12px rgba(255, 255, 255, 0.1);
+}
+
+.info-line span {
+  display: inline-block;
+  opacity: 0;
+  transform: translateY(8px);
+  animation: infoType 0.6s ease-out forwards;
+}
+
+.skip-welcome-container {
+  margin-top: 1.5rem;
+  margin-bottom: -1rem;
+  padding-bottom: 1rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.75rem;
+  pointer-events: auto;
+  opacity: 0;
+}
+
+.skip-welcome-checkbox {
+  width: 18px;
+  height: 18px;
+  cursor: pointer;
+  appearance: none;
+  -webkit-appearance: none;
+  border: 2px solid rgba(255, 255, 255, 0.4);
+  border-radius: 4px;
+  background: transparent;
+  position: relative;
+  transition: all 0.3s ease;
+  flex-shrink: 0;
+}
+
+.skip-welcome-checkbox:hover {
+  border-color: rgba(255, 255, 255, 0.6);
+  box-shadow: 
+    0 0 8px rgba(255, 255, 255, 0.2),
+    0 0 15px rgba(255, 255, 255, 0.1);
+}
+
+.skip-welcome-checkbox:checked {
+  background: rgba(255, 255, 255, 0.9);
+  border-color: rgba(255, 255, 255, 0.9);
+  box-shadow: 
+    0 0 8px rgba(255, 255, 255, 0.3),
+    0 0 15px rgba(255, 255, 255, 0.2);
+}
+
+.skip-welcome-checkbox:checked::after {
+  content: '✓';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  color: #000;
+  font-size: 13px;
+  font-weight: 700;
+  line-height: 1;
+}
+
+.skip-welcome-label {
+  font-family: 'Rajdhani', 'Orbitron', 'Courier New', monospace;
+  font-size: 1rem;
+  font-weight: 500;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: rgba(255, 255, 255, 0.8);
+  cursor: pointer;
+  transition: color 0.3s ease;
+  user-select: none;
+  text-shadow: 
+    0 0 6px rgba(255, 255, 255, 0.1),
+    0 0 12px rgba(255, 255, 255, 0.05);
+}
+
+.skip-welcome-label:hover {
+  color: rgba(255, 255, 255, 0.95);
+}
+
+.skip-welcome-checkbox:checked + .skip-welcome-label {
+  color: rgba(255, 255, 255, 1);
+  text-shadow: 
+    0 0 8px rgba(255, 255, 255, 0.3),
+    0 0 15px rgba(255, 255, 255, 0.2);
+}
+
+
+@keyframes fadeInScale {
+  from {
+    opacity: 0;
+    transform: translate(-50%, -50%) scale(0.5);
+  }
+  to {
+    opacity: 1;
+    transform: translate(-50%, -50%) scale(1);
+  }
+}
+
+@keyframes floatAnimation {
+  0%, 100% {
+    transform: translate(-50%, -50%) translateY(0);
+  }
+  50% {
+    transform: translate(-50%, -50%) translateY(-20px);
+  }
+}
+
+@keyframes infoType {
+  0% {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes gradientShift {
+  0% {
+    background-position: 0% 50%;
+  }
+  50% {
+    background-position: 100% 50%;
+  }
+  100% {
+    background-position: 0% 50%;
+  }
+}
+
+.fade-in-leave-active {
+  animation: fadeIn 0.5s ease-in;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: scale(0.9);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+#mainSVG {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%) scale(1.8);
+  width: 100vw;
+  height: 100vh;
+  z-index: 2;
+  visibility: hidden;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.8s ease;
+}
+
+#mainSVG.hidden {
+  display: none;
+}
+
+#mainSVG.visible {
+  display: block;
+  visibility: visible;
+  opacity: 1;
+}
+
+.ell,
+#ai {
+  fill: none;
+}
+
+#version {
+  position: fixed;
+  bottom: 2rem;
+  left: 50%;
+  transform: translateX(-50%);
+  font-size: 0.7rem;
+  font-family: 'Orbitron', 'Rajdhani', 'Courier New', monospace;
+  font-weight: 600;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  color: rgba(255, 255, 255, 0.8);
+  opacity: 0.8;
+  text-shadow: 
+    0 0 6px rgba(255, 255, 255, 0.2),
+    0 0 12px rgba(255, 255, 255, 0.1);
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .welcome-kwami-container {
+    width: 450px;
+    height: 450px;
+  }
+
+  .welcome-info {
+    bottom: 12%;
+    width: min(95vw, 100%);
+    padding: 0 1rem;
+  }
+
+  .info-line {
+    font-size: 0.98rem;
+  }
+
+  .info-line.heading {
+    font-size: 1.25rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .welcome-kwami-container {
+    width: 380px;
+    height: 380px;
+  }
+
+  .welcome-info {
+    bottom: 14%;
+    width: min(95vw, 100%);
+    padding: 0 0.5rem;
+  }
+
+  .info-line {
+    font-size: 0.92rem;
+  }
+  
+  .info-line.heading {
+    font-size: 1.1rem;
+  }
+}
+

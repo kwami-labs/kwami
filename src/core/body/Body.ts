@@ -58,6 +58,8 @@ interface BackgroundMediaState {
   videoLoop?: boolean;
   videoMuted?: boolean;
   videoPlaybackRate?: number;
+  onLoad?: () => void;
+  onError?: (error?: Error) => void;
 }
 
 interface BackgroundGradientOptions {
@@ -70,6 +72,8 @@ interface BackgroundGradientOptions {
 interface BackgroundImageOptions {
   fit?: BackgroundMediaFit;
   opacity?: number;
+  onLoad?: () => void;
+  onError?: (error?: Error) => void;
 }
 
 interface BackgroundVideoOptions extends BackgroundImageOptions {
@@ -163,6 +167,11 @@ export class KwamiBody {
       ...config?.blob,
     });
 
+    // Apply initial position if provided in config
+    if (config?.blob?.position) {
+      this.blob.position.set(config.blob.position.x, config.blob.position.y);
+    }
+
     // Add blob to scene
     this.scene.add(this.blob.getMesh());
 
@@ -208,6 +217,32 @@ export class KwamiBody {
     setTimeout(() => {
       this.resizeTransitionActive = false;
     }, 350);
+  }
+
+  /**
+   * Pause automatic resize detection
+   * Useful during smooth transitions where you don't want re-renders
+   */
+  pauseResizeDetection(): void {
+    if (this.resizeObserver) {
+      this.resizeObserver.disconnect();
+    } else if (this.usingWindowResizeListener && typeof window !== 'undefined') {
+      window.removeEventListener('resize', this.handleResize);
+    }
+  }
+
+  /**
+   * Resume automatic resize detection after pausing
+   */
+  resumeResizeDetection(): void {
+    if (typeof ResizeObserver !== 'undefined' && this.resizeObserver) {
+      const resizeTargets: Element[] = [this.canvas];
+      const parentElement = this.canvas.parentElement;
+      if (parentElement) resizeTargets.push(parentElement);
+      resizeTargets.forEach((target) => this.resizeObserver?.observe(target));
+    } else if (this.usingWindowResizeListener && typeof window !== 'undefined') {
+      window.addEventListener('resize', this.handleResize);
+    }
   }
 
   private scheduleResize(): void {
@@ -289,7 +324,7 @@ export class KwamiBody {
   /**
    * Get the THREE.js scene
    */
-  getScene(): Scene {
+  getScene(): ThreeScene {
     return this.scene;
   }
 
@@ -336,6 +371,7 @@ export class KwamiBody {
   resetBlobToDefaults(): void {
     const defaults = {
       spikes: { x: 0.2, y: 0.2, z: 0.2 },
+      amplitude: { x: 0.8, y: 0.8, z: 0.8 },
       time: { x: 1, y: 1, z: 1 },
       rotation: { x: 0, y: 0, z: 0 },
       colors: { x: '#ff0066', y: '#00ff66', z: '#6600ff' },
@@ -348,6 +384,7 @@ export class KwamiBody {
     };
 
     this.blob.setSpikes(defaults.spikes.x, defaults.spikes.y, defaults.spikes.z);
+    this.blob.setAmplitude(defaults.amplitude.x, defaults.amplitude.y, defaults.amplitude.z);
     this.blob.setTime(defaults.time.x, defaults.time.y, defaults.time.z);
     this.blob.setRotation(defaults.rotation.x, defaults.rotation.y, defaults.rotation.z);
     this.blob.setColors(defaults.colors.x, defaults.colors.y, defaults.colors.z);
@@ -546,6 +583,8 @@ export class KwamiBody {
       opacity: options.opacity ?? 1,
       imageUrl: url,
       imageFit: options.fit ?? 'cover',
+      onLoad: options.onLoad,
+      onError: options.onError,
     };
     this.applyBackgroundState();
   }
@@ -565,6 +604,8 @@ export class KwamiBody {
       videoLoop: options.loop ?? true,
       videoMuted: options.muted ?? true,
       videoPlaybackRate: options.playbackRate ?? 1,
+      onLoad: options.onLoad,
+      onError: options.onError,
     };
     this.applyBackgroundState();
   }
@@ -575,6 +616,14 @@ export class KwamiBody {
     this.backgroundMediaAspect = null;
     this.backgroundMediaFit = 'cover';
     this.applyBackgroundState();
+  }
+
+  /**
+   * Expose the current HTMLVideoElement used for the background media plane
+   * Useful for attaching audio streams or custom controls
+   */
+  getBackgroundVideoElement(): HTMLVideoElement | null {
+    return this.backgroundVideoElement;
   }
 
   /**
@@ -841,8 +890,14 @@ export class KwamiBody {
       this.configureMediaPlaneMaterial(mediaMaterial, mediaState!);
       this.updateMediaPlaneTexture(mediaState!, mediaMaterial);
       mediaPlane.visible = true;
-      // Clear scene background when using media planes
-      this.scene.background = null;
+      // Keep gradient background visible during media loading to avoid white flash
+      // Only clear it once media texture is actually loaded
+      if (mediaMaterial.map) {
+        this.scene.background = null;
+      } else {
+        // Show gradient background while loading
+        this.applyStateToSceneBackground(state);
+      }
     } else {
       this.disposeBackgroundMediaPlane();
     }
@@ -1033,9 +1088,11 @@ export class KwamiBody {
     material.opacity = mediaState.opacity;
     material.transparent = mediaState.opacity < 1;
 
-    if (mediaState.type !== 'video') {
-      this.disposeVideoBackground();
-    }
+    // Don't dispose video immediately when switching to image - let new image load first
+    // Video will be disposed after new image is loaded
+    // if (mediaState.type !== 'video') {
+    //   this.disposeVideoBackground();
+    // }
 
     if (mediaState.type === 'image' && mediaState.imageUrl) {
       this.backgroundMediaFit = mediaState.imageFit ?? 'cover';
@@ -1049,9 +1106,11 @@ export class KwamiBody {
       return;
     }
 
+    // Only dispose if explicitly clearing media (both type checks failed)
     if (material.map && material.map !== this.backgroundVideoTexture) {
       material.map.dispose();
     }
+    this.disposeVideoBackground();
     material.map = null;
     material.needsUpdate = true;
   }
@@ -1428,16 +1487,13 @@ export class KwamiBody {
   private loadMediaImageTexture(url: string, material: MeshBasicMaterial): void {
     this.currentMediaImageUrl = url;
 
-    if (material.map && material.map !== this.backgroundVideoTexture && material.map !== this.backgroundMediaTexture) {
-      material.map.dispose();
-    }
-    material.map = null;
-    material.needsUpdate = true;
+    // Keep reference to old texture to dispose after new one loads
+    const oldTexture = this.backgroundMediaTexture;
+    const oldVideoTexture = this.backgroundVideoTexture;
+    const oldVideoElement = this.backgroundVideoElement;
 
-    if (this.backgroundMediaTexture) {
-      this.backgroundMediaTexture.dispose();
-      this.backgroundMediaTexture = null;
-    }
+    // Don't clear material.map yet - keep old texture visible during loading
+    // This prevents white flash between transitions
 
     this.textureLoader.load(
       url,
@@ -1450,9 +1506,27 @@ export class KwamiBody {
         texture.colorSpace = SRGBColorSpace;
         texture.needsUpdate = true;
 
-        if (this.backgroundMediaTexture) {
-          this.backgroundMediaTexture.dispose();
+        // Now dispose the old texture
+        if (oldTexture && oldTexture !== this.backgroundVideoTexture) {
+          oldTexture.dispose();
         }
+
+        // Also dispose old video if switching from video to image
+        if (oldVideoTexture) {
+          oldVideoTexture.dispose();
+          this.backgroundVideoTexture = null;
+        }
+        if (oldVideoElement) {
+          try {
+            oldVideoElement.pause();
+          } catch (error) {
+            // Ignore pause errors
+          }
+          oldVideoElement.removeAttribute('src');
+          oldVideoElement.load();
+          this.backgroundVideoElement = null;
+        }
+        this.currentVideoUrl = null;
 
         this.backgroundMediaTexture = texture;
         this.backgroundMediaAspect = this.getTextureAspect(texture);
@@ -1461,6 +1535,14 @@ export class KwamiBody {
         material.needsUpdate = true;
 
         this.updateBackgroundPlaneTransform();
+        
+        // Re-apply background state to clear scene.background now that texture is loaded
+        this.applyBackgroundState();
+        
+        // Call onLoad callback if provided
+        if (this.backgroundMediaState?.onLoad) {
+          this.backgroundMediaState.onLoad();
+        }
       },
       undefined,
       (error) => {
@@ -1473,6 +1555,11 @@ export class KwamiBody {
           this.backgroundMediaAspect = null;
           material.map = null;
           material.needsUpdate = true;
+          
+          // Call onError callback if provided
+          if (this.backgroundMediaState?.onError) {
+            this.backgroundMediaState.onError(error instanceof Error ? error : new Error(String(error)));
+          }
         }
       },
     );
@@ -1494,10 +1581,20 @@ export class KwamiBody {
       material.needsUpdate = true;
       this.backgroundMediaAspect = this.backgroundMediaAspect ?? this.getVideoAspect(this.backgroundVideoElement);
       this.updateBackgroundPlaneTransform();
+      
+      // Video already loaded, call onLoad callback immediately
+      if (this.backgroundMediaState?.onLoad) {
+        setTimeout(() => this.backgroundMediaState?.onLoad?.(), 0);
+      }
       return;
     }
 
-    this.disposeVideoBackground();
+    // Keep reference to old media to dispose after new one loads
+    const oldVideoElement = this.backgroundVideoElement;
+    const oldVideoTexture = this.backgroundVideoTexture;
+    const oldImageTexture = this.backgroundMediaTexture;
+
+    // Don't dispose old media yet - keep it visible during loading to prevent white flash
 
     const video = document.createElement('video');
     video.crossOrigin = 'anonymous';
@@ -1512,8 +1609,9 @@ export class KwamiBody {
 
     this.currentVideoUrl = url;
     this.backgroundVideoElement = video;
-    material.map = null;
-    material.needsUpdate = true;
+    // Don't clear material.map yet - keep old texture visible
+    // material.map = null;
+    // material.needsUpdate = true;
 
     const handleLoadedMetadata = () => {
       if (this.currentVideoUrl !== url || !this.backgroundVideoElement) {
@@ -1526,6 +1624,27 @@ export class KwamiBody {
       texture.magFilter = LinearFilter;
       texture.generateMipmaps = false;
 
+      // Now dispose the old video resources
+      if (oldVideoTexture) {
+        oldVideoTexture.dispose();
+      }
+      if (oldVideoElement) {
+        try {
+          oldVideoElement.pause();
+        } catch (error) {
+          // Ignore pause errors
+        }
+        oldVideoElement.removeAttribute('src');
+        oldVideoElement.load();
+      }
+
+      // Also dispose old image texture if switching from image to video
+      if (oldImageTexture && oldImageTexture !== oldVideoTexture) {
+        oldImageTexture.dispose();
+        this.backgroundMediaTexture = null;
+        this.currentMediaImageUrl = null;
+      }
+
       this.backgroundVideoTexture = texture;
       this.backgroundMediaAspect = this.getVideoAspect(video);
 
@@ -1537,6 +1656,14 @@ export class KwamiBody {
       if (mediaState.videoAutoplay ?? true) {
         video.play().catch(() => {});
       }
+      
+      // Re-apply background state to clear scene.background now that video is loaded
+      this.applyBackgroundState();
+      
+      // Call onLoad callback if provided
+      if (this.backgroundMediaState?.onLoad) {
+        this.backgroundMediaState.onLoad();
+      }
     };
 
     const handleError = (event: Event) => {
@@ -1545,6 +1672,11 @@ export class KwamiBody {
         this.disposeVideoBackground();
         material.map = null;
         material.needsUpdate = true;
+        
+        // Call onError callback if provided
+        if (this.backgroundMediaState?.onError) {
+          this.backgroundMediaState.onError(new Error('Failed to load video'));
+        }
       }
     };
 
@@ -1722,6 +1854,14 @@ export class KwamiBody {
     video.addEventListener('error', handleError, { once: true });
     video.load();
     if (video.autoplay) video.play().catch(() => {});
+  }
+
+  /**
+   * Expose the current HTMLVideoElement used for the blob surface
+   * This allows external consumers to tap into the MediaStream (e.g., for audio reactivity)
+   */
+  getBlobSurfaceVideoElement(): HTMLVideoElement | null {
+    return this.blobSurfaceVideoElement;
   }
 
   clearBlobSurfaceMedia(): void {

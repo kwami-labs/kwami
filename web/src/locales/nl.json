@@ -1,0 +1,298 @@
+{
+  "page": {
+    "title": "Kwami - Je Interactieve AI Metgezel"
+  },
+  "nav": {
+    "aria_navigate": "Navigeer naar sectie {{number}}"
+  },
+  "tabs": {
+    "voice": "Stem",
+    "music": "Muziek",
+    "video": "Video"
+  },
+  "header_links": {
+    "playground": "Probeer Interactieve Speelplaats",
+    "candy": "Munt Je Kwami NFT",
+    "github": "Ster op GitHub"
+  },
+  "pages": {
+    "00": {
+      "title": "Ontmoet Kwami",
+      "main": "Kwami is een enkel canvas waar AI-stem, muziek en beweging perfect gesynchroniseerd blijven.",
+      "messages": [
+        "Scroll door het verhaal links terwijl de blob elke staatswijziging rechts weerspiegelt.",
+        "Kwami is een enkel canvas waar AI-stem, muziek en beweging perfect gesynchroniseerd blijven."
+      ],
+      "button": "🚀 Start Speelplaats"
+    },
+    "01": {
+      "title": "Waarom Kwami",
+      "main": "Omdat we moe zijn van grote techbedrijven die onze data exploiteren en we willen geen AI-industrie die door bedrijven wordt bestuurd, maar door mensen.",
+      "messages": [
+        "We willen een gemeenschapsgedreven AI-industrie creëren waar mensen controle hebben over hun data en hun AI-metgezellen.",
+        "Omdat we moe zijn van grote techbedrijven die onze data exploiteren.",
+        "We geloven dat AI door mensen moet worden bestuurd, niet door bedrijven."
+      ],
+      "button": "💡 Meer Weten"
+    },
+    "02": {
+      "title": "Snelle Start",
+      "main": "Installeer het pakket, voer de speelplaats uit en richt Kwami op elk canvas.",
+      "messages": [
+        "Enkele klik luistert, dubbele klik randomiseert—geen extra bedrading vereist.",
+        "Begin binnen minuten met een eenvoudige npm-installatie.",
+        "Richt Kwami op elk canvas en zie het tot leven komen."
+      ],
+      "button": "▶️ Voer Speelplaats Lokaal Uit"
+    },
+    "03": {
+      "title": "Architectuur",
+      "main": "Mind, Body en Soul blijven ontkoppeld zodat teams logica, visuals of sfeer onafhankelijk kunnen aanpassen.",
+      "messages": [
+        "Wissel zijbalken binnen de Speelplaats om te voelen hoe elke laag aansluit.",
+        "Mind handelt AI-logica af, Body handelt visuals af, Soul handelt persoonlijkheid af.",
+        "Schone scheiding betekent dat je elke laag onafhankelijk kunt aanpassen."
+      ],
+      "button": "🔁 Draai Zijbalken"
+    },
+    "04": {
+      "title": "Mind Laag",
+      "main": "Definieer providers, voer een ElevenLabs-sleutel in en start gesprekken met één klik.",
+      "messages": [
+        "Sluit elke AI-provider aan met een eenvoudige interface.",
+        "ElevenLabs-integratie voor natuurlijke stemgesprekken.",
+        "Schakel naadloos tussen OpenAI, Anthropic of aangepaste providers."
+      ],
+      "button": "🤖 Initialiseer AI Agent"
+    },
+    "05": {
+      "title": "Body Laag",
+      "main": "De WebGL blob reageert op FFT-data, aanraakrimpels en pointergebaren in realtime.",
+      "messages": [
+        "Audio-reactieve visuals die pulseren met elke beat.",
+        "Aanraak- en gebaarinteracties creëren rimpel-effecten.",
+        "Aanpasbare skins: Donut, Poles of Vintage-stijlen."
+      ],
+      "button": "🎲 Randomiseer Blob"
+    },
+    "06": {
+      "title": "Soul Laag",
+      "main": "Tien emotionele eigenschappen sturen prompts, stemtoon en animatiestaten.",
+      "messages": [
+        "Definieer de persoonlijkheid van je metgezel met emotionele eigenschappen.",
+        "Eigenschappen beïnvloeden stemtoon, reacties en animaties.",
+        "Creëer unieke persoonlijkheden van speels tot professioneel."
+      ],
+      "button": "✨ Pas Soul Configuratie Toe"
+    },
+    "07": {
+      "title": "Interactie Flow",
+      "main": "Inactieve, luisterende, denkende en sprekende staten houden de blob op het eerste gezicht leesbaar.",
+      "messages": [
+        "Visuele staten tonen precies wat je metgezel doet.",
+        "Vloeiende overgangen tussen inactief, luisteren, denken en spreken.",
+        "Audiofilters verbeteren het gevoel van aanwezigheid en aandacht."
+      ],
+      "button": "👂 Test Luistermodus"
+    },
+    "08": {
+      "title": "Visuele Stijlen",
+      "main": "Kies gradiënten, glas, afbeeldingen of video's en houd typografie gesynchroniseerd met paletverschuivingen.",
+      "messages": [
+        "Dynamische kleurenpaletten die verschuiven terwijl je scrollt.",
+        "Stel aangepaste achtergronden in: gradiënten, afbeeldingen of video's.",
+        "Typografie synchroniseert automatisch met je gekozen palet."
+      ],
+      "button": "🖼️ Stem Achtergrond Af"
+    },
+    "09": {
+      "title": "Audio en Stem",
+      "main": "Web Audio-analyse drijft pieken aan terwijl ElevenLabs spraak met lage latentie afhandelt.",
+      "messages": [
+        "Realtime FFT-analyse creëert audio-reactieve animaties.",
+        "Spraaksynthese met lage latentie met ElevenLabs.",
+        "Speel muziek en zie de blob dansen op het ritme."
+      ],
+      "button": "🎤 Laat Kwami Spreken"
+    },
+    "10": {
+      "title": "Provider Architectuur",
+      "main": "Elke leverancier implementeert hetzelfde `connect / speak / listen / dispose` oppervlak.",
+      "messages": [
+        "Geünificeerde interface voor alle AI-providers.",
+        "Eenvoudig aangepaste providers toevoegen met standaardmethoden.",
+        "Schakel providers zonder je app-code te wijzigen."
+      ],
+      "button": "🔌 Wissel Providers"
+    },
+    "11": {
+      "title": "Aanpassing en Configuratie",
+      "main": "Pas pieken, tijd, skins, rotatie en emotionele bereiken aan met type-safe configuraties.",
+      "messages": [
+        "Stel elk aspect van het uiterlijk van je blob fijn af.",
+        "Type-safe configuratie zorgt voor geen runtime-verrassingen.",
+        "Bekijk je wijzigingen live in de speelplaats."
+      ],
+      "button": "🛠️ Pas Pieken Aan"
+    },
+    "12": {
+      "title": "Developer Toolkit",
+      "main": "Exporteer GLB-modellen, hergebruik Nuxt/Bun-starters of plaats direct in elke SPA.",
+      "messages": [
+        "Exporteer je blob als GLB voor gebruik in 3D-apps.",
+        "Startersjablonen voor Nuxt, Bun en vanilla JS.",
+        "Werkt met elk framework: React, Vue, Svelte of vanilla."
+      ],
+      "button": "💾 Download GLB"
+    },
+    "13": {
+      "title": "Prestaties en Testen",
+      "main": "60fps-doelen, Vitest-suites en strikte TS-instellingen houden experimenten verzendbaar.",
+      "messages": [
+        "Geoptimaliseerd voor vloeiende 60fps-animaties.",
+        "Uitgebreide testsuites met Vitest.",
+        "Strikte TypeScript voor vroegtijdige bugdetectie."
+      ],
+      "button": "🤔 Test Denkmodus"
+    },
+    "14": {
+      "title": "Gebruiksgevallen",
+      "main": "Van DJ-sets tot welzijnsmetgezellen, upload elk nummer en zie de blob reageren.",
+      "messages": [
+        "Perfect voor DJ-sets en muziekvisualisaties.",
+        "Creëer welzijns- en meditatiemetgezellen.",
+        "Bouw klantenservicebots met persoonlijkheid."
+      ],
+      "button": "📁 Upload Audio"
+    },
+    "15": {
+      "title": "Verbonden Ecosysteem",
+      "main": "Kwami verbindt met kwami.io, qwami.io en quami.io zodat één NFT-metgezel Web2/Web3-workflows omspant.",
+      "messages": [
+        "Eén NFT-metgezel werkt op al onze platforms.",
+        "Naadloze integratie tussen Web2 en Web3.",
+        "Het DNA van je metgezel blijft op de keten bestaan."
+      ],
+      "button": "🌐 Verbind Services"
+    },
+    "16": {
+      "title": "Eigendom en Web3",
+      "main": "Munt een Kwami op Solana en houd de DNA-hash van de blob gesynchroniseerd met live configuraties.",
+      "messages": [
+        "Munt je metgezel als NFT op Solana.",
+        "Blob DNA opgeslagen op de keten voor echt eigendom.",
+        "Synchroniseer on-chain configuratie met je live instantie."
+      ],
+      "button": "💎 Munt een Kwami"
+    },
+    "17": {
+      "title": "Roadmap",
+      "main": "WebXR, multi-personage scènes, fysica en plugins zijn al in ontwikkeling.",
+      "messages": [
+        "WebXR-ondersteuning binnenkort beschikbaar voor meeslepende ervaringen.",
+        "Multi-personage scènes voor groepsinteracties.",
+        "Fysica-engine en pluginsysteem in ontwikkeling."
+      ],
+      "button": "🔮 Bekijk Roadmap"
+    },
+    "18": {
+      "title": "Leerpad",
+      "main": "Volg de documentatie van Getting Started tot diepe duiken in Mind/Body/Soul binnen minuten.",
+      "messages": [
+        "Uitgebreide documentatie van beginner tot gevorderd.",
+        "Diepe duiken in Mind, Body en Soul-lagen.",
+        "Video-tutorials en live voorbeelden inbegrepen."
+      ],
+      "button": "📚 Open Gidsen"
+    },
+    "19": {
+      "title": "Gemeenschap",
+      "main": "Deel shaders, providers of documentatie-PR's—alles leeft open.",
+      "messages": [
+        "Word lid van onze Discord om contact te maken met andere bouwers.",
+        "Deel aangepaste shaders, providers en configuraties.",
+        "Draag bij aan documentatie en verdien gemeenschapserkenning."
+      ],
+      "button": "🤝 Word Lid van Discord"
+    },
+    "20": {
+      "title": "Pro en Enterprise",
+      "main": "Upgrade voor white-labeling, premium providers, analytics en toegewijd support.",
+      "messages": [
+        "White-label het platform met je branding.",
+        "Toegang tot premium AI-providers en functies.",
+        "Toegewijd support en aangepaste integraties beschikbaar."
+      ],
+      "button": "🏢 Praat met het Team"
+    },
+    "21": {
+      "title": "Lanceer Je Metgezel",
+      "main": "Fork de repository, remix de blob en plaats je eigen AI-metgezel binnen minuten.",
+      "messages": [
+        "Fork de repository en pas alles aan.",
+        "Implementeer je metgezel op elk hostingplatform.",
+        "Word vandaag lid van de gemeenschap van Kwami-bouwers."
+      ],
+      "button": "🚀 Start een Sessie"
+    }
+  },
+  "labels": {
+    "kwami": "Kwami"
+  },
+  "messages": {
+    "loading_music": "🎵 Laden: {{name}}",
+    "now_playing": "✅ Nu aan het afspelen: {{name}}",
+    "music_stopped": "🛑 Muziek gestopt",
+    "song_ended": "🎵 Nummer beëindigd",
+    "no_music_files": "⚠️ Geen muziekbestanden beschikbaar",
+    "kwami_not_initialized": "⚠️ Kwami nog niet geïnitialiseerd",
+    "mode_switched": "Modus gewijzigd naar: {{mode}}",
+    "listening_started": "🎤 Begonnen met luisteren naar \"kwami\"...",
+    "listening_stopped": "🛑 Gestopt met luisteren",
+    "kwami_detected": "✨ \"Kwami\" gedetecteerd! Blob randomiseren...",
+    "double_click_detected": "🎲 Dubbele klik gedetecteerd, blob randomiseren",
+    "blob_randomized": "🎲 Blob gerandomiseerd met {{skin}} skin!"
+  },
+  "welcome_layer": {
+    "heading": "Welkom bij het stemcanvas van Kwami.",
+    "line1": "Tik op de blob om audio-afspelen direct in je browser te ontgrendelen.",
+    "line2": "Alles leeft op dit apparaat—geen servers, trackers of cookies betrokken.",
+    "line3": "De blob aanraken telt nog steeds als het accepteren van onze onzichtbare cookies."
+  },
+  "console": {
+    "welcome": "🎨 Kwami - Interactieve AI Metgezel",
+    "github": "👻 https://github.com/alexcolls/kwami",
+    "tip_scroll": "Tip: Scroll om de echte Kwami blob te zien transformeren!",
+    "tip_double_click": "Tip: Dubbelklik op de blob om het te randomiseren! 🎲",
+    "tip_voice": "Tip: Klik op de blob om te beginnen met luisteren, zeg dan \"kwami\" om te randomiseren! 🎤",
+    "tip_music": "Tip: Klik op het tabblad Muziek om een willekeurig nummer af te spelen! 🎵"
+  },
+  "action_feedback": {
+    "launch_playground": "Live speelplaats openen...",
+    "view_demo": "Demo-layout laden...",
+    "run_playground": "Gekopieerd: npm run playground",
+    "swap_sidebars": "Wissel de zijbalken binnen de speelplaats",
+    "init_mind": "Mind-controles geopend in een nieuw tabblad",
+    "randomize_blob": "Klik op 🎲 Randomiseer Blob in de speelplaats",
+    "apply_soul": "Soul-voorinstellingen klaar om toe te passen",
+    "test_listening": "Luistermodus in wachtrij gezet in de speelplaats",
+    "set_background": "Achtergrondcontroles geopend",
+    "speak": "Klaar om een nieuwe regel naar ElevenLabs te sturen",
+    "switch_provider": "Mind-providercontract geopend",
+    "adjust_spikes": "Piek-schuifregelaars klaar in speelplaats",
+    "download_glb": "Exporteer je blob als GLB",
+    "test_thinking": "Denkmodus geactiveerd",
+    "upload_audio": "Upload een nummer in de audioplayer",
+    "connect_services": "Quami.io servicehub openen",
+    "mint_nft": "Munt een Kwami op Solana",
+    "view_roadmap": "Roadmap geopend op GitHub",
+    "open_guides": "Documentatie geopend in een nieuw tabblad",
+    "join_discord": "Discord-uitnodiging geopend",
+    "contact_team": "Zeg hallo tegen het Kwami-team",
+    "create_session": "Start een nieuwe speelplaatssessie",
+    "copy_unavailable": "Kopiëren niet beschikbaar"
+  },
+  "lang_switcher": {
+    "label": "Taal"
+  }
+}

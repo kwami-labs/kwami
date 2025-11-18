@@ -116,9 +116,215 @@ Migrating from v0.x to v1.x wasn't a refactor—it was a **ground-up architectur
 - **Return rate**: 15% → 68%
 - **Technical stability**: 85% success rate → 98.5% success rate
 
+--- Latest version:
+
+## [1.4.0] - 2025-11-15
+
+### 🚀 Kwami.io - Solana NFT Candy Machine
+
+This version marks a major evolution in the Kwami ecosystem with the introduction of blockchain-based NFTs and the separation of concerns across three platforms:
+
+#### 🧬 KWAMI NFT System
+
+- **Unique DNA-Based NFTs**: Each KWAMI has a unique DNA hash derived from its body configuration
+- **1 Trillion Limit**: Maximum of 1,000,000,000,000 unique KWAMIs with DNA-based validation
+- **Solana Blockchain**: Native Solana NFTs using Metaplex standard with Arweave storage
+- **Candy Machine**: Web3 minting interface in kwami.io for creating KWAMI NFTs
+- **DNA Registry**: On-chain DNA validation prevents duplicate KWAMIs
+- **Burn & Remint**: Change your KWAMI's DNA by burning and re-minting
+
+#### 🌐 Platform Architecture
+
+- **kwami.io** (NEW): Candy machine for minting KWAMI NFTs on Solana
+  - Nuxt4 SSR-disabled app with Bun runtime
+  - Wallet integration (Phantom, Solflare, etc.)
+  - Real-time DNA preview and validation
+  - NFT gallery and management
+- **qwami.io** (Planned v1.5.x): QWAMI energy token minting and management
+  - SPL token for AI service payments
+  - Token staking and rewards
+- **quami.io** (Planned v1.6.x): Web3/Web2 OS platform
+  - Requires KWAMI NFT in wallet for access
+  - MCP connectors for digital life management
+  - Encrypted data storage accessible only with KWAMI NFT
+
+#### 🔷 Solana Programs
+
+**Kwami NFT Program** (`solana/anchor/kwami-nft/`)
+
+- ✨ DNA Registry with on-chain uniqueness validation
+- 🎨 Mint instruction with DNA hash verification
+- 🔄 Update metadata for Mind/Soul changes (DNA unchanged)
+- 🔥 Burn instruction to free DNA for re-minting
+- 🔐 Transfer ownership tracking
+- 📊 Collection authority and statistics
+
+**Key Features:**
+
+- DNA Components: geometry, deformation (spikes, time, rotation), colors, shininess, skin type, scale
+- Metaplex NFT Standard integration
+- Arweave decentralized storage
+- Maximum 1,000 DNA entries per registry account (sharding support for scaling)
+
+#### 🛠️ Candy Machine Features
+
+- **Visual DNA Editor**: Real-time blob preview with Three.js
+- **Wallet Connection**: Multi-wallet support via Solana Wallet Adapter
+- **DNA Validation**: Pre-mint uniqueness check against on-chain registry
+- **Metadata Upload**: Automatic Arweave upload for images and metadata
+- **Transaction Management**: User-friendly minting flow with progress tracking
+- **NFT Gallery**: View and manage your minted KWAMIs
+- **Responsive Design**: Modern, beautiful UI built with Nuxt4 and TailwindCSS
+- **Real-time WebSocket**: Live user count and activity tracking with Socket.IO 4.8.1
+
+#### 🧪 DNA System
+
+- **SHA-256 Hashing**: Deterministic DNA generation from body configuration
+- **Excluded from DNA**: Backgrounds, audio effects, Mind config, Soul config (updatable)
+- **DNA Helper Functions**: `calculateKwamiDNA()`, `getShortDNA()`, `compareDNA()`
+- **Metadata Preparation**: `prepareKwamiMetadata()` for Metaplex standard format
+
+#### 📦 Technical Stack
+
+- **Frontend**: Nuxt4 (SSR disabled), Vue 3 Composition API, Bun runtime
+- **Real-time**: Socket.IO 4.8.1 for live updates and user tracking
+- **UI Framework**: @nuxt/ui 4.1.0 with TailwindCSS
+- **State Management**: Pinia for reactive state
+- **Blockchain**: Solana devnet (mainnet-ready)
+- **Smart Contracts**: Anchor Framework v0.29.0
+- **NFT Standard**: Metaplex Token Metadata Program
+- **Storage**: Arweave for decentralized asset storage
+- **Wallets**: Solana Wallet Adapter (Phantom, Solflare, etc.)
+- **3D Rendering**: Three.js (shared with main @kwami/core)
+
+#### 🔧 Developer Tools
+
+- **Anchor Programs**: Complete Rust-based smart contracts
+- **TypeScript Utilities**: DNA calculation and metadata preparation
+- **Deployment Scripts**: Automated devnet deployment and initialization
+- **Testing Suite**: Anchor tests for all contract instructions
+- **WebSocket Server**: Real-time communication with Socket.IO (server/plugins/socket.ts)
+- **REST API**: `/api/socket/stats` for monitoring connections
+- **Documentation**: Comprehensive guides for Solana integration and WebSocket usage
+
+#### 📝 Documentation Added
+
+- `kwami.io/solana/README.md` - Solana programs overview
+- `kwami.io/solana/SETUP.md` - Development environment setup
+- `kwami.io/solana/IMPLEMENTATION_STATUS.md` - Implementation progress
+- `kwami.io/solana/anchor/README.md` - Anchor development guide
+- `kwami.io/server/README.md` - WebSocket implementation guide
+- `kwami.io/WEBSOCKET_IMPLEMENTATION.md` - Real-time features documentation
+- `kwami.io/README.md` - Platform architecture vision
+- `kwami.io/SETUP_COMPLETE.md` - Setup completion checklist
+
+#### 🚧 In Progress (v1.4.x)
+
+- QWAMI token program implementation
+- Metaplex collection initialization scripts
+- Backend API routes for minting and updates
+- Frontend state management (Pinia stores)
+- NFT gallery UI components
+- Wallet integration components
+- Arweave upload utilities
+- Comprehensive testing suite
+
+#### 🔐 Security
+
+- Private key management best practices
+- Devnet testing before mainnet
+- Authority separation for different operations
+- Input validation and error handling
+- Account security with PDA (Program Derived Addresses)
+
+#### 💡 Future Plans (v1.5.x+)
+
+- QWAMI token integration in qwami.io
+- AI service payment with QWAMI tokens
+- Staking and rewards system
+- Cross-platform KWAMI authentication
+- MCP connector ecosystem in quami.io
+- NFT marketplace integration
+- DAO governance for protocol decisions
+
 ---
 
-## [1.3.1] - 2025-11-15
+## [1.3.4] - 2025-11-16
+
+### 🧬 Body & Animation Enhancements
+
+- ✨ **Frequency Amplitude Feature**: Added new amplitude parameters to control noise depth independently from frequency
+  - New `amplitude` property in Blob class with X, Y, Z axis controls (default: 0.8)
+  - Added `getAmplitude()` and `setAmplitude(x, y, z)` methods to Blob API
+  - Updated `animateBlob()` function to apply per-axis amplitude modulation
+  - Amplitude affects both normal/listening and thinking mode displacements
+- 🎛️ **Playground UI Controls**: Added "Frequency Amplitude" section in Body menu
+  - Three sliders (X, Y, Z) with range 0-5, step 0.1, default 0.8
+  - Positioned after "Noise Frequency" for logical parameter grouping
+  - Real-time updates with value displays
+- 🎲 **Random Blob Improvements**: Enhanced blob randomization
+  - Added amplitude randomization (0.3-1.2 range per axis) to `setRandomBlob()`
+  - Creates more diverse and natural-looking blob variations
+  - Prevents overly extreme deformations while maintaining character
+- 📏 **Scale Adjustment**: Reduced default blob scale from 4.0 to 3.2
+  - Creates more compact, focused visual presence
+  - Better balance with new amplitude feature
+- 🔧 **Reset Defaults**: Updated `resetBlobToDefaults()` to include amplitude reset
+
+### 🎨 Background & UI
+
+- 🎨 Added gradient background toggle checkbox with visual disabled state and dice button to randomize gradient colors independently
+- 📁 Moved example assets from `src/assets/` to `playground/assets/` to keep the core library clean and focused
+
+### 🐛 Bug Fixes
+
+- 🔧 **Skills System - Reset Button Fix**: Fixed infinite blob growth bug when using reset/quick skill buttons
+  - Made `ScaleAction.value` optional in type definition (`types.ts`)
+  - Added proper validation in `executeScaleAction()` to handle missing preset/value gracefully
+  - Implemented animation cancellation system to prevent multiple concurrent animations
+  - Added `ongoingAnimations` Map to track and cancel running scale/camera animations
+  - Fixed race condition where multiple animations would interfere with each other
+  - Resolved issue where rapid button clicks caused uncontrolled scale growth
+- 📝 **Skill Templates**: Converted skill template files from JSON to YAML format
+  - `calm-meditation.json` → `calm-meditation.yaml`
+  - `energetic-mode.json` → `energetic-mode.yaml`
+  - `focus-session.json` → `focus-session.yaml`
+
+---
+
+## [1.3.3] - 2025-11-15
+
+### 🧠 Mind Architecture & UI Improvements
+
+- 🎨 **Provider Tabs Redesign**: Simplified Mind section provider selection
+  - Removed Anthropic and Google provider tabs (coming soon)
+  - Kept only ElevenLabs ("11labs") and OpenAI tabs
+  - Updated grid layout from 4 columns to 2 for better spacing
+- 🖼️ **Brand Logos**: Replaced emoji icons with actual provider logos
+  - Added `elevenlabs.webp` and `openai.webp` logo assets
+  - Created `/src/assets/img/logo/` directory for provider branding
+  - Implemented logo hover effects and active state styling
+  - Logos scale and glow on interaction for better UX
+- 🔗 **API Settings Link**: Made ElevenLabs API key help text clickable
+  - Link opens https://elevenlabs.io/app/agents/settings in new tab
+  - Added proper security attributes (rel="noopener noreferrer")
+  - Styled with theme colors and hover effects
+- 📝 **Template Updates**: Updated section headers with new emojis
+  - Mind: 🤖 → 🧠 (brain emoji for cognitive focus)
+  - Body: 🎨 → 🧬 (DNA emoji for biological metaphor)
+- 🎨 **Button Label Improvements**: Made Body sidebar buttons more descriptive
+  - "Random Gradient" → "Random Bg Gradient"
+  - "Random Image/Video" → "Random Bg Image/Video"
+  - "Random Glass" → "Random Bg Glass"
+  - Clarifies that these affect background, not blob
+
+### 🎨 Styling Enhancements
+
+- 💅 Added CSS for provider logo images with smooth transitions
+- ✨ Enhanced link hover states throughout the UI
+- 🎯 Improved visual feedback for provider tab selection
+
+## [1.3.2] - 2025-11-14
 
 ### 📚 Documentation Overhaul
 
@@ -143,6 +349,8 @@ Migrating from v0.x to v1.x wasn't a refactor—it was a **ground-up architectur
   - System design principles
   - Data flow diagrams
 - 📝 **SUMMARY.md** - Created comprehensive documentation index and navigation guide
+
+## [1.3.1] - 2025-11-13
 
 ### ✨ Added
 
@@ -187,7 +395,7 @@ Migrating from v0.x to v1.x wasn't a refactor—it was a **ground-up architectur
 - ✨ **Spacing**: Minor UI spacing improvements throughout
 - 📦 **Assets**: Added more media assets for testing and demo purposes
 
-## [1.3.0] - 2025-11-14
+## [1.3.0] - 2025-11-12
 
 ### ✨ Added / 🎛️ Improved
 
@@ -242,7 +450,7 @@ Migrating from v0.x to v1.x wasn't a refactor—it was a **ground-up architectur
 - 🧭 Body quick variants: reorganized section for clarity
 - 🧾 CHANGELOG: comprehensive v1.x history and evolution narrative
 
-## [1.2.5] - 2025-11-05
+## [1.2.5] - 2025-11-07
 
 ### 🚀 Deployment
 
@@ -253,7 +461,7 @@ Migrating from v0.x to v1.x wasn't a refactor—it was a **ground-up architectur
 
 - 🌙 Dark mode toggle in playground
 
-## [1.2.4] - 2025-11-04
+## [1.2.4] - 2025-11-05
 
 ### ✨ Added
 
@@ -264,7 +472,7 @@ Migrating from v0.x to v1.x wasn't a refactor—it was a **ground-up architectur
 
 - 🔧 Mind.ts and dependencies updates; documentation updates
 
-## [1.2.3] - 2025-11-03
+## [1.2.3] - 2025-11-04
 
 ### 🐛 Fixed
 
@@ -286,7 +494,7 @@ Migrating from v0.x to v1.x wasn't a refactor—it was a **ground-up architectur
 
 - 🎨 Blob surface texture visibility regardless of alpha
 
-## [1.2.1] - 2025-11-03
+## [1.2.1] - 2025-11-02
 
 ### ✨ ElevenLabs Agents Management API
 
@@ -297,7 +505,7 @@ Migrating from v0.x to v1.x wasn't a refactor—it was a **ground-up architectur
 - 🧪 Glass toggle: preserve gradient; adjust blob opacity only if 1.0; fix transparency window in gradient
 - 🎲 Random Gradient fixes via Body API (linear/radial)
 
-## [1.2.0] - 2025-11-02
+## [1.2.0] - 2025-11-01
 
 ### ✨ Added
 

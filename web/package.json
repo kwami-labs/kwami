@@ -1,0 +1,23 @@
+{
+  "name": "kwami-website",
+  "private": true,
+  "version": "1.0.0",
+  "description": "Interactive scrolling website for the Kwami project",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc && vite build",
+    "preview": "vite preview"
+  },
+  "devDependencies": {
+    "typescript": "~5.9.3",
+    "vite": "^7.2.2"
+  },
+  "dependencies": {
+    "gsap": "^3.12.5",
+    "i18next": "^25.6.2",
+    "i18next-browser-languagedetector": "^8.2.0",
+    "kwami": "file:..",
+    "three": "^0.181.1"
+  }
+}

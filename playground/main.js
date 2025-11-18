@@ -1,4 +1,6 @@
 import { Kwami } from '../index.ts';
+import { createMediaLoaderUI } from './media-loader-ui.js';
+import mediaLoadingManager from './media-loading-manager.js';
 
 window.kwami = null;
 
@@ -10,8 +12,8 @@ const sidebarState = {
 };
 
 const sectionLabels = {
-  mind: '🤖 Mind',
-  body: '🎨 Body',
+  mind: '🧠 Mind',
+  body: '🧬 Body',
   soul: '✨ Soul'
 };
 
@@ -33,7 +35,8 @@ function updateMenuToggleButton() {
   const toggleButton = document.getElementById('menu-toggle-btn');
 
   if (icon) {
-    icon.textContent = menusCollapsed ? '☰' : '✕';
+    // Keep the ghost emoji always, rotation is handled by CSS
+    icon.textContent = '👻';
   }
 
   if (toggleButton) {
@@ -44,37 +47,19 @@ function updateMenuToggleButton() {
 }
 
 window.toggleMenus = function() {
-  const container = document.getElementById('canvas-container');
-  const willCollapse = !menusCollapsed;
-
-  // Freeze current canvas container width and keep it centered
-  if (container) {
-    const rect = container.getBoundingClientRect();
-    container.style.width = `${Math.round(rect.width)}px`;
-    container.style.flex = '0 0 auto';
-    container.style.margin = '0 auto';
-  }
-
-  menusCollapsed = willCollapse;
+  // Pause resize detection to prevent re-renders during transition
+  window.kwami?.body?.pauseResizeDetection?.();
+  
+  // Toggle the collapsed state
+  menusCollapsed = !menusCollapsed;
   applySidebarVisibility();
   updateMenuToggleButton();
-
-  const duration = 320; // match CSS transition
-
-  if (willCollapse) {
-    // Closing: keep canvas frozen in the center (no resize/rerender).
-    // Do NOT unfreeze here.
-    return;
-  }
-
-  // Opening: unfreeze after animation and do a single snap resize
+  
+  const duration = 300; // match CSS transition (0.3s)
+  
+  // After transition completes, resume resize detection
   setTimeout(() => {
-    if (container) {
-      container.style.width = '';
-      container.style.flex = '';
-      container.style.margin = '';
-    }
-    window.kwami?.body?.refreshViewportSize?.();
+    window.kwami?.body?.resumeResizeDetection?.();
   }, duration);
 };
 
@@ -83,7 +68,25 @@ const audioPlayerState = {
   displayName: 'No audio loaded',
   lastVolume: 0.8,
   visible: false, // Start hidden
+  playlist: [], // Array of audio tracks
+  currentIndex: 0, // Current track index
+  isCustomTrack: false // Whether current track is from upload/URL
 };
+
+// Build music playlist from assets
+const MUSIC_PLAYLIST = [
+  { name: 'Track 1', url: '/assets/aud/music/0.mp3' },
+  { name: 'Track 2', url: '/assets/aud/music/1.mp3' },
+  { name: 'Track 3', url: '/assets/aud/music/2.mp3' },
+  { name: 'Track 4', url: '/assets/aud/music/3.mp3' },
+  { name: 'Track 5', url: '/assets/aud/music/4.mp3' },
+  { name: 'Track 6', url: '/assets/aud/music/5.mp3' },
+  { name: 'Track 7', url: '/assets/aud/music/6.mp3' },
+  { name: 'Track 8', url: '/assets/aud/music/7.mp3' },
+  { name: 'Track 9', url: '/assets/aud/music/8.mp3' },
+  { name: 'Track 10', url: '/assets/aud/music/9.mp3' },
+  { name: 'Track 11', url: '/assets/aud/music/10.mp3' }
+];
 
 const githubStarState = {
   initialized: false,
@@ -142,15 +145,16 @@ function initializeAudioPlayer() {
     console.warn('Audio close button missing');
   }
 
-  const fileInput = document.getElementById('audio-file');
   const uploadButton = document.getElementById('upload-audio-btn');
   const playPauseButton = document.getElementById('play-pause-btn');
+  const prevButton = document.getElementById('prev-track-btn');
+  const nextButton = document.getElementById('next-track-btn');
   const volumeSlider = document.getElementById('volume-slider');
   const volumeIcon = document.getElementById('volume-icon');
   const audioName = document.getElementById('audio-name');
   const audioTime = document.getElementById('audio-time');
 
-  if (!fileInput || !uploadButton || !playPauseButton || !volumeSlider || !volumeIcon || !audioName || !audioTime) {
+  if (!uploadButton || !playPauseButton || !prevButton || !nextButton || !volumeSlider || !volumeIcon || !audioName || !audioTime) {
     console.warn('Audio player elements missing; skipping initialization');
     return;
   }
@@ -227,30 +231,7 @@ function initializeAudioPlayer() {
     volumeIcon.textContent = icon;
   };
 
-  uploadButton.addEventListener('click', () => {
-    fileInput.click();
-  });
-
-  fileInput.addEventListener('change', async (event) => {
-    const target = event.target;
-    const file = target?.files?.[0];
-    if (!file) {
-      return;
-    }
-
-    try {
-      await kwamiAudio.loadAudioFile(file);
-      setDisplayName(file.name);
-      updateTimeDisplay();
-      updatePlayPauseState();
-      updateStatus(`🎵 Loaded "${file.name}"`);
-    } catch (error) {
-      console.error('Failed to load audio file:', error);
-      showError('Failed to load audio file. Please try another file.');
-    } finally {
-      target.value = '';
-    }
-  });
+  // Upload button handler will be replaced below with modal opener
 
   playPauseButton.addEventListener('click', async () => {
     if (playPauseButton.disabled) {
@@ -311,10 +292,136 @@ function initializeAudioPlayer() {
     updatePlayPauseState();
   });
 
+  // Initialize playlist
+  audioPlayerState.playlist = [...MUSIC_PLAYLIST];
+
+  // Playlist navigation functions
+  const loadTrack = async (index) => {
+    if (index < 0 || index >= audioPlayerState.playlist.length) {
+      return;
+    }
+
+    audioPlayerState.currentIndex = index;
+    audioPlayerState.isCustomTrack = false;
+    const track = audioPlayerState.playlist[index];
+
+    try {
+      // Use loadAudioSource for URL strings, not loadAudioFile (which expects File objects)
+      kwamiAudio.loadAudioSource(track.url);
+      setDisplayName(track.name);
+      updateNavigationButtons();
+      updatePlayPauseState();
+      console.log(`[Audio Player] Loaded: ${track.name}`);
+    } catch (error) {
+      console.error('Failed to load track:', error);
+      setDisplayName('Error loading track');
+      showError(`Failed to load ${track.name}`);
+    }
+  };
+
+  const loadCustomTrack = async (url, name) => {
+    try {
+      // Use loadAudioSource for URL strings, not loadAudioFile (which expects File objects)
+      kwamiAudio.loadAudioSource(url);
+      audioPlayerState.isCustomTrack = true;
+      setDisplayName(name || 'Custom Audio');
+      updateNavigationButtons();
+      updatePlayPauseState();
+      updateStatus(`🎵 Loaded: ${name || 'Custom Audio'}`);
+    } catch (error) {
+      console.error('Failed to load custom track:', error);
+      showError('Failed to load audio. Please try another file or URL.');
+    }
+  };
+
+  const updateNavigationButtons = () => {
+    if (!prevButton || !nextButton) return;
+
+    // Disable prev/next if playing custom track
+    if (audioPlayerState.isCustomTrack) {
+      prevButton.disabled = true;
+      nextButton.disabled = true;
+    } else {
+      prevButton.disabled = audioPlayerState.currentIndex <= 0;
+      nextButton.disabled = audioPlayerState.currentIndex >= audioPlayerState.playlist.length - 1;
+    }
+  };
+
+  if (prevButton) {
+    prevButton.addEventListener('click', () => {
+      if (audioPlayerState.currentIndex > 0) {
+        loadTrack(audioPlayerState.currentIndex - 1);
+      }
+    });
+  }
+
+  if (nextButton) {
+    nextButton.addEventListener('click', () => {
+      if (audioPlayerState.currentIndex < audioPlayerState.playlist.length - 1) {
+        loadTrack(audioPlayerState.currentIndex + 1);
+      }
+    });
+  }
+
+  // Auto-play next track when current ends (override previous ended handler)
+  audioElement.removeEventListener('ended', audioElement._endedHandler);
+  const endedHandler = () => {
+    if (!audioPlayerState.isCustomTrack && audioPlayerState.currentIndex < audioPlayerState.playlist.length - 1) {
+      loadTrack(audioPlayerState.currentIndex + 1);
+      // Auto-play next track
+      setTimeout(() => {
+        kwamiAudio.play();
+      }, 500);
+    } else {
+      kwamiAudio.setCurrentTime(0);
+      updateTimeDisplay();
+      updatePlayPauseState();
+    }
+  };
+  audioElement._endedHandler = endedHandler;
+  audioElement.addEventListener('ended', endedHandler);
+
+  // Make upload button open modal
+  uploadButton.removeAllListeners = () => {
+    const clone = uploadButton.cloneNode(true);
+    uploadButton.parentNode.replaceChild(clone, uploadButton);
+    return clone;
+  };
+  const newUploadButton = uploadButton.removeAllListeners();
+  newUploadButton.addEventListener('click', () => {
+    openAudioLoaderModal();
+  });
+
+  // Initialize Audio Media Loader
+  const audioMediaLoaderContainer = document.getElementById('audio-media-loader');
+  if (audioMediaLoaderContainer && !audioMediaLoaderContainer.hasChildNodes()) {
+    const audioMediaLoader = createMediaLoaderUI({
+      type: 'audio',
+      label: 'Audio Track',
+      presets: [], // No presets for audio (using playlist instead)
+      showPresets: false,
+      onLoad: (url, source) => {
+        const filename = url.split('/').pop().split('?')[0];
+        const name = filename.length > 30 ? filename.substring(0, 27) + '...' : filename;
+        loadCustomTrack(url, name);
+        closeAudioLoaderModal();
+      },
+      onError: (error) => {
+        showError(`Failed to load audio: ${error.message}`);
+      }
+    });
+    audioMediaLoaderContainer.appendChild(audioMediaLoader);
+  }
+
+  // Load a random track on initialization
+  const randomIndex = Math.floor(Math.random() * audioPlayerState.playlist.length);
+  loadTrack(randomIndex);
+
   const initialName = deriveNameFromSrc(audioElement.src);
-  setDisplayName(initialName || 'No audio loaded');
+  setDisplayName(initialName || 'Loading playlist...');
   updateTimeDisplay();
   updatePlayPauseState();
+  updateNavigationButtons();
 
   const sliderInitialValue = Number(volumeSlider.value ?? 80);
   let initialVolume = Math.max(0, Math.min(100, sliderInitialValue)) / 100;
@@ -327,7 +434,23 @@ function initializeAudioPlayer() {
   updateVolumeUI(initialVolume);
 
   audioPlayerState.initialized = true;
+  console.log('[Audio Player] Audio player initialized with playlist');
 }
+
+// Modal functions for audio loader
+window.openAudioLoaderModal = function() {
+  const modal = document.getElementById('audio-loader-modal');
+  if (modal) {
+    modal.classList.remove('hidden');
+  }
+};
+
+window.closeAudioLoaderModal = function() {
+  const modal = document.getElementById('audio-loader-modal');
+  if (modal) {
+    modal.classList.add('hidden');
+  }
+};
 
 async function fetchGitHubStars() {
   const now = Date.now();
@@ -429,6 +552,26 @@ function applyTheme(theme) {
   } catch (error) {
     console.warn('Failed to save theme preference:', error);
   }
+  
+  // Apply the opposite color for the new theme
+  if (colorPickerState.initialized) {
+    const currentColor = colorPickerState.currentColor;
+    const oppositeColor = getOppositeColor(currentColor);
+    
+    // Update state and UI
+    if (theme === 'dark') {
+      colorPickerState.darkModeColor = oppositeColor;
+    } else {
+      colorPickerState.lightModeColor = oppositeColor;
+    }
+    
+    const colorInput = document.getElementById('app-color-input');
+    if (colorInput) {
+      colorInput.value = oppositeColor;
+    }
+    
+    applyAppColor(oppositeColor);
+  }
 }
 
 function toggleTheme() {
@@ -484,6 +627,408 @@ function initializeThemeToggle() {
   }
 
   themeState.initialized = true;
+}
+
+// ========================================
+// COLOR PICKER MANAGEMENT
+// ========================================
+
+// Color Picker State
+const colorPickerState = {
+  initialized: false,
+  currentColor: '#667eea',
+  lightModeColor: '#667eea',
+  darkModeColor: '#667eea'
+};
+
+// Generate opposite/contrasting color for theme switching
+function getOppositeColor(hexColor) {
+  // Remove # if present
+  const hex = hexColor.replace('#', '');
+  
+  // Convert to RGB
+  const r = parseInt(hex.substr(0, 2), 16);
+  const g = parseInt(hex.substr(2, 2), 16);
+  const b = parseInt(hex.substr(4, 2), 16);
+  
+  // Calculate luminance to determine if color is dark or light
+  const luminance = (0.299 * r + 0.587 * g + 0.114 * b) / 255;
+  
+  // If the color is very dark (like black), return white
+  // If the color is very light (like white), return black
+  // Otherwise, invert the color
+  if (luminance < 0.15) {
+    // Very dark color -> return white or very light version
+    return '#ffffff';
+  } else if (luminance > 0.85) {
+    // Very light color -> return black or very dark version
+    return '#000000';
+  } else {
+    // Invert the color
+    const invertedR = (255 - r).toString(16).padStart(2, '0');
+    const invertedG = (255 - g).toString(16).padStart(2, '0');
+    const invertedB = (255 - b).toString(16).padStart(2, '0');
+    return `#${invertedR}${invertedG}${invertedB}`;
+  }
+}
+
+// Apply app color to CSS variables
+function applyAppColor(color) {
+  const root = document.documentElement;
+  
+  // Convert hex to RGB for alpha variations
+  const hexToRgb = (hex) => {
+    const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
+    return result ? {
+      r: parseInt(result[1], 16),
+      g: parseInt(result[2], 16),
+      b: parseInt(result[3], 16)
+    } : null;
+  };
+  
+  const rgb = hexToRgb(color);
+  if (!rgb) return;
+  
+  // Generate complementary darker shade (for gradients)
+  const darkerShade = `#${Math.floor(rgb.r * 0.7).toString(16).padStart(2, '0')}${Math.floor(rgb.g * 0.7).toString(16).padStart(2, '0')}${Math.floor(rgb.b * 0.7).toString(16).padStart(2, '0')}`;
+  
+  // Generate lighter shade for hover effects
+  const lighterShade = `#${Math.min(255, Math.floor(rgb.r * 1.2)).toString(16).padStart(2, '0')}${Math.min(255, Math.floor(rgb.g * 1.2)).toString(16).padStart(2, '0')}${Math.min(255, Math.floor(rgb.b * 1.2)).toString(16).padStart(2, '0')}`;
+  
+  // Update CSS variables for global color theme
+  root.style.setProperty('--scrollbar-thumb', color);
+  root.style.setProperty('--scrollbar-thumb-hover', darkerShade);
+  root.style.setProperty('--app-primary-color', color);
+  root.style.setProperty('--app-primary-dark', darkerShade);
+  root.style.setProperty('--app-primary-light', lighterShade);
+  
+  // Force update scrollbar colors for Firefox
+  document.documentElement.style.scrollbarColor = `${color} var(--scrollbar-track)`;
+  
+  // Update button gradient colors
+  document.querySelectorAll('button:not(.button-secondary):not(.color-preset)').forEach(button => {
+    if (!button.classList.contains('menu-toggle-btn') && 
+        !button.classList.contains('theme-toggle-btn') &&
+        !button.classList.contains('color-picker-btn') &&
+        !button.classList.contains('github-star-btn') &&
+        !button.classList.contains('audio-toggle-btn') &&
+        !button.classList.contains('player-btn') &&
+        !button.classList.contains('audio-close-btn') &&
+        !button.classList.contains('audio-loader-close') &&
+        !button.classList.contains('media-tab') &&
+        !button.classList.contains('provider-tab') &&
+        !button.classList.contains('randomize-colors-btn')) {
+      button.style.background = `linear-gradient(135deg, ${color} 0%, ${darkerShade} 100%)`;
+    }
+  });
+  
+  // Update swap buttons specifically
+  document.querySelectorAll('.swap-button').forEach(button => {
+    button.style.background = `linear-gradient(135deg, ${color} 0%, ${darkerShade} 100%)`;
+  });
+  
+  // Update button-secondary buttons with the selected color
+  document.querySelectorAll('.button-secondary').forEach(button => {
+    button.style.background = color;
+    button.style.color = 'white';
+  });
+  
+  // Update media loader Load button
+  document.querySelectorAll('.media-loader-url-btn').forEach(button => {
+    button.style.background = color;
+  });
+  
+  // Update dynamic styles for all purple-themed elements
+  const style = document.createElement('style');
+  style.id = 'dynamic-app-color-styles';
+  
+  // Remove old style if exists
+  const oldStyle = document.getElementById('dynamic-app-color-styles');
+  if (oldStyle) {
+    oldStyle.remove();
+  }
+  
+  style.textContent = `
+    /* Input focus states */
+    input[type="text"]:focus,
+    input[type="password"]:focus,
+    input[type="number"]:focus,
+    textarea:focus,
+    select:focus {
+      border-color: ${color} !important;
+      box-shadow: 0 0 0 3px rgba(${rgb.r}, ${rgb.g}, ${rgb.b}, 0.1) !important;
+    }
+    
+    /* Button hover effects */
+    button:not(.button-secondary):not(.color-preset):not(.menu-toggle-btn):not(.theme-toggle-btn):not(.color-picker-btn):not(.audio-toggle-btn):not(.player-btn):not(.audio-close-btn):not(.audio-loader-close):not(.media-tab):not(.provider-tab):not(.randomize-colors-btn):hover {
+      box-shadow: 0 5px 15px rgba(${rgb.r}, ${rgb.g}, ${rgb.b}, 0.4) !important;
+    }
+    
+    /* Swap button hover effects */
+    .swap-button:hover {
+      box-shadow: 0 4px 12px rgba(${rgb.r}, ${rgb.g}, ${rgb.b}, 0.4) !important;
+    }
+    
+    /* Provider tabs active state */
+    .provider-tab.active {
+      background: linear-gradient(135deg, ${color} 0%, ${darkerShade} 100%) !important;
+      color: white !important;
+    }
+    
+    /* Media tabs active state */
+    .media-tab.active {
+      background: ${color} !important;
+      color: white !important;
+    }
+    
+    /* Slider tracks */
+    input[type="range"]::-webkit-slider-thumb {
+      background: ${color} !important;
+    }
+    
+    input[type="range"]::-moz-range-thumb {
+      background: ${color} !important;
+    }
+    
+    /* Active/selected state colors */
+    .agent-card.selected {
+      border-color: ${color} !important;
+      background: rgba(${rgb.r}, ${rgb.g}, ${rgb.b}, 0.1) !important;
+    }
+    
+    /* Links and accents */
+    a:not(.github-star-btn) {
+      color: ${color} !important;
+    }
+    
+    /* Checkbox and radio when checked */
+    input[type="checkbox"]:checked,
+    input[type="radio"]:checked {
+      accent-color: ${color} !important;
+    }
+    
+    /* Randomize color buttons */
+    .randomize-colors-btn {
+      background: ${color} !important;
+      color: white !important;
+    }
+    
+    .randomize-colors-btn:hover {
+      background: ${darkerShade} !important;
+      box-shadow: 0 2px 8px rgba(${rgb.r}, ${rgb.g}, ${rgb.b}, 0.3) !important;
+    }
+    
+    /* Button secondary hover effects */
+    .button-secondary:hover {
+      background: ${darkerShade} !important;
+      box-shadow: 0 5px 15px rgba(${rgb.r}, ${rgb.g}, ${rgb.b}, 0.3) !important;
+    }
+    
+    /* Media loader Load button hover */
+    .media-loader-url-btn:hover {
+      box-shadow: 0 6px 16px rgba(${rgb.r}, ${rgb.g}, ${rgb.b}, 0.4) !important;
+    }
+    
+    /* Parameter group titles */
+    .parameter-group-title {
+      color: ${color} !important;
+    }
+    
+    /* Value displays (slider numbers) */
+    .value-display {
+      color: ${color} !important;
+    }
+    
+    /* Media loader tabs active state */
+    .media-loader-tab.active {
+      background: ${color} !important;
+      border-bottom-color: ${color} !important;
+      color: white !important;
+    }
+    
+    /* Section titles (h2) */
+    h2 {
+      color: ${color} !important;
+    }
+    
+    /* All purple borders */
+    input[type="color"]:hover,
+    .provider-tab:hover:not(:disabled),
+    .provider-tab.active,
+    .media-loader-url-input:focus,
+    .media-loader-upload-btn:hover,
+    .media-loader-dropzone:hover,
+    .media-loader-dropzone.dragover,
+    .media-loader-preset-select:focus,
+    .audio-controls-row .player-btn:hover:not(:disabled) {
+      border-color: ${color} !important;
+    }
+    
+    /* Scrollbar styling for all elements */
+    ::-webkit-scrollbar-thumb {
+      background: ${color} !important;
+    }
+    
+    ::-webkit-scrollbar-thumb:hover {
+      background: ${darkerShade} !important;
+    }
+    
+    * {
+      scrollbar-color: ${color} var(--scrollbar-track) !important;
+    }
+  `;
+  
+  document.head.appendChild(style);
+  
+  // Save color preference per theme
+  colorPickerState.currentColor = color;
+  const currentTheme = themeState.current || 'light';
+  
+  if (currentTheme === 'dark') {
+    colorPickerState.darkModeColor = color;
+  } else {
+    colorPickerState.lightModeColor = color;
+  }
+  
+  try {
+    localStorage.setItem('kwami-app-color-light', colorPickerState.lightModeColor);
+    localStorage.setItem('kwami-app-color-dark', colorPickerState.darkModeColor);
+  } catch (error) {
+    console.warn('Failed to save color preference:', error);
+  }
+}
+
+// Toggle color picker dropdown
+function toggleColorPicker() {
+  const dropdown = document.getElementById('color-picker-dropdown');
+  if (!dropdown) return;
+  
+  dropdown.classList.toggle('hidden');
+}
+
+// Close color picker when clicking outside
+function closeColorPickerOnClickOutside(event) {
+  const dropdown = document.getElementById('color-picker-dropdown');
+  const button = document.getElementById('color-picker-btn');
+  
+  if (!dropdown || !button) return;
+  
+  // Check if click is outside both the dropdown and the button
+  if (!dropdown.contains(event.target) && !button.contains(event.target)) {
+    dropdown.classList.add('hidden');
+  }
+}
+
+// Initialize Color Picker
+function initializeColorPicker() {
+  if (colorPickerState.initialized) {
+    return;
+  }
+
+  const colorPickerButton = document.getElementById('color-picker-btn');
+  const colorInput = document.getElementById('app-color-input');
+  const dropdown = document.getElementById('color-picker-dropdown');
+  
+  if (!colorPickerButton || !colorInput || !dropdown) {
+    console.warn('Color picker elements not found; skipping initialization');
+    return;
+  }
+
+  // Load saved color preferences for both themes
+  try {
+    colorPickerState.lightModeColor = localStorage.getItem('kwami-app-color-light') || '#667eea';
+    colorPickerState.darkModeColor = localStorage.getItem('kwami-app-color-dark') || '#667eea';
+  } catch (error) {
+    console.warn('Failed to load color preference:', error);
+  }
+
+  // Set initial color based on current theme
+  const currentTheme = themeState.current || 'light';
+  const savedColor = currentTheme === 'dark' ? colorPickerState.darkModeColor : colorPickerState.lightModeColor;
+  
+  colorInput.value = savedColor;
+  applyAppColor(savedColor);
+
+  // Toggle dropdown when button is clicked
+  colorPickerButton.addEventListener('click', (e) => {
+    e.stopPropagation();
+    toggleColorPicker();
+  });
+
+  // Apply color when changed from the color input
+  colorInput.addEventListener('input', (e) => {
+    applyAppColor(e.target.value);
+  });
+
+  // Handle preset color buttons
+  const presetButtons = document.querySelectorAll('.color-preset');
+  presetButtons.forEach(button => {
+    button.addEventListener('click', (e) => {
+      e.stopPropagation();
+      const color = button.getAttribute('data-color');
+      if (color) {
+        colorInput.value = color;
+        applyAppColor(color);
+      }
+    });
+  });
+
+  // Handle random color button
+  const randomColorBtn = document.getElementById('random-color-btn');
+  if (randomColorBtn) {
+    randomColorBtn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      // Generate a random color
+      const randomColor = '#' + Math.floor(Math.random()*16777215).toString(16).padStart(6, '0');
+      colorInput.value = randomColor;
+      applyAppColor(randomColor);
+    });
+  }
+
+  // Handle glass effect checkbox for UI glassmorphism
+  const glassEffectCheckbox = document.getElementById('glass-effect-checkbox');
+  if (glassEffectCheckbox) {
+    // Load saved preference
+    try {
+      const savedGlassEffect = localStorage.getItem('kwami-ui-glass-effect');
+      if (savedGlassEffect === 'true') {
+        glassEffectCheckbox.checked = true;
+        document.body.classList.add('glass-ui');
+      }
+    } catch (error) {
+      console.warn('Failed to load glass effect preference:', error);
+    }
+    
+    glassEffectCheckbox.addEventListener('change', (e) => {
+      e.stopPropagation();
+      
+      if (e.target.checked) {
+        document.body.classList.add('glass-ui');
+        try {
+          localStorage.setItem('kwami-ui-glass-effect', 'true');
+        } catch (error) {
+          console.warn('Failed to save glass effect preference:', error);
+        }
+      } else {
+        document.body.classList.remove('glass-ui');
+        try {
+          localStorage.setItem('kwami-ui-glass-effect', 'false');
+        } catch (error) {
+          console.warn('Failed to save glass effect preference:', error);
+        }
+      }
+    });
+  }
+
+  // Close dropdown when clicking outside
+  document.addEventListener('click', closeColorPickerOnClickOutside);
+
+  // Prevent dropdown from closing when clicking inside it
+  dropdown.addEventListener('click', (e) => {
+    e.stopPropagation();
+  });
+
+  colorPickerState.initialized = true;
 }
 
 // Initialize sidebars
@@ -584,6 +1129,38 @@ function updateSwapButtons() {
     rightBtn.textContent = `${sectionLabels[sidebarState.hidden]}`;
   }
 }
+
+// Mobile sidebar tab switching (shows all 3 sections in one sidebar on mobile)
+window.switchMobileSidebarTab = function(section) {
+  // Update tab active states
+  const tabs = document.querySelectorAll('.mobile-sidebar-tab');
+  tabs.forEach(tab => {
+    if (tab.dataset.section === section) {
+      tab.classList.add('active');
+    } else {
+      tab.classList.remove('active');
+    }
+  });
+
+  // Show the selected section in the left sidebar
+  sidebarState.left = section;
+  renderSidebar('left', section);
+  
+  // Re-initialize controls if needed
+  setTimeout(() => {
+    if (window.kwami) {
+      if (section === 'body') {
+        initializeBodyControls();
+        initializeBackgroundControls();
+        initializeCameraControls();
+      } else if (section === 'soul') {
+        initializeSoulControls();
+      } else if (section === 'mind') {
+        initializeMindControls();
+      }
+    }
+  }, 100);
+};
 
 // Initialize Soul controls with current values
 function initializeSoulControls() {
@@ -747,41 +1324,41 @@ const DEFAULT_BACKGROUND = {
 };
 
 const BACKGROUND_IMAGES = [
-  'src/assets/img/alaska.jpeg',
-  'src/assets/img/binary-reality.jpg',
-  'src/assets/img/black-candle.jpg',
-  'src/assets/img/black-hole.jpg',
-  'src/assets/img/black-sea.jpg',
-  'src/assets/img/black-windows.jpg',
-  'src/assets/img/black.jpg',
-  'src/assets/img/colors.jpeg',
-  'src/assets/img/galaxy.jpg',
-  'src/assets/img/galaxy2.jpg',
-  'src/assets/img/galaxy3.jpg',
-  'src/assets/img/galaxy4.jpg',
-  'src/assets/img/gargantua.jpg',
-  'src/assets/img/interstellar.png',
-  'src/assets/img/islan.jpg',
-  'src/assets/img/lake.jpg',
-  'src/assets/img/mountain.jpeg',
-  'src/assets/img/paisaje.jpg',
-  'src/assets/img/pik.jpg',
-  'src/assets/img/planet.jpg',
-  'src/assets/img/planet2.jpg',
-  'src/assets/img/planet3.jpg',
-  'src/assets/img/sahara.jpeg',
-  'src/assets/img/skinet.png',
-  'src/assets/img/skynet.png',
-  'src/assets/img/universe.jpg',
-  'src/assets/img/white-tree.jpg'
+  '/assets/img/bg/alaska.jpeg',
+  '/assets/img/bg/binary-reality.jpg',
+  '/assets/img/bg/black-candle.jpg',
+  '/assets/img/bg/black-hole.jpg',
+  '/assets/img/bg/black-sea.jpg',
+  '/assets/img/bg/black-windows.jpg',
+  '/assets/img/bg/black.jpg',
+  '/assets/img/bg/colors.jpeg',
+  '/assets/img/bg/galaxy.jpg',
+  '/assets/img/bg/galaxy2.jpg',
+  '/assets/img/bg/galaxy3.jpg',
+  '/assets/img/bg/galaxy4.jpg',
+  '/assets/img/bg/gargantua.jpg',
+  '/assets/img/bg/interstellar.png',
+  '/assets/img/bg/islan.jpg',
+  '/assets/img/bg/lake.jpg',
+  '/assets/img/bg/mountain.jpeg',
+  '/assets/img/bg/paisaje.jpg',
+  '/assets/img/bg/pik.jpg',
+  '/assets/img/bg/planet.jpg',
+  '/assets/img/bg/planet2.jpg',
+  '/assets/img/bg/planet3.jpg',
+  '/assets/img/bg/sahara.jpeg',
+  '/assets/img/bg/skinet.png',
+  '/assets/img/bg/skynet.png',
+  '/assets/img/bg/universe.jpg',
+  '/assets/img/bg/white-tree.jpg'
 ];
 
-const imageModules = import.meta.glob('../src/assets/img/*', {
+const imageModules = import.meta.glob('../assets/img/bg/*', {
   query: '?url',
   import: 'default',
   eager: true,
 });
-const videoModules = import.meta.glob('../src/assets/vid/*', {
+const videoModules = import.meta.glob('../assets/vid/bg/*', {
   query: '?url',
   import: 'default',
   eager: true,
@@ -891,12 +1468,11 @@ function resolveMediaPath(value) {
 }
 
 function getMediaOptions(type) {
-  const selectId = type === 'video' ? 'bg-media-video' : 'bg-media-image';
-  const select = document.getElementById(selectId);
-  if (!select) return [];
-  return Array.from(select.options)
-    .map((option) => option.value)
-    .filter((value) => value && value.trim() !== '');
+  if (type === 'video') {
+    return VIDEO_PRESETS.map(preset => preset.value);
+  } else {
+    return IMAGE_PRESETS.map(preset => preset.value);
+  }
 }
 
 function updateMediaTabs(activeType) {
@@ -1011,10 +1587,25 @@ function setBackgroundImage(imageValue, { silent = false } = {}) {
     if (gradientElement) gradientElement.style.display = 'none';
 
     if (resolved) {
-      window.kwami.body.setBackgroundImage(resolved, { opacity: 1 });
+      // Show loader before loading image
+      mediaLoadingManager.show('Loading background image...');
+      
+      window.kwami.body.setBackgroundImage(resolved, { 
+        opacity: 1,
+        onLoad: () => {
+          // Hide loader when image is actually loaded
+          mediaLoadingManager.hide();
+          if (!silent) updateStatus('🖼️ Background image loaded!');
+        },
+        onError: (error) => {
+          // Hide loader on error
+          mediaLoadingManager.hide();
+          console.error('Failed to load background image:', error);
+          updateError('Failed to load background image');
+        }
+      });
       currentBackgroundImage = imageValue || '';
       currentBackgroundVideo = '';
-      if (!silent) updateStatus('🖼️ Background image applied!');
     } else {
       window.kwami.body.clearBackgroundMedia();
       currentBackgroundImage = '';
@@ -1032,10 +1623,28 @@ function setBackgroundVideo(videoValue, { silent = false } = {}) {
     if (gradientElement) gradientElement.style.display = 'none';
 
     if (resolved) {
-      window.kwami.body.setBackgroundVideo(resolved, { opacity: 1, autoplay: true, loop: true, muted: true });
+      // Show loader before loading video
+      mediaLoadingManager.show('Loading background video...');
+      
+      window.kwami.body.setBackgroundVideo(resolved, { 
+        opacity: 1, 
+        autoplay: true, 
+        loop: true, 
+        muted: true,
+        onLoad: () => {
+          // Hide loader when video is actually loaded
+          mediaLoadingManager.hide();
+          if (!silent) updateStatus('🎞️ Background video loaded!');
+        },
+        onError: (error) => {
+          // Hide loader on error
+          mediaLoadingManager.hide();
+          console.error('Failed to load background video:', error);
+          updateError('Failed to load background video');
+        }
+      });
       currentBackgroundVideo = videoValue || '';
       currentBackgroundImage = '';
-      if (!silent) updateStatus('🎞️ Background video applied!');
     } else {
       window.kwami.body.clearBackgroundMedia();
       currentBackgroundVideo = '';
@@ -1060,29 +1669,75 @@ function setMediaType(type, { silent = false } = {}) {
   } else if (type === 'image') {
     const videoSelect = document.getElementById('bg-media-video');
     if (videoSelect) videoSelect.value = '';
-    setBackgroundVideo('', { silent: true });
+    // Don't clear video immediately - let new image replace it to avoid white flash
     const imageSelect = document.getElementById('bg-media-image');
     const selected = imageSelect?.value;
     if (selected) {
       setBackgroundImage(selected, { silent: true });
     } else {
+      // Only clear if no image selected
+      setBackgroundVideo('', { silent: true });
       setBackgroundImage('', { silent: true });
     }
   } else if (type === 'video') {
     const imageSelect = document.getElementById('bg-media-image');
     if (imageSelect) imageSelect.value = '';
-    setBackgroundImage('', { silent: true });
+    // Don't clear image immediately - let new video replace it to avoid white flash
     const videoSelect = document.getElementById('bg-media-video');
     const selected = videoSelect?.value;
     if (selected) {
       setBackgroundVideo(selected, { silent: true });
     } else {
+      // Only clear if no video selected
+      setBackgroundImage('', { silent: true });
       setBackgroundVideo('', { silent: true });
     }
   }
 
   syncGradientOverlayState();
 }
+
+window.randomizeGradientColors = function() {
+  // Generate random colors only
+  const randomColor = () => '#' + Math.floor(Math.random() * 16777215).toString(16).padStart(6, '0');
+  const colors = [randomColor(), randomColor(), randomColor()];
+
+  // Update color pickers in UI
+  const c1 = document.getElementById('bg-color-1'); if (c1) c1.value = colors[0];
+  const c2 = document.getElementById('bg-color-2'); if (c2) c2.value = colors[1];
+  const c3 = document.getElementById('bg-color-3'); if (c3) c3.value = colors[2];
+
+  // Apply the new colors
+  applyBackground();
+
+  updateStatus('🎨 Gradient colors randomized!');
+};
+
+window.randomizePaletteColors = function() {
+  // Generate random colors for palette only
+  const randomColor = () => '#' + Math.floor(Math.random() * 16777215).toString(16).padStart(6, '0');
+  const colors = [randomColor(), randomColor(), randomColor()];
+
+  // Update color pickers in UI
+  const colorX = document.getElementById('color-x');
+  const colorY = document.getElementById('color-y');
+  const colorZ = document.getElementById('color-z');
+
+  if (colorX) {
+    colorX.value = colors[0];
+    colorX.dispatchEvent(new Event('input', { bubbles: true }));
+  }
+  if (colorY) {
+    colorY.value = colors[1];
+    colorY.dispatchEvent(new Event('input', { bubbles: true }));
+  }
+  if (colorZ) {
+    colorZ.value = colors[2];
+    colorZ.dispatchEvent(new Event('input', { bubbles: true }));
+  }
+
+  updateStatus('🎨 Palette colors randomized!');
+};
 
 window.randomizeBackground = function() {
   // Generate random colors
@@ -1099,9 +1754,11 @@ window.randomizeBackground = function() {
   // Randomize gradient layout and write values to inputs
   const layout = randomizeGradientLayout({ updateInputs: true });
 
-  // Choose between linear or radial (omit unsupported 'random' style here)
-  const styles = ['linear', 'radial'];
-  const selectedStyle = styles[Math.floor(Math.random() * styles.length)];
+  // Pattern: out of 10 clicks = 4 radial, 3 linear, 3 random
+  // Pattern array: [radial, radial, radial, radial, linear, linear, linear, random, random, random]
+  const stylePattern = ['radial', 'radial', 'radial', 'radial', 'linear', 'linear', 'linear', 'random', 'random', 'random'];
+  const patternIndex = (backgroundRandomizeClickCount - 1) % 10;
+  const selectedStyle = stylePattern[patternIndex];
 
   // Update the gradient style selector in UI
   const gradientStyleSelect = document.getElementById('bg-gradient-style');
@@ -1124,7 +1781,8 @@ window.randomizeBackground = function() {
   // Apply using the same pathway as manual controls (ensures DOM overlay/scene sync)
   applyBackground();
 
-  updateStatus(`🎲 ${selectedStyle === 'radial' ? 'Radial' : 'Linear'} gradient randomized!`);
+  const styleLabel = selectedStyle === 'random' ? 'Spheres' : (selectedStyle === 'radial' ? 'Radial' : 'Linear');
+  updateStatus(`🎲 ${styleLabel} gradient created!`);
 };
 
 window.randomizeMediaSelection = function(type) {
@@ -1139,13 +1797,9 @@ window.randomizeMediaSelection = function(type) {
   const value = options[Math.floor(Math.random() * options.length)];
 
   if (type === 'image') {
-    const imageSelect = document.getElementById('bg-media-image');
-    if (imageSelect) imageSelect.value = value;
     setMediaType('image');
     setBackgroundImage(value);
   } else {
-    const videoSelect = document.getElementById('bg-media-video');
-    if (videoSelect) videoSelect.value = value;
     setMediaType('video');
     setBackgroundVideo(value);
   }
@@ -1153,27 +1807,65 @@ window.randomizeMediaSelection = function(type) {
 
 window.clearMediaSelection = function(type) {
   if (type === 'image') {
-    const imageSelect = document.getElementById('bg-media-image');
-    if (imageSelect) imageSelect.value = '';
     setBackgroundImage('');
   } else if (type === 'video') {
-    const videoSelect = document.getElementById('bg-media-video');
-    if (videoSelect) videoSelect.value = '';
     setBackgroundVideo('');
   }
   setMediaType('none');
+};
+
+window.uploadMediaFile = function(type) {
+  // Create file input element
+  const input = document.createElement('input');
+  input.type = 'file';
+  input.accept = type === 'image' ? 'image/*' : 'video/*';
+  
+  input.onchange = function(event) {
+    const file = event.target.files[0];
+    if (!file) return;
+    
+    // Validate file type
+    const isValidType = type === 'image' 
+      ? file.type.startsWith('image/')
+      : file.type.startsWith('video/');
+    
+    if (!isValidType) {
+      updateStatus(`⚠️ Please select a valid ${type} file.`);
+      return;
+    }
+    
+    // Create object URL for the file
+    const fileURL = URL.createObjectURL(file);
+    
+    // Apply the uploaded file
+    if (type === 'image') {
+      const imageSelect = document.getElementById('bg-media-image');
+      if (imageSelect) imageSelect.value = '';
+      setMediaType('image');
+      setBackgroundImage(fileURL);
+      updateStatus(`🖼️ Uploaded image applied: ${file.name}`);
+    } else if (type === 'video') {
+      const videoSelect = document.getElementById('bg-media-video');
+      if (videoSelect) videoSelect.value = '';
+      setMediaType('video');
+      setBackgroundVideo(fileURL);
+      updateStatus(`🎥 Uploaded video applied: ${file.name}`);
+    }
+  };
+  
+  // Trigger file picker
+  input.click();
 };
 
 // Blob Texture Functions (independent from background)
 let currentBlobMediaType = 'none';
 
 function getBlobMediaOptions(type) {
-  const selectId = type === 'video' ? 'blob-media-video' : 'blob-media-image';
-  const select = document.getElementById(selectId);
-  if (!select) return [];
-  return Array.from(select.options)
-    .map((option) => option.value)
-    .filter((value) => value && value.trim() !== '');
+  if (type === 'video') {
+    return VIDEO_PRESETS.map(preset => preset.value);
+  } else {
+    return IMAGE_PRESETS.map(preset => preset.value);
+  }
 }
 
 function updateBlobMediaTabs(activeType) {
@@ -1219,28 +1911,21 @@ window.randomizeBlobMedia = function(type) {
   const resolved = resolveMediaPath(value);
 
   if (type === 'image') {
-    const imageSelect = document.getElementById('blob-media-image');
-    if (imageSelect) imageSelect.value = value;
+    mediaLoadingManager.show('Loading blob texture...');
     setBlobMediaType('image');
     window.kwami?.body?.setBlobSurfaceImage(resolved);
     updateStatus(`🖼️ Blob texture: ${value.split('/').pop()}`);
+    setTimeout(() => mediaLoadingManager.hide(), 500);
   } else {
-    const videoSelect = document.getElementById('blob-media-video');
-    if (videoSelect) videoSelect.value = value;
+    mediaLoadingManager.show('Loading blob video texture...');
     setBlobMediaType('video');
     window.kwami?.body?.setBlobSurfaceVideo(resolved, { autoplay: true, loop: true, muted: true });
     updateStatus(`🎥 Blob video texture: ${value.split('/').pop()}`);
+    setTimeout(() => mediaLoadingManager.hide(), 800);
   }
 };
 
 window.clearBlobMedia = function(type) {
-  if (type === 'image') {
-    const imageSelect = document.getElementById('blob-media-image');
-    if (imageSelect) imageSelect.value = '';
-  } else if (type === 'video') {
-    const videoSelect = document.getElementById('blob-media-video');
-    if (videoSelect) videoSelect.value = '';
-  }
   setBlobMediaType('none');
   window.kwami?.body?.clearBlobSurfaceMedia?.();
 };
@@ -1270,19 +1955,21 @@ window.randomize3DTexture = function() {
 
   // Update UI based on result
   if (result.type === 'image') {
-    const imageSelect = document.getElementById('blob-media-image');
-    const matchingOption = imageOptions.find(opt => resolveMediaPath(opt) === result.url);
-    if (imageSelect && matchingOption) imageSelect.value = matchingOption;
+    mediaLoadingManager.show('Loading random 3D texture...');
     setBlobMediaType('image');
+    // Apply the texture
+    window.kwami?.body?.setBlobSurfaceImage(result.url);
     const filename = result.url ? result.url.split('/').pop() : 'texture';
     updateStatus(`🎲 Random 3D texture applied: ${filename}`);
+    setTimeout(() => mediaLoadingManager.hide(), 500);
   } else if (result.type === 'video') {
-    const videoSelect = document.getElementById('blob-media-video');
-    const matchingOption = videoOptions.find(opt => resolveMediaPath(opt) === result.url);
-    if (videoSelect && matchingOption) videoSelect.value = matchingOption;
+    mediaLoadingManager.show('Loading random 3D video texture...');
     setBlobMediaType('video');
+    // Apply the texture
+    window.kwami?.body?.setBlobSurfaceVideo(result.url, { autoplay: true, loop: true, muted: true });
     const filename = result.url ? result.url.split('/').pop() : 'texture';
     updateStatus(`🎲 Random 3D video texture applied: ${filename}`);
+    setTimeout(() => mediaLoadingManager.hide(), 800);
   } else {
     setBlobMediaType('none');
     updateStatus('🧹 Blob texture cleared');
@@ -1309,21 +1996,15 @@ window.randomizeBackgroundWithGlass = function() {
 
   // Update UI based on result
   if (result.backgroundType === 'image') {
-    const imageSelect = document.getElementById('bg-media-image');
-    const matchingOption = imageOptions.find(opt => resolveMediaPath(opt) === result.backgroundUrl);
-    if (imageSelect && matchingOption) imageSelect.value = matchingOption;
-    const videoSelect = document.getElementById('bg-media-video');
-    if (videoSelect) videoSelect.value = '';
     setMediaType('image', { silent: true });
+    // Apply the background image
+    setBackgroundImage(result.backgroundUrl);
     const filename = result.backgroundUrl ? result.backgroundUrl.split('/').pop() : 'image';
     updateStatus(`🪟 Glass effect with ${filename} (opacity: ${(result.opacity * 100).toFixed(0)}%)`);
   } else if (result.backgroundType === 'video') {
-    const videoSelect = document.getElementById('bg-media-video');
-    const matchingOption = videoOptions.find(opt => resolveMediaPath(opt) === result.backgroundUrl);
-    if (videoSelect && matchingOption) videoSelect.value = matchingOption;
-    const imageSelect = document.getElementById('bg-media-image');
-    if (imageSelect) imageSelect.value = '';
     setMediaType('video', { silent: true });
+    // Apply the background video
+    setBackgroundVideo(result.backgroundUrl);
     const filename = result.backgroundUrl ? result.backgroundUrl.split('/').pop() : 'video';
     updateStatus(`🪟 Glass effect with ${filename} (opacity: ${(result.opacity * 100).toFixed(0)}%)`);
   } else {
@@ -1343,6 +2024,7 @@ window.randomizeBackgroundWithGlass = function() {
 };
 
 function applyBackground({ skipGradientOverlayOptIn = false } = {}) {
+  const gradientEnabled = document.getElementById('bg-gradient-enabled')?.checked ?? true;
   const opacity = parseFloat(document.getElementById('bg-opacity')?.value ?? DEFAULT_BACKGROUND.opacity);
 
   const colors = [
@@ -1370,6 +2052,16 @@ function applyBackground({ skipGradientOverlayOptIn = false } = {}) {
   if (body) {
     syncGradientOverlayState();
 
+    if (!gradientEnabled) {
+      // Gradient disabled - hide it
+      body.setBackgroundOpacity(0);
+      const { gradientElement } = getBackgroundElements();
+      if (gradientElement) {
+        gradientElement.style.display = 'none';
+      }
+      return;
+    }
+
     if (gradientStyle === 'random') {
       body.setBackgroundSpheres(colors);
       body.setBackgroundOpacity(opacity);
@@ -1396,6 +2088,14 @@ function applyBackground({ skipGradientOverlayOptIn = false } = {}) {
   const { gradientElement, mediaContainer } = getBackgroundElements();
   if (mediaContainer) mediaContainer.style.display = 'none';
   if (gradientElement) {
+    if (!gradientEnabled) {
+      // Gradient disabled - hide it
+      gradientElement.style.display = 'none';
+      gradientElement.style.opacity = '0';
+      gradientElement.style.backgroundImage = 'none';
+      return;
+    }
+
     let backgroundImage = '';
 
     if (gradientStyle === 'radial') {
@@ -1484,6 +2184,22 @@ function initializeBackgroundControls() {
         }
         updateStatus('🎨 Glass transparency disabled');
       }
+    });
+  }
+
+  // Gradient enable/disable checkbox
+  const gradientEnabledCheckbox = document.getElementById('bg-gradient-enabled');
+  if (gradientEnabledCheckbox) {
+    gradientEnabledCheckbox.addEventListener('change', (e) => {
+      const controlsContainer = document.getElementById('gradient-controls-container');
+      if (controlsContainer) {
+        if (e.target.checked) {
+          controlsContainer.classList.remove('gradient-controls-disabled');
+        } else {
+          controlsContainer.classList.add('gradient-controls-disabled');
+        }
+      }
+      applyBackground();
     });
   }
 
@@ -1624,6 +2340,7 @@ applySidebarVisibility();
 updateMenuToggleButton();
 initializeGitHubStarButton();
 initializeThemeToggle();
+initializeColorPicker();
 
 // Initialize Mind controls since Mind is on the left by default
 setTimeout(() => {
@@ -1666,6 +2383,46 @@ try {
   }
 
   initializeAudioPlayer();
+
+  // Skill definitions - declared here before initializeSkills() call to avoid temporal dead zone issues
+  window.skillDefinitions = {
+    'minimize-top-right': {
+      name: 'Minimize to Top Right',
+      description: 'Minimizes Kwami and moves it to the top-right corner',
+      actions: 2,
+      autoReverse: false
+    },
+    'rainbow-transition': {
+      name: 'Rainbow Transition',
+      description: 'Cycles through rainbow colors with smooth transitions',
+      actions: 7,
+      autoReverse: false
+    },
+    'energetic-mode': {
+      name: 'Energetic Mode',
+      description: 'High-energy mode with faster movements and vibrant colors',
+      actions: 5,
+      autoReverse: true
+    },
+    'calm-meditation': {
+      name: 'Calm Meditation',
+      description: 'Calming mode with slow movements and soothing colors',
+      actions: 6,
+      autoReverse: false
+    },
+    'focus-session': {
+      name: 'Focus Session',
+      description: 'Pomodoro-style focus mode with greeting and minimization',
+      actions: 5,
+      autoReverse: false
+    },
+    'party-mode': {
+      name: 'Party Mode',
+      description: 'Celebration mode with rapid color changes and energetic movement',
+      actions: 10,
+      autoReverse: false
+    }
+  };
 
   // Create conversation callbacks for blob interaction
   const conversationCallbacks = {
@@ -1720,6 +2477,9 @@ try {
   
   // Enable click interaction by default (includes double-click for conversations)
   window.kwami.enableBlobInteraction(conversationCallbacks);
+
+  // Initialize skills system
+  initializeSkills();
 
   // Initialize body controls event listeners
   initializeBodyControls();
@@ -2691,6 +3451,7 @@ function updateAllControlsFromBlob() {
   
   const blob = window.kwami.body.blob;
   const spikes = blob.getSpikes();
+  const amplitude = blob.getAmplitude();
   const time = blob.getTime();
   const rotation = blob.getRotation();
   const colors = blob.getColors();
@@ -2706,6 +3467,16 @@ function updateAllControlsFromBlob() {
     if (slider && display) {
       slider.value = spikes[axis];
       display.textContent = formatValue(spikes[axis], 1);
+    }
+  });
+  
+  // Update amplitude
+  ['x', 'y', 'z'].forEach(axis => {
+    const slider = document.getElementById(`amplitude-${axis}`);
+    const display = document.getElementById(`amplitude-${axis}-value`);
+    if (slider && display) {
+      slider.value = amplitude[axis];
+      display.textContent = formatValue(amplitude[axis], 1);
     }
   });
   
@@ -2889,6 +3660,163 @@ function updateAllControlsFromBlob() {
   }
 }
 
+// Store original blob parameters for restoring after effects
+let originalBlobParams = null;
+let isRelaxed = false;
+
+// Store original blob parameters
+function saveOriginalBlobParams() {
+  const blob = window.kwami?.body?.blob;
+  if (!blob) return;
+
+  originalBlobParams = {
+    spikeX: blob.spikeX,
+    spikeY: blob.spikeY,
+    spikeZ: blob.spikeZ,
+    amplitudeX: blob.amplitudeX,
+    amplitudeY: blob.amplitudeY,
+    amplitudeZ: blob.amplitudeZ,
+    timeX: blob.timeX,
+    timeY: blob.timeY,
+    timeZ: blob.timeZ,
+    scale: blob.getScale(),
+  };
+}
+
+// Restore original blob parameters
+function restoreOriginalBlobParams() {
+  const blob = window.kwami?.body?.blob;
+  if (!blob || !originalBlobParams) return;
+
+  blob.setSpikes(originalBlobParams.spikeX, originalBlobParams.spikeY, originalBlobParams.spikeZ);
+  blob.setAmplitudes(originalBlobParams.amplitudeX, originalBlobParams.amplitudeY, originalBlobParams.amplitudeZ);
+  blob.setTime(originalBlobParams.timeX, originalBlobParams.timeY, originalBlobParams.timeZ);
+  blob.setScale(originalBlobParams.scale);
+
+  // Update UI sliders
+  updateValueDisplay('spike-x-value', originalBlobParams.spikeX, 1);
+  updateValueDisplay('spike-y-value', originalBlobParams.spikeY, 1);
+  updateValueDisplay('spike-z-value', originalBlobParams.spikeZ, 1);
+  updateValueDisplay('amplitude-x-value', originalBlobParams.amplitudeX, 1);
+  updateValueDisplay('amplitude-y-value', originalBlobParams.amplitudeY, 1);
+  updateValueDisplay('amplitude-z-value', originalBlobParams.amplitudeZ, 1);
+  updateValueDisplay('time-x-value', originalBlobParams.timeX, 1);
+  updateValueDisplay('time-y-value', originalBlobParams.timeY, 1);
+  updateValueDisplay('time-z-value', originalBlobParams.timeZ, 1);
+  updateValueDisplay('scale-value', originalBlobParams.scale, 1);
+
+  document.getElementById('spike-x').value = originalBlobParams.spikeX;
+  document.getElementById('spike-y').value = originalBlobParams.spikeY;
+  document.getElementById('spike-z').value = originalBlobParams.spikeZ;
+  document.getElementById('amplitude-x').value = originalBlobParams.amplitudeX;
+  document.getElementById('amplitude-y').value = originalBlobParams.amplitudeY;
+  document.getElementById('amplitude-z').value = originalBlobParams.amplitudeZ;
+  document.getElementById('time-x').value = originalBlobParams.timeX;
+  document.getElementById('time-y').value = originalBlobParams.timeY;
+  document.getElementById('time-z').value = originalBlobParams.timeZ;
+  document.getElementById('scale').value = originalBlobParams.scale;
+}
+
+// Relax action: Make blob more rounded, less spiky, slower animation
+async function relaxBlob() {
+  const blob = window.kwami?.body?.blob;
+  if (!blob) return;
+
+  if (isRelaxed) {
+    // Restore original parameters
+    restoreOriginalBlobParams();
+    isRelaxed = false;
+    updateStatus('😌 Blob returned to normal state');
+  } else {
+    // Save current parameters if not already saved
+    if (!originalBlobParams) {
+      saveOriginalBlobParams();
+    }
+
+    // Apply relax effect: more rounded (lower spikes), slower animation
+    const relaxParams = {
+      spikeX: 0.05,
+      spikeY: 0.05,
+      spikeZ: 0.05,
+      amplitudeX: 0.3,
+      amplitudeY: 0.3,
+      amplitudeZ: 0.3,
+      timeX: 1.0,
+      timeY: 1.0,
+      timeZ: 1.0,
+    };
+
+    blob.setSpikes(relaxParams.spikeX, relaxParams.spikeY, relaxParams.spikeZ);
+    blob.setAmplitudes(relaxParams.amplitudeX, relaxParams.amplitudeY, relaxParams.amplitudeZ);
+    blob.setTime(relaxParams.timeX, relaxParams.timeY, relaxParams.timeZ);
+
+    // Update UI sliders
+    updateValueDisplay('spike-x-value', relaxParams.spikeX, 1);
+    updateValueDisplay('spike-y-value', relaxParams.spikeY, 1);
+    updateValueDisplay('spike-z-value', relaxParams.spikeZ, 1);
+    updateValueDisplay('amplitude-x-value', relaxParams.amplitudeX, 1);
+    updateValueDisplay('amplitude-y-value', relaxParams.amplitudeY, 1);
+    updateValueDisplay('amplitude-z-value', relaxParams.amplitudeZ, 1);
+    updateValueDisplay('time-x-value', relaxParams.timeX, 1);
+    updateValueDisplay('time-y-value', relaxParams.timeY, 1);
+    updateValueDisplay('time-z-value', relaxParams.timeZ, 1);
+
+    document.getElementById('spike-x').value = relaxParams.spikeX;
+    document.getElementById('spike-y').value = relaxParams.spikeY;
+    document.getElementById('spike-z').value = relaxParams.spikeZ;
+    document.getElementById('amplitude-x').value = relaxParams.amplitudeX;
+    document.getElementById('amplitude-y').value = relaxParams.amplitudeY;
+    document.getElementById('amplitude-z').value = relaxParams.amplitudeZ;
+    document.getElementById('time-x').value = relaxParams.timeX;
+    document.getElementById('time-y').value = relaxParams.timeY;
+    document.getElementById('time-z').value = relaxParams.timeZ;
+
+    isRelaxed = true;
+    updateStatus('🧘 Blob is now in relaxed state - Double-click again to restore');
+  }
+}
+
+// Update blob interaction with custom double-click action
+function updateBlobInteractionWithCustomAction() {
+  const customActionSelect = document.getElementById('custom-double-click-action');
+  if (!customActionSelect) return;
+
+  const action = customActionSelect.value;
+
+  // Create custom callback based on selected action
+  window.kwami.enableBlobInteraction(async () => {
+    switch (action) {
+      case 'listen':
+        if (window.kwami.body.isListening()) {
+          window.kwami.body.stopListening();
+          window.kwami.setState('idle');
+          updateStatus('👂 Stopped listening');
+        } else {
+          await window.kwami.body.startListening();
+          updateStatus('👂 Listening mode activated');
+        }
+        break;
+      
+      case 'speak':
+        if (window.kwami.getState() === 'speaking') {
+          window.kwami.setState('idle');
+          updateStatus('🔇 Stopped speaking');
+        } else {
+          window.kwami.setState('speaking');
+          updateStatus('🗣️ Speaking mode activated');
+        }
+        break;
+      
+      case 'relax':
+        await relaxBlob();
+        break;
+      
+      default:
+        updateStatus('⚠️ Unknown action');
+    }
+  });
+}
+
 // Initialize body controls event listeners
 function initializeBodyControls() {
   if (!window.kwami) return;
@@ -2905,6 +3833,20 @@ function initializeBodyControls() {
         spikes[axis] = value;
         blob.setSpikes(spikes.x, spikes.y, spikes.z);
         updateValueDisplay(`spike-${axis}-value`, value, 1);
+      });
+    }
+  });
+  
+  // Amplitude sliders
+  ['x', 'y', 'z'].forEach(axis => {
+    const slider = document.getElementById(`amplitude-${axis}`);
+    if (slider) {
+      slider.addEventListener('input', (e) => {
+        const value = parseFloat(e.target.value);
+        const amplitude = blob.getAmplitude();
+        amplitude[axis] = value;
+        blob.setAmplitude(amplitude.x, amplitude.y, amplitude.z);
+        updateValueDisplay(`amplitude-${axis}-value`, value, 1);
       });
     }
   });
@@ -3017,6 +3959,47 @@ function initializeBodyControls() {
       }
     });
   }
+
+  // Double-click conversation disable checkbox
+  const disableDoubleClickCheckbox = document.getElementById('disable-double-click-conversation');
+  const customActionSelector = document.getElementById('custom-action-selector-container');
+  const customActionSelect = document.getElementById('custom-double-click-action');
+  
+  if (disableDoubleClickCheckbox && customActionSelector) {
+    disableDoubleClickCheckbox.addEventListener('change', (e) => {
+      if (e.target.checked) {
+        customActionSelector.style.display = 'block';
+        // Re-enable blob interaction with custom action
+        updateBlobInteractionWithCustomAction();
+        updateStatus('🎯 Double-click conversation disabled - Custom action mode enabled');
+      } else {
+        customActionSelector.style.display = 'none';
+        
+        // Restore any active effects before switching back
+        if (isRelaxed) {
+          restoreOriginalBlobParams();
+          isRelaxed = false;
+        }
+        if (window.kwami.body.isListening()) {
+          window.kwami.body.stopListening();
+        }
+        window.kwami.setState('idle');
+        
+        // Re-enable normal conversation interaction
+        window.kwami.enableBlobInteraction(window.conversationCallbacks);
+        updateStatus('💬 Double-click conversation re-enabled');
+      }
+    });
+  }
+
+  // Custom action selector
+  if (customActionSelect) {
+    customActionSelect.addEventListener('change', () => {
+      updateBlobInteractionWithCustomAction();
+      const actionName = customActionSelect.options[customActionSelect.selectedIndex].text;
+      updateStatus(`🎯 Double-click action set to: ${actionName}`);
+    });
+  }
   
   // Skin type selector
   const skinSelect = document.getElementById('skin-type');
@@ -3086,36 +4069,6 @@ function initializeBodyControls() {
       setBlobMediaType(tab.dataset.media);
     });
   });
-
-  const blobImageSelect = document.getElementById('blob-media-image');
-  if (blobImageSelect) {
-    blobImageSelect.addEventListener('change', (e) => {
-      const value = e.target.value;
-      if (value) {
-        setBlobMediaType('image');
-        const resolved = resolveMediaPath(value);
-        window.kwami?.body?.setBlobSurfaceImage(resolved);
-        updateStatus(`🖼️ Blob texture: ${value.split('/').pop()}`);
-      } else {
-        window.clearBlobMedia('image');
-      }
-    });
-  }
-
-  const blobVideoSelect = document.getElementById('blob-media-video');
-  if (blobVideoSelect) {
-    blobVideoSelect.addEventListener('change', (e) => {
-      const value = e.target.value;
-      if (value) {
-        setBlobMediaType('video');
-        const resolved = resolveMediaPath(value);
-        window.kwami?.body?.setBlobSurfaceVideo(resolved, { autoplay: true, loop: true, muted: true });
-        updateStatus(`🎥 Blob video: ${value.split('/').pop()}`);
-      } else {
-        window.clearBlobMedia('video');
-      }
-    });
-  }
 
   // Initialize blob media to none
   setBlobMediaType('none');
@@ -3419,3 +4372,796 @@ function updateSoulUIFromConfig(config) {
   if (systemPromptInput) systemPromptInput.value = config.systemPrompt || '';
   if (nameDisplay) nameDisplay.textContent = config.name || 'Kwami';
 }
+
+// ========================================
+// Skills System Functions
+// ========================================
+
+// Note: skillDefinitions is declared earlier in the file (around line 2341) as window.skillDefinitions
+// to avoid temporal dead zone issues
+
+let skillsExecutedCount = 0;
+
+// Initialize skills when Kwami is loaded
+async function initializeSkills() {
+  if (!kwami || !kwami.skills) {
+    console.error('Kwami skills not available');
+    return;
+  }
+
+  try {
+    // Register all predefined skills inline (avoiding external file dependencies)
+    const skillTemplates = {
+      'minimize-top-right': {
+        id: 'minimize-top-right',
+        name: 'Minimize to Top Right',
+        description: 'Minimizes Kwami and moves it to the top-right corner of the screen',
+        version: '1.0.0',
+        author: 'Kwami Team',
+        tags: ['position', 'scale', 'ui'],
+        trigger: 'manual',
+        autoReverse: false,
+        actions: [
+          { type: 'body.scale', preset: 'mini', duration: 800, easing: 'ease-in-out' },
+          { type: 'body.position', preset: 'top-right', duration: 800, easing: 'ease-in-out' }
+        ]
+      },
+      'rainbow-transition': {
+        id: 'rainbow-transition',
+        name: 'Rainbow Color Transition',
+        description: 'Cycles through rainbow colors with smooth transitions',
+        version: '1.0.0',
+        author: 'Kwami Team',
+        tags: ['colors', 'animation', 'visual'],
+        trigger: 'manual',
+        actions: [
+          {
+            type: 'sequence',
+            actions: [
+              { type: 'body.colors', primary: '#ff0000', secondary: '#ff7700', accent: '#ffff00', duration: 1000 },
+              { type: 'wait', duration: 500 },
+              { type: 'body.colors', primary: '#00ff00', secondary: '#00ff77', accent: '#00ffff', duration: 1000 },
+              { type: 'wait', duration: 500 },
+              { type: 'body.colors', primary: '#0000ff', secondary: '#7700ff', accent: '#ff00ff', duration: 1000 }
+            ]
+          }
+        ]
+      },
+      'energetic-mode': {
+        id: 'energetic-mode',
+        name: 'Energetic Mode',
+        description: 'Makes Kwami more energetic with faster movements and vibrant colors',
+        version: '1.0.0',
+        author: 'Kwami Team',
+        tags: ['mood', 'animation', 'personality'],
+        trigger: 'manual',
+        autoReverse: true,
+        reverseDelay: 5000,
+        actions: [
+          {
+            type: 'sequence',
+            parallel: true,
+            actions: [
+              { type: 'body.colors', primary: '#ff6b35', secondary: '#f7931e', accent: '#fdc300', duration: 500 },
+              { type: 'body.spikes', x: 0.8, y: 0.8, z: 0.8 },
+              { type: 'body.time', x: 3.0, y: 3.0, z: 3.0 },
+              { type: 'soul.trait', trait: 'energy', value: 80 },
+              { type: 'soul.trait', trait: 'happiness', value: 70 }
+            ]
+          }
+        ]
+      },
+      'calm-meditation': {
+        id: 'calm-meditation',
+        name: 'Calm Meditation Mode',
+        description: 'Creates a calm, meditative atmosphere with slow movements and soothing colors',
+        version: '1.0.0',
+        author: 'Kwami Team',
+        tags: ['mood', 'meditation', 'calm'],
+        trigger: 'manual',
+        actions: [
+          {
+            type: 'sequence',
+            parallel: true,
+            actions: [
+              { type: 'body.colors', primary: '#3a86ff', secondary: '#8338ec', accent: '#b8b8ff', duration: 2000 },
+              { type: 'body.spikes', x: 0.1, y: 0.1, z: 0.1 },
+              { type: 'body.time', x: 0.3, y: 0.3, z: 0.3 },
+              { type: 'body.rotation', x: 0.001, y: 0.002, z: 0.001 },
+              { type: 'soul.trait', trait: 'calmness', value: 90 },
+              { type: 'soul.trait', trait: 'patience', value: 85 }
+            ]
+          }
+        ]
+      },
+      'focus-session': {
+        id: 'focus-session',
+        name: 'Focus Session',
+        description: 'Pomodoro-style focus mode with greeting and minimization',
+        version: '1.0.0',
+        author: 'Kwami Team',
+        tags: ['productivity', 'focus', 'pomodoro'],
+        trigger: 'manual',
+        actions: [
+          {
+            type: 'sequence',
+            actions: [
+              { type: 'mind.speak', text: "Starting your focus session. I'll minimize myself to the corner so you can concentrate. Good luck!" },
+              { type: 'wait', duration: 2000 },
+              {
+                type: 'sequence',
+                parallel: true,
+                actions: [
+                  { type: 'body.scale', preset: 'mini', duration: 1000, easing: 'ease-in-out' },
+                  { type: 'body.position', preset: 'top-right', duration: 1000, easing: 'ease-in-out' },
+                  { type: 'body.colors', primary: '#667eea', secondary: '#764ba2', accent: '#f093fb', duration: 1000 }
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      'party-mode': {
+        id: 'party-mode',
+        name: 'Party Mode',
+        description: 'Celebration mode with rapid color changes and energetic movement',
+        version: '1.0.0',
+        author: 'Kwami Team',
+        tags: ['celebration', 'animation', 'fun'],
+        trigger: 'manual',
+        loop: false,
+        actions: [
+          {
+            type: 'sequence',
+            parallel: true,
+            actions: [
+              { type: 'body.scale', preset: 'large', duration: 500, easing: 'bounce' },
+              { type: 'body.spikes', x: 1.5, y: 1.5, z: 1.5 },
+              { type: 'body.time', x: 5.0, y: 5.0, z: 5.0 },
+              { type: 'body.rotation', x: 0.005, y: 0.008, z: 0.003 }
+            ]
+          },
+          {
+            type: 'sequence',
+            actions: [
+              { type: 'body.colors', primary: '#ff006e', secondary: '#8338ec', accent: '#ffbe0b', duration: 300 },
+              { type: 'body.colors', primary: '#3a86ff', secondary: '#ff006e', accent: '#06ffa5', duration: 300 },
+              { type: 'body.colors', primary: '#ffbe0b', secondary: '#fb5607', accent: '#ff006e', duration: 300 },
+              { type: 'body.colors', primary: '#06ffa5', secondary: '#3a86ff', accent: '#8338ec', duration: 300 }
+            ]
+          }
+        ]
+      }
+    };
+
+    // Register all skills
+    const skillIds = Object.keys(window.skillDefinitions);
+    for (const skillId of skillIds) {
+      try {
+        if (skillTemplates[skillId]) {
+          kwami.skills.registerSkill(skillTemplates[skillId]);
+          console.log(`[Skills] Registered skill: ${skillId}`);
+        } else {
+          console.warn(`[Skills] No template found for skill: ${skillId}`);
+        }
+      } catch (error) {
+        console.warn(`[Skills] Failed to register skill ${skillId}:`, error);
+      }
+    }
+
+    // Update stats
+    updateSkillStats();
+  } catch (error) {
+    console.error('[Skills] Failed to initialize skills:', error);
+  }
+}
+
+// Handle skill selection change
+window.addEventListener('DOMContentLoaded', () => {
+  const skillSelector = document.getElementById('skill-selector');
+  if (skillSelector) {
+    skillSelector.addEventListener('change', function() {
+      const selectedSkill = this.value;
+      const executeBtn = document.getElementById('execute-skill-btn');
+      const descriptionDiv = document.getElementById('skill-description');
+      
+      if (selectedSkill && window.skillDefinitions[selectedSkill]) {
+        // Show description
+        const skill = window.skillDefinitions[selectedSkill];
+        document.getElementById('skill-description-name').textContent = skill.name;
+        document.getElementById('skill-description-text').textContent = skill.description;
+        document.getElementById('skill-description-actions').textContent = skill.actions;
+        document.getElementById('skill-description-reverse').textContent = skill.autoReverse ? 'Yes' : 'No';
+        descriptionDiv.style.display = 'block';
+        
+        // Enable execute button
+        if (executeBtn) executeBtn.disabled = false;
+      } else {
+        descriptionDiv.style.display = 'none';
+        if (executeBtn) executeBtn.disabled = true;
+      }
+    });
+  }
+});
+
+// Execute selected skill
+window.executeSelectedSkill = async function() {
+  const skillSelector = document.getElementById('skill-selector');
+  const selectedSkill = skillSelector?.value;
+  
+  if (!selectedSkill) {
+    updateStatus('⚠️ Please select a skill first');
+    return;
+  }
+
+  if (!kwami || !kwami.skills) {
+    updateError('Kwami skills not available. Please refresh the page.');
+    return;
+  }
+
+  try {
+    updateStatus(`⏳ Executing skill: ${window.skillDefinitions[selectedSkill]?.name || selectedSkill}...`);
+    
+    const startTime = Date.now();
+    const result = await kwami.skills.executeSkill(selectedSkill);
+    const duration = Date.now() - startTime;
+    
+    if (result.success) {
+      // Show success message
+      const statusDiv = document.getElementById('skill-execution-status');
+      const messageSpan = document.getElementById('skill-execution-message');
+      const durationSpan = document.getElementById('skill-execution-duration');
+      
+      if (statusDiv && messageSpan && durationSpan) {
+        messageSpan.textContent = `✅ Skill executed successfully`;
+        durationSpan.textContent = `${duration}ms`;
+        statusDiv.style.display = 'block';
+        
+        // Hide after 5 seconds
+        setTimeout(() => {
+          statusDiv.style.display = 'none';
+        }, 5000);
+      }
+      
+      updateStatus(`✅ Skill completed: ${window.skillDefinitions[selectedSkill]?.name || selectedSkill}`);
+      
+      // Update stats
+      skillsExecutedCount++;
+      updateSkillStats();
+    } else {
+      updateError(`❌ Skill execution failed: ${result.error || 'Unknown error'}`);
+    }
+  } catch (error) {
+    console.error('[Skills] Execution error:', error);
+    updateError(`❌ Failed to execute skill: ${error.message}`);
+  }
+};
+
+// Quick skill actions
+window.quickSkillMinimize = async function() {
+  if (!kwami) return;
+  
+  const skill = {
+    id: 'quick-minimize',
+    name: 'Quick Minimize',
+    description: 'Quick minimize action',
+    version: '1.0.0',
+    actions: [
+      {
+        type: 'body.scale',
+        preset: 'mini',
+        duration: 600,
+        easing: 'ease-in-out'
+      },
+      {
+        type: 'body.position',
+        preset: 'bottom-right',
+        duration: 600,
+        easing: 'ease-in-out'
+      }
+    ]
+  };
+  
+  kwami.skills.registerSkill(skill);
+  await kwami.skills.executeSkill('quick-minimize');
+  skillsExecutedCount++;
+  updateSkillStats();
+  updateStatus('✅ Kwami minimized');
+};
+
+window.quickSkillCenter = async function() {
+  if (!kwami) return;
+  
+  const skill = {
+    id: 'quick-center',
+    name: 'Quick Center',
+    description: 'Center Kwami',
+    version: '1.0.0',
+    actions: [
+      {
+        type: 'body.scale',
+        preset: 'normal',
+        duration: 600,
+        easing: 'ease-in-out'
+      },
+      {
+        type: 'body.position',
+        preset: 'center',
+        duration: 600,
+        easing: 'ease-in-out'
+      }
+    ]
+  };
+  
+  kwami.skills.registerSkill(skill);
+  await kwami.skills.executeSkill('quick-center');
+  skillsExecutedCount++;
+  updateSkillStats();
+  updateStatus('✅ Kwami centered');
+};
+
+window.quickSkillEnergize = async function() {
+  if (!kwami) return;
+  
+  const skill = {
+    id: 'quick-energize',
+    name: 'Quick Energize',
+    description: 'Energize Kwami',
+    version: '1.0.0',
+    actions: [
+      {
+        type: 'sequence',
+        parallel: true,
+        actions: [
+          {
+            type: 'body.colors',
+            primary: '#ff6b35',
+            secondary: '#f7931e',
+            accent: '#fdc300',
+            duration: 500
+          },
+          {
+            type: 'body.spikes',
+            x: 0.8,
+            y: 0.8,
+            z: 0.8
+          },
+          {
+            type: 'body.time',
+            x: 3.0,
+            y: 3.0,
+            z: 3.0
+          }
+        ]
+      }
+    ]
+  };
+  
+  kwami.skills.registerSkill(skill);
+  await kwami.skills.executeSkill('quick-energize');
+  skillsExecutedCount++;
+  updateSkillStats();
+  updateStatus('⚡ Kwami energized');
+};
+
+window.quickSkillCalm = async function() {
+  if (!kwami) return;
+  
+  const skill = {
+    id: 'quick-calm',
+    name: 'Quick Calm',
+    description: 'Calm Kwami',
+    version: '1.0.0',
+    actions: [
+      {
+        type: 'sequence',
+        parallel: true,
+        actions: [
+          {
+            type: 'body.colors',
+            primary: '#3a86ff',
+            secondary: '#8338ec',
+            accent: '#b8b8ff',
+            duration: 1000
+          },
+          {
+            type: 'body.spikes',
+            x: 0.1,
+            y: 0.1,
+            z: 0.1
+          },
+          {
+            type: 'body.time',
+            x: 0.3,
+            y: 0.3,
+            z: 0.3
+          }
+        ]
+      }
+    ]
+  };
+  
+  kwami.skills.registerSkill(skill);
+  await kwami.skills.executeSkill('quick-calm');
+  skillsExecutedCount++;
+  updateSkillStats();
+  updateStatus('🧘 Kwami calmed');
+};
+
+window.quickSkillParty = async function() {
+  if (!kwami) return;
+  
+  try {
+    await kwami.skills.executeSkill('party-mode');
+    skillsExecutedCount++;
+    updateSkillStats();
+    updateStatus('🎉 Party mode activated!');
+  } catch (error) {
+    updateError('Failed to activate party mode');
+  }
+};
+
+window.quickSkillReset = async function() {
+  if (!kwami) return;
+  
+  const skill = {
+    id: 'quick-reset',
+    name: 'Quick Reset',
+    description: 'Reset to defaults',
+    version: '1.0.0',
+    actions: [
+      {
+        type: 'sequence',
+        parallel: true,
+        actions: [
+          {
+            type: 'body.scale',
+            preset: 'normal',
+            duration: 800,
+            easing: 'ease-in-out'
+          },
+          {
+            type: 'body.position',
+            preset: 'center',
+            duration: 800,
+            easing: 'ease-in-out'
+          },
+          {
+            type: 'body.spikes',
+            x: 0.2,
+            y: 0.2,
+            z: 0.2
+          },
+          {
+            type: 'body.time',
+            x: 1.0,
+            y: 1.0,
+            z: 1.0
+          },
+          {
+            type: 'body.rotation',
+            x: 0,
+            y: 0,
+            z: 0
+          }
+        ]
+      }
+    ]
+  };
+  
+  kwami.skills.registerSkill(skill);
+  await kwami.skills.executeSkill('quick-reset');
+  skillsExecutedCount++;
+  updateSkillStats();
+  updateStatus('🔄 Kwami reset to defaults');
+};
+
+// Load custom skill from URL
+window.loadCustomSkill = async function() {
+  const urlInput = document.getElementById('custom-skill-url');
+  const url = urlInput?.value.trim();
+  
+  if (!url) {
+    updateStatus('⚠️ Please enter a skill URL');
+    return;
+  }
+
+  if (!kwami || !kwami.skills) {
+    updateError('Kwami skills not available');
+    return;
+  }
+
+  try {
+    updateStatus('⏳ Loading skill from URL...');
+    await kwami.skills.loadSkillFromUrl(url);
+    updateStatus('✅ Custom skill loaded successfully');
+    updateSkillStats();
+    
+    // Clear input
+    if (urlInput) urlInput.value = '';
+  } catch (error) {
+    console.error('[Skills] Failed to load custom skill:', error);
+    updateError(`❌ Failed to load skill: ${error.message}`);
+  }
+};
+
+// Load skill from file
+window.loadSkillFromFile = async function(event) {
+  const file = event.target.files[0];
+  if (!file) return;
+
+  if (!kwami || !kwami.skills) {
+    updateError('Kwami skills not available');
+    return;
+  }
+
+  try {
+    updateStatus('⏳ Loading skill from file...');
+    
+    const reader = new FileReader();
+    reader.onload = async function(e) {
+      try {
+        const content = e.target.result;
+        kwami.skills.loadSkillFromString(content, 'json');
+        updateStatus(`✅ Loaded skill from ${file.name}`);
+        updateSkillStats();
+      } catch (error) {
+        console.error('[Skills] Failed to parse skill file:', error);
+        updateError(`❌ Invalid skill file: ${error.message}`);
+      }
+    };
+    
+    reader.readAsText(file);
+  } catch (error) {
+    console.error('[Skills] Failed to load skill file:', error);
+    updateError(`❌ Failed to load file: ${error.message}`);
+  }
+};
+
+// Update skill statistics
+function updateSkillStats() {
+  const totalEl = document.getElementById('skills-total');
+  const executedEl = document.getElementById('skills-executed');
+  
+  if (kwami && kwami.skills) {
+    const stats = kwami.skills.getStats();
+    if (totalEl) totalEl.textContent = stats.totalSkills;
+  }
+  
+  if (executedEl) executedEl.textContent = skillsExecutedCount;
+}
+
+// ========================================
+// Media Loader Integration
+// ========================================
+
+// Image presets for backgrounds and blob textures
+const IMAGE_PRESETS = [
+  { name: 'Alaska', value: '/assets/img/bg/alaska.jpeg' },
+  { name: 'Binary Reality', value: '/assets/img/bg/binary-reality.jpg' },
+  { name: 'Black Candle', value: '/assets/img/bg/black-candle.jpg' },
+  { name: 'Black Hole', value: '/assets/img/bg/black-hole.jpg' },
+  { name: 'Black Sea', value: '/assets/img/bg/black-sea.jpg' },
+  { name: 'Black Windows', value: '/assets/img/bg/black-windows.jpg' },
+  { name: 'Black', value: '/assets/img/bg/black.jpg' },
+  { name: 'Colors', value: '/assets/img/bg/colors.jpeg' },
+  { name: 'Galaxy', value: '/assets/img/bg/galaxy.jpg' },
+  { name: 'Galaxy 2', value: '/assets/img/bg/galaxy2.jpg' },
+  { name: 'Galaxy 3', value: '/assets/img/bg/galaxy3.jpg' },
+  { name: 'Galaxy 4', value: '/assets/img/bg/galaxy4.jpg' },
+  { name: 'Gargantua', value: '/assets/img/bg/gargantua.jpg' },
+  { name: 'Interstellar', value: '/assets/img/bg/interstellar.png' },
+  { name: 'Island', value: '/assets/img/bg/islan.jpg' },
+  { name: 'Lake', value: '/assets/img/bg/lake.jpg' },
+  { name: 'Mountain', value: '/assets/img/bg/mountain.jpeg' },
+  { name: 'Paisaje', value: '/assets/img/bg/paisaje.jpg' },
+  { name: 'Pik', value: '/assets/img/bg/pik.jpg' },
+  { name: 'Planet', value: '/assets/img/bg/planet.jpg' },
+  { name: 'Planet 2', value: '/assets/img/bg/planet2.jpg' },
+  { name: 'Planet 3', value: '/assets/img/bg/planet3.jpg' },
+  { name: 'Sahara', value: '/assets/img/bg/sahara.jpeg' },
+  { name: 'Skinet', value: '/assets/img/bg/skinet.png' },
+  { name: 'Skynet', value: '/assets/img/bg/skynet.png' },
+  { name: 'Universe', value: '/assets/img/bg/universe.jpg' },
+  { name: 'White Tree', value: '/assets/img/bg/white-tree.jpg' }
+];
+
+// Video presets
+const VIDEO_PRESETS = [
+  // Local videos
+  { name: 'Stars (Local)', value: '/assets/vid/bg/stars.mp4' },
+
+  // Pexels videos - Space & Abstract
+  { name: 'Cosmic Nebula 1', value: 'https://videos.pexels.com/video-files/6394054/6394054-uhd_2732_1366_24fps.mp4' },
+  { name: 'Galaxy Swirl', value: 'https://videos.pexels.com/video-files/1448735/1448735-uhd_2732_1440_24fps.mp4' },
+  { name: 'Abstract Waves 1', value: 'https://videos.pexels.com/video-files/3571264/3571264-uhd_2560_1440_30fps.mp4' },
+  { name: 'Smoke Art 1', value: 'https://videos.pexels.com/video-files/8820216/8820216-uhd_2560_1440_25fps.mp4' },
+  { name: 'Liquid Gold', value: 'https://videos.pexels.com/video-files/4763824/4763824-uhd_2560_1440_24fps.mp4' },
+  { name: 'Abstract Flow 1', value: 'https://videos.pexels.com/video-files/5946371/5946371-uhd_2560_1440_30fps.mp4' },
+  { name: 'Particle Storm', value: 'https://videos.pexels.com/video-files/3214448/3214448-uhd_2560_1440_25fps.mp4' },
+  { name: 'Digital Waves', value: 'https://videos.pexels.com/video-files/2098989/2098989-uhd_2560_1440_30fps.mp4' },
+  { name: 'Smoke Art 2', value: 'https://videos.pexels.com/video-files/4205697/4205697-uhd_2560_1440_30fps.mp4' },
+  { name: 'Fluid Motion 1', value: 'https://videos.pexels.com/video-files/4125029/4125029-uhd_2560_1440_24fps.mp4' },
+  
+  // Pexels videos - Colorful Abstract
+  { name: 'Rainbow Smoke', value: 'https://videos.pexels.com/video-files/4873244/4873244-uhd_2560_1440_25fps.mp4' },
+  { name: 'Ink in Water 1', value: 'https://videos.pexels.com/video-files/4927963/4927963-uhd_2732_1440_30fps.mp4' },
+  { name: 'Neon Lights 1', value: 'https://videos.pexels.com/video-files/5173766/5173766-uhd_2560_1440_30fps.mp4' },
+  { name: 'Abstract Colors 1', value: 'https://videos.pexels.com/video-files/5581999/5581999-uhd_2560_1440_30fps.mp4' },
+  { name: 'Plasma Effect', value: 'https://videos.pexels.com/video-files/6212548/6212548-uhd_2560_1440_25fps.mp4' },
+  { name: 'Bokeh Lights 1', value: 'https://videos.pexels.com/video-files/1851190/1851190-uhd_2560_1440_25fps.mp4' },
+  { name: 'Neon Glow', value: 'https://videos.pexels.com/video-files/2611250/2611250-uhd_2560_1440_30fps.mp4' },
+  { name: 'Light Rays 1', value: 'https://videos.pexels.com/video-files/5155396/5155396-uhd_2560_1440_30fps.mp4' },
+  { name: 'Abstract Gradient 1', value: 'https://videos.pexels.com/video-files/5453622/5453622-uhd_2560_1440_24fps.mp4' },
+  { name: 'Color Smoke 1', value: 'https://videos.pexels.com/video-files/5382333/5382333-uhd_2560_1440_30fps.mp4' },
+  
+  // Pexels videos - Energy & Motion
+  { name: 'Energy Field 1', value: 'https://videos.pexels.com/video-files/9341381/9341381-uhd_2560_1440_24fps.mp4' },
+  { name: 'Particle Flow 1', value: 'https://videos.pexels.com/video-files/5167233/5167233-uhd_2560_1440_30fps.mp4' },
+  { name: 'Abstract Motion 1', value: 'https://videos.pexels.com/video-files/5170522/5170522-uhd_2560_1440_30fps.mp4' },
+  { name: 'Fluid Motion 2', value: 'https://videos.pexels.com/video-files/4182916/4182916-uhd_2560_1440_30fps.mp4' },
+  { name: 'Cosmic Energy', value: 'https://videos.pexels.com/video-files/10477097/10477097-uhd_2560_1440_24fps.mp4' },
+  { name: 'Abstract Flow 2', value: 'https://videos.pexels.com/video-files/19145265/19145265-uhd_2560_1440_24fps.mp4' },
+  { name: 'Bokeh Lights 2', value: 'https://videos.pexels.com/video-files/856857/856857-uhd_2732_1440_30fps.mp4' },
+  { name: 'Light Show 1', value: 'https://videos.pexels.com/video-files/855835/855835-hd_1920_1080_30fps.mp4' },
+  { name: 'Neon Lights 2', value: 'https://videos.pexels.com/video-files/3141208/3141208-uhd_2560_1440_25fps.mp4' },
+  { name: 'Neon Lights 3', value: 'https://videos.pexels.com/video-files/3141209/3141209-uhd_2560_1440_25fps.mp4' },
+  
+  // Pexels videos - Dark & Mystical
+  { name: 'Dark Waves', value: 'https://videos.pexels.com/video-files/3059861/3059861-uhd_2560_1440_25fps.mp4' },
+  { name: 'Black Smoke', value: 'https://videos.pexels.com/video-files/2715412/2715412-uhd_2560_1440_30fps.mp4' },
+  { name: 'Ink Bloom', value: 'https://videos.pexels.com/video-files/5649204/5649204-uhd_2560_1440_25fps.mp4' },
+  { name: 'Dark Glow', value: 'https://videos.pexels.com/video-files/854999/854999-uhd_2560_1440_30fps.mp4' },
+  { name: 'Mystic Flow', value: 'https://videos.pexels.com/video-files/6051402/6051402-uhd_2560_1440_25fps.mp4' },
+  { name: 'Abstract Waves 2', value: 'https://videos.pexels.com/video-files/3571195/3571195-uhd_2560_1440_30fps.mp4' },
+  { name: 'Smoke Art 3', value: 'https://videos.pexels.com/video-files/4205790/4205790-uhd_1920_1440_30fps.mp4' },
+  { name: 'Dark Energy', value: 'https://videos.pexels.com/video-files/10490756/10490756-uhd_2560_1440_30fps.mp4' },
+  { name: 'Black Ink', value: 'https://videos.pexels.com/video-files/2334654/2334654-uhd_2560_1440_30fps.mp4' },
+  { name: 'Shadow Flow', value: 'https://videos.pexels.com/video-files/2110771/2110771-uhd_2560_1440_30fps.mp4' },
+  
+  // Pexels videos - Organic & Natural
+  { name: 'Ink in Water 2', value: 'https://videos.pexels.com/video-files/2711116/2711116-uhd_2560_1440_24fps.mp4' },
+  { name: 'Color Diffusion 1', value: 'https://videos.pexels.com/video-files/2063228/2063228-uhd_2560_1440_24fps.mp4' },
+  { name: 'Liquid Art 1', value: 'https://videos.pexels.com/video-files/4259460/4259460-uhd_2560_1440_25fps.mp4' },
+  { name: 'Fluid Dynamics 1', value: 'https://videos.pexels.com/video-files/4125031/4125031-uhd_2560_1440_24fps.mp4' },
+  { name: 'Ink Spread 1', value: 'https://videos.pexels.com/video-files/5796436/5796436-uhd_2560_1440_30fps.mp4' },
+  { name: 'Color Mix 1', value: 'https://videos.pexels.com/video-files/4423694/4423694-uhd_2560_1440_30fps.mp4' },
+  { name: 'Liquid Color 1', value: 'https://videos.pexels.com/video-files/5828446/5828446-uhd_2560_1440_24fps.mp4' },
+  { name: 'Ink Flow 1', value: 'https://videos.pexels.com/video-files/2856781/2856781-uhd_2560_1440_30fps.mp4' },
+  { name: 'Abstract Paint 1', value: 'https://videos.pexels.com/video-files/5396819/5396819-uhd_2560_1440_30fps.mp4' },
+  { name: 'Abstract Paint 2', value: 'https://videos.pexels.com/video-files/5396826/5396826-uhd_2560_1440_30fps.mp4' },
+  
+  // Pexels videos - Vibrant & Dynamic
+  { name: 'Color Burst 1', value: 'https://videos.pexels.com/video-files/5538822/5538822-uhd_2560_1440_30fps.mp4' },
+  { name: 'Abstract Paint 3', value: 'https://videos.pexels.com/video-files/5396825/5396825-uhd_2560_1440_30fps.mp4' },
+  { name: 'Color Explosion', value: 'https://videos.pexels.com/video-files/7031954/7031954-uhd_2560_1440_24fps.mp4' },
+  { name: 'Vibrant Flow 1', value: 'https://videos.pexels.com/video-files/3108007/3108007-uhd_2560_1440_25fps.mp4' },
+  { name: 'Dynamic Abstract 1', value: 'https://videos.pexels.com/video-files/3130182/3130182-uhd_2560_1440_30fps.mp4' },
+  { name: 'Color Dance 1', value: 'https://videos.pexels.com/video-files/3129576/3129576-uhd_2560_1440_30fps.mp4' },
+  { name: 'Psychedelic 1', value: 'https://videos.pexels.com/video-files/10755266/10755266-hd_2560_1440_30fps.mp4' },
+  { name: 'Color Wave 1', value: 'https://videos.pexels.com/video-files/3129902/3129902-uhd_2560_1440_25fps.mp4' },
+  { name: 'Abstract Blend 1', value: 'https://videos.pexels.com/video-files/3129785/3129785-uhd_2560_1440_25fps.mp4' },
+  { name: 'Gradient Flow 1', value: 'https://videos.pexels.com/video-files/6804117/6804117-uhd_2732_1440_25fps.mp4' },
+  
+  // Pexels videos - Ethereal & Dreamy
+  { name: 'Ethereal Glow 1', value: 'https://videos.pexels.com/video-files/5925291/5925291-uhd_2560_1440_24fps.mp4' },
+  { name: 'Dreamy Smoke 1', value: 'https://videos.pexels.com/video-files/8721932/8721932-uhd_2732_1440_25fps.mp4' },
+  { name: 'Soft Motion 1', value: 'https://videos.pexels.com/video-files/10532470/10532470-uhd_2560_1440_30fps.mp4' },
+  { name: 'Ambient Flow 1', value: 'https://videos.pexels.com/video-files/14003675/14003675-uhd_2560_1440_60fps.mp4' },
+  { name: 'Gentle Waves 1', value: 'https://videos.pexels.com/video-files/11274330/11274330-uhd_2560_1440_25fps.mp4' },
+  { name: 'Dreamy Smoke 2', value: 'https://videos.pexels.com/video-files/8720758/8720758-uhd_2732_1440_25fps.mp4' },
+  { name: 'Soft Glow 1', value: 'https://videos.pexels.com/video-files/6346224/6346224-uhd_2732_1440_25fps.mp4' },
+  { name: 'Ethereal Motion 1', value: 'https://videos.pexels.com/video-files/8379231/8379231-uhd_2560_1440_25fps.mp4' },
+  { name: 'Pastel Flow 1', value: 'https://videos.pexels.com/video-files/3094026/3094026-uhd_2560_1440_30fps.mp4' },
+  { name: 'Misty Abstract 1', value: 'https://videos.pexels.com/video-files/3089895/3089895-uhd_2560_1440_30fps.mp4' }
+];
+
+/**
+ * Initialize Media Loader UI components
+ * Creates the media loader UI for all media upload areas
+ */
+function initializeMediaLoaders() {
+  // Background Image Loader
+  const bgImageContainer = document.getElementById('bg-image-loader');
+  if (bgImageContainer && !bgImageContainer.hasChildNodes()) {
+    const bgImageLoader = createMediaLoaderUI({
+      type: 'image',
+      label: 'Background Image',
+      presets: IMAGE_PRESETS,
+      showPresets: true,
+      onLoad: (url, source) => {
+        const resolved = resolveMediaPath(url);
+        setMediaType('image');
+        setBackgroundImage(resolved);
+        // Status will be updated by the callback in setBackgroundImage
+      },
+      onError: (error) => {
+        mediaLoadingManager.hide();
+        updateError(`Failed to load background image: ${error.message}`);
+      }
+    });
+    bgImageContainer.appendChild(bgImageLoader);
+  }
+
+  // Background Video Loader
+  const bgVideoContainer = document.getElementById('bg-video-loader');
+  if (bgVideoContainer && !bgVideoContainer.hasChildNodes()) {
+    const bgVideoLoader = createMediaLoaderUI({
+      type: 'video',
+      label: 'Background Video',
+      presets: VIDEO_PRESETS,
+      showPresets: true,
+      onLoad: (url, source) => {
+        const resolved = resolveMediaPath(url);
+        setMediaType('video');
+        setBackgroundVideo(resolved);
+        // Status will be updated by the callback in setBackgroundVideo
+      },
+      onError: (error) => {
+        mediaLoadingManager.hide();
+        updateError(`Failed to load background video: ${error.message}`);
+      }
+    });
+    bgVideoContainer.appendChild(bgVideoLoader);
+  }
+
+  // Blob Texture Image Loader
+  const blobImageContainer = document.getElementById('blob-image-loader');
+  if (blobImageContainer && !blobImageContainer.hasChildNodes()) {
+    const blobImageLoader = createMediaLoaderUI({
+      type: 'image',
+      label: 'Blob Texture Image',
+      presets: IMAGE_PRESETS,
+      showPresets: true,
+      onLoad: (url, source) => {
+        const resolved = resolveMediaPath(url);
+        mediaLoadingManager.show('Loading blob texture...');
+        setBlobMediaType('image');
+        window.kwami?.body?.setBlobSurfaceImage(resolved);
+        updateStatus(`🖼️ Blob texture loaded from ${source}`);
+        setTimeout(() => mediaLoadingManager.hide(), 500);
+      },
+      onError: (error) => {
+        mediaLoadingManager.hide();
+        updateError(`Failed to load blob texture: ${error.message}`);
+      }
+    });
+    blobImageContainer.appendChild(blobImageLoader);
+  }
+
+  // Blob Texture Video Loader
+  const blobVideoContainer = document.getElementById('blob-video-loader');
+  if (blobVideoContainer && !blobVideoContainer.hasChildNodes()) {
+    const blobVideoLoader = createMediaLoaderUI({
+      type: 'video',
+      label: 'Blob Texture Video',
+      presets: VIDEO_PRESETS,
+      showPresets: true,
+      onLoad: (url, source) => {
+        const resolved = resolveMediaPath(url);
+        mediaLoadingManager.show('Loading blob video texture...');
+        setBlobMediaType('video');
+        window.kwami?.body?.setBlobSurfaceVideo(resolved, { autoplay: true, loop: true, muted: true });
+        updateStatus(`🎥 Blob video texture loaded from ${source}`);
+        setTimeout(() => mediaLoadingManager.hide(), 800);
+      },
+      onError: (error) => {
+        mediaLoadingManager.hide();
+        updateError(`Failed to load blob video texture: ${error.message}`);
+      }
+    });
+    blobVideoContainer.appendChild(blobVideoLoader);
+  }
+
+  console.log('[MediaLoader] Media loader UI components initialized');
+}
+
+// Initialize media loaders when DOM is ready
+if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', initializeMediaLoaders);
+} else {
+  initializeMediaLoaders();
+}
+
+// Export for external use
+window.initializeMediaLoaders = initializeMediaLoaders;

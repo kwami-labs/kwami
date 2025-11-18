@@ -3,14 +3,30 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Kwami Playground</title>
+  <title>pg.kwami.io</title>
   <link rel="stylesheet" href="styles.css">
   <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>👻</text></svg>">
 </head>
 <body>
   <div id="app">
+    <!-- Mobile Sidebar Close Button (fixed, visible only when sidebar is open) -->
+    <button class="sidebar-close-btn" onclick="toggleMenus()" title="Close sidebar">✕</button>
+
     <!-- Left Sidebar -->
     <div id="left-sidebar">
+      <!-- Mobile Sidebar Tabs (visible on mobile only) -->
+      <div class="mobile-sidebar-tabs">
+        <button class="mobile-sidebar-tab active" data-section="mind" onclick="switchMobileSidebarTab('mind')">
+          🧠 Mind
+        </button>
+        <button class="mobile-sidebar-tab" data-section="body" onclick="switchMobileSidebarTab('body')">
+          🧬 Body
+        </button>
+        <button class="mobile-sidebar-tab" data-section="soul" onclick="switchMobileSidebarTab('soul')">
+          ✨ Soul
+        </button>
+      </div>
+      
       <button class="swap-button" id="left-swap-btn" onclick="swapLeftSidebar()">
         <span id="left-swap-text">Soul</span>
       </button>
@@ -21,8 +37,344 @@
     <div id="canvas-container">
       <!-- Menu Toggle Button -->
       <button id="menu-toggle-btn" class="menu-toggle-btn" onclick="toggleMenus()" title="Toggle Sidebars">
-        <span id="menu-toggle-icon">☰</span>
+        <span id="menu-toggle-icon">👻</span>
       </button>
+      
+      <!-- Color Picker Button -->
+      <button id="color-picker-btn" class="color-picker-btn" type="button" title="Choose App Color">
+        <span id="color-picker-icon">🎨</span>
+      </button>
+      
+      <!-- Color Picker Dropdown -->
+      <div id="color-picker-dropdown" class="color-picker-dropdown hidden">
+        <div class="color-picker-header">
+          <h3 class="color-picker-title">🖌️ Pick you fav color</h3>
+        </div>
+        <div class="color-picker-controls">
+          <input type="color" id="app-color-input" class="color-picker-input" value="#667eea">
+          <button id="random-color-btn" class="random-color-btn" type="button" title="Random Color">🎲</button>
+          <label class="glass-effect-toggle">
+            <input type="checkbox" id="glass-effect-checkbox">
+            <span class="glass-effect-label">🪟 Glass</span>
+          </label>
+        </div>
+        <div class="color-picker-presets">
+        
+        <!-- White & Black -->
+        <!-- <div class="color-picker-palette-row">
+          <button class="color-preset" data-color="#ffffff" title="White"></button>
+          <button class="color-preset" data-color="#000000" title="Black"></button>
+        </div> -->
+        
+        <!-- Slate -->
+        <div class="color-picker-palette-row">
+          <button class="color-preset" data-color="#f8fafc" title="Slate 50"></button>
+          <button class="color-preset" data-color="#f1f5f9" title="Slate 100"></button>
+          <button class="color-preset" data-color="#e2e8f0" title="Slate 200"></button>
+          <button class="color-preset" data-color="#cbd5e1" title="Slate 300"></button>
+          <button class="color-preset" data-color="#94a3b8" title="Slate 400"></button>
+          <button class="color-preset" data-color="#64748b" title="Slate 500"></button>
+          <button class="color-preset" data-color="#475569" title="Slate 600"></button>
+          <button class="color-preset" data-color="#334155" title="Slate 700"></button>
+          <button class="color-preset" data-color="#1e293b" title="Slate 800"></button>
+          <button class="color-preset" data-color="#0f172a" title="Slate 900"></button>
+        </div>
+        
+        <!-- Gray -->
+        <div class="color-picker-palette-row">
+          <button class="color-preset" data-color="#f9fafb" title="Gray 50"></button>
+          <button class="color-preset" data-color="#f3f4f6" title="Gray 100"></button>
+          <button class="color-preset" data-color="#e5e7eb" title="Gray 200"></button>
+          <button class="color-preset" data-color="#d1d5db" title="Gray 300"></button>
+          <button class="color-preset" data-color="#9ca3af" title="Gray 400"></button>
+          <button class="color-preset" data-color="#6b7280" title="Gray 500"></button>
+          <button class="color-preset" data-color="#4b5563" title="Gray 600"></button>
+          <button class="color-preset" data-color="#374151" title="Gray 700"></button>
+          <button class="color-preset" data-color="#1f2937" title="Gray 800"></button>
+          <button class="color-preset" data-color="#111827" title="Gray 900"></button>
+        </div>
+        
+        <!-- Zinc -->
+        <div class="color-picker-palette-row">
+          <button class="color-preset" data-color="#fafafa" title="Zinc 50"></button>
+          <button class="color-preset" data-color="#f4f4f5" title="Zinc 100"></button>
+          <button class="color-preset" data-color="#e4e4e7" title="Zinc 200"></button>
+          <button class="color-preset" data-color="#d4d4d8" title="Zinc 300"></button>
+          <button class="color-preset" data-color="#a1a1aa" title="Zinc 400"></button>
+          <button class="color-preset" data-color="#71717a" title="Zinc 500"></button>
+          <button class="color-preset" data-color="#52525b" title="Zinc 600"></button>
+          <button class="color-preset" data-color="#3f3f46" title="Zinc 700"></button>
+          <button class="color-preset" data-color="#27272a" title="Zinc 800"></button>
+          <button class="color-preset" data-color="#18181b" title="Zinc 900"></button>
+        </div>
+        
+        <!-- Neutral -->
+        <div class="color-picker-palette-row">
+          <button class="color-preset" data-color="#fafafa" title="Neutral 50"></button>
+          <button class="color-preset" data-color="#f5f5f5" title="Neutral 100"></button>
+          <button class="color-preset" data-color="#e5e5e5" title="Neutral 200"></button>
+          <button class="color-preset" data-color="#d4d4d4" title="Neutral 300"></button>
+          <button class="color-preset" data-color="#a3a3a3" title="Neutral 400"></button>
+          <button class="color-preset" data-color="#737373" title="Neutral 500"></button>
+          <button class="color-preset" data-color="#525252" title="Neutral 600"></button>
+          <button class="color-preset" data-color="#404040" title="Neutral 700"></button>
+          <button class="color-preset" data-color="#262626" title="Neutral 800"></button>
+          <button class="color-preset" data-color="#171717" title="Neutral 900"></button>
+        </div>
+        
+        <!-- Stone -->
+        <div class="color-picker-palette-row">
+          <button class="color-preset" data-color="#fafaf9" title="Stone 50"></button>
+          <button class="color-preset" data-color="#f5f5f4" title="Stone 100"></button>
+          <button class="color-preset" data-color="#e7e5e4" title="Stone 200"></button>
+          <button class="color-preset" data-color="#d6d3d1" title="Stone 300"></button>
+          <button class="color-preset" data-color="#a8a29e" title="Stone 400"></button>
+          <button class="color-preset" data-color="#78716c" title="Stone 500"></button>
+          <button class="color-preset" data-color="#57534e" title="Stone 600"></button>
+          <button class="color-preset" data-color="#44403c" title="Stone 700"></button>
+          <button class="color-preset" data-color="#292524" title="Stone 800"></button>
+          <button class="color-preset" data-color="#1c1917" title="Stone 900"></button>
+        </div>
+        
+        <!-- Red -->
+        <div class="color-picker-palette-row">
+          <button class="color-preset" data-color="#fef2f2" title="Red 50"></button>
+          <button class="color-preset" data-color="#fee2e2" title="Red 100"></button>
+          <button class="color-preset" data-color="#fecaca" title="Red 200"></button>
+          <button class="color-preset" data-color="#fca5a5" title="Red 300"></button>
+          <button class="color-preset" data-color="#f87171" title="Red 400"></button>
+          <button class="color-preset" data-color="#ef4444" title="Red 500"></button>
+          <button class="color-preset" data-color="#dc2626" title="Red 600"></button>
+          <button class="color-preset" data-color="#b91c1c" title="Red 700"></button>
+          <button class="color-preset" data-color="#991b1b" title="Red 800"></button>
+          <button class="color-preset" data-color="#7f1d1d" title="Red 900"></button>
+        </div>
+        
+        <!-- Orange -->
+        <div class="color-picker-palette-row">
+          <button class="color-preset" data-color="#fff7ed" title="Orange 50"></button>
+          <button class="color-preset" data-color="#ffedd5" title="Orange 100"></button>
+          <button class="color-preset" data-color="#fed7aa" title="Orange 200"></button>
+          <button class="color-preset" data-color="#fdba74" title="Orange 300"></button>
+          <button class="color-preset" data-color="#fb923c" title="Orange 400"></button>
+          <button class="color-preset" data-color="#f97316" title="Orange 500"></button>
+          <button class="color-preset" data-color="#ea580c" title="Orange 600"></button>
+          <button class="color-preset" data-color="#c2410c" title="Orange 700"></button>
+          <button class="color-preset" data-color="#9a3412" title="Orange 800"></button>
+          <button class="color-preset" data-color="#7c2d12" title="Orange 900"></button>
+        </div>
+        
+        <!-- Amber -->
+        <div class="color-picker-palette-row">
+          <button class="color-preset" data-color="#fffbeb" title="Amber 50"></button>
+          <button class="color-preset" data-color="#fef3c7" title="Amber 100"></button>
+          <button class="color-preset" data-color="#fde68a" title="Amber 200"></button>
+          <button class="color-preset" data-color="#fcd34d" title="Amber 300"></button>
+          <button class="color-preset" data-color="#fbbf24" title="Amber 400"></button>
+          <button class="color-preset" data-color="#f59e0b" title="Amber 500"></button>
+          <button class="color-preset" data-color="#d97706" title="Amber 600"></button>
+          <button class="color-preset" data-color="#b45309" title="Amber 700"></button>
+          <button class="color-preset" data-color="#92400e" title="Amber 800"></button>
+          <button class="color-preset" data-color="#78350f" title="Amber 900"></button>
+        </div>
+        
+        <!-- Yellow -->
+        <div class="color-picker-palette-row">
+          <button class="color-preset" data-color="#fefce8" title="Yellow 50"></button>
+          <button class="color-preset" data-color="#fef9c3" title="Yellow 100"></button>
+          <button class="color-preset" data-color="#fef08a" title="Yellow 200"></button>
+          <button class="color-preset" data-color="#fde047" title="Yellow 300"></button>
+          <button class="color-preset" data-color="#facc15" title="Yellow 400"></button>
+          <button class="color-preset" data-color="#eab308" title="Yellow 500"></button>
+          <button class="color-preset" data-color="#ca8a04" title="Yellow 600"></button>
+          <button class="color-preset" data-color="#a16207" title="Yellow 700"></button>
+          <button class="color-preset" data-color="#854d0e" title="Yellow 800"></button>
+          <button class="color-preset" data-color="#713f12" title="Yellow 900"></button>
+        </div>
+        
+        <!-- Lime -->
+        <div class="color-picker-palette-row">
+          <button class="color-preset" data-color="#f7fee7" title="Lime 50"></button>
+          <button class="color-preset" data-color="#ecfccb" title="Lime 100"></button>
+          <button class="color-preset" data-color="#d9f99d" title="Lime 200"></button>
+          <button class="color-preset" data-color="#bef264" title="Lime 300"></button>
+          <button class="color-preset" data-color="#a3e635" title="Lime 400"></button>
+          <button class="color-preset" data-color="#84cc16" title="Lime 500"></button>
+          <button class="color-preset" data-color="#65a30d" title="Lime 600"></button>
+          <button class="color-preset" data-color="#4d7c0f" title="Lime 700"></button>
+          <button class="color-preset" data-color="#3f6212" title="Lime 800"></button>
+          <button class="color-preset" data-color="#365314" title="Lime 900"></button>
+        </div>
+        
+        <!-- Green -->
+        <div class="color-picker-palette-row">
+          <button class="color-preset" data-color="#f0fdf4" title="Green 50"></button>
+          <button class="color-preset" data-color="#dcfce7" title="Green 100"></button>
+          <button class="color-preset" data-color="#bbf7d0" title="Green 200"></button>
+          <button class="color-preset" data-color="#86efac" title="Green 300"></button>
+          <button class="color-preset" data-color="#4ade80" title="Green 400"></button>
+          <button class="color-preset" data-color="#22c55e" title="Green 500"></button>
+          <button class="color-preset" data-color="#16a34a" title="Green 600"></button>
+          <button class="color-preset" data-color="#15803d" title="Green 700"></button>
+          <button class="color-preset" data-color="#166534" title="Green 800"></button>
+          <button class="color-preset" data-color="#14532d" title="Green 900"></button>
+        </div>
+        
+        <!-- Emerald -->
+        <div class="color-picker-palette-row">
+          <button class="color-preset" data-color="#ecfdf5" title="Emerald 50"></button>
+          <button class="color-preset" data-color="#d1fae5" title="Emerald 100"></button>
+          <button class="color-preset" data-color="#a7f3d0" title="Emerald 200"></button>
+          <button class="color-preset" data-color="#6ee7b7" title="Emerald 300"></button>
+          <button class="color-preset" data-color="#34d399" title="Emerald 400"></button>
+          <button class="color-preset" data-color="#10b981" title="Emerald 500"></button>
+          <button class="color-preset" data-color="#059669" title="Emerald 600"></button>
+          <button class="color-preset" data-color="#047857" title="Emerald 700"></button>
+          <button class="color-preset" data-color="#065f46" title="Emerald 800"></button>
+          <button class="color-preset" data-color="#064e3b" title="Emerald 900"></button>
+        </div>
+        
+        <!-- Teal -->
+        <div class="color-picker-palette-row">
+          <button class="color-preset" data-color="#f0fdfa" title="Teal 50"></button>
+          <button class="color-preset" data-color="#ccfbf1" title="Teal 100"></button>
+          <button class="color-preset" data-color="#99f6e4" title="Teal 200"></button>
+          <button class="color-preset" data-color="#5eead4" title="Teal 300"></button>
+          <button class="color-preset" data-color="#2dd4bf" title="Teal 400"></button>
+          <button class="color-preset" data-color="#14b8a6" title="Teal 500"></button>
+          <button class="color-preset" data-color="#0d9488" title="Teal 600"></button>
+          <button class="color-preset" data-color="#0f766e" title="Teal 700"></button>
+          <button class="color-preset" data-color="#115e59" title="Teal 800"></button>
+          <button class="color-preset" data-color="#134e4a" title="Teal 900"></button>
+        </div>
+        
+        <!-- Cyan -->
+        <div class="color-picker-palette-row">
+          <button class="color-preset" data-color="#ecfeff" title="Cyan 50"></button>
+          <button class="color-preset" data-color="#cffafe" title="Cyan 100"></button>
+          <button class="color-preset" data-color="#a5f3fc" title="Cyan 200"></button>
+          <button class="color-preset" data-color="#67e8f9" title="Cyan 300"></button>
+          <button class="color-preset" data-color="#22d3ee" title="Cyan 400"></button>
+          <button class="color-preset" data-color="#06b6d4" title="Cyan 500"></button>
+          <button class="color-preset" data-color="#0891b2" title="Cyan 600"></button>
+          <button class="color-preset" data-color="#0e7490" title="Cyan 700"></button>
+          <button class="color-preset" data-color="#155e75" title="Cyan 800"></button>
+          <button class="color-preset" data-color="#164e63" title="Cyan 900"></button>
+        </div>
+        
+        <!-- Sky -->
+        <div class="color-picker-palette-row">
+          <button class="color-preset" data-color="#f0f9ff" title="Sky 50"></button>
+          <button class="color-preset" data-color="#e0f2fe" title="Sky 100"></button>
+          <button class="color-preset" data-color="#bae6fd" title="Sky 200"></button>
+          <button class="color-preset" data-color="#7dd3fc" title="Sky 300"></button>
+          <button class="color-preset" data-color="#38bdf8" title="Sky 400"></button>
+          <button class="color-preset" data-color="#0ea5e9" title="Sky 500"></button>
+          <button class="color-preset" data-color="#0284c7" title="Sky 600"></button>
+          <button class="color-preset" data-color="#0369a1" title="Sky 700"></button>
+          <button class="color-preset" data-color="#075985" title="Sky 800"></button>
+          <button class="color-preset" data-color="#0c4a6e" title="Sky 900"></button>
+        </div>
+        
+        <!-- Blue -->
+        <div class="color-picker-palette-row">
+          <button class="color-preset" data-color="#eff6ff" title="Blue 50"></button>
+          <button class="color-preset" data-color="#dbeafe" title="Blue 100"></button>
+          <button class="color-preset" data-color="#bfdbfe" title="Blue 200"></button>
+          <button class="color-preset" data-color="#93c5fd" title="Blue 300"></button>
+          <button class="color-preset" data-color="#60a5fa" title="Blue 400"></button>
+          <button class="color-preset" data-color="#3b82f6" title="Blue 500"></button>
+          <button class="color-preset" data-color="#2563eb" title="Blue 600"></button>
+          <button class="color-preset" data-color="#1d4ed8" title="Blue 700"></button>
+          <button class="color-preset" data-color="#1e40af" title="Blue 800"></button>
+          <button class="color-preset" data-color="#1e3a8a" title="Blue 900"></button>
+        </div>
+        
+        <!-- Indigo -->
+        <div class="color-picker-palette-row">
+          <button class="color-preset" data-color="#eef2ff" title="Indigo 50"></button>
+          <button class="color-preset" data-color="#e0e7ff" title="Indigo 100"></button>
+          <button class="color-preset" data-color="#c7d2fe" title="Indigo 200"></button>
+          <button class="color-preset" data-color="#a5b4fc" title="Indigo 300"></button>
+          <button class="color-preset" data-color="#818cf8" title="Indigo 400"></button>
+          <button class="color-preset" data-color="#6366f1" title="Indigo 500"></button>
+          <button class="color-preset" data-color="#4f46e5" title="Indigo 600"></button>
+          <button class="color-preset" data-color="#4338ca" title="Indigo 700"></button>
+          <button class="color-preset" data-color="#3730a3" title="Indigo 800"></button>
+          <button class="color-preset" data-color="#312e81" title="Indigo 900"></button>
+        </div>
+        
+        <!-- Violet -->
+        <div class="color-picker-palette-row">
+          <button class="color-preset" data-color="#f5f3ff" title="Violet 50"></button>
+          <button class="color-preset" data-color="#ede9fe" title="Violet 100"></button>
+          <button class="color-preset" data-color="#ddd6fe" title="Violet 200"></button>
+          <button class="color-preset" data-color="#c4b5fd" title="Violet 300"></button>
+          <button class="color-preset" data-color="#a78bfa" title="Violet 400"></button>
+          <button class="color-preset" data-color="#8b5cf6" title="Violet 500"></button>
+          <button class="color-preset" data-color="#7c3aed" title="Violet 600"></button>
+          <button class="color-preset" data-color="#6d28d9" title="Violet 700"></button>
+          <button class="color-preset" data-color="#5b21b6" title="Violet 800"></button>
+          <button class="color-preset" data-color="#4c1d95" title="Violet 900"></button>
+        </div>
+        
+        <!-- Purple -->
+        <div class="color-picker-palette-row">
+          <button class="color-preset" data-color="#faf5ff" title="Purple 50"></button>
+          <button class="color-preset" data-color="#f3e8ff" title="Purple 100"></button>
+          <button class="color-preset" data-color="#e9d5ff" title="Purple 200"></button>
+          <button class="color-preset" data-color="#d8b4fe" title="Purple 300"></button>
+          <button class="color-preset" data-color="#c084fc" title="Purple 400"></button>
+          <button class="color-preset" data-color="#a855f7" title="Purple 500"></button>
+          <button class="color-preset" data-color="#9333ea" title="Purple 600"></button>
+          <button class="color-preset" data-color="#7e22ce" title="Purple 700"></button>
+          <button class="color-preset" data-color="#6b21a8" title="Purple 800"></button>
+          <button class="color-preset" data-color="#581c87" title="Purple 900"></button>
+        </div>
+        
+        <!-- Fuchsia -->
+        <div class="color-picker-palette-row">
+          <button class="color-preset" data-color="#fdf4ff" title="Fuchsia 50"></button>
+          <button class="color-preset" data-color="#fae8ff" title="Fuchsia 100"></button>
+          <button class="color-preset" data-color="#f5d0fe" title="Fuchsia 200"></button>
+          <button class="color-preset" data-color="#f0abfc" title="Fuchsia 300"></button>
+          <button class="color-preset" data-color="#e879f9" title="Fuchsia 400"></button>
+          <button class="color-preset" data-color="#d946ef" title="Fuchsia 500"></button>
+          <button class="color-preset" data-color="#c026d3" title="Fuchsia 600"></button>
+          <button class="color-preset" data-color="#a21caf" title="Fuchsia 700"></button>
+          <button class="color-preset" data-color="#86198f" title="Fuchsia 800"></button>
+          <button class="color-preset" data-color="#701a75" title="Fuchsia 900"></button>
+        </div>
+        
+        <!-- Pink -->
+        <div class="color-picker-palette-row">
+          <button class="color-preset" data-color="#fdf2f8" title="Pink 50"></button>
+          <button class="color-preset" data-color="#fce7f3" title="Pink 100"></button>
+          <button class="color-preset" data-color="#fbcfe8" title="Pink 200"></button>
+          <button class="color-preset" data-color="#f9a8d4" title="Pink 300"></button>
+          <button class="color-preset" data-color="#f472b6" title="Pink 400"></button>
+          <button class="color-preset" data-color="#ec4899" title="Pink 500"></button>
+          <button class="color-preset" data-color="#db2777" title="Pink 600"></button>
+          <button class="color-preset" data-color="#be185d" title="Pink 700"></button>
+          <button class="color-preset" data-color="#9d174d" title="Pink 800"></button>
+          <button class="color-preset" data-color="#831843" title="Pink 900"></button>
+        </div>
+        
+        <!-- Rose -->
+        <div class="color-picker-palette-row">
+          <button class="color-preset" data-color="#fff1f2" title="Rose 50"></button>
+          <button class="color-preset" data-color="#ffe4e6" title="Rose 100"></button>
+          <button class="color-preset" data-color="#fecdd3" title="Rose 200"></button>
+          <button class="color-preset" data-color="#fda4af" title="Rose 300"></button>
+          <button class="color-preset" data-color="#fb7185" title="Rose 400"></button>
+          <button class="color-preset" data-color="#f43f5e" title="Rose 500"></button>
+          <button class="color-preset" data-color="#e11d48" title="Rose 600"></button>
+          <button class="color-preset" data-color="#be123c" title="Rose 700"></button>
+          <button class="color-preset" data-color="#9f1239" title="Rose 800"></button>
+          <button class="color-preset" data-color="#881337" title="Rose 900"></button>
+        </div>
+        </div><!-- End color-picker-presets -->
+      </div>
       
       <!-- Theme Toggle Button -->
       <button id="theme-toggle-btn" class="theme-toggle-btn" type="button" title="Toggle Theme">
@@ -45,15 +397,35 @@
       <!-- Audio Player -->
       <div id="audio-player" class="hidden">
         <button id="audio-close-btn" class="audio-close-btn" type="button" title="Close audio player">✕</button>
-        <input type="file" id="audio-file" accept="audio/*" style="display: none;">
-        <button id="upload-audio-btn" class="player-btn" title="Upload Audio">📁</button>
-        <button id="play-pause-btn" class="player-btn" disabled title="Play/Pause">▶️</button>
+        
+        <!-- Audio Controls Row -->
+        <div class="audio-controls-row">
+          <button id="prev-track-btn" class="player-btn" title="Previous Track">⏮️</button>
+          <button id="play-pause-btn" class="player-btn" title="Play/Pause">▶️</button>
+          <button id="next-track-btn" class="player-btn" title="Next Track">⏭️</button>
+          <button id="upload-audio-btn" class="player-btn" title="Load Audio">📂</button>
+        </div>
+        
+        <!-- Audio Info -->
         <div id="audio-info">
-          <span id="audio-name">No audio loaded</span>
+          <span id="audio-name">Loading playlist...</span>
           <span id="audio-time">0:00 / 0:00</span>
         </div>
-        <input type="range" id="volume-slider" min="0" max="100" value="80" title="Volume">
-        <span id="volume-icon">🔊</span>
+        
+        <!-- Volume Control -->
+        <div class="volume-control-row">
+          <span id="volume-icon">🔊</span>
+          <input type="range" id="volume-slider" min="0" max="100" value="80" title="Volume">
+        </div>
+        
+        <!-- Media Loader Modal (hidden by default) -->
+        <div id="audio-loader-modal" class="audio-loader-modal hidden">
+          <div class="audio-loader-modal-content">
+            <button class="audio-loader-close" onclick="closeAudioLoaderModal()">✕</button>
+            <h3 style="margin-top: 0; color: var(--text-primary);">Load Audio</h3>
+            <div id="audio-media-loader"></div>
+          </div>
+        </div>
       </div>
 
       <div id="background-media" data-active="none">
@@ -79,6 +451,14 @@
       <div id="version-display"></div>
       </div>
 
+    <!-- Media Loading Overlay -->
+    <div id="media-loading-overlay">
+      <div class="media-loader-container-overlay">
+        <img id="media-loader-image" class="media-loader-image" src="" alt="Loading...">
+        <div class="media-loader-text">Loading media...</div>
+      </div>
+    </div>
+
     <!-- Right Sidebar -->
     <div id="right-sidebar">
       <button class="swap-button" id="right-swap-btn" onclick="swapRightSidebar()">
@@ -91,27 +471,23 @@
   <!-- Mind Section (AI Agent Configuration) -->
   <template id="mind-template">
     <div class="sidebar-content">
-      <h1>🤖 Mind</h1>
+      <h2>🧠 Mind</h2>
       <p class="subtitle">Conversational AI Agents</p>
 
       <!-- Provider Tabs -->
       <div class="section">
         <div class="provider-tabs" id="provider-tabs">
           <button class="provider-tab active" data-provider="elevenlabs" onclick="switchProvider('elevenlabs')">
-            <span class="provider-icon">🎙️</span>
+            <span class="provider-icon">
+              <img src="/assets/img/logo/elevenlabs.webp" alt="ElevenLabs" class="provider-logo">
+            </span>
             <span class="provider-name">ElevenLabs</span>
           </button>
           <button class="provider-tab" data-provider="openai" onclick="switchProvider('openai')" disabled title="Coming Soon">
-            <span class="provider-icon">🧠</span>
+            <span class="provider-icon">
+              <img src="/assets/img/logo/openai.webp" alt="OpenAI" class="provider-logo">
+            </span>
             <span class="provider-name">OpenAI</span>
-          </button>
-          <button class="provider-tab" data-provider="anthropic" onclick="switchProvider('anthropic')" disabled title="Coming Soon">
-            <span class="provider-icon">🤖</span>
-            <span class="provider-name">Anthropic</span>
-          </button>
-          <button class="provider-tab" data-provider="google" onclick="switchProvider('google')" disabled title="Coming Soon">
-            <span class="provider-icon">🔮</span>
-            <span class="provider-name">Google</span>
           </button>
         </div>
       </div>
@@ -128,7 +504,7 @@
           <div class="input-group">
             <label>ElevenLabs API Key (Required)</label>
             <input type="password" id="api-key-agent" placeholder="Enter your ElevenLabs API Key">
-            <small style="display: block; color: #888; margin-top: 2px;">Get from elevenlabs.io/settings/api-keys</small>
+            <small style="display: block; color: #888; margin-top: 5px;">Get it from <a href="https://elevenlabs.io/app/agents/settings" target="_blank" rel="noopener noreferrer" style="color: #667eea; text-decoration: none;">elevenlabs.io/app/agents/settings</a></small>
           </div>
           
           <button onclick="initializeAgentManager()" id="init-agent-manager-btn">🚀 Initialize Agent Manager</button>
@@ -356,32 +732,133 @@
         </div>
       </div>
 
-      <div id="provider-anthropic" class="provider-content" style="display: none;">
+      <!-- Skills Section -->
+      <div class="section" style="margin-top: 40px; border-top: 2px solid var(--border-section); padding-top: 30px;">
+        <div class="section-title">👩🏻‍💻 Skills</div>
+        <p class="subtitle">Program Kwami's Behavior</p>
+
+        <!-- Available Skills -->
         <div class="section">
-          <div class="section-title">🤖 Anthropic Agents</div>
-          <p style="color: #888; font-size: 14px; padding: 40px 20px; text-align: center;">
-            Anthropic Claude agent integration coming soon!<br>
-            <small style="color: #666;">Powered by Claude 3 for natural conversations.</small>
-          </p>
+          <div class="parameter-group">
+            <div class="parameter-group-title">Available Skills</div>
+            <p style="color: #888; font-size: 12px; margin-bottom: 10px;">
+              Pre-built behavior templates
+            </p>
+            
+            <div class="input-group">
+              <label>Select Skill</label>
+              <select id="skill-selector">
+                <option value="">-- Choose a skill --</option>
+                <option value="minimize-top-right">🔽 Minimize to Top Right</option>
+                <option value="rainbow-transition">🌈 Rainbow Transition</option>
+                <option value="energetic-mode">⚡ Energetic Mode</option>
+                <option value="calm-meditation">🧘 Calm Meditation</option>
+                <option value="focus-session">🎯 Focus Session</option>
+                <option value="party-mode">🎉 Party Mode</option>
+              </select>
+            </div>
+
+            <div id="skill-description" style="padding: 12px; background: var(--bg-section); border-radius: 8px; margin: 10px 0; display: none;">
+              <div style="font-size: 12px; color: var(--text-secondary); margin-bottom: 8px;">
+                <strong id="skill-description-name"></strong>
+              </div>
+              <div style="font-size: 11px; color: var(--text-tertiary);" id="skill-description-text"></div>
+              <div style="font-size: 10px; color: var(--text-tertiary); margin-top: 8px; padding-top: 8px; border-top: 1px solid var(--border-input);">
+                <div><strong>Actions:</strong> <span id="skill-description-actions">0</span></div>
+                <div><strong>Auto-reverse:</strong> <span id="skill-description-reverse">No</span></div>
+              </div>
+            </div>
+
+            <button onclick="executeSelectedSkill()" id="execute-skill-btn" disabled>
+              ▶️ Execute Skill
+            </button>
+
+            <div id="skill-execution-status" style="margin-top: 10px; display: none;">
+              <div style="padding: 10px; background: var(--bg-section); border-radius: 8px; border-left: 3px solid #4CAF50;">
+                <div style="font-size: 12px; color: #4CAF50; font-weight: 600;">
+                  <span id="skill-execution-message">Skill executed successfully</span>
+                </div>
+                <div style="font-size: 11px; color: var(--text-tertiary); margin-top: 4px;">
+                  Duration: <span id="skill-execution-duration">0ms</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Custom Skill Creator -->
+        <div class="section">
+          <div class="parameter-group">
+            <div class="parameter-group-title">Skills templates</div>
+            <p style="color: #888; font-size: 12px; margin-bottom: 10px;">
+              Some examples of Kwami's skills with configurable templates
+            </p>
+
+            <div class="button-row">
+              <button class="button-secondary" onclick="quickSkillMinimize()" title="Minimize Kwami">
+                🔽 Minimize
+              </button>
+              <button class="button-secondary" onclick="quickSkillCenter()" title="Center Kwami">
+                🎯 Center
+              </button>
+            </div>
+
+            <div class="button-row" style="margin-top: 8px;">
+              <button class="button-secondary" onclick="quickSkillEnergize()" title="Energetic mode">
+                ⚡ Energize
+              </button>
+              <button class="button-secondary" onclick="quickSkillCalm()" title="Calm mode">
+                🧘 Calm
+              </button>
+            </div>
+
+            <div class="button-row" style="margin-top: 8px;">
+              <button class="button-secondary" onclick="quickSkillParty()" title="Party mode">
+                🎉 Party
+              </button>
+              <button class="button-secondary" onclick="quickSkillReset()" title="Reset to default">
+                🔄 Reset
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Load Custom Skill -->
+        <div class="section">
+          <div class="parameter-group">
+            <div class="parameter-group-title">Load Custom Skill</div>
+            <p style="color: #888; font-size: 12px; margin-bottom: 10px;">
+              You can create your own skills by loading them from JSON or YAML files or URLs
+            </p>
+
+            <div class="input-group">
+              <label>Skill URL</label>
+              <input type="text" id="custom-skill-url" placeholder="https://example.com/skill.json">
+            </div>
+
+            <button class="button-secondary" onclick="loadCustomSkill()" id="load-skill-btn">
+              📥 Load Skill
+            </button>
+
+            <div style="margin-top: 10px;">
+              <small style="color: #888;">
+                Or upload: <input type="file" id="skill-file-input" accept=".json" style="display: none;" onchange="loadSkillFromFile(event)">
+                <button class="button-secondary" onclick="document.getElementById('skill-file-input').click()" style="width: auto; padding: 6px 12px; margin: 0; font-size: 12px;">
+                  📁 Choose File
+                </button>
+              </small>
+            </div>
+          </div>
         </div>
       </div>
 
-      <div id="provider-google" class="provider-content" style="display: none;">
-        <div class="section">
-          <div class="section-title">🔮 Google Agents</div>
-          <p style="color: #888; font-size: 14px; padding: 40px 20px; text-align: center;">
-            Google Gemini agent integration coming soon!<br>
-            <small style="color: #666;">Multimodal AI conversations with Gemini.</small>
-          </p>
-        </div>
-      </div>
     </div>
   </template>
 
   <!-- Body Section (Visual Configuration) -->
   <template id="body-template">
     <div class="sidebar-content">
-      <h2>🎨 Body</h2>
+      <h2>🧬 Body</h2>
       <p class="subtitle">Visual Configuration</p>
 
       <!-- Quick Variations -->
@@ -390,14 +867,14 @@
         <div class="parameter-group">
           <div class="button-row">
             <button class="button-secondary" onclick="randomizeBlob()" title="Randomize blob shape and colors">🎲 Random Blob</button>
-            <button class="button-secondary" onclick="randomizeBackground()" title="Generate random gradient colors">🎨 Random Gradient</button>
+            <button class="button-secondary" onclick="randomizeBackground()" title="Generate random gradient colors">🎨 Random Bg Gradient</button>
           </div>
           <div class="button-row" style="margin-top: 8px;">
-            <button class="button-secondary" onclick="randomizeMediaSelection('image')" title="Select random background image">🖼️ Random Image</button>
-            <button class="button-secondary" onclick="randomizeMediaSelection('video')" title="Select random background video">🎥 Random Video</button>
+            <button class="button-secondary" onclick="randomizeMediaSelection('image')" title="Select random background image">🖼️ Random Bg Image</button>
+            <button class="button-secondary" onclick="randomizeMediaSelection('video')" title="Select random background video">🎥 Random Bg Video</button>
           </div>
           <div class="button-row" style="margin-top: 8px;">
-            <button class="button-secondary" onclick="randomizeBackgroundWithGlass()" title="Random background with glass effect">🪟 Random Glass</button>
+            <button class="button-secondary" onclick="randomizeBackgroundWithGlass()" title="Random background with glass effect">🪟 Random Bg Glass</button>
             <button class="button-secondary" onclick="randomize3DTexture()" title="Randomize blob surface texture">🧶 Random 3D Texture</button>
           </div>
         </div>
@@ -409,48 +886,60 @@
         <div class="parameter-group">
           <div class="parameter-group-title">Canvas Gradient</div>
 
-          <div class="slider-control">
-            <label>Opacity <span class="value-display" id="bg-opacity-value">1.0</span></label>
-            <input type="range" id="bg-opacity" min="0" max="1" step="0.01" value="1">
-          </div>
-
-          <div class="slider-control">
-            <label>Angle <span class="value-display" id="bg-gradient-angle-value">90</span>°</label>
-            <input type="range" id="bg-gradient-angle" min="0" max="360" step="1" value="90">
-          </div>
-
-          <div class="slider-control">
-            <label>Color Stop 1 <span class="value-display" id="bg-gradient-stop1-value">50</span>%</label>
-            <input type="range" id="bg-gradient-stop1" min="0" max="100" step="1" value="50">
-          </div>
-
-          <div class="slider-control">
-            <label>Color Stop 2 <span class="value-display" id="bg-gradient-stop2-value">100</span>%</label>
-            <input type="range" id="bg-gradient-stop2" min="0" max="100" step="1" value="100">
-          </div>
-
           <div class="input-group">
-            <label>Gradient Layout</label>
-            <select id="bg-gradient-style">
-              <option value="linear">Linear</option>
-              <option value="radial">Radial</option>
-              <option value="random">Random</option>
-            </select>
+            <label>
+              <input type="checkbox" id="bg-gradient-enabled" checked>
+              Enable Gradient Background
+            </label>
           </div>
 
-          <div class="parameter-group gradient-color-group">
-            <div class="parameter-group-title">Gradient Colors</div>
-            <div class="color-control">
-              <label>Color 1</label>
-              <input type="color" id="bg-color-1" value="#667eea">
+          <div id="gradient-controls-container">
+            <div class="slider-control">
+              <label>Opacity <span class="value-display" id="bg-opacity-value">1.0</span></label>
+              <input type="range" id="bg-opacity" min="0" max="1" step="0.01" value="1">
             </div>
-            <div class="color-control">
-              <label>Color 2</label>
-              <input type="color" id="bg-color-2" value="#764ba2">
+
+            <div class="slider-control">
+              <label>Angle <span class="value-display" id="bg-gradient-angle-value">90</span>°</label>
+              <input type="range" id="bg-gradient-angle" min="0" max="360" step="1" value="90">
             </div>
-            <div class="color-control">
-              <label>Color 3</label>
-              <input type="color" id="bg-color-3" value="#f093fb">
+
+            <div class="slider-control">
+              <label>Color Stop 1 <span class="value-display" id="bg-gradient-stop1-value">50</span>%</label>
+              <input type="range" id="bg-gradient-stop1" min="0" max="100" step="1" value="50">
+            </div>
+
+            <div class="slider-control">
+              <label>Color Stop 2 <span class="value-display" id="bg-gradient-stop2-value">100</span>%</label>
+              <input type="range" id="bg-gradient-stop2" min="0" max="100" step="1" value="100">
+            </div>
+
+            <div class="input-group">
+              <label>Gradient Layout</label>
+              <select id="bg-gradient-style">
+                <option value="linear">Linear</option>
+                <option value="radial">Radial</option>
+                <option value="random">Random</option>
+              </select>
+            </div>
+
+            <div class="parameter-group gradient-color-group">
+              <div class="parameter-group-title">
+                <span style="margin-top: -14px;">Gradient Colors</span>
+                <button class="randomize-colors-btn" onclick="randomizeGradientColors()" title="Randomize gradient colors">🎲</button>
+              </div>
+              <div class="color-control">
+                <label>Color 1</label>
+                <input type="color" id="bg-color-1" value="#667eea">
+              </div>
+              <div class="color-control">
+                <label>Color 2</label>
+                <input type="color" id="bg-color-2" value="#764ba2">
+              </div>
+              <div class="color-control">
+                <label>Color 3</label>
+                <input type="color" id="bg-color-3" value="#f093fb">
+              </div>
             </div>
           </div>
         </div>
@@ -461,74 +950,27 @@
           <div class="input-group">
             <label>Media Source</label>
             <div class="media-tabs" id="bg-media-tabs">
-              <button type="button" class="media-tab active" data-media="none">None</button>
+              <button type="button" class="media-tab active" data-media="none">🚫 None</button>
               <button type="button" class="media-tab" data-media="image">Image</button>
               <button type="button" class="media-tab" data-media="video">Video</button>
             </div>
           </div>
 
           <div id="media-image-controls" class="media-controls" style="display: none;">
-            <div class="input-group">
-              <label>Image Presets</label>
-              <select id="bg-media-image">
-                <option value="">None</option>
-                <option value="src/assets/img/alaska.jpeg">Alaska</option>
-                <option value="src/assets/img/binary-reality.jpg">Binary Reality</option>
-                <option value="src/assets/img/black-candle.jpg">Black Candle</option>
-                <option value="src/assets/img/black-hole.jpg">Black Hole</option>
-                <option value="src/assets/img/black-sea.jpg">Black Sea</option>
-                <option value="src/assets/img/black-windows.jpg">Black Windows</option>
-                <option value="src/assets/img/black.jpg">Black</option>
-                <option value="src/assets/img/colors.jpeg">Colors</option>
-                <option value="src/assets/img/galaxy.jpg">Galaxy</option>
-                <option value="src/assets/img/galaxy2.jpg">Galaxy 2</option>
-                <option value="src/assets/img/galaxy3.jpg">Galaxy 3</option>
-                <option value="src/assets/img/galaxy4.jpg">Galaxy 4</option>
-                <option value="src/assets/img/gargantua.jpg">Gargantua</option>
-                <option value="src/assets/img/interstellar.png">Interstellar</option>
-                <option value="src/assets/img/islan.jpg">Island</option>
-                <option value="src/assets/img/lake.jpg">Lake</option>
-                <option value="src/assets/img/mountain.jpeg">Mountain</option>
-                <option value="src/assets/img/paisaje.jpg">Paisaje</option>
-                <option value="src/assets/img/pik.jpg">Pik</option>
-                <option value="src/assets/img/planet.jpg">Planet</option>
-                <option value="src/assets/img/planet2.jpg">Planet 2</option>
-                <option value="src/assets/img/planet3.jpg">Planet 3</option>
-                <option value="src/assets/img/sahara.jpeg">Sahara</option>
-                <option value="src/assets/img/skinet.png">Skinet</option>
-                <option value="src/assets/img/skynet.png">Skynet</option>
-                <option value="src/assets/img/universe.jpg">Universe</option>
-                <option value="src/assets/img/white-tree.jpg">White Tree</option>
-              </select>
-            </div>
-            <div class="button-row">
-              <button class="button-secondary" type="button" onclick="randomizeMediaSelection('image')">🎴 Random Image</button>
-              <button class="button-secondary" type="button" onclick="clearMediaSelection('image')">🚫 Clear Image</button>
-            </div>
+            <!-- Media Loader UI Component will be injected here -->
+            <div id="bg-image-loader"></div>
           </div>
 
           <div id="media-video-controls" class="media-controls" style="display: none;">
-            <div class="input-group">
-              <label>Video Presets</label>
-              <select id="bg-media-video">
-                <option value="">Select a video...</option>
-                <option value="src/assets/vid/stars.mp4">Stars (Local)</option>
-                <option value="https://storage.coverr.co/videos/coverr-blue-particles-background-1581083411/1080p.mp4">Blue Particles</option>
-                <option value="https://storage.coverr.co/videos/coverr-purple-nebula-1584717401/1080p.mp4">Purple Nebula</option>
-                <option value="https://storage.coverr.co/videos/coverr-journey-through-space-1570107498/1080p.mp4">Space Journey</option>
-              </select>
-            </div>
-            <div class="button-row">
-              <button class="button-secondary" type="button" onclick="randomizeMediaSelection('video')">🎥 Random Video</button>
-              <button class="button-secondary" type="button" onclick="clearMediaSelection('video')">🚫 Clear Video</button>
-            </div>
+            <!-- Media Loader UI Component will be injected here -->
+            <div id="bg-video-loader"></div>
           </div>
         </div>
       </div>
 
       <!-- Geometry & Motion -->
       <div class="section">
-        <div class="section-title">🧬 Geometry & Motion</div>
+        <div class="section-title">🔮 Geometry & Motion</div>
         
         <div class="parameter-group">
           <div class="parameter-group-title">Noise Frequency</div>
@@ -544,6 +986,23 @@
           <div class="slider-control">
             <label>Z <span class="value-display" id="spike-z-value">0.2</span></label>
             <input type="range" id="spike-z" min="0" max="25" step="0.1" value="0.2">
+          </div>
+        </div>
+
+        <div class="parameter-group">
+          <div class="parameter-group-title">Frequency Amplitude</div>
+          <p class="parameter-info">Control the depth of noise frequency (spike intensity) along each axis.</p>
+          <div class="slider-control">
+            <label>X <span class="value-display" id="amplitude-x-value">0.8</span></label>
+            <input type="range" id="amplitude-x" min="0" max="5" step="0.1" value="0.8">
+          </div>
+          <div class="slider-control">
+            <label>Y <span class="value-display" id="amplitude-y-value">0.8</span></label>
+            <input type="range" id="amplitude-y" min="0" max="5" step="0.1" value="0.8">
+          </div>
+          <div class="slider-control">
+            <label>Z <span class="value-display" id="amplitude-z-value">0.8</span></label>
+            <input type="range" id="amplitude-z" min="0" max="5" step="0.1" value="0.8">
           </div>
         </div>
 
@@ -581,35 +1040,6 @@
         </div>
       </div>
 
-      <!-- Scale & Camera -->
-      <div class="section">
-        <div class="section-title">📐 Scale & Camera</div>
-        <div class="parameter-group">
-          <div class="parameter-group-title">Global Scale</div>
-          <div class="slider-control">
-            <label>Scale <span class="value-display" id="scale-value">4.0</span></label>
-            <input type="range" id="scale" min="3" max="8" step="0.1" value="4.0">
-          </div>
-        </div>
-
-        <div class="parameter-group">
-          <div class="parameter-group-title">Camera Orbit</div>
-          <p class="parameter-info">Fine-tune the default camera orbit around the blob.</p>
-          <div class="slider-control">
-            <label>X <span class="value-display" id="camera-x-value">-0.9</span></label>
-            <input type="range" id="camera-x" min="-20" max="20" step="0.5" value="-0.9">
-          </div>
-          <div class="slider-control">
-            <label>Y <span class="value-display" id="camera-y-value">7.3</span></label>
-            <input type="range" id="camera-y" min="-20" max="20" step="0.5" value="7.3">
-          </div>
-          <div class="slider-control">
-            <label>Z <span class="value-display" id="camera-z-value">-1.8</span></label>
-            <input type="range" id="camera-z" min="-20" max="30" step="0.5" value="-1.8">
-          </div>
-        </div>
-      </div>
-
       <!-- Skin & Surface -->
       <div class="section">
         <div class="section-title">🖌️ Skin & Surface</div>
@@ -627,7 +1057,10 @@
         </div>
 
         <div class="parameter-group">
-          <div class="parameter-group-title">Palette</div>
+          <div class="parameter-group-title">
+            <span style="margin-top: -14px;">Skin Palette</span>
+            <button class="randomize-colors-btn" onclick="randomizePaletteColors()" title="Randomize palette colors">🎲</button>
+          </div>
           <p class="parameter-info">These colors apply to every skin. Adjust them to re-tint the material.</p>
           <div class="color-control">
             <label>Primary</label>
@@ -662,60 +1095,13 @@
           </div>
 
           <div id="blob-media-image-controls" class="media-controls" style="display: none;">
-            <div class="input-group">
-              <label>Image Presets</label>
-              <select id="blob-media-image">
-                <option value="">None</option>
-                <option value="src/assets/img/alaska.jpeg">Alaska</option>
-                <option value="src/assets/img/binary-reality.jpg">Binary Reality</option>
-                <option value="src/assets/img/black-candle.jpg">Black Candle</option>
-                <option value="src/assets/img/black-hole.jpg">Black Hole</option>
-                <option value="src/assets/img/black-sea.jpg">Black Sea</option>
-                <option value="src/assets/img/black-windows.jpg">Black Windows</option>
-                <option value="src/assets/img/black.jpg">Black</option>
-                <option value="src/assets/img/colors.jpeg">Colors</option>
-                <option value="src/assets/img/galaxy.jpg">Galaxy</option>
-                <option value="src/assets/img/galaxy2.jpg">Galaxy 2</option>
-                <option value="src/assets/img/galaxy3.jpg">Galaxy 3</option>
-                <option value="src/assets/img/galaxy4.jpg">Galaxy 4</option>
-                <option value="src/assets/img/gargantua.jpg">Gargantua</option>
-                <option value="src/assets/img/interstellar.png">Interstellar</option>
-                <option value="src/assets/img/islan.jpg">Island</option>
-                <option value="src/assets/img/lake.jpg">Lake</option>
-                <option value="src/assets/img/mountain.jpeg">Mountain</option>
-                <option value="src/assets/img/paisaje.jpg">Paisaje</option>
-                <option value="src/assets/img/pik.jpg">Pik</option>
-                <option value="src/assets/img/planet.jpg">Planet</option>
-                <option value="src/assets/img/planet2.jpg">Planet 2</option>
-                <option value="src/assets/img/planet3.jpg">Planet 3</option>
-                <option value="src/assets/img/sahara.jpeg">Sahara</option>
-                <option value="src/assets/img/skinet.png">Skinet</option>
-                <option value="src/assets/img/skynet.png">Skynet</option>
-                <option value="src/assets/img/universe.jpg">Universe</option>
-                <option value="src/assets/img/white-tree.jpg">White Tree</option>
-              </select>
-            </div>
-            <div class="button-row">
-              <button class="button-secondary" type="button" onclick="randomizeBlobMedia('image')">🎴 Random Image</button>
-              <button class="button-secondary" type="button" onclick="clearBlobMedia('image')">🚫 Clear</button>
-            </div>
+            <!-- Media Loader UI Component will be injected here -->
+            <div id="blob-image-loader"></div>
           </div>
 
           <div id="blob-media-video-controls" class="media-controls" style="display: none;">
-            <div class="input-group">
-              <label>Video Presets</label>
-              <select id="blob-media-video">
-                <option value="">None</option>
-                <option value="src/assets/vid/stars.mp4">Stars (Local)</option>
-                <option value="https://storage.coverr.co/videos/coverr-blue-particles-background-1581083411/1080p.mp4">Blue Particles</option>
-                <option value="https://storage.coverr.co/videos/coverr-purple-nebula-1584717401/1080p.mp4">Purple Nebula</option>
-                <option value="https://storage.coverr.co/videos/coverr-journey-through-space-1570107498/1080p.mp4">Space Journey</option>
-              </select>
-            </div>
-            <div class="button-row">
-              <button class="button-secondary" type="button" onclick="randomizeBlobMedia('video')">🎥 Random Video</button>
-              <button class="button-secondary" type="button" onclick="clearBlobMedia('video')">🚫 Clear</button>
-            </div>
+            <!-- Media Loader UI Component will be injected here -->
+            <div id="blob-video-loader"></div>
           </div>
         </div>
 
@@ -766,6 +1152,35 @@
           </div>
         </div>
 
+      </div>
+
+      <!-- Scale & Camera -->
+      <div class="section">
+        <div class="section-title">📐 Scale & Camera</div>
+        <div class="parameter-group">
+          <div class="parameter-group-title">Global Scale</div>
+          <div class="slider-control">
+            <label>Scale <span class="value-display" id="scale-value">3.2</span></label>
+            <input type="range" id="scale" min="3" max="8" step="0.1" value="3.2">
+          </div>
+        </div>
+
+        <div class="parameter-group">
+          <div class="parameter-group-title">Camera Orbit</div>
+          <p class="parameter-info">Fine-tune the default camera orbit around the blob.</p>
+          <div class="slider-control">
+            <label>X <span class="value-display" id="camera-x-value">-0.9</span></label>
+            <input type="range" id="camera-x" min="-20" max="20" step="0.5" value="-0.9">
+          </div>
+          <div class="slider-control">
+            <label>Y <span class="value-display" id="camera-y-value">7.3</span></label>
+            <input type="range" id="camera-y" min="-20" max="20" step="0.5" value="7.3">
+          </div>
+          <div class="slider-control">
+            <label>Z <span class="value-display" id="camera-z-value">-1.8</span></label>
+            <input type="range" id="camera-z" min="-20" max="30" step="0.5" value="-1.8">
+          </div>
+        </div>
       </div>
 
       <!-- Audio Effects Configuration -->

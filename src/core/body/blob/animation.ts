@@ -61,6 +61,9 @@ export function animateBlob(
   spikeX: number,
   spikeY: number,
   spikeZ: number,
+  amplitudeX: number = 1.0,
+  amplitudeY: number = 1.0,
+  amplitudeZ: number = 1.0,
   timeX: number,
   timeY: number,
   timeZ: number,
@@ -86,6 +89,8 @@ export function animateBlob(
     reactivity?: number;
     sensitivity?: number;
     breathing?: number;
+    responseSpeed?: number;
+    transientBoost?: number;
   } = {
     bassSpike: 0.55,
     midSpike: 0.45,
@@ -98,6 +103,8 @@ export function animateBlob(
     reactivity: 1.8,
     sensitivity: 0.08,
     breathing: 0.035,
+    responseSpeed: 0.65,
+    transientBoost: 0.4,
   },
 ): boolean {
   const positions = mesh.geometry.attributes.position;
@@ -119,8 +126,11 @@ export function animateBlob(
   // Extract frequency bands for natural sound reaction
   const bands = getFrequencyBands(frequencyData);
 
-  // Smooth frequency bands for viscous response
-  const audioSmoothFactor = 0.24;
+  const responseSpeed = Math.min(1, Math.max(0, audioEffects.responseSpeed ?? 0.65));
+  const transientBoost = Math.min(1, Math.max(0, audioEffects.transientBoost ?? 0.4));
+
+  // Smooth frequency bands for viscous response while preserving fast attacks
+  const audioSmoothFactor = 0.2 + responseSpeed * 0.4;
   audioSmoothing.low += (bands.low - audioSmoothing.low) * audioSmoothFactor;
   audioSmoothing.mid += (bands.mid - audioSmoothing.mid) * audioSmoothFactor;
   audioSmoothing.high += (bands.high - audioSmoothing.high) * audioSmoothFactor;
@@ -133,24 +143,34 @@ export function animateBlob(
     high: audioSmoothing.high,
   };
 
+  const transientBlend = 0.25 + transientBoost * 0.45;
+  const fastBands = {
+    low: smoothBands.low * (1 - transientBlend) + bands.low * transientBlend,
+    mid: smoothBands.mid * (1 - transientBlend) + bands.mid * transientBlend,
+    high: smoothBands.high * (1 - transientBlend) + bands.high * transientBlend,
+  };
+  const fastLevel = audioSmoothing.level * (1 - transientBlend) + averageLevel * transientBlend;
+
   const reactivity = audioEffects.reactivity ?? 1.8;
   const sensitivity = audioEffects.sensitivity ?? 0.08;
   const breathing = audioEffects.breathing ?? 0.035;
-  const audioLevel = Math.max(0, audioSmoothing.level - sensitivity * 0.25);
-  const audioActive = audioLevel > sensitivity;
+  const baseSensitivity = Math.max(0.01, sensitivity);
+  const audioLevel = Math.max(0, fastLevel - baseSensitivity * 0.2);
+  const activationThreshold = baseSensitivity * 0.75;
+  const audioActive = audioLevel > activationThreshold;
   
   // Time calculation - smooth animation
   const reduction = 0.00003;
   const perf = performance.now() * reduction;
 
   // Normal animation time contribution is disabled while audio drives the motion
-  const timeFactor = audioActive ? 0.2 : 1;
+  const timeFactor = audioActive ? 0.35 + responseSpeed * 0.25 : 1;
   
   // Optionally modulate time with audio (can create chaotic effects if too strong)
   const audioTimeMod = (audioEffects.enabled && audioEffects.timeEnabled)
     ? 1 + (
-        smoothBands.mid * audioEffects.midTime
-        + smoothBands.high * audioEffects.highTime
+        fastBands.mid * audioEffects.midTime
+        + fastBands.high * audioEffects.highTime
         + bands.ultra * audioEffects.ultraTime
       )
     : 1;
@@ -160,7 +180,7 @@ export function animateBlob(
   const tZ = perf * timeZ * audioTimeMod * timeFactor;
 
   // Gentle breathing based on bass frequencies
-  const idleBreath = audioActive ? 0 : smoothBands.low * breathing;
+  const idleBreath = audioActive ? 0 : fastBands.low * breathing;
   const targetScale = baseScale * (1 + idleBreath);
   mesh.scale.set(targetScale, targetScale, targetScale);
 
@@ -188,10 +208,10 @@ export function animateBlob(
     
     // Calculate audio-reactive amplitude multiplier (smooth and natural)
     const weightedAudioEnergy
-      = smoothBands.low * audioEffects.bassSpike * 0.55
-      + smoothBands.mid * audioEffects.midSpike * 0.8
-      + smoothBands.high * audioEffects.highSpike * 0.6
-      + bands.ultra * 0.25;
+      = fastBands.low * audioEffects.bassSpike * 0.55
+      + fastBands.mid * audioEffects.midSpike * 0.85
+      + fastBands.high * audioEffects.highSpike * 0.7
+      + bands.ultra * (0.25 + transientBoost * 0.15);
 
     const audioIntensity = audioEffects.enabled
       ? 1 + Math.min(2.6, weightedAudioEnergy * reactivity * 1.75)
@@ -201,7 +221,10 @@ export function animateBlob(
       ? Math.min(1.45, Math.pow(Math.max(0, audioLevel), 0.95) * reactivity * 1.45)
       : 0;
 
-    const spikeEnvelope = Math.min(1.7, (smoothBands.mid * 0.85 + smoothBands.high * 1.25 + bands.ultra * 0.65) * reactivity);
+    const spikeEnvelope = Math.min(
+      1.7,
+      (fastBands.mid * 0.95 + fastBands.high * 1.35 + bands.ultra * 0.75) * reactivity
+    );
 
     // Generate multi-layered noise for liquid texture (smoother)
     const noise1 = noise3D(
@@ -228,9 +251,17 @@ export function animateBlob(
     const finalNoise = noise1 * 0.5 + noise2 * 0.3 + noise3 * 0.2;
 
     // Base amplitude enhanced by audio (creates natural, liquid response)
-    const baseAmplitude = audioActive ? 0.1 + spikeEnvelope * 0.09 : 0.16;
+    const baseAmplitude = audioActive
+      ? 0.08 + spikeEnvelope * (0.09 + transientBoost * 0.04)
+      : 0.16;
 
-    const amplitude = baseAmplitude * audioIntensity;
+    // Apply per-axis amplitude modulation based on vertex direction
+    const amplitudeMultiplier = 
+      Math.abs(direction.x) * amplitudeX +
+      Math.abs(direction.y) * amplitudeY +
+      Math.abs(direction.z) * amplitudeZ;
+
+    const amplitude = baseAmplitude * audioIntensity * amplitudeMultiplier;
 
     // High-frequency detail shimmer driven by treble content
     const detailNoise = audioEffects.enabled
@@ -238,12 +269,14 @@ export function animateBlob(
           direction.x * baseFreqX * 2.2 + tX * 2.4,
           direction.y * baseFreqY * 2.2 + tY * 2.4,
           direction.z * baseFreqZ * 2.2 + tZ * 2.4,
-        ) * smoothBands.high * audioEffects.highSpike * 0.35
+        ) * fastBands.high * audioEffects.highSpike * (0.35 + transientBoost * 0.15)
       : 0;
     
     // Calculate displacement for each state separately
-    const energyMultiplier = 1 + weightedAudioEnergy * 0.85;
-    const detailStrength = audioEffects.enabled ? (0.45 + weightedAudioEnergy * 0.55) : 0.45;
+    const energyMultiplier = 1 + weightedAudioEnergy * (0.85 + transientBoost * 0.15);
+    const detailStrength = audioEffects.enabled
+      ? 0.45 + weightedAudioEnergy * (0.55 + transientBoost * 0.2)
+      : 0.45;
 
     // Normal/Speaking mode displacement (outward spikes, enhanced by audio)
     const speakingDisplacement = amplitude * finalNoise * energyMultiplier
@@ -283,7 +316,7 @@ export function animateBlob(
       
       // Combine for fluid thinking animation
       const thinkingNoise = (thinkNoise1 * 0.4 + thinkNoise2 * 0.35 + thinkNoise3 * 0.25) * pulse;
-      thinkingDisplacement = thinkingNoise * 0.35 * fadeOut;
+      thinkingDisplacement = thinkingNoise * 0.35 * fadeOut * amplitudeMultiplier;
     }
     
     // Blend between states smoothly
@@ -352,10 +385,10 @@ export function animateBlob(
 
     const previous = previousDisplacements[i];
     const smoothingStrength = Math.min(
-      audioActive ? 0.75 : 0.5,
-      (audioActive ? 0.28 : 0.2)
-        + smoothBands.mid * 0.22
-        + smoothBands.low * 0.16
+      audioActive ? 0.92 : 0.65,
+      (audioActive ? 0.4 : 0.28)
+        + fastBands.mid * (0.28 + transientBoost * 0.08)
+        + fastBands.low * (0.18 + transientBoost * 0.05)
     );
     const smoothedDisplacement = previous + (targetDisplacement - previous) * smoothingStrength;
     previousDisplacements[i] = smoothedDisplacement;

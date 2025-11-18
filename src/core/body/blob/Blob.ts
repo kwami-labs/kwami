@@ -16,6 +16,7 @@ import { createBlobGeometry } from './geometry';
 import { animateBlob } from './animation';
 import { createSkin } from './skins';
 import { defaultBlobConfig } from './config';
+import { BlobPosition } from './position';
 import {
   getRandomBetween,
   getRandomBoolean,
@@ -70,6 +71,9 @@ export class Blob {
   // Conversation callback
   public onConversationToggle?: () => Promise<void>;
   
+  // Custom double-click callback (overrides default behavior)
+  public onDoubleClick?: () => void | Promise<void>;
+  
   // Listening mode (inverts spikes)
   public isListening = false;
   private listeningTransition = 0; // 0 to 1
@@ -86,6 +90,7 @@ export class Blob {
 
   // Animation parameters
   public spikes = { x: 0.2, y: 0.2, z: 0.2 };
+  public amplitude = { x: 0.8, y: 0.8, z: 0.8 }; // Frequency amplitude (depth of noise)
   public time = { x: 1, y: 1, z: 1 };
   public rotation = { x: 0, y: 0, z: 0 };
   
@@ -102,6 +107,8 @@ export class Blob {
     reactivity: 1.9,
     sensitivity: 0.075,
     breathing: 0.035,
+    responseSpeed: 0.75,
+    transientBoost: 0.5,
   };
   public colors = { x: '#ff0000', y: '#00ff00', z: '#0000ff' };
   public opacity = 1;
@@ -109,6 +116,9 @@ export class Blob {
   public dna = '';
   private backgroundTexture: Texture | null = null;
   private glassModeEnabled = false;
+  
+  // Position management system
+  public position: BlobPosition;
 
   constructor(private options: BlobOptions) {
     this.currentSkin = this.normalizeSkin(options.skin || 'tricolor');
@@ -142,10 +152,21 @@ export class Blob {
     this.updateMaterialOpacity(this.opacity);
     this.updateLightIntensityUniforms();
 
+    // Initialize position system
+    this.position = new BlobPosition(
+      this.mesh,
+      options.camera,
+      options.renderer.domElement as HTMLCanvasElement
+    );
+
     // Apply initial configuration
     if (options.spikes) this.spikes = options.spikes;
     if (options.time) this.time = options.time;
     if (options.rotation) this.rotation = options.rotation;
+    
+    // Apply initial position if provided in config
+    // Note: position config comes from the parent BlobConfig, not BlobOptions
+    // This will be handled by the Body class after blob creation
 
     // Start animation loop
     this.startAnimation();
@@ -286,6 +307,9 @@ export class Blob {
           this.spikes.x,
           this.spikes.y,
           this.spikes.z,
+          this.amplitude.x,
+          this.amplitude.y,
+          this.amplitude.z,
           this.time.x,
           this.time.y,
           this.time.z,
@@ -400,6 +424,20 @@ export class Blob {
    */
   setSpikes(x: number, y: number, z: number): void {
     this.spikes = { x, y, z };
+  }
+
+  /**
+   * Get amplitude values (depth of noise frequency)
+   */
+  getAmplitude(): { x: number; y: number; z: number } {
+    return { ...this.amplitude };
+  }
+
+  /**
+   * Set amplitude values for noise depth
+   */
+  setAmplitude(x: number, y: number, z: number): void {
+    this.amplitude = { x, y, z };
   }
 
   /**
@@ -669,6 +707,13 @@ export class Blob {
       ),
     };
 
+    // Random amplitude
+    this.amplitude = {
+      x: getRandomBetween(0.3, 1.2, 1),
+      y: getRandomBetween(0.3, 1.2, 1),
+      z: getRandomBetween(0.3, 1.2, 1),
+    };
+
     // Random time
     this.time = {
       x: getRandomBetween(0.5, 10, 1),
@@ -800,11 +845,16 @@ export class Blob {
       const intersects = raycaster.intersectObject(this.mesh);
       
       if (intersects.length > 0) {
-        // Toggle conversation if callback is set
-        if (this.onConversationToggle) {
+        // Priority 1: Custom double-click callback (user-defined behavior)
+        if (this.onDoubleClick) {
+          await this.onDoubleClick();
+        }
+        // Priority 2: Toggle conversation if callback is set
+        else if (this.onConversationToggle) {
           await this.onConversationToggle();
-        } else {
-          // Fallback to listening mode if no conversation callback
+        }
+        // Priority 3: Fallback to listening mode if no callbacks
+        else {
           if (this.isListening) {
             this.stopListening();
           } else {

@@ -38,6 +38,7 @@
         "core",
         "utils",
         "options",
-        "types/index.d.ts"
+        "types/index.d.ts",
+        "src/tests"
     ]
 }

@@ -1,0 +1,287 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>👻</text></svg>" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title data-i18n="page.title">kwami.io</title>
+  </head>
+  <body>
+    <!-- Sidebar Navigation -->
+    <nav id="sidebar-nav" class="sidebar-navigation">
+      <div class="sphere-container" id="sphere-container">
+        <!-- Spheres will be dynamically generated via TypeScript -->
+      </div>
+    </nav>
+
+    <!-- Custom cursor gradient light -->
+    <div id="cursor-light"></div>
+
+    <!-- Language Switcher -->
+    <div id="language-switcher" class="language-switcher">
+      <button id="lang-btn" class="lang-btn" aria-label="Change language">
+        <span class="lang-icon">🌐</span>
+        <span id="current-lang" class="current-lang">EN</span>
+      </button>
+      <div id="lang-menu" class="lang-menu">
+        <button class="lang-option" data-lang="en">🇺🇸 English</button>
+        <button class="lang-option" data-lang="es">🇪🇸 Español</button>
+        <button class="lang-option" data-lang="fr">🇫🇷 Français</button>
+        <button class="lang-option" data-lang="zh">🇨🇳 中文</button>
+        <button class="lang-option" data-lang="ko">🇰🇷 한국어</button>
+        <button class="lang-option" data-lang="ja">🇯🇵 日本語</button>
+        <button class="lang-option" data-lang="pt">🇵🇹 Português</button>
+        <button class="lang-option" data-lang="it">🇮🇹 Italiano</button>
+        <button class="lang-option" data-lang="ru">🇷🇺 Русский</button>
+        <button class="lang-option" data-lang="ar">🇸🇦 العربية</button>
+        <button class="lang-option" data-lang="nl">🇳🇱 Nederlands</button>
+      </div>
+    </div>
+
+    <div id="app">
+      <!-- Left half: Animated text content -->
+      <div class="content-left">
+        <div class="text-section" data-section="0">
+          <div class="section-number animate-text">00</div>
+          <h1 class="animate-text"><span class="emoji">👋</span> <span class="gradient-text" data-i18n="pages.00.title">Meet Kwami</span></h1>
+          <p class="main-description animate-text delay-1" data-i18n="pages.00.main">Kwami is a single canvas where AI voice, music, and motion stay perfectly in sync.</p>
+          <div class="section-messages animate-text delay-2" data-section-messages="00">
+            <p class="message-item active">Loading...</p>
+          </div>
+          <div class="section-action animate-text delay-3">
+            <button type="button" class="action-button" data-action-key="launch-playground" data-i18n="pages.00.button">🚀 Launch Playground</button>
+          </div>
+        </div>
+
+        <div class="text-section" data-section="1">
+          <div class="section-number animate-text">01</div>
+          <h2 class="animate-text"><span class="emoji">🌟</span> <span class="gradient-text" data-i18n="pages.01.title">Why Kwami</span></h2>
+          <p class="main-description animate-text delay-1" data-i18n="pages.01.main">Ship one expressive companion instead of juggling separate widgets for audio, AI, and visuals.</p>
+          <p class="animate-text delay-2" data-i18n="pages.01.sub">The Playground demo shows how the rotating sidebars keep context tight and fun.</p>
+          <div class="section-action animate-text delay-3">
+            <button type="button" class="action-button" data-action-key="view-demo" data-i18n="pages.01.button">🎥 Watch Demo</button>
+          </div>
+        </div>
+
+        <div class="text-section" data-section="2">
+          <div class="section-number animate-text">02</div>
+          <h2 class="animate-text"><span class="emoji">⚡</span> <span class="gradient-text" data-i18n="pages.02.title">Quick Start</span></h2>
+          <p class="main-description animate-text delay-1" data-i18n="pages.02.main">Install the package, run the playground, and point Kwami at any canvas.</p>
+          <p class="animate-text delay-2" data-i18n="pages.02.sub">Single-click listens, double-click randomizes—no extra wiring required.</p>
+          <div class="section-action animate-text delay-3">
+            <button type="button" class="action-button" data-action-key="run-playground" data-i18n="pages.02.button">▶️ Run Playground Locally</button>
+          </div>
+        </div>
+
+        <div class="text-section" data-section="3">
+          <div class="section-number animate-text">03</div>
+          <h2 class="animate-text"><span class="emoji">🧱</span> <span class="gradient-text" data-i18n="pages.03.title">Architecture</span></h2>
+          <p class="main-description animate-text delay-1" data-i18n="pages.03.main">Mind, Body, and Soul stay decoupled so teams can tweak logic, visuals, or vibe independently.</p>
+          <p class="animate-text delay-2" data-i18n="pages.03.sub">Swap sidebars inside the Playground to feel how each layer plugs in.</p>
+          <div class="section-action animate-text delay-3">
+            <button type="button" class="action-button" data-action-key="swap-sidebars" data-i18n="pages.03.button">🔁 Rotate Sidebars</button>
+          </div>
+        </div>
+
+        <div class="text-section" data-section="4">
+          <div class="section-number animate-text">04</div>
+          <h2 class="animate-text"><span class="emoji">🧠</span> <span class="gradient-text" data-i18n="pages.04.title">Mind Layer</span></h2>
+          <p class="main-description animate-text delay-1" data-i18n="pages.04.main">Define providers, enter an ElevenLabs key, and spin up conversations with one click.</p>
+          <div class="section-action animate-text delay-2">
+            <button type="button" class="action-button" data-action-key="init-mind" data-i18n="pages.04.button">🤖 Initialize AI Agent</button>
+          </div>
+        </div>
+
+        <div class="text-section" data-section="5">
+          <div class="section-number animate-text">05</div>
+          <h2 class="animate-text"><span class="emoji">🫧</span> <span class="gradient-text" data-i18n="pages.05.title">Body Layer</span></h2>
+          <p class="main-description animate-text delay-1" data-i18n="pages.05.main">The WebGL blob reacts to FFT data, touch ripples, and pointer gestures in real time.</p>
+          <div class="section-action animate-text delay-2">
+            <button type="button" class="action-button" data-action-key="randomize-blob" data-i18n="pages.05.button">🎲 Randomize Blob</button>
+          </div>
+        </div>
+
+        <div class="text-section" data-section="6">
+          <div class="section-number animate-text">06</div>
+          <h2 class="animate-text"><span class="emoji">💖</span> <span class="gradient-text" data-i18n="pages.06.title">Soul Layer</span></h2>
+          <p class="main-description animate-text delay-1" data-i18n="pages.06.main">Ten emotional traits steer prompts, voice tone, and animation states.</p>
+          <div class="section-action animate-text delay-2">
+            <button type="button" class="action-button" data-action-key="apply-soul" data-i18n="pages.06.button">✨ Apply Soul Config</button>
+          </div>
+        </div>
+
+        <div class="text-section" data-section="7">
+          <div class="section-number animate-text">07</div>
+          <h2 class="animate-text"><span class="emoji">🎮</span> <span class="gradient-text" data-i18n="pages.07.title">Interaction Flow</span></h2>
+          <p class="main-description animate-text delay-1" data-i18n="pages.07.main">Idle, listening, thinking, and speaking states keep the blob legible at a glance.</p>
+          <div class="section-action animate-text delay-2">
+            <button type="button" class="action-button" data-action-key="test-listening" data-i18n="pages.07.button">👂 Test Listening Mode</button>
+          </div>
+        </div>
+
+        <div class="text-section" data-section="8">
+          <div class="section-number animate-text">08</div>
+          <h2 class="animate-text"><span class="emoji">🎨</span> <span class="gradient-text" data-i18n="pages.08.title">Visual Styles</span></h2>
+          <p class="main-description animate-text delay-1" data-i18n="pages.08.main">Pick gradients, glass, imagery, or videos and keep typography synced with palette shifts.</p>
+          <div class="section-action animate-text delay-2">
+            <button type="button" class="action-button" data-action-key="set-background" data-i18n="pages.08.button">🖼️ Tune Background</button>
+          </div>
+        </div>
+
+        <div class="text-section" data-section="9">
+          <div class="section-number animate-text">09</div>
+          <h2 class="animate-text"><span class="emoji">🎵</span> <span class="gradient-text" data-i18n="pages.09.title">Audio & Voice</span></h2>
+          <p class="main-description animate-text delay-1" data-i18n="pages.09.main">Web Audio analysis drives spikes while ElevenLabs handles low-latency speech.</p>
+          <div class="section-action animate-text delay-2">
+            <button type="button" class="action-button" data-action-key="speak" data-i18n="pages.09.button">🎤 Make Kwami Speak</button>
+          </div>
+        </div>
+
+        <div class="text-section" data-section="10">
+          <div class="section-number animate-text">10</div>
+          <h2 class="animate-text"><span class="emoji">🔌</span> <span class="gradient-text" data-i18n="pages.10.title">Provider Architecture</span></h2>
+          <p class="main-description animate-text delay-1" data-i18n="pages.10.main">Every vendor implements the same `connect / speak / listen / dispose` surface.</p>
+          <div class="section-action animate-text delay-2">
+            <button type="button" class="action-button" data-action-key="switch-provider" data-i18n="pages.10.button">🔌 Swap Providers</button>
+          </div>
+        </div>
+
+        <div class="text-section" data-section="11">
+          <div class="section-number animate-text">11</div>
+          <h2 class="animate-text"><span class="emoji">🛠️</span> <span class="gradient-text" data-i18n="pages.11.title">Customization & Config</span></h2>
+          <p class="main-description animate-text delay-1" data-i18n="pages.11.main">Adjust spikes, time, skins, rotation, and emotional ranges with type-safe configs.</p>
+          <div class="section-action animate-text delay-2">
+            <button type="button" class="action-button" data-action-key="adjust-spikes" data-i18n="pages.11.button">🛠️ Adjust Spikes</button>
+          </div>
+        </div>
+
+        <div class="text-section" data-section="12">
+          <div class="section-number animate-text">12</div>
+          <h2 class="animate-text"><span class="emoji">👨‍💻</span> <span class="gradient-text" data-i18n="pages.12.title">Developer Toolkit</span></h2>
+          <p class="main-description animate-text delay-1" data-i18n="pages.12.main">Export GLB models, reuse Nuxt/Bun starters, or drop straight into any SPA.</p>
+          <div class="section-action animate-text delay-2">
+            <button type="button" class="action-button" data-action-key="download-glb" data-i18n="pages.12.button">💾 Download GLB</button>
+          </div>
+        </div>
+
+        <div class="text-section" data-section="13">
+          <div class="section-number animate-text">13</div>
+          <h2 class="animate-text"><span class="emoji">⚙️</span> <span class="gradient-text" data-i18n="pages.13.title">Performance & Testing</span></h2>
+          <p class="main-description animate-text delay-1" data-i18n="pages.13.main">60fps targets, Vitest suites, and strict TS settings keep experiments shippable.</p>
+          <div class="section-action animate-text delay-2">
+            <button type="button" class="action-button" data-action-key="test-thinking" data-i18n="pages.13.button">🤔 Test Thinking Mode</button>
+          </div>
+        </div>
+
+        <div class="text-section" data-section="14">
+          <div class="section-number animate-text">14</div>
+          <h2 class="animate-text"><span class="emoji">🚀</span> <span class="gradient-text" data-i18n="pages.14.title">Use Cases</span></h2>
+          <p class="main-description animate-text delay-1" data-i18n="pages.14.main">From DJ sets to wellness companions, upload any track and watch the blob respond.</p>
+          <div class="section-action animate-text delay-2">
+            <button type="button" class="action-button" data-action-key="upload-audio" data-i18n="pages.14.button">📁 Upload Audio</button>
+          </div>
+        </div>
+
+        <div class="text-section" data-section="15">
+          <div class="section-number animate-text">15</div>
+          <h2 class="animate-text"><span class="emoji">🌐</span> <span class="gradient-text" data-i18n="pages.15.title">Connected Ecosystem</span></h2>
+          <p class="main-description animate-text delay-1" data-i18n="pages.15.main">Kwami ties into kwami.io, qwami.io, and quami.io so one NFT companion spans Web2/Web3 workflows.</p>
+          <div class="section-action animate-text delay-2">
+            <button type="button" class="action-button" data-action-key="connect-services" data-i18n="pages.15.button">🌐 Connect Services</button>
+          </div>
+        </div>
+
+        <div class="text-section" data-section="16">
+          <div class="section-number animate-text">16</div>
+          <h2 class="animate-text"><span class="emoji">💎</span> <span class="gradient-text" data-i18n="pages.16.title">Ownership & Web3</span></h2>
+          <p class="main-description animate-text delay-1" data-i18n="pages.16.main">Mint a Kwami on Solana and keep the blob's DNA hash synced with live configs.</p>
+          <div class="section-action animate-text delay-2">
+            <button type="button" class="action-button" data-action-key="mint-nft" data-i18n="pages.16.button">💎 Mint a Kwami</button>
+          </div>
+        </div>
+
+        <div class="text-section" data-section="17">
+          <div class="section-number animate-text">17</div>
+          <h2 class="animate-text"><span class="emoji">🔮</span> <span class="gradient-text" data-i18n="pages.17.title">Roadmap</span></h2>
+          <p class="main-description animate-text delay-1" data-i18n="pages.17.main">WebXR, multi-character scenes, physics, and plugins are already in flight.</p>
+          <div class="section-action animate-text delay-2">
+            <button type="button" class="action-button" data-action-key="view-roadmap" data-i18n="pages.17.button">🔮 View Roadmap</button>
+          </div>
+        </div>
+
+        <div class="text-section" data-section="18">
+          <div class="section-number animate-text">18</div>
+          <h2 class="animate-text"><span class="emoji">🎓</span> <span class="gradient-text" data-i18n="pages.18.title">Learning Path</span></h2>
+          <p class="main-description animate-text delay-1" data-i18n="pages.18.main">Follow the docs from Getting Started to Mind/Body/Soul deep dives within minutes.</p>
+          <div class="section-action animate-text delay-2">
+            <button type="button" class="action-button" data-action-key="open-guides" data-i18n="pages.18.button">📚 Open Guides</button>
+          </div>
+        </div>
+
+        <div class="text-section" data-section="19">
+          <div class="section-number animate-text">19</div>
+          <h2 class="animate-text"><span class="emoji">🤝</span> <span class="gradient-text" data-i18n="pages.19.title">Community</span></h2>
+          <p class="main-description animate-text delay-1" data-i18n="pages.19.main">Share shaders, providers, or docs PRs—everything lives in the open.</p>
+          <div class="section-action animate-text delay-2">
+            <button type="button" class="action-button" data-action-key="join-discord" data-i18n="pages.19.button">🤝 Join Discord</button>
+          </div>
+        </div>
+
+        <div class="text-section" data-section="20">
+          <div class="section-number animate-text">20</div>
+          <h2 class="animate-text"><span class="emoji">🏢</span> <span class="gradient-text" data-i18n="pages.20.title">Pro & Enterprise</span></h2>
+          <p class="main-description animate-text delay-1" data-i18n="pages.20.main">Upgrade for white-labeling, premium providers, analytics, and dedicated support.</p>
+          <div class="section-action animate-text delay-2">
+            <button type="button" class="action-button" data-action-key="contact-team" data-i18n="pages.20.button">🏢 Talk to the Team</button>
+          </div>
+        </div>
+
+        <div class="text-section" data-section="21">
+          <div class="section-number animate-text">21</div>
+          <h2 class="animate-text"><span class="emoji">🚀</span> <span class="gradient-text" data-i18n="pages.21.title">Launch Your Companion</span></h2>
+          <p class="main-description animate-text delay-1" data-i18n="pages.21.main">Fork the repo, remix the blob, and drop your own AI companion in minutes.</p>
+          <div class="section-action animate-text delay-2">
+            <button type="button" class="action-button" data-action-key="create-session" data-i18n="pages.21.button">🚀 Start a Session</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Right half: Real Kwami Blob -->
+      <div class="content-right">
+        <!-- Header with emoji buttons -->
+        <div class="right-header">
+          <a href="https://playground.kwami.io" target="_blank" class="header-btn" data-i18n-title="header_links.playground">
+            🎮
+          </a>
+          <a href="https://candy.kwami.io" target="_blank" class="header-btn" data-i18n-title="header_links.candy">
+            🍬
+          </a>
+          <a href="https://github.com/alexcolls/kwami" target="_blank" class="header-btn" data-i18n-title="header_links.github">
+            ⭐
+          </a>
+        </div>
+        
+        <!-- Bottom Tabs for Voice/Music/Video -->
+        <div class="bottom-tabs">
+          <button class="tab-btn active" data-tab="voice">
+            <span>🎤</span>
+            <span data-i18n="tabs.voice">Voice</span>
+          </button>
+          <button class="tab-btn" data-tab="music">
+            <span>🎵</span>
+            <span data-i18n="tabs.music">Music</span>
+          </button>
+          <button class="tab-btn" data-tab="video">
+            <span>🎬</span>
+            <span data-i18n="tabs.video">Video</span>
+          </button>
+        </div>
+        
+        <div id="kwami-container"></div>
+        <a href="/" target="_blank" class="kwami-label" style="text-decoration: none; cursor: pointer;"><span>👻</span><span data-i18n="labels.kwami">Kwami</span></a>
+      </div>
+    </div>
+    
+    <script type="module" src="/src/main.ts"></script>
+  </body>
+</html>
