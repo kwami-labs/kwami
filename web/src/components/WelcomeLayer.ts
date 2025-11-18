@@ -472,10 +472,14 @@ export class WelcomeLayer {
       // Make blob spherical and animate it
       const blobMesh = this.kwami.body.blob.getMesh();
       const blobRef = this.kwami.body.blob;
-      const spikeState = { ...this.blobSpikeState };
+      // const spikeState = { ...this.blobSpikeState }; // Removed unused variable
       const timeState = { ...this.blobTimeState };
       
-      // PHASE 1: Become spherical and get smaller
+      // PHASE 1: Get smaller (rounding removed)
+      blobRef.setOpacity(0.8);
+
+      /* 
+      // Original rounding animation removed
       gsap.to(spikeState, {
         duration: 6,
         x: 0,
@@ -487,6 +491,7 @@ export class WelcomeLayer {
           blobRef.setOpacity(0.8);
         }
       });
+      */
 
       gsap.to(timeState, {
         duration: 3,
