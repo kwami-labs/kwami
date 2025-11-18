@@ -140,7 +140,7 @@ export class WelcomeLayer {
     const versionDiv = document.createElement('div');
     versionDiv.id = 'version';
     versionDiv.className = 'fixed bottom-10 text-sm text-gray-400 opacity-80';
-    versionDiv.textContent = 'v.1.3.4';
+    versionDiv.textContent = 'KWAMI v.1.3.4';
 
     this.container.appendChild(svg);
     this.container.appendChild(versionDiv);
@@ -180,28 +180,12 @@ export class WelcomeLayer {
     // Create welcome info text
     this.welcomeInfo = document.createElement('div');
     this.welcomeInfo.className = 'welcome-info';
-    this.populateWelcomeText();
     
-    // Listen for language changes and reload text with animation
-    i18next.on('languageChanged', () => {
-      if (this.welcomeInfo && this.showButton) {
-        this.reloadWelcomeText();
-      }
-    });
-
-    // Create SVG
-    const svg = this.createSVG();
-    svg.classList.add('hidden');
-
-    // Create version display
-    const versionDiv = document.createElement('div');
-    versionDiv.id = 'version';
-    versionDiv.className = 'fixed bottom-10 text-sm text-gray-400 opacity-80';
-    versionDiv.textContent = 'v.1.3.4';
-
-    // Create "Don't show again" checkbox
+    // Create "Don't show again" checkbox FIRST
     const skipContainer = document.createElement('div');
     skipContainer.className = 'skip-welcome-container';
+    skipContainer.style.opacity = '0';
+    skipContainer.style.transform = 'translateY(10px)';
     
     const checkbox = document.createElement('input');
     checkbox.type = 'checkbox';
@@ -222,10 +206,31 @@ export class WelcomeLayer {
     skipContainer.appendChild(checkbox);
     skipContainer.appendChild(label);
 
-    // Append checkbox to welcome info (below description)
+    // Append checkbox to welcome info FIRST
     if (this.welcomeInfo) {
       this.welcomeInfo.appendChild(skipContainer);
+      console.log('📌 Checkbox appended to welcomeInfo');
     }
+    
+    // NOW populate text and schedule checkbox animation
+    this.populateWelcomeText();
+    
+    // Listen for language changes and reload text with animation
+    i18next.on('languageChanged', () => {
+      if (this.welcomeInfo && this.showButton) {
+        this.reloadWelcomeText();
+      }
+    });
+
+    // Create SVG
+    const svg = this.createSVG();
+    svg.classList.add('hidden');
+
+    // Create version display
+    const versionDiv = document.createElement('div');
+    versionDiv.id = 'version';
+    versionDiv.className = 'fixed bottom-10 text-sm text-gray-400 opacity-80';
+    versionDiv.textContent = 'KWAMI v.1.3.4';
 
     // Append elements
     this.container.appendChild(this.kwamiContainer);
@@ -272,9 +277,6 @@ export class WelcomeLayer {
       this.blobSpikeState = { ...spikes };
       this.blobTimeState = { ...timeConfig };
 
-      // Get the initial palette for section 0
-      const initialPalette = colorPalettes[0];
-      
       this.kwami = new Kwami(canvas, {
         body: {
           initialSkin: 'Donut',
@@ -287,7 +289,7 @@ export class WelcomeLayer {
             shininess: 0,
             colors: {
               x: '#ffffff',
-              y: initialPalette.accent,
+              y: '#808080',
               z: '#000000'
             }
           },
@@ -304,8 +306,8 @@ export class WelcomeLayer {
       this.kwami.body.blob.setScale(blobScale);
       this.kwami.body.blob.setWireframe(false);
       
-      // FORCE set colors explicitly after initialization to override any defaults
-      this.kwami.body.blob.setColors('#ffffff', initialPalette.accent, '#000000');
+      // FORCE set colors explicitly after initialization - section 0 white/gray/black gradient
+      this.kwami.body.blob.setColors('#ffffff', '#808080', '#000000');
       
       // FORCE set spikes and time explicitly
       this.kwami.body.blob.setSpikes(0.05, 5.2, 0.05);
@@ -420,10 +422,10 @@ export class WelcomeLayer {
     defs.appendChild(gradient);
     svg.appendChild(defs);
 
-    // Create 120 ellipses centered on screen
+    // Create 120 ellipses centered on screen - larger for full screen effect
     const centerX = vw / 2;
     const centerY = vh / 2;
-    const baseRadius = Math.min(vw, vh) * 0.08; // 8% of smaller dimension
+    const baseRadius = Math.min(vw, vh) * 0.12; // 12% of smaller dimension (bigger)
     
     for (let i = 0; i < 120; i++) {
       const ellipse = document.createElementNS('http://www.w3.org/2000/svg', 'ellipse');
@@ -435,7 +437,7 @@ export class WelcomeLayer {
       svg.appendChild(ellipse);
     }
 
-    // Create AI path - centered on screen
+    // Create AI path - centered on screen with responsive scaling
     const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
     path.id = 'ai';
     path.setAttribute('opacity', '0.95');
@@ -443,9 +445,11 @@ export class WelcomeLayer {
     path.setAttribute('stroke', 'url(#aiGrad)');
     path.setAttribute('stroke-linecap', 'round');
     path.setAttribute('stroke-miterlimit', '100');
-    path.setAttribute('stroke-width', '1');
-    // Center the KWAMI text - translate to center of viewport
-    path.setAttribute('transform', `translate(${centerX - 133}, ${centerY - 35})`);
+    path.setAttribute('stroke-width', '2');
+    
+    // Center the KWAMI text - scale it based on viewport size
+    const textScale = Math.min(vw, vh) / 600; // Scale based on viewport
+    path.setAttribute('transform', `translate(${centerX - 133 * textScale}, ${centerY - 35 * textScale}) scale(${textScale})`);
     svg.appendChild(path);
 
     return svg;
@@ -662,7 +666,7 @@ export class WelcomeLayer {
 
     gsap.to('#ai', {
       duration: 3,
-      scale: 3,
+      scale: Math.min(window.innerWidth, window.innerHeight) / 400, // Scale to viewport
       transformOrigin: '50% 50%',
       repeat: 1,
       yoyo: true,
@@ -885,7 +889,7 @@ export class WelcomeLayer {
   private reloadWelcomeText() {
     if (!this.welcomeInfo) return;
     
-    // Fade out current text
+    // Fade out current text (including checkbox)
     gsap.to(this.welcomeInfo, {
       duration: 0.3,
       opacity: 0,
@@ -894,10 +898,20 @@ export class WelcomeLayer {
       onComplete: () => {
         // Clear existing content
         if (this.welcomeInfo) {
+          // Store checkbox before clearing
+          const skipContainer = this.welcomeInfo.querySelector('.skip-welcome-container');
+          
           this.welcomeInfo.innerHTML = '';
           
           // Reload with new language
           this.populateWelcomeText();
+          
+          // Re-add checkbox if it existed
+          if (skipContainer) {
+            this.welcomeInfo.appendChild(skipContainer);
+            // Reset checkbox animation
+            gsap.set(skipContainer, { opacity: 0, y: 10 });
+          }
           
           // Fade back in
           gsap.fromTo(this.welcomeInfo, 
@@ -923,7 +937,7 @@ export class WelcomeLayer {
     let baseDelay = 0.5; // Initial delay
     for (let i = 0; i < lineIndex; i++) {
       const prevLine = this.welcomeInfo.children[i];
-      if (prevLine) {
+      if (prevLine && !prevLine.classList.contains('skip-welcome-container')) {
         const prevText = prevLine.textContent || '';
         baseDelay += prevText.length * charAnimDuration + 0.3; // 300ms gap between lines
       }
@@ -936,7 +950,13 @@ export class WelcomeLayer {
       lineEl.appendChild(span);
     });
 
-    this.welcomeInfo.appendChild(lineEl);
+    // Insert before checkbox (checkbox should be last child)
+    const skipContainer = this.welcomeInfo.querySelector('.skip-welcome-container');
+    if (skipContainer) {
+      this.welcomeInfo.insertBefore(lineEl, skipContainer);
+    } else {
+      this.welcomeInfo.appendChild(lineEl);
+    }
   }
 
   private scheduleCheckboxAnimation(infoLines: { text: string; className: string }[]) {
@@ -956,20 +976,29 @@ export class WelcomeLayer {
     // Add extra delay after last line completes
     totalDelay += 0.5;
     
-    // Animate checkbox in after text completes
-    const skipContainer = document.querySelector('.skip-welcome-container') as HTMLElement;
-    if (skipContainer) {
-      gsap.fromTo(skipContainer,
-        { opacity: 0, y: 10 },
-        { 
-          opacity: 1, 
-          y: 0, 
-          duration: 0.6, 
-          delay: totalDelay,
-          ease: 'power2.out'
-        }
-      );
-    }
+    console.log('🔍 Scheduling checkbox animation with delay:', totalDelay);
+    
+    // Use setTimeout to ensure DOM is ready
+    setTimeout(() => {
+      const skipContainer = this.welcomeInfo?.querySelector('.skip-welcome-container') as HTMLElement;
+      console.log('📦 Checkbox element found:', !!skipContainer);
+      
+      if (skipContainer) {
+        gsap.fromTo(skipContainer,
+          { opacity: 0, y: 10 },
+          { 
+            opacity: 1, 
+            y: 0, 
+            duration: 0.6, 
+            ease: 'power2.out',
+            onStart: () => console.log('✅ Checkbox animation started'),
+            onComplete: () => console.log('✅ Checkbox animation completed')
+          }
+        );
+      } else {
+        console.error('❌ Checkbox element not found!');
+      }
+    }, totalDelay * 1000);
   }
 }
 
