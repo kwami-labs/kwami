@@ -1411,8 +1411,8 @@ async function playRandomMusic() {
     isLowpassFilterActive = false;
     await kwami.body.audio.play();
     
-    // Set blob to speaking state for audio reactivity
-    kwami.setState('speaking');
+    // Set blob to speaking state for audio reactivity - SKIPPED to preserve section styles
+    // kwami.setState('speaking');
     isMusicPlaying = true;
     isVoicePlaying = false;
     isLowpassFilterActive = false;
@@ -1423,7 +1423,7 @@ async function playRandomMusic() {
     const audioElement = kwami.body.audio.getAudioElement();
     audioElement.addEventListener('ended', () => {
       console.log('🎵 Song ended');
-      kwami.setState('idle');
+      // kwami.setState('idle'); // Preserve section style
       isMusicPlaying = false;
       kwami.body.audio.disableLowpassFilter();
       isLowpassFilterActive = false;
@@ -1433,7 +1433,7 @@ async function playRandomMusic() {
     // Also listen for errors
     audioElement.addEventListener('error', (e: Event) => {
       console.error('🎵 Audio element error:', e);
-      kwami.setState('idle');
+      // kwami.setState('idle'); // Preserve section style
       isMusicPlaying = false;
     }, { once: true });
     
@@ -1469,7 +1469,7 @@ function stopKwamiAudio() {
   audio.disableHighpassFilter();
   audio.pause();
   audio.setCurrentTime(0);
-  kwami.setState('idle');
+  // kwami.setState('idle'); // Preserve section style
 
   isMusicPlaying = false;
   isVoicePlaying = false;
@@ -1714,7 +1714,7 @@ async function playRandomVoiceClip() {
   try {
     kwami.body.audio.loadAudioSource(nextUrl);
     await kwami.body.audio.play();
-    kwami.setState('speaking');
+    // kwami.setState('speaking'); // Preserve section style
     isVoicePlaying = true;
     isMusicPlaying = false;
     isLowpassFilterActive = false;
@@ -1728,7 +1728,7 @@ async function playRandomVoiceClip() {
     }
     voiceEndedHandler = () => {
       isVoicePlaying = false;
-      kwami.setState('idle');
+      // kwami.setState('idle'); // Preserve section style
       hideSongTitle();
     };
     audioElement.addEventListener('ended', voiceEndedHandler, { once: true });
@@ -1918,7 +1918,7 @@ function stopVideoPlayback(explicitKwami?: Kwami | null, options: { preserveUrl?
   }
 
   if (currentVideoMode !== 'none') {
-    kwami.setState('idle');
+    // kwami.setState('idle'); // Preserve section style
   }
 
   currentVideoMode = 'none';
@@ -1970,7 +1970,7 @@ async function attachVideoAudioToKwami(
       return;
     }
     currentVideoMode = 'none';
-    kwami.setState('idle');
+    // kwami.setState('idle'); // Preserve section style
   };
 
   const handleError = (event: Event) => {
@@ -2017,7 +2017,7 @@ async function attachVideoAudioToKwami(
       await videoElement.play().catch(() => {});
     }
 
-    kwami.setState('speaking');
+    // kwami.setState('speaking'); // Preserve section style
     console.log(`🎥 Blob video audio stream attached: ${sourceUrl}`);
     currentVideoMode = mode;
     return 'success';
@@ -2130,7 +2130,7 @@ async function playVideoAsBackground(kwami: Kwami, url: string): Promise<boolean
 
     if (attachResult === 'no-audio') {
       console.warn('🎥 Video has no audio track. Playing visual-only background.');
-      kwami.setState('thinking');
+      // kwami.setState('thinking'); // Preserve section style
       currentVideoMode = 'background';
       return true;
     }
@@ -2188,7 +2188,7 @@ async function playVideoInsideBlob(kwami: Kwami, url: string): Promise<boolean> 
 
     if (attachResult === 'no-audio') {
       console.warn('🎥 Blob video has no audio track. Showing visual-only mode.');
-      kwami.setState('thinking');
+      // kwami.setState('thinking'); // Preserve section style
       // currentVideoMode is already set to 'blob' earlier
       return true;
     }
