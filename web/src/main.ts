@@ -1907,6 +1907,7 @@ function stopVideoPlayback(explicitKwami?: Kwami | null, options: { preserveUrl?
     console.warn('🎥 Failed to pause video element:', error);
   }
 
+
   kwami.body.audio.disconnectMediaStream();
 
   if (currentVideoMode === 'background') {
@@ -1914,16 +1915,6 @@ function stopVideoPlayback(explicitKwami?: Kwami | null, options: { preserveUrl?
   }
   if (currentVideoMode === 'blob' && typeof kwami.body.setBlobSurfaceVideo === 'function') {
     kwami.body.setBlobSurfaceVideo(null);
-  }
-
-  if (glassModeActiveForVideo) {
-    kwami.body.setBlobImageTransparencyMode(false);
-    glassModeActiveForVideo = false;
-  }
-
-  if (previousKwamiSkinForVideo) {
-    kwami.body.blob.setSkin(previousKwamiSkinForVideo as any);
-    previousKwamiSkinForVideo = null;
   }
 
   if (currentVideoMode !== 'none') {
@@ -2155,13 +2146,6 @@ async function playVideoInsideBlob(kwami: Kwami, url: string): Promise<boolean> 
   try {
     console.log('🎥 Starting playVideoInsideBlob with URL:', url);
     kwami.body.clearBackgroundMedia();
-
-    if (!glassModeActiveForVideo) {
-      previousKwamiSkinForVideo = previousKwamiSkinForVideo ?? kwami.body.blob.getCurrentSkin();
-      console.log('🎥 Enabling glass mode, previous skin:', previousKwamiSkinForVideo);
-      kwami.body.setBlobImageTransparencyMode(true, { mode: 'glass', opacity: 0.4 });
-      glassModeActiveForVideo = true;
-    }
 
     console.log('🎥 Setting blob surface video...');
     kwami.body.setBlobSurfaceVideo(url, {

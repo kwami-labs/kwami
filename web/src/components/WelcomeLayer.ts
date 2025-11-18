@@ -62,7 +62,7 @@ export class WelcomeLayer {
   private startAnimation = false;
   private showLoader = true;
   private showContainer = true;
-  private readonly secondsLoader = 8;
+  private readonly secondsLoader = 6;
   private readonly secondsContainer: number;
   private container: HTMLElement | null = null;
   private audioElement: HTMLAudioElement | null = null;
@@ -472,14 +472,10 @@ export class WelcomeLayer {
       // Make blob spherical and animate it
       const blobMesh = this.kwami.body.blob.getMesh();
       const blobRef = this.kwami.body.blob;
-      // const spikeState = { ...this.blobSpikeState }; // Removed unused variable
+      const spikeState = { ...this.blobSpikeState };
       const timeState = { ...this.blobTimeState };
       
-      // PHASE 1: Get smaller (rounding removed)
-      blobRef.setOpacity(0.8);
-
-      /* 
-      // Original rounding animation removed
+      // PHASE 1: Become spherical and get smaller
       gsap.to(spikeState, {
         duration: 6,
         x: 0,
@@ -491,7 +487,6 @@ export class WelcomeLayer {
           blobRef.setOpacity(0.8);
         }
       });
-      */
 
       gsap.to(timeState, {
         duration: 3,
@@ -593,7 +588,7 @@ export class WelcomeLayer {
       // Reveal SVG animation smoothly
       setTimeout(() => {
         this.revealSvgAndStartAnimation(svg);
-      }, 1000);
+      }, 700);
       
       // Play intro audio
       if (this.audioElement) {
@@ -660,7 +655,7 @@ export class WelcomeLayer {
     });
 
     gsap.to('#aiGrad', {
-      duration: 1.5,
+      duration: 2,
       delay: 0.1,
       attr: { x1: '+=380', x2: '+=300' },
       scale: 1.4,
@@ -772,7 +767,7 @@ export class WelcomeLayer {
           rotation: 2160,
           transformOrigin: '50% 50%'
         }, 0)
-        .timeScale(0.6);
+        .timeScale(1.2);
     };
 
     allEll.forEach((c, i) => {
@@ -780,7 +775,7 @@ export class WelcomeLayer {
     });
 
     gsap.to('#aiGrad', {
-      duration: 4,
+      duration: 2,
       delay: 0.25,
       attr: {
         x1: '+=380',
@@ -793,11 +788,18 @@ export class WelcomeLayer {
     });
 
     gsap.to('#ai', {
-      duration: 8,
+      duration: 2,
       scale: 3,
       transformOrigin: '50% 50%',
       repeat: 1,
       yoyo: true,
+      ease: 'sine.inOut'
+    });
+
+    gsap.to('#ai', {
+      duration: 2,
+      delay: 2,
+      opacity: 0,
       ease: 'sine.inOut'
     });
 
@@ -867,7 +869,7 @@ export class WelcomeLayer {
 
     gsap.fromTo(svg, { opacity: 0 }, {
       opacity: 1,
-      duration: 1.2,
+      duration: 0.8,
       ease: 'power2.out'
     });
 
