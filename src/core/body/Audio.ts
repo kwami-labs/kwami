@@ -26,13 +26,6 @@ export class KwamiAudio {
     frequency: 220,
     q: 0.85,
   };
-  private clampLowpassFrequency(frequency: number): number {
-    if (!this.audioContext) {
-      return Math.max(10, frequency);
-    }
-    const nyquist = this.audioContext.sampleRate / 2;
-    return Math.max(10, Math.min(frequency, nyquist));
-  }
   public parentKwami: any; // Reference to parent Kwami instance for state management
 
   constructor(audioFiles: string[] = [], config?: AudioConfig) {
@@ -525,6 +518,17 @@ export class KwamiAudio {
    */
   isLowpassFilterEnabled(): boolean {
     return this.isLowpassEnabled;
+  }
+
+  /**
+   * Clamp lowpass frequency to valid range
+   */
+  private clampLowpassFrequency(frequency: number): number {
+    if (!this.audioContext) {
+      return Math.max(10, frequency);
+    }
+    const nyquist = this.audioContext.sampleRate / 2;
+    return Math.max(10, Math.min(frequency, nyquist));
   }
 
   /**

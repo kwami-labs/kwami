@@ -714,6 +714,24 @@ class ScrollManager {
         return;
       }
 
+      // Check if video tab is active - if so, toggle video presentation instead of voice
+      const videoTab = document.querySelector('.tab-btn[data-tab="video"]');
+      const videoActive = videoTab?.classList.contains('active');
+      
+      if (videoActive) {
+        // For video tab, handle video toggling
+        if (currentVideoUrl && currentVideoMode !== 'none' && !isVideoLoading) {
+          console.log(`🎥 Blob clicked, switching from ${currentVideoMode} mode`);
+          toggleVideoPresentation();
+        } else if (!isVideoLoading && !currentVideoUrl) {
+          // Start playing a video if none is playing
+          console.log('🎥 Blob clicked, starting video playback');
+          playRandomVideo({ mode: 'background' });
+        }
+        return;
+      }
+
+      // Only handle voice recognition if not in video mode
       // Clear any existing timer
       if (this.clickTimer) {
         clearTimeout(this.clickTimer);
@@ -1184,22 +1202,8 @@ class LanguageSwitcher {
 
   private updateCurrentLanguageDisplay() {
     if (this.currentLangDisplay) {
-      const lang = getCurrentLanguage().toLowerCase();
-      const flagMap: Record<string, string> = {
-        'en': '🇺🇸',
-        'es': '🇪🇸',
-        'fr': '🇫🇷',
-        'zh': '🇨🇳',
-        'ko': '🇰🇷',
-        'ja': '🇯🇵',
-        'pt': '🇵🇹',
-        'it': '🇮🇹',
-        'ru': '🇷🇺',
-        'ar': '🇸🇦',
-        'nl': '🇳🇱'
-      };
-      const flag = flagMap[lang] || '🌐';
-      this.currentLangDisplay.textContent = flag;
+      const lang = getCurrentLanguage().toUpperCase().substring(0, 2);
+      this.currentLangDisplay.textContent = lang;
     }
   }
 }
@@ -1213,7 +1217,6 @@ document.addEventListener('DOMContentLoaded', () => {
   new ModeSwitcher();
   new ActionButtonManager();
   new LanguageSwitcher();
-  initBlobVideoClickToggle();
   
   // Update initial translations
   updatePageTranslations();
@@ -1690,6 +1693,26 @@ function getKwamiVideoElement(kwami: Kwami): HTMLVideoElement | null {
     return null;
   }
 
+  // Try to get the appropriate video element based on current mode
+  if (currentVideoMode === 'blob') {
+    // For blob mode, prioritize blob surface video element
+    const blobVideo = typeof body.getBlobSurfaceVideoElement === 'function' 
+      ? body.getBlobSurfaceVideoElement() 
+      : body.blobSurfaceVideoElement;
+    if (blobVideo instanceof HTMLVideoElement) {
+      return blobVideo;
+    }
+  }
+  
+  // For background mode or fallback
+  const backgroundVideo = typeof body.getBackgroundVideoElement === 'function' 
+    ? body.getBackgroundVideoElement() 
+    : body.backgroundVideoElement;
+  if (backgroundVideo instanceof HTMLVideoElement) {
+    return backgroundVideo;
+  }
+
+  // Final fallback - check all candidates
   const candidates = [
     typeof body.getBackgroundVideoElement === 'function' ? body.getBackgroundVideoElement() : undefined,
     body.backgroundVideoElement,
@@ -2016,14 +2039,17 @@ async function playVideoAsBackground(kwami: Kwami, url: string): Promise<boolean
 
 async function playVideoInsideBlob(kwami: Kwami, url: string): Promise<boolean> {
   try {
+    console.log('🎥 Starting playVideoInsideBlob with URL:', url);
     kwami.body.clearBackgroundMedia();
 
     if (!glassModeActiveForVideo) {
       previousKwamiSkinForVideo = previousKwamiSkinForVideo ?? kwami.body.blob.getCurrentSkin();
+      console.log('🎥 Enabling glass mode, previous skin:', previousKwamiSkinForVideo);
       kwami.body.setBlobImageTransparencyMode(true, { mode: 'glass', opacity: 0.4 });
       glassModeActiveForVideo = true;
     }
 
+    console.log('🎥 Setting blob surface video...');
     kwami.body.setBlobSurfaceVideo(url, {
       autoplay: true,
       loop: true,
@@ -2031,10 +2057,14 @@ async function playVideoInsideBlob(kwami: Kwami, url: string): Promise<boolean> 
       playbackRate: 1,
     });
 
+    // Set the mode early so getKwamiVideoElement knows to look for blob video
+    currentVideoMode = 'blob';
+
     const videoElement = await waitForKwamiVideoElement(kwami);
 
     if (!videoElement) {
       console.warn('🎥 Blob video element was not ready, trying another source...');
+      currentVideoMode = 'none';
       return false;
     }
 
@@ -2054,13 +2084,14 @@ async function playVideoInsideBlob(kwami: Kwami, url: string): Promise<boolean> 
 
     if (attachResult === 'success') {
       console.log('🎥 Video streaming inside blob with glass effect!');
+      // currentVideoMode is already set in attachVideoAudioToKwami
       return true;
     }
 
     if (attachResult === 'no-audio') {
       console.warn('🎥 Blob video has no audio track. Showing visual-only mode.');
       kwami.setState('thinking');
-      currentVideoMode = 'blob';
+      // currentVideoMode is already set to 'blob' earlier
       return true;
     }
 
@@ -2083,27 +2114,6 @@ async function toggleVideoPresentation() {
   }
 
   await playRandomVideo({ mode: 'background' });
-}
-
-function initBlobVideoClickToggle() {
-  const container = document.getElementById('kwami-container');
-  if (!container) return;
-
-  container.addEventListener('click', async (event) => {
-    // Only handle clicks when video tab is active and video is playing
-    const videoTab = document.querySelector('.tab-btn[data-tab="video"]');
-    const videoActive = videoTab?.classList.contains('active');
-    
-    if (!videoActive || isVideoLoading || !currentVideoUrl || currentVideoMode === 'none') {
-      return;
-    }
-
-    event.stopPropagation();
-    event.preventDefault();
-
-    console.log(`🎥 Blob clicked, switching from ${currentVideoMode} mode`);
-    await toggleVideoPresentation();
-  });
 }
 
 // Console message

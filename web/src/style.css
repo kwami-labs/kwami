@@ -678,25 +678,31 @@ body {
   left: 2rem;
   font-size: 1.8rem;
   font-weight: 700;
-  color: #ffffff;
+  background: linear-gradient(
+    135deg,
+    var(--color-primary),
+    var(--color-secondary)
+  );
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
   text-transform: uppercase;
   letter-spacing: 0.2em;
-  pointer-events: auto;
-  cursor: pointer;
+  pointer-events: none;
   z-index: 10000;
   display: flex;
   align-items: center;
   gap: 0.5rem;
-  text-decoration: none;
-  transition: opacity 0.3s ease;
-}
-
-.kwami-label:hover {
-  opacity: 0.8;
+  background-size: 200% 200%;
+  transition: background 0.8s cubic-bezier(0.4, 0, 0.2, 1);
+  animation: gradient-shift 3s ease infinite;
 }
 
 .kwami-label span {
-  color: #ffffff;
+  -webkit-text-fill-color: initial;
+  background: none;
+  -webkit-background-clip: initial;
+  background-clip: initial;
 }
 
 @keyframes pulse-glow {

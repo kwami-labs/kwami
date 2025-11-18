@@ -2,6 +2,61 @@ import { gsap } from 'gsap';
 import { Kwami } from 'kwami';
 import i18next, { t } from '../i18n';
 
+// Helper function to blend two hex colors for middle gradient
+function blendColors(color1: string, color2: string): string {
+  const r1 = parseInt(color1.slice(1, 3), 16);
+  const g1 = parseInt(color1.slice(3, 5), 16);
+  const b1 = parseInt(color1.slice(5, 7), 16);
+  
+  const r2 = parseInt(color2.slice(1, 3), 16);
+  const g2 = parseInt(color2.slice(3, 5), 16);
+  const b2 = parseInt(color2.slice(5, 7), 16);
+  
+  const r = Math.round((r1 + r2) / 2);
+  const g = Math.round((g1 + g2) / 2);
+  const b = Math.round((b1 + b2) / 2);
+  
+  return `#${r.toString(16).padStart(2, '0')}${g.toString(16).padStart(2, '0')}${b.toString(16).padStart(2, '0')}`;
+}
+
+// Tailwind -500 colors ordered from top to bottom of color spectrum (22 colors)
+const tailwindColors500 = [
+  '#ef4444', // red-500
+  '#f97316', // orange-500
+  '#f59e0b', // amber-500
+  '#eab308', // yellow-500
+  '#84cc16', // lime-500
+  '#22c55e', // green-500
+  '#10b981', // emerald-500
+  '#14b8a6', // teal-500
+  '#06b6d4', // cyan-500
+  '#0ea5e9', // sky-500
+  '#3b82f6', // blue-500
+  '#6366f1', // indigo-500
+  '#8b5cf6', // violet-500
+  '#a855f7', // purple-500
+  '#d946ef', // fuchsia-500
+  '#ec4899', // pink-500
+  '#f43f5e', // rose-500
+  '#dc2626', // red-600 (deeper red)
+  '#ea580c', // orange-600
+  '#d97706', // amber-600
+  '#ca8a04', // yellow-600
+  '#65a30d', // lime-600
+];
+
+// Generate color palettes for 22 sections using sequential 2-color gradients
+const colorPalettes = tailwindColors500.map((color, index) => {
+  const nextColor = tailwindColors500[(index + 1) % tailwindColors500.length];
+  const middleColor = blendColors(color, nextColor);
+  
+  return {
+    primary: color,        // Color 1 for Kwami blob
+    secondary: nextColor,  // Color 2 for Kwami blob  
+    accent: middleColor    // Blended middle color for Kwami blob
+  };
+});
+
 export class WelcomeLayer {
   private showButton = true;
   private startAnimation = false;
@@ -17,6 +72,8 @@ export class WelcomeLayer {
   private blobSpikeState = { x: 0, y: 0, z: 0 };
   private blobTimeState = { x: 0, y: 0, z: 0 };
   private hasStartedSvgAnimation = false;
+  private scrollHandler: (() => void) | null = null;
+  private currentSection = 0;
 
   constructor() {
     this.secondsContainer = this.secondsLoader + 2;
@@ -95,9 +152,9 @@ export class WelcomeLayer {
 
       // Initialize Kwami with FIXED black configuration (no randomness)
       const spikes = {
-        x: 1.4,
-        y: 0.9,
-        z: 1.8
+        x: 0.2,
+        y: 2.2,
+        z: 0.3
       };
 
       const timeConfig = {
@@ -109,21 +166,23 @@ export class WelcomeLayer {
       this.blobSpikeState = { ...spikes };
       this.blobTimeState = { ...timeConfig };
 
-      // FIXED BLACK KWAMI - no random variation
+      // Get the initial palette for section 0
+      const initialPalette = colorPalettes[0];
+      
       this.kwami = new Kwami(canvas, {
         body: {
           initialSkin: 'Donut',
           blob: {
             resolution: 180,
-            spikes,  // FIXED: {x: 1.4, y: 0.9, z: 1.8}
-            time: timeConfig,  // FIXED: {x: 3, y: 3, z: 3}
+            spikes,
+            time: timeConfig,
             rotation: { x: 0, y: 0, z: 0 },
             wireframe: false,
             shininess: 0,
             colors: {
-              x: '#000000',  // FIXED: pure black
-              y: '#ffffff',  // FIXED: white
-              z: '#000000'   // FIXED: dark gray
+              x: '#ffffff',
+              y: initialPalette.accent,
+              z: '#000000'
             }
           },
           scene: {
@@ -132,42 +191,25 @@ export class WelcomeLayer {
           }
         }
       });
-      
-      console.log('✨ Fixed black & white welcome Kwami initialized:', {
-        skin: 'Donut',
-        spikes,
-        time: timeConfig,
-        colors: { x: '#000000', y: '#ffffff', z: '#000000' },
-        shininess: 0
-      });
 
       // Set blob scale based on screen size - bigger for welcome screen
       const isMobile = window.innerWidth <= 768;
-      const blobScale = isMobile ? 5.5 : 7.8;
+      const blobScale = isMobile ? 6.5 : 7.8;
       this.kwami.body.blob.setScale(blobScale);
       this.kwami.body.blob.setWireframe(false);
       
       // FORCE set colors explicitly after initialization to override any defaults
-      this.kwami.body.blob.setColors('#000000', '#ffffff', '#000000');
+      this.kwami.body.blob.setColors('#ffffff', initialPalette.accent, '#000000');
       
       // FORCE set spikes and time explicitly
-      this.kwami.body.blob.setSpikes(1.4, 0.9, 1.8);
-      this.kwami.body.blob.setTime(3, 3, 3);
+      this.kwami.body.blob.setSpikes(0.05, 5.2, 0.05);
+      this.kwami.body.blob.setTime(3, 6, 3);
       
       // FORCE set skin explicitly
       this.kwami.body.blob.setSkin('Donut');
       
       // FORCE set shininess to 0 (no shine/glossiness)
-      this.kwami.body.blob.setShininess(0);
-      
-      console.log('🔒 Forced black & white blob configuration:', {
-        colors: ['#000000', '#ffffff', '#000000'],
-        spikes: [1.4, 0.9, 1.8],
-        time: [3, 3, 3],
-        skin: 'Donut',
-        wireframe: false,
-        shininess: 0
-      });
+      this.kwami.body.blob.setShininess(0.5);
 
       const blobMesh = this.kwami.body.blob.getMesh();
       blobMesh.position.set(0, 0, 0);
@@ -183,8 +225,46 @@ export class WelcomeLayer {
       animate();
 
       console.log('✨ Welcome Kwami initialized!');
+      
+      // Setup scroll handler to update blob color based on page section
+      this.setupScrollHandler();
     } catch (error) {
       console.error('❌ Failed to initialize welcome Kwami:', error);
+    }
+  }
+
+  private setupScrollHandler() {
+    this.scrollHandler = () => {
+      if (!this.kwami || !this.showButton) return;
+
+      const scrollTop = window.scrollY;
+      const docHeight = document.documentElement.scrollHeight;
+      
+      // Calculate which section we're in (22 sections total)
+      const totalSections = 22;
+      const sectionHeight = docHeight / totalSections;
+      const section = Math.min(
+        Math.floor(scrollTop / sectionHeight),
+        totalSections - 1
+      );
+
+      // Only update if section changed
+      if (section !== this.currentSection) {
+        this.currentSection = section;
+        const palette = colorPalettes[section % colorPalettes.length];
+        
+        // Update the blob's middle color (y-axis) to match the current section color
+        this.kwami.body.blob.setColors('#ffffff', palette.accent, '#000000');
+      }
+    };
+
+    window.addEventListener('scroll', this.scrollHandler);
+  }
+
+  private cleanupScrollHandler() {
+    if (this.scrollHandler) {
+      window.removeEventListener('scroll', this.scrollHandler);
+      this.scrollHandler = null;
     }
   }
 
@@ -192,8 +272,12 @@ export class WelcomeLayer {
   private createSVG(): SVGSVGElement {
     const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
     svg.id = 'mainSVG';
-    svg.setAttribute('viewBox', '0 0 800 600');
-    svg.setAttribute('preserveAspectRatio', 'xMidYMid meet');
+    
+    // Use viewport dimensions for full screen coverage
+    const vw = window.innerWidth;
+    const vh = window.innerHeight;
+    svg.setAttribute('viewBox', `0 0 ${vw} ${vh}`);
+    svg.setAttribute('preserveAspectRatio', 'xMidYMid slice');
 
     // Create defs with gradient
     const defs = document.createElementNS('http://www.w3.org/2000/svg', 'defs');
@@ -225,18 +309,22 @@ export class WelcomeLayer {
     defs.appendChild(gradient);
     svg.appendChild(defs);
 
-    // Create 120 ellipses
+    // Create 120 ellipses centered on screen
+    const centerX = vw / 2;
+    const centerY = vh / 2;
+    const baseRadius = Math.min(vw, vh) * 0.08; // 8% of smaller dimension
+    
     for (let i = 0; i < 120; i++) {
       const ellipse = document.createElementNS('http://www.w3.org/2000/svg', 'ellipse');
       ellipse.classList.add('ell');
-      ellipse.setAttribute('cx', '400');
-      ellipse.setAttribute('cy', '300');
-      ellipse.setAttribute('rx', '80');
-      ellipse.setAttribute('ry', '80');
+      ellipse.setAttribute('cx', centerX.toString());
+      ellipse.setAttribute('cy', centerY.toString());
+      ellipse.setAttribute('rx', baseRadius.toString());
+      ellipse.setAttribute('ry', baseRadius.toString());
       svg.appendChild(ellipse);
     }
 
-    // Create AI path
+    // Create AI path - centered on screen
     const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
     path.id = 'ai';
     path.setAttribute('opacity', '0.95');
@@ -245,7 +333,8 @@ export class WelcomeLayer {
     path.setAttribute('stroke-linecap', 'round');
     path.setAttribute('stroke-miterlimit', '100');
     path.setAttribute('stroke-width', '1');
-    path.setAttribute('transform', 'translate(267,264.9)');
+    // Center the KWAMI text - translate to center of viewport
+    path.setAttribute('transform', `translate(${centerX - 133}, ${centerY - 35})`);
     svg.appendChild(path);
 
     return svg;
@@ -261,6 +350,9 @@ export class WelcomeLayer {
     if (kwamiContainer && svg && this.kwami) {
       this.showButton = false;
       window.scrollTo({ top: 0, behavior: 'smooth' });
+      
+      // Clean up scroll handler since we're starting the exit animation
+      this.cleanupScrollHandler();
       
       // Make blob spherical and animate it
       const blobMesh = this.kwami.body.blob.getMesh();
@@ -284,8 +376,8 @@ export class WelcomeLayer {
       gsap.to(timeState, {
         duration: 3,
         x: 22,
-        y: 4,
-        z: 0,
+        y: 0,
+        z: 11,
         ease: 'power2.inOut',
         onUpdate: () => {
           blobRef.setTime(timeState.x, timeState.y, timeState.z);
@@ -313,21 +405,21 @@ export class WelcomeLayer {
         b: 255 
       };
       
-      gsap.to(colorState, {
-        duration: 2,
-        delay: 2,
-        r: 0, // black
-        g: 0,
-        b: 0,
-        ease: 'power2.in',
-        onUpdate: () => {
-          const r = Math.round(colorState.r);
-          const g = Math.round(colorState.g);
-          const b = Math.round(colorState.b);
-          const yColor = `#${r.toString(16).padStart(2, '0')}${g.toString(16).padStart(2, '0')}${b.toString(16).padStart(2, '0')}`;
-          blobRef.setColors('#000000', yColor, '#000000');
-        }
-      });
+      // gsap.to(colorState, {
+      //   duration: 2,
+      //   delay: 2,
+      //   r: 0, // black
+      //   g: 0,
+      //   b: 0,
+      //   ease: 'power2.in',
+      //   onUpdate: () => {
+      //     const r = Math.round(colorState.r);
+      //     const g = Math.round(colorState.g);
+      //     const b = Math.round(colorState.b);
+      //     const yColor = `#${r.toString(16).padStart(2, '0')}${g.toString(16).padStart(2, '0')}${b.toString(16).padStart(2, '0')}`;
+      //     blobRef.setColors('#000000', yColor, '#000000');
+      //   }
+      // });
       
       // PHASE 2: Fade out with accelerating rotation
       let rotationSpeed = 0.1; // Start with current idle speed
@@ -526,6 +618,9 @@ export class WelcomeLayer {
         this.audioElement.src = '';
         this.audioElement = null;
       }
+      
+      // Clean up scroll handler
+      this.cleanupScrollHandler();
     }, this.secondsContainer * 1000);
   }
 

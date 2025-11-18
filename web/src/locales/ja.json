@@ -1,299 +1,298 @@
 {
   "page": {
-    "title": "Kwami - Your Interactive AI Companion"
+    "title": "Kwami - あなたの対話型AIコンパニオン"
   },
   "nav": {
-    "aria_navigate": "Navigate to section {{number}}"
+    "aria_navigate": "セクション{{number}}に移動"
   },
   "tabs": {
-    "voice": "Voice",
-    "music": "Music",
-    "video": "Video"
+    "voice": "音声",
+    "music": "音楽",
+    "video": "動画"
   },
   "header_links": {
-    "playground": "Try Interactive Playground",
-    "candy": "Mint Your Kwami NFT",
-    "github": "Star on GitHub"
+    "playground": "インタラクティブプレイグラウンドを試す",
+    "candy": "Kwami NFTをミント",
+    "github": "GitHubでスター"
   },
   "pages": {
     "00": {
-      "title": "Meet Kwami",
-      "main": "Kwami is a single canvas where AI voice, music, and motion stay perfectly in sync.",
+      "title": "Kwamiに会う",
+      "main": "Kwamiは、AI音声、音楽、動きが完璧に同期する単一のキャンバスです。",
       "messages": [
-        "Scroll the story on the left while the blob mirrors every state change on the right.",
-        "Kwami is a single canvas where AI voice, music, and motion stay perfectly in sync."
+        "左側でストーリーをスクロールしながら、右側のblobがすべての状態変化を反映します。",
+        "Kwamiは、AI音声、音楽、動きが完璧に同期する単一のキャンバスです。"
       ],
-      "button": "🚀 Launch Playground"
+      "button": "🚀 プレイグラウンドを起動"
     },
     "01": {
-      "title": "Why Kwami",
-      "main": "Because we are tired of big tech exploiting our data and we don't want an AI industry govern by corporations but by the people.",
+      "title": "なぜKwamiか",
+      "main": "大手テック企業が私たちのデータを搾取することにうんざりしており、企業ではなく人々によってAI業界が統治されることを望んでいるからです。",
       "messages": [
-        "We want to create a community-driven AI industry where people are in control of their data and their AI companions.",
-        "Because we are tired of big tech exploiting our data.",
-        "We believe AI should be governed by the people, not corporations."
+        "人々が自分のデータとAIコンパニオンをコントロールできるコミュニティ主導のAI業界を作りたいと考えています。",
+        "大手テック企業が私たちのデータを搾取することにうんざりしています。",
+        "AIは企業ではなく人々によって統治されるべきだと考えています。"
       ],
-      "button": "💡 Learn More"
+      "button": "💡 もっと学ぶ"
     },
     "02": {
-      "title": "Quick Start",
-      "main": "Install the package, run the playground, and point Kwami at any canvas.",
+      "title": "クイックスタート",
+      "main": "パッケージをインストールし、プレイグラウンドを実行し、Kwamiを任意のキャンバスにポイントします。",
       "messages": [
-        "Single-click listens, double-click randomizes—no extra wiring required.",
-        "Get started in minutes with simple npm install.",
-        "Point Kwami at any canvas and watch it come alive."
+        "シングルクリックで聞く、ダブルクリックでランダム化—追加の配線は不要です。",
+        "簡単なnpmインストールで数分で始められます。",
+        "Kwamiを任意のキャンバスにポイントして、それが生き返るのを見てください。"
       ],
-      "button": "▶️ Run Playground Locally"
+      "button": "▶️ ローカルでプレイグラウンドを実行"
     },
     "03": {
-      "title": "Architecture",
-      "main": "Mind, Body, and Soul stay decoupled so teams can tweak logic, visuals, or vibe independently.",
+      "title": "アーキテクチャ",
+      "main": "Mind、Body、Soulは分離されているため、チームはロジック、ビジュアル、または雰囲気を独立して調整できます。",
       "messages": [
-        "Swap sidebars inside the Playground to feel how each layer plugs in.",
-        "Mind handles AI logic, Body handles visuals, Soul handles personality.",
-        "Clean separation means you can customize any layer independently."
+        "プレイグラウンド内でサイドバーを交換して、各レイヤーがどのように接続されるかを感じてください。",
+        "MindはAIロジックを処理し、Bodyはビジュアルを処理し、Soulは個性を処理します。",
+        "クリーンな分離により、任意のレイヤーを独立してカスタマイズできます。"
       ],
-      "button": "🔁 Rotate Sidebars"
+      "button": "🔁 サイドバーを回転"
     },
     "04": {
-      "title": "Mind Layer",
-      "main": "Define providers, enter an ElevenLabs key, and spin up conversations with one click.",
+      "title": "Mindレイヤー",
+      "main": "プロバイダーを定義し、ElevenLabsキーを入力し、ワンクリックで会話を開始します。",
       "messages": [
-        "Plug in any AI provider with a simple interface.",
-        "ElevenLabs integration for natural voice conversations.",
-        "Switch between OpenAI, Anthropic, or custom providers seamlessly."
+        "シンプルなインターフェースで任意のAIプロバイダーを接続します。",
+        "自然な音声会話のためのElevenLabs統合。",
+        "OpenAI、Anthropic、またはカスタムプロバイダー間をシームレスに切り替えます。"
       ],
-      "button": "🤖 Initialize AI Agent"
+      "button": "🤖 AIエージェントを初期化"
     },
     "05": {
-      "title": "Body Layer",
-      "main": "The WebGL blob reacts to FFT data, touch ripples, and pointer gestures in real time.",
+      "title": "Bodyレイヤー",
+      "main": "WebGL blobはFFTデータ、タッチリップル、ポインタージェスチャーにリアルタイムで反応します。",
       "messages": [
-        "Audio-reactive visuals that pulse with every beat.",
-        "Touch and gesture interactions create ripple effects.",
-        "Customizable skins: Donut, Poles, or Vintage styles."
+        "すべてのビートに合わせて脈動するオーディオ反応型ビジュアル。",
+        "タッチとジェスチャーの相互作用がリップル効果を作り出します。",
+        "カスタマイズ可能なスキン：Donut、Poles、またはVintageスタイル。"
       ],
-      "button": "🎲 Randomize Blob"
+      "button": "🎲 Blobをランダム化"
     },
     "06": {
-      "title": "Soul Layer",
-      "main": "Ten emotional traits steer prompts, voice tone, and animation states.",
+      "title": "Soulレイヤー",
+      "main": "10の感情特性がプロンプト、音声トーン、アニメーション状態を導きます。",
       "messages": [
-        "Define your companion's personality with emotional traits.",
-        "Traits influence voice tone, responses, and animations.",
-        "Create unique personalities from playful to professional."
+        "感情特性でコンパニオンの個性を定義します。",
+        "特性は音声トーン、応答、アニメーションに影響します。",
+        "遊び心のあるものからプロフェッショナルなものまで、ユニークな個性を作成します。"
       ],
-      "button": "✨ Apply Soul Config"
+      "button": "✨ Soul設定を適用"
     },
     "07": {
-      "title": "Interaction Flow",
-      "main": "Idle, listening, thinking, and speaking states keep the blob legible at a glance.",
+      "title": "インタラクションフロー",
+      "main": "アイドル、リスニング、思考、スピーキングの状態により、blobを一目で読み取れます。",
       "messages": [
-        "Visual states show exactly what your companion is doing.",
-        "Smooth transitions between idle, listening, thinking, and speaking.",
-        "Audio filters enhance the sense of presence and attention."
+        "視覚的な状態が、コンパニオンが正確に何をしているかを示します。",
+        "アイドル、リスニング、思考、スピーキング間のスムーズな遷移。",
+        "オーディオフィルターが存在感と注意力の感覚を強化します。"
       ],
-      "button": "👂 Test Listening Mode"
+      "button": "👂 リスニングモードをテスト"
     },
     "08": {
-      "title": "Visual Styles",
-      "main": "Pick gradients, glass, imagery, or videos and keep typography synced with palette shifts.",
+      "title": "視覚スタイル",
+      "main": "グラデーション、ガラス、画像、または動画を選択し、タイポグラフィをパレットシフトと同期させます。",
       "messages": [
-        "Dynamic color palettes that shift as you scroll.",
-        "Set custom backgrounds: gradients, images, or videos.",
-        "Typography automatically syncs with your chosen palette."
+        "スクロールに応じて変化する動的なカラーパレット。",
+        "カスタム背景を設定：グラデーション、画像、または動画。",
+        "タイポグラフィが選択したパレットと自動的に同期します。"
       ],
-      "button": "🖼️ Tune Background"
+      "button": "🖼️ 背景を調整"
     },
     "09": {
-      "title": "Audio & Voice",
-      "main": "Web Audio analysis drives spikes while ElevenLabs handles low-latency speech.",
+      "title": "オーディオと音声",
+      "main": "Web Audio分析がスパイクを駆動し、ElevenLabsが低遅延音声を処理します。",
       "messages": [
-        "Real-time FFT analysis creates audio-reactive animations.",
-        "Low-latency voice synthesis with ElevenLabs.",
-        "Play music and watch the blob dance to the rhythm."
+        "リアルタイムFFT分析がオーディオ反応型アニメーションを作成します。",
+        "ElevenLabsによる低遅延音声合成。",
+        "音楽を再生し、blobがリズムに合わせて踊るのを見てください。"
       ],
-      "button": "🎤 Make Kwami Speak"
+      "button": "🎤 Kwamiに話させる"
     },
     "10": {
-      "title": "Provider Architecture",
-      "main": "Every vendor implements the same `connect / speak / listen / dispose` surface.",
+      "title": "プロバイダーアーキテクチャ",
+      "main": "すべてのベンダーが同じ`connect / speak / listen / dispose`インターフェースを実装します。",
       "messages": [
-        "Unified interface for all AI providers.",
-        "Easy to add custom providers with standard methods.",
-        "Switch providers without changing your app code."
+        "すべてのAIプロバイダー用の統一インターフェース。",
+        "標準メソッドでカスタムプロバイダーを簡単に追加できます。",
+        "アプリコードを変更せずにプロバイダーを切り替えます。"
       ],
-      "button": "🔌 Swap Providers"
+      "button": "🔌 プロバイダーを交換"
     },
     "11": {
-      "title": "Customization & Config",
-      "main": "Adjust spikes, time, skins, rotation, and emotional ranges with type-safe configs.",
+      "title": "カスタマイズと設定",
+      "main": "タイプセーフな設定でスパイク、時間、スキン、回転、感情範囲を調整します。",
       "messages": [
-        "Fine-tune every aspect of your blob's appearance.",
-        "Type-safe configuration ensures no runtime surprises.",
-        "Live preview your changes in the playground."
+        "blobの外観のあらゆる側面を微調整します。",
+        "タイプセーフな設定により、実行時の予期しない動作を防ぎます。",
+        "プレイグラウンドで変更をライブプレビューします。"
       ],
-      "button": "🛠️ Adjust Spikes"
+      "button": "🛠️ スパイクを調整"
     },
     "12": {
-      "title": "Developer Toolkit",
-      "main": "Export GLB models, reuse Nuxt/Bun starters, or drop straight into any SPA.",
+      "title": "開発者ツールキット",
+      "main": "GLBモデルをエクスポートし、Nuxt/Bunスターターを再利用するか、任意のSPAに直接ドロップします。",
       "messages": [
-        "Export your blob as a GLB for use in 3D apps.",
-        "Starter templates for Nuxt, Bun, and vanilla JS.",
-        "Works with any framework: React, Vue, Svelte, or vanilla."
+        "blobをGLBとしてエクスポートして3Dアプリで使用します。",
+        "Nuxt、Bun、およびvanilla JS用のスターターテンプレート。",
+        "任意のフレームワークで動作：React、Vue、Svelte、またはvanilla。"
       ],
-      "button": "💾 Download GLB"
+      "button": "💾 GLBをダウンロード"
     },
     "13": {
-      "title": "Performance & Testing",
-      "main": "60fps targets, Vitest suites, and strict TS settings keep experiments shippable.",
+      "title": "パフォーマンスとテスト",
+      "main": "60fpsターゲット、Vitestスイート、および厳密なTS設定により、実験を出荷可能に保ちます。",
       "messages": [
-        "Optimized for smooth 60fps animations.",
-        "Comprehensive test suites with Vitest.",
-        "Strict TypeScript for catching bugs early."
+        "スムーズな60fpsアニメーション用に最適化されています。",
+        "Vitestによる包括的なテストスイート。",
+        "バグを早期に発見するための厳密なTypeScript。"
       ],
-      "button": "🤔 Test Thinking Mode"
+      "button": "🤔 思考モードをテスト"
     },
     "14": {
-      "title": "Use Cases",
-      "main": "From DJ sets to wellness companions, upload any track and watch the blob respond.",
+      "title": "ユースケース",
+      "main": "DJセットからウェルネスコンパニオンまで、任意のトラックをアップロードしてblobの反応を見てください。",
       "messages": [
-        "Perfect for DJ sets and music visualizations.",
-        "Create wellness and meditation companions.",
-        "Build customer service bots with personality."
+        "DJセットと音楽ビジュアライゼーションに最適です。",
+        "ウェルネスと瞑想コンパニオンを作成します。",
+        "個性のあるカスタマーサービスボットを構築します。"
       ],
-      "button": "📁 Upload Audio"
+      "button": "📁 オーディオをアップロード"
     },
     "15": {
-      "title": "Connected Ecosystem",
-      "main": "Kwami ties into kwami.io, qwami.io, and quami.io so one NFT companion spans Web2/Web3 workflows.",
+      "title": "接続されたエコシステム",
+      "main": "Kwamiはkwami.io、qwami.io、quami.ioに接続され、1つのNFTコンパニオンがWeb2/Web3ワークフローにまたがります。",
       "messages": [
-        "One NFT companion works across all our platforms.",
-        "Seamless integration between Web2 and Web3.",
-        "Your companion's DNA persists on-chain."
+        "1つのNFTコンパニオンがすべてのプラットフォームで動作します。",
+        "Web2とWeb3間のシームレスな統合。",
+        "コンパニオンのDNAがチェーン上で永続化されます。"
       ],
-      "button": "🌐 Connect Services"
+      "button": "🌐 サービスを接続"
     },
     "16": {
-      "title": "Ownership & Web3",
-      "main": "Mint a Kwami on Solana and keep the blob's DNA hash synced with live configs.",
+      "title": "所有権とWeb3",
+      "main": "SolanaでKwamiをミントし、blobのDNAハッシュをライブ設定と同期させます。",
       "messages": [
-        "Mint your companion as an NFT on Solana.",
-        "Blob DNA stored on-chain for true ownership.",
-        "Sync on-chain config with your live instance."
+        "SolanaでコンパニオンをNFTとしてミントします。",
+        "真の所有権のためにチェーン上に保存されたBlob DNA。",
+        "チェーン上の設定をライブインスタンスと同期します。"
       ],
-      "button": "💎 Mint a Kwami"
+      "button": "💎 Kwamiをミント"
     },
     "17": {
-      "title": "Roadmap",
-      "main": "WebXR, multi-character scenes, physics, and plugins are already in flight.",
+      "title": "ロードマップ",
+      "main": "WebXR、マルチキャラクターシーン、物理、プラグインはすでに進行中です。",
       "messages": [
-        "WebXR support coming soon for immersive experiences.",
-        "Multi-character scenes for group interactions.",
-        "Physics engine and plugin system in development."
+        "没入型体験のためのWebXRサポートがまもなく提供されます。",
+        "グループインタラクション用のマルチキャラクターシーン。",
+        "物理エンジンとプラグインシステムが開発中です。"
       ],
-      "button": "🔮 View Roadmap"
+      "button": "🔮 ロードマップを表示"
     },
     "18": {
-      "title": "Learning Path",
-      "main": "Follow the docs from Getting Started to Mind/Body/Soul deep dives within minutes.",
+      "title": "学習パス",
+      "main": "数分でGetting StartedからMind/Body/Soulの深い探求までドキュメントに従ってください。",
       "messages": [
-        "Comprehensive docs from beginner to advanced.",
-        "Deep dives into Mind, Body, and Soul layers.",
-        "Video tutorials and live examples included."
+        "初心者から上級者まで包括的なドキュメント。",
+        "Mind、Body、Soulレイヤーへの深い探求。",
+        "ビデオチュートリアルとライブ例が含まれています。"
       ],
-      "button": "📚 Open Guides"
+      "button": "📚 ガイドを開く"
     },
     "19": {
-      "title": "Community",
-      "main": "Share shaders, providers, or docs PRs—everything lives in the open.",
+      "title": "コミュニティ",
+      "main": "シェーダー、プロバイダー、またはドキュメントPRを共有してください—すべてがオープンに存在します。",
       "messages": [
-        "Join our Discord to connect with other builders.",
-        "Share custom shaders, providers, and configs.",
-        "Contribute to docs and earn community recognition."
+        "Discordに参加して他のビルダーとつながりましょう。",
+        "カスタムシェーダー、プロバイダー、設定を共有します。",
+        "ドキュメントに貢献してコミュニティの認識を得ます。"
       ],
-      "button": "🤝 Join Discord"
+      "button": "🤝 Discordに参加"
     },
     "20": {
-      "title": "Pro & Enterprise",
-      "main": "Upgrade for white-labeling, premium providers, analytics, and dedicated support.",
+      "title": "プロとエンタープライズ",
+      "main": "ホワイトラベリング、プレミアムプロバイダー、分析、専用サポートのためにアップグレードします。",
       "messages": [
-        "White-label the platform with your branding.",
-        "Access premium AI providers and features.",
-        "Dedicated support and custom integrations available."
+        "ブランディングでプラットフォームをホワイトラベル化します。",
+        "プレミアムAIプロバイダーと機能にアクセスします。",
+        "専用サポートとカスタム統合が利用可能です。"
       ],
-      "button": "🏢 Talk to the Team"
+      "button": "🏢 チームと話す"
     },
     "21": {
-      "title": "Launch Your Companion",
-      "main": "Fork the repo, remix the blob, and drop your own AI companion in minutes.",
+      "title": "コンパニオンを起動",
+      "main": "リポジトリをフォークし、blobをリミックスし、数分で独自のAIコンパニオンをドロップします。",
       "messages": [
-        "Fork the repo and customize everything.",
-        "Deploy your companion to any hosting platform.",
-        "Join the community of Kwami builders today."
+        "リポジトリをフォークしてすべてをカスタマイズします。",
+        "任意のホスティングプラットフォームにコンパニオンをデプロイします。",
+        "今日Kwamiビルダーのコミュニティに参加してください。"
       ],
-      "button": "🚀 Start a Session"
+      "button": "🚀 セッションを開始"
     }
   },
   "labels": {
     "kwami": "Kwami"
   },
   "messages": {
-    "loading_music": "🎵 Loading: {{name}}",
-    "now_playing": "✅ Now playing: {{name}}",
-    "music_stopped": "🛑 Music stopped",
-    "song_ended": "🎵 Song ended",
-    "no_music_files": "⚠️ No music files available",
-    "kwami_not_initialized": "⚠️ Kwami not initialized yet",
-    "mode_switched": "Mode switched to: {{mode}}",
-    "listening_started": "🎤 Started listening for \"kwami\"...",
-    "listening_stopped": "🛑 Stopped listening",
-    "kwami_detected": "✨ \"Kwami\" detected! Randomizing blob...",
-    "double_click_detected": "🎲 Double-click detected, randomizing blob",
-    "blob_randomized": "🎲 Blob randomized with {{skin}} skin!"
+    "loading_music": "🎵 読み込み中: {{name}}",
+    "now_playing": "✅ 再生中: {{name}}",
+    "music_stopped": "🛑 音楽が停止しました",
+    "song_ended": "🎵 曲が終了しました",
+    "no_music_files": "⚠️ 音楽ファイルが利用できません",
+    "kwami_not_initialized": "⚠️ Kwamiがまだ初期化されていません",
+    "mode_switched": "モードが切り替わりました: {{mode}}",
+    "listening_started": "🎤 \"kwami\"の聞き取りを開始しました...",
+    "listening_stopped": "🛑 聞き取りを停止しました",
+    "kwami_detected": "✨ \"Kwami\"が検出されました！blobをランダム化中...",
+    "double_click_detected": "🎲 ダブルクリックが検出されました、blobをランダム化中",
+    "blob_randomized": "🎲 {{skin}}スキンでblobがランダム化されました！"
   },
   "welcome_layer": {
-    "heading": "Welcome to Kwami's voice canvas.",
-    "line1": "Tap the blob to unlock audio playback directly in your browser.",
-    "line2": "Everything lives on this device—no servers, trackers, or cookies involved.",
-    "line3": "Touching the blob still counts as accepting our invisible cookies."
+    "heading": "Kwamiの音声キャンバスへようこそ。",
+    "line1": "blobをタップして、ブラウザで直接オーディオ再生のロックを解除します。",
+    "line2": "すべてがこのデバイス上に存在します—サーバー、トラッカー、またはクッキーは関与しません。",
+    "line3": "blobに触れることは、まだ私たちの見えないクッキーを受け入れることとしてカウントされます。"
   },
   "console": {
-    "welcome": "🎨 Kwami - Interactive AI Companion",
+    "welcome": "🎨 Kwami - 対話型AIコンパニオン",
     "github": "👻 https://github.com/alexcolls/kwami",
-    "tip_scroll": "Tip: Scroll to see the real Kwami blob morph!",
-    "tip_double_click": "Tip: Double-click the blob to randomize it! 🎲",
-    "tip_voice": "Tip: Click the blob to start listening, then say \"kwami\" to randomize! 🎤",
-    "tip_music": "Tip: Click the Music tab to play a random song! 🎵"
+    "tip_scroll": "ヒント: スクロールして実際のKwami blobの変形を見てください！",
+    "tip_double_click": "ヒント: blobをダブルクリックしてランダム化してください！🎲",
+    "tip_voice": "ヒント: blobをクリックして聞き取りを開始し、次に\"kwami\"と言ってランダム化してください！🎤",
+    "tip_music": "ヒント: 音楽タブをクリックしてランダムな曲を再生してください！🎵"
   },
   "action_feedback": {
-    "launch_playground": "Opening the live playground...",
-    "view_demo": "Loading the demo layout...",
-    "run_playground": "Copied: npm run playground",
-    "swap_sidebars": "Swap the sidebars inside the playground",
-    "init_mind": "Mind controls opened in a new tab",
-    "randomize_blob": "Hit 🎲 Randomize Blob in the playground",
-    "apply_soul": "Soul presets ready to apply",
-    "test_listening": "Listening mode queued in the playground",
-    "set_background": "Background controls opened",
-    "speak": "Ready to send a new line to ElevenLabs",
-    "switch_provider": "Mind provider contract opened",
-    "adjust_spikes": "Spike sliders ready in playground",
-    "download_glb": "Export your blob as a GLB",
-    "test_thinking": "Thinking mode engaged",
-    "upload_audio": "Upload a track in the audio player",
-    "connect_services": "Opening the quami.io service hub",
-    "mint_nft": "Mint a Kwami on Solana",
-    "view_roadmap": "Roadmap opened on GitHub",
-    "open_guides": "Docs opened in a new tab",
-    "join_discord": "Discord invite opened",
-    "contact_team": "Say hello to the Kwami team",
-    "create_session": "Start a fresh playground session",
-    "copy_unavailable": "Copy unavailable"
+    "launch_playground": "ライブプレイグラウンドを開いています...",
+    "view_demo": "デモレイアウトを読み込み中...",
+    "run_playground": "コピーしました: npm run playground",
+    "swap_sidebars": "プレイグラウンド内でサイドバーを交換",
+    "init_mind": "Mindコントロールが新しいタブで開かれました",
+    "randomize_blob": "プレイグラウンドで🎲 Blobをランダム化をクリック",
+    "apply_soul": "Soulプリセットが適用準備完了",
+    "test_listening": "リスニングモードがプレイグラウンドでキューに入れられました",
+    "set_background": "背景コントロールが開かれました",
+    "speak": "ElevenLabsに新しい行を送信する準備ができました",
+    "switch_provider": "Mindプロバイダー契約が開かれました",
+    "adjust_spikes": "スパイクスライダーがプレイグラウンドで準備完了",
+    "download_glb": "blobをGLBとしてエクスポート",
+    "test_thinking": "思考モードが有効になりました",
+    "upload_audio": "オーディオプレーヤーにトラックをアップロード",
+    "connect_services": "quami.ioサービスハブを開いています",
+    "mint_nft": "SolanaでKwamiをミント",
+    "view_roadmap": "ロードマップがGitHubで開かれました",
+    "open_guides": "ドキュメントが新しいタブで開かれました",
+    "join_discord": "Discord招待が開かれました",
+    "contact_team": "Kwamiチームに挨拶する",
+    "create_session": "新しいプレイグラウンドセッションを開始",
+    "copy_unavailable": "コピーできません"
   },
   "lang_switcher": {
-    "label": "Language"
+    "label": "言語"
   }
 }
-
