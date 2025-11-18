@@ -1,4 +1,6 @@
 /* Welcome Layer Styles */
+@import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;500;600;700;800;900&family=Rajdhani:wght@300;400;500;600;700&display=swap');
+
 .loader-container {
   position: fixed;
   top: 0;
@@ -46,31 +48,32 @@
   left: 50%;
   transform: translateX(-50%);
   display: flex;
+  direction: ltr;
+  text-align: center;
   flex-direction: column;
   gap: 0.5rem;
-  max-width: 680px;
-  width: min(85vw, 680px);
+  max-width: 100%;
+  width: min(95vw, 100%);
+  padding: 0 2rem;
   text-align: center;
   color: rgba(255, 255, 255, 0.95);
   z-index: 10001;
   pointer-events: none;
-  font-family: 'Rajdhani', 'Orbitron', -apple-system, BlinkMacSystemFont, 'Inter', 'SF Pro Display', 'Segoe UI', system-ui, sans-serif;
+  font-family: -apple-system, BlinkMacSystemFont, 'Inter', 'SF Pro Display', 'Segoe UI', system-ui, sans-serif;
 }
 
 .info-line {
   margin: 0.2rem 0;
   font-size: 1.05rem;
-  font-weight: 400;
-  line-height: 1.6;
+  font-weight: 500;
+  line-height: 1.5;
   letter-spacing: 0.08em;
-  font-family: 'Rajdhani', sans-serif;
+  font-family: 'Rajdhani', 'Orbitron', 'Courier New', monospace;
   text-transform: uppercase;
-  color: rgba(255, 255, 255, 0.9);
+  color: rgba(255, 255, 255, 0.95);
   text-shadow: 
-    0 0 10px rgba(0, 255, 255, 0.3),
-    0 0 20px rgba(0, 255, 255, 0.2),
-    0 0 30px rgba(0, 255, 255, 0.1);
-  animation: textGlow 3s ease-in-out infinite alternate;
+    0 0 8px rgba(255, 255, 255, 0.2),
+    0 0 15px rgba(255, 255, 255, 0.1);
 }
 
 .info-line.heading {
@@ -78,30 +81,24 @@
   font-weight: 700;
   letter-spacing: 0.12em;
   margin-bottom: 0.8rem;
-  font-family: 'Orbitron', sans-serif;
-  background: linear-gradient(135deg, #00ffff 0%, #00aaff 50%, #ff00ff 100%);
+  font-family: 'Orbitron', 'Rajdhani', 'Courier New', monospace;
+  text-transform: uppercase;
+  background: linear-gradient(135deg, #ffffff 0%, #e0e0e0 100%);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
-  text-shadow: 
-    0 0 20px rgba(0, 255, 255, 0.5),
-    0 0 40px rgba(0, 255, 255, 0.3),
-    0 0 60px rgba(0, 255, 255, 0.2);
-  filter: drop-shadow(0 0 8px rgba(0, 255, 255, 0.4));
-  animation: headingGlow 2s ease-in-out infinite alternate;
+  text-shadow: none;
+  filter: drop-shadow(0 0 3px rgba(255, 255, 255, 0.3));
 }
 
 .info-line.subtle {
   font-size: 0.92rem;
-  opacity: 0.8;
-  font-weight: 300;
+  opacity: 0.85;
+  font-weight: 400;
   letter-spacing: 0.1em;
-  font-family: 'Rajdhani', sans-serif;
-  text-transform: uppercase;
-  color: rgba(200, 200, 255, 0.7);
   text-shadow: 
-    0 0 8px rgba(100, 150, 255, 0.4),
-    0 0 16px rgba(100, 150, 255, 0.2);
+    0 0 6px rgba(255, 255, 255, 0.15),
+    0 0 12px rgba(255, 255, 255, 0.1);
 }
 
 .info-line span {
@@ -109,6 +106,85 @@
   opacity: 0;
   transform: translateY(8px);
   animation: infoType 0.6s ease-out forwards;
+}
+
+.skip-welcome-container {
+  margin-top: 1.5rem;
+  padding-top: 1rem;
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.75rem;
+  pointer-events: auto;
+  opacity: 0;
+}
+
+.skip-welcome-checkbox {
+  width: 18px;
+  height: 18px;
+  cursor: pointer;
+  appearance: none;
+  -webkit-appearance: none;
+  border: 2px solid rgba(255, 255, 255, 0.4);
+  border-radius: 4px;
+  background: transparent;
+  position: relative;
+  transition: all 0.3s ease;
+  flex-shrink: 0;
+}
+
+.skip-welcome-checkbox:hover {
+  border-color: rgba(255, 255, 255, 0.6);
+  box-shadow: 
+    0 0 8px rgba(255, 255, 255, 0.2),
+    0 0 15px rgba(255, 255, 255, 0.1);
+}
+
+.skip-welcome-checkbox:checked {
+  background: rgba(255, 255, 255, 0.9);
+  border-color: rgba(255, 255, 255, 0.9);
+  box-shadow: 
+    0 0 8px rgba(255, 255, 255, 0.3),
+    0 0 15px rgba(255, 255, 255, 0.2);
+}
+
+.skip-welcome-checkbox:checked::after {
+  content: '✓';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  color: #000;
+  font-size: 13px;
+  font-weight: 700;
+  line-height: 1;
+}
+
+.skip-welcome-label {
+  font-family: 'Rajdhani', 'Orbitron', 'Courier New', monospace;
+  font-size: 0.85rem;
+  font-weight: 500;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: rgba(255, 255, 255, 0.8);
+  cursor: pointer;
+  transition: color 0.3s ease;
+  user-select: none;
+  text-shadow: 
+    0 0 6px rgba(255, 255, 255, 0.1),
+    0 0 12px rgba(255, 255, 255, 0.05);
+}
+
+.skip-welcome-label:hover {
+  color: rgba(255, 255, 255, 0.95);
+}
+
+.skip-welcome-checkbox:checked + .skip-welcome-label {
+  color: rgba(255, 255, 255, 1);
+  text-shadow: 
+    0 0 8px rgba(255, 255, 255, 0.3),
+    0 0 15px rgba(255, 255, 255, 0.2);
 }
 
 
@@ -155,55 +231,6 @@
   }
 }
 
-@keyframes textGlow {
-  0% {
-    text-shadow: 
-      0 0 10px rgba(0, 255, 255, 0.3),
-      0 0 20px rgba(0, 255, 255, 0.2),
-      0 0 30px rgba(0, 255, 255, 0.1);
-  }
-  100% {
-    text-shadow: 
-      0 0 15px rgba(0, 255, 255, 0.5),
-      0 0 30px rgba(0, 255, 255, 0.3),
-      0 0 45px rgba(0, 255, 255, 0.2);
-  }
-}
-
-@keyframes headingGlow {
-  0% {
-    filter: drop-shadow(0 0 8px rgba(0, 255, 255, 0.4));
-    text-shadow: 
-      0 0 20px rgba(0, 255, 255, 0.5),
-      0 0 40px rgba(0, 255, 255, 0.3),
-      0 0 60px rgba(0, 255, 255, 0.2);
-  }
-  100% {
-    filter: drop-shadow(0 0 12px rgba(0, 255, 255, 0.6));
-    text-shadow: 
-      0 0 30px rgba(0, 255, 255, 0.7),
-      0 0 50px rgba(0, 255, 255, 0.5),
-      0 0 70px rgba(0, 255, 255, 0.3);
-  }
-}
-
-@keyframes versionPulse {
-  0%, 100% {
-    opacity: 0.9;
-    text-shadow: 
-      0 0 10px rgba(0, 255, 255, 0.6),
-      0 0 20px rgba(0, 255, 255, 0.4),
-      0 0 30px rgba(0, 255, 255, 0.2);
-  }
-  50% {
-    opacity: 1;
-    text-shadow: 
-      0 0 15px rgba(0, 255, 255, 0.8),
-      0 0 30px rgba(0, 255, 255, 0.6),
-      0 0 45px rgba(0, 255, 255, 0.4);
-  }
-}
-
 .fade-in-leave-active {
   animation: fadeIn 0.5s ease-in;
 }
@@ -220,11 +247,12 @@
 }
 
 #mainSVG {
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100vw;
-  height: 100vh;
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: min(1400px, 95vw);
+  height: auto;
   z-index: 2;
   visibility: hidden;
   opacity: 0;
@@ -252,19 +280,16 @@
   bottom: 2.5rem;
   left: 50%;
   transform: translateX(-50%);
-  font-size: 0.875rem;
-  font-family: 'Orbitron', monospace;
+  font-size: 0.7rem;
+  font-family: 'Orbitron', 'Rajdhani', 'Courier New', monospace;
   font-weight: 600;
   letter-spacing: 0.15em;
   text-transform: uppercase;
-  color: rgba(0, 255, 255, 0.9);
-  opacity: 0.9;
+  color: rgba(255, 255, 255, 0.8);
+  opacity: 0.8;
   text-shadow: 
-    0 0 10px rgba(0, 255, 255, 0.6),
-    0 0 20px rgba(0, 255, 255, 0.4),
-    0 0 30px rgba(0, 255, 255, 0.2);
-  animation: versionPulse 2.5s ease-in-out infinite;
-  filter: drop-shadow(0 0 4px rgba(0, 255, 255, 0.5));
+    0 0 6px rgba(255, 255, 255, 0.2),
+    0 0 12px rgba(255, 255, 255, 0.1);
 }
 
 /* Responsive Design */
@@ -276,7 +301,8 @@
 
   .welcome-info {
     bottom: 12%;
-    width: min(90vw, 500px);
+    width: min(95vw, 100%);
+    padding: 0 1rem;
   }
 
   .info-line {
@@ -296,7 +322,8 @@
 
   .welcome-info {
     bottom: 14%;
-    width: min(90vw, 360px);
+    width: min(95vw, 100%);
+    padding: 0 0.5rem;
   }
 
   .info-line {

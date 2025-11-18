@@ -23,6 +23,41 @@ body {
   scroll-behavior: smooth;
 }
 
+/* RTL Support for Arabic */
+html[dir="rtl"] body {
+  direction: rtl;
+  text-align: right;
+}
+
+html[dir="rtl"] .text-section {
+  text-align: right;
+}
+
+html[dir="rtl"] .text-section h1,
+html[dir="rtl"] .text-section h2 {
+  direction: rtl;
+  text-align: right;
+}
+
+html[dir="rtl"] .text-section p {
+  direction: rtl;
+  text-align: right;
+}
+
+html[dir="rtl"] .cta-section {
+  flex-direction: row-reverse;
+}
+
+html[dir="rtl"] .welcome-info {
+  direction: rtl;
+  text-align: right;
+}
+
+html[dir="rtl"] .welcome-info p {
+  direction: rtl;
+  text-align: right;
+}
+
 /* Mode Switcher */
 .mode-switcher {
   position: fixed;
@@ -678,31 +713,25 @@ body {
   left: 2rem;
   font-size: 1.8rem;
   font-weight: 700;
-  background: linear-gradient(
-    135deg,
-    var(--color-primary),
-    var(--color-secondary)
-  );
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
+  color: #ffffff;
   text-transform: uppercase;
   letter-spacing: 0.2em;
-  pointer-events: none;
+  pointer-events: auto;
+  cursor: pointer;
   z-index: 10000;
   display: flex;
   align-items: center;
   gap: 0.5rem;
-  background-size: 200% 200%;
-  transition: background 0.8s cubic-bezier(0.4, 0, 0.2, 1);
-  animation: gradient-shift 3s ease infinite;
+  text-decoration: none;
+  transition: opacity 0.3s ease;
+}
+
+.kwami-label:hover {
+  opacity: 0.8;
 }
 
 .kwami-label span {
-  -webkit-text-fill-color: initial;
-  background: none;
-  -webkit-background-clip: initial;
-  background-clip: initial;
+  color: #ffffff;
 }
 
 @keyframes pulse-glow {

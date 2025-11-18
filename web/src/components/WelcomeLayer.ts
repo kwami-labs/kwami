@@ -74,11 +74,48 @@ export class WelcomeLayer {
   private hasStartedSvgAnimation = false;
   private scrollHandler: (() => void) | null = null;
   private currentSection = 0;
+  private static readonly STORAGE_KEY = 'kwami_skip_welcome';
 
   constructor() {
     this.secondsContainer = this.secondsLoader + 2;
+    
+    // Check if user has opted to skip welcome screen
+    if (this.shouldSkipWelcome()) {
+      console.log('⏭️ Skipping welcome layer (user preference)');
+      this.createWelcomeLayerSkipped();
+      return;
+    }
+    
     this.createWelcomeLayer();
     this.preloadAudio();
+  }
+
+  private shouldSkipWelcome(): boolean {
+    // Check for hard reload (force reload) - always show welcome on hard reload
+    const perfEntries = performance.getEntriesByType('navigation') as PerformanceNavigationTiming[];
+    if (perfEntries.length > 0 && perfEntries[0].type === 'reload') {
+      const isHardReload = performance.navigation?.type === 1; // TYPE_RELOAD
+      if (isHardReload) {
+        return false; // Always show on hard reload
+      }
+    }
+    
+    // Check for force-show query parameter
+    const urlParams = new URLSearchParams(window.location.search);
+    if (urlParams.get('welcome') === '1') {
+      return false; // Force show welcome
+    }
+    
+    // Check localStorage preference
+    return localStorage.getItem(WelcomeLayer.STORAGE_KEY) === 'true';
+  }
+
+  private setSkipWelcome(skip: boolean) {
+    if (skip) {
+      localStorage.setItem(WelcomeLayer.STORAGE_KEY, 'true');
+    } else {
+      localStorage.removeItem(WelcomeLayer.STORAGE_KEY);
+    }
   }
 
   private preloadAudio() {
@@ -86,6 +123,47 @@ export class WelcomeLayer {
     this.audioElement = new Audio('/fx/intro.mp3');
     this.audioElement.preload = 'auto';
     this.audioElement.volume = 0.7;
+  }
+
+  private createWelcomeLayerSkipped() {
+    // Create simplified container that goes straight to SVG animation
+    this.container = document.createElement('div');
+    this.container.className = 'loader-container';
+    this.container.style.opacity = '1';
+
+    // Create SVG
+    const svg = this.createSVG();
+    svg.classList.remove('hidden');
+    svg.classList.add('visible');
+
+    // Create version display
+    const versionDiv = document.createElement('div');
+    versionDiv.id = 'version';
+    versionDiv.className = 'fixed bottom-10 text-sm text-gray-400 opacity-80';
+    versionDiv.textContent = 'v.1.3.4';
+
+    this.container.appendChild(svg);
+    this.container.appendChild(versionDiv);
+    document.body.appendChild(this.container);
+
+    // Preload audio for skipped version
+    this.audioElement = new Audio('/fx/intro.mp3');
+    this.audioElement.preload = 'auto';
+    this.audioElement.volume = 0.7;
+
+    // Start SVG animation immediately with shorter duration
+    this.hasStartedSvgAnimation = true;
+    this.showButton = false;
+    setTimeout(() => {
+      this.initAnimationSkipped();
+      
+      // Play audio
+      if (this.audioElement) {
+        this.audioElement.play().catch(error => {
+          console.warn('⚠️ Could not play intro audio:', error);
+        });
+      }
+    }, 100);
   }
 
   private createWelcomeLayer() {
@@ -120,6 +198,34 @@ export class WelcomeLayer {
     versionDiv.id = 'version';
     versionDiv.className = 'fixed bottom-10 text-sm text-gray-400 opacity-80';
     versionDiv.textContent = 'v.1.3.4';
+
+    // Create "Don't show again" checkbox
+    const skipContainer = document.createElement('div');
+    skipContainer.className = 'skip-welcome-container';
+    
+    const checkbox = document.createElement('input');
+    checkbox.type = 'checkbox';
+    checkbox.id = 'skip-welcome-checkbox';
+    checkbox.className = 'skip-welcome-checkbox';
+    
+    const label = document.createElement('label');
+    label.htmlFor = 'skip-welcome-checkbox';
+    label.className = 'skip-welcome-label';
+    label.textContent = "Don't show this again";
+    
+    checkbox.addEventListener('change', (e) => {
+      const target = e.target as HTMLInputElement;
+      this.setSkipWelcome(target.checked);
+      console.log(target.checked ? '✅ Welcome will be skipped on next visit' : '🔄 Welcome will show on next visit');
+    });
+    
+    skipContainer.appendChild(checkbox);
+    skipContainer.appendChild(label);
+
+    // Append checkbox to welcome info (below description)
+    if (this.welcomeInfo) {
+      this.welcomeInfo.appendChild(skipContainer);
+    }
 
     // Append elements
     this.container.appendChild(this.kwamiContainer);
@@ -251,10 +357,15 @@ export class WelcomeLayer {
       // Only update if section changed
       if (section !== this.currentSection) {
         this.currentSection = section;
-        const palette = colorPalettes[section % colorPalettes.length];
         
-        // Update the blob's middle color (y-axis) to match the current section color
-        this.kwami.body.blob.setColors('#ffffff', palette.accent, '#000000');
+        // Section 0 gets a white-to-black gradient (gray middle)
+        if (section === 0) {
+          this.kwami.body.blob.setColors('#ffffff', '#808080', '#000000');
+        } else {
+          const palette = colorPalettes[section % colorPalettes.length];
+          // Update the blob's middle color (y-axis) to match the current section color
+          this.kwami.body.blob.setColors('#ffffff', palette.accent, '#000000');
+        }
       }
     };
 
@@ -496,6 +607,120 @@ export class WelcomeLayer {
   }
 
 
+  private initAnimationSkipped() {
+    // Faster version for skipped welcome (3 seconds total)
+    // @ts-ignore - gsap trialWarn config
+    gsap.config({ trialWarn: false });
+
+    const mainSVG = document.querySelector('#mainSVG') as SVGSVGElement;
+    const allEll = Array.from(document.querySelectorAll('.ell'));
+    const colorArr = ['#359EEE', '#FFC43D', '#EF476F', '#03CEA4'];
+    const colorInterp = gsap.utils.interpolate(colorArr);
+
+    gsap.set(mainSVG, { visibility: 'visible' });
+
+    const animate = (el: Element, count: number) => {
+      const tl = gsap.timeline({
+        defaults: { ease: 'sine.inOut' },
+        repeat: -1
+      });
+
+      gsap.set(el, {
+        opacity: 1 - count / allEll.length,
+        stroke: colorInterp(count / allEll.length)
+      });
+
+      tl.to(el, {
+        attr: { ry: `+=${count * 2}`, rx: `+=${count * 2}` },
+        ease: 'sine.in'
+      })
+        .to(el, {
+          attr: { ry: `+=${count * 2}`, rx: `+=${count * 2}` },
+          ease: 'sine'
+        })
+        .to(el, {
+          duration: 3,
+          rotation: 2160,
+          transformOrigin: '50% 50%'
+        }, 0)
+        .timeScale(1.5);
+    };
+
+    allEll.forEach((c, i) => {
+      gsap.delayedCall((i / (allEll.length - 1)) * 0.5, animate, [c, i + 1]);
+    });
+
+    gsap.to('#aiGrad', {
+      duration: 1.5,
+      delay: 0.1,
+      attr: { x1: '+=380', x2: '+=300' },
+      scale: 1.4,
+      transformOrigin: '50% 50%',
+      repeat: 1,
+      ease: 'none'
+    });
+
+    gsap.to('#ai', {
+      duration: 3,
+      scale: 3,
+      transformOrigin: '50% 50%',
+      repeat: 1,
+      yoyo: true,
+      ease: 'sine.inOut'
+    });
+
+    gsap.to(allEll, {
+      duration: 1.5,
+      opacity: 0,
+      ease: 'sine.inOut'
+    });
+
+    gsap.to('#version', {
+      duration: 1.5,
+      opacity: 0,
+      ease: 'sine.inOut'
+    });
+
+    setTimeout(() => {
+      this.showLoader = false;
+      if (this.container) {
+        this.container.style.opacity = '0';
+      }
+      
+      if (this.audioElement && !this.audioElement.paused) {
+        const fadeOutDuration = 1000;
+        const fadeSteps = 20;
+        const stepInterval = fadeOutDuration / fadeSteps;
+        const volumeStep = this.audioElement.volume / fadeSteps;
+        
+        const fadeInterval = setInterval(() => {
+          if (this.audioElement && this.audioElement.volume > volumeStep) {
+            this.audioElement.volume -= volumeStep;
+          } else {
+            if (this.audioElement) {
+              this.audioElement.pause();
+              this.audioElement.currentTime = 0;
+            }
+            clearInterval(fadeInterval);
+          }
+        }, stepInterval);
+      }
+    }, 3000);
+
+    setTimeout(() => {
+      this.showContainer = false;
+      if (this.container) {
+        this.container.remove();
+      }
+      
+      if (this.audioElement) {
+        this.audioElement.pause();
+        this.audioElement.src = '';
+        this.audioElement = null;
+      }
+    }, 4000);
+  }
+
   private initAnimation() {
     // @ts-ignore - gsap trialWarn config
     gsap.config({ trialWarn: false });
@@ -652,6 +877,9 @@ export class WelcomeLayer {
     ];
     
     infoLines.forEach((line, index) => this.appendAnimatedLine(line.text, index, line.className));
+    
+    // Calculate total animation time for checkbox appearance
+    this.scheduleCheckboxAnimation(infoLines);
   }
 
   private reloadWelcomeText() {
@@ -709,6 +937,39 @@ export class WelcomeLayer {
     });
 
     this.welcomeInfo.appendChild(lineEl);
+  }
+
+  private scheduleCheckboxAnimation(infoLines: { text: string; className: string }[]) {
+    const charAnimDuration = 0.025; // 25ms per character
+    let totalDelay = 0.5; // Initial delay
+    
+    // Calculate total animation time for all lines
+    infoLines.forEach((line, index) => {
+      const lineLength = line.text.length;
+      const lineDuration = lineLength * charAnimDuration;
+      totalDelay += lineDuration;
+      if (index < infoLines.length - 1) {
+        totalDelay += 0.3; // Gap between lines
+      }
+    });
+    
+    // Add extra delay after last line completes
+    totalDelay += 0.5;
+    
+    // Animate checkbox in after text completes
+    const skipContainer = document.querySelector('.skip-welcome-container') as HTMLElement;
+    if (skipContainer) {
+      gsap.fromTo(skipContainer,
+        { opacity: 0, y: 10 },
+        { 
+          opacity: 1, 
+          y: 0, 
+          duration: 0.6, 
+          delay: totalDelay,
+          ease: 'power2.out'
+        }
+      );
+    }
   }
 }
 

@@ -336,8 +336,18 @@ class SidebarNavigator {
       sphere.setAttribute('data-section', i.toString());
       sphere.setAttribute('aria-label', `Navigate to section ${String(i).padStart(2, '0')}`);
       
-      // Apply linear gradient background from color palettes (primary to secondary)
-      const palette = colorPalettes[i];
+      // Apply linear gradient background from color palettes
+      let palette;
+      if (i === 0) {
+        // Section 0 gets white to black gradient palette
+        palette = {
+          primary: '#ffffff',
+          secondary: '#000000'
+        };
+      } else {
+        // All other sections use shifted palette
+        palette = colorPalettes[i];
+      }
       sphere.style.background = `linear-gradient(135deg, ${palette.primary}, ${palette.secondary})`;
       
       // Add click handler for navigation with animated color transitions
@@ -401,7 +411,16 @@ class SidebarNavigator {
     // Update the active sphere's glow to match current color palette
     const sphere = this.sphereElements[sectionIndex];
     if (sphere) {
-      const palette = colorPalettes[sectionIndex];
+      let palette;
+      if (sectionIndex === 0) {
+        palette = {
+          primary: '#ffffff',
+          secondary: '#000000',
+          accent: '#808080'
+        };
+      } else {
+        palette = colorPalettes[sectionIndex];
+      }
       // Update box-shadow to match the palette
       sphere.style.setProperty('--sphere-glow-color', palette.primary);
     }
@@ -417,8 +436,6 @@ class ScrollManager {
   private isTransitioning = false;
   private sidebarNav: SidebarNavigator;
   private cursorLight: CursorLight;
-  private recognition: any = null;
-  private isListening = false;
 
   constructor() {
     this.sections = document.querySelectorAll('.text-section');
@@ -444,9 +461,13 @@ class ScrollManager {
   }
 
   private async init() {
-    // Set initial colors
+    // Set initial colors for section 0 (white to black gradient)
     this.updateColors(0);
-    this.cursorLight.updateColors(colorPalettes[0]);
+    this.cursorLight.updateColors({
+      primary: '#ffffff',
+      secondary: '#000000',
+      accent: '#808080'
+    });
     
     // Initialize Kwami
     try {
@@ -538,8 +559,8 @@ class ScrollManager {
       // Enable click interaction for touch effects
       this.kwami?.body.blob.enableClickInteraction();
 
-      // Setup voice recognition for "kwami" keyword
-      this.setupVoiceRecognition(canvas);
+      // Setup click interactions for tab-specific behaviors
+      this.setupInteractions(canvas);
 
       console.log('✨ Kwami initialized successfully!');
       console.log('Kwami instance:', this.kwami);
@@ -587,7 +608,18 @@ class ScrollManager {
     // Update colors and blob config based on section
     if (section !== this.currentSection && !this.isTransitioning) {
       this.currentSection = section;
-      const palette = colorPalettes[section % colorPalettes.length];
+      
+      let palette;
+      if (section === 0) {
+        palette = {
+          primary: '#ffffff',
+          secondary: '#000000',
+          accent: '#808080'
+        };
+      } else {
+        palette = colorPalettes[section % colorPalettes.length];
+      }
+      
       this.updateColors(section);
       this.updateKwamiConfig(section);
       this.sidebarNav.updateSphereColors(section);
@@ -609,7 +641,19 @@ class ScrollManager {
   }
 
   private updateColors(section: number) {
-    const palette = colorPalettes[section % colorPalettes.length];
+    let palette;
+    
+    // Section 0 gets white to black gradient palette
+    if (section === 0) {
+      palette = {
+        primary: '#ffffff',    // white
+        secondary: '#000000',  // black
+        accent: '#808080'      // middle gray
+      };
+    } else {
+      // All other sections use shifted palette (section uses section+1 colors)
+      palette = colorPalettes[section % colorPalettes.length];
+    }
     
     // Update CSS variables with smooth transition
     this.root.style.setProperty('--color-primary', palette.primary);
@@ -622,7 +666,19 @@ class ScrollManager {
 
     this.isTransitioning = true;
     const config = blobConfigs[section % blobConfigs.length];
-    const palette = colorPalettes[section % colorPalettes.length];
+    
+    let palette;
+    // Section 0 gets gray palette for the blob
+    if (section === 0) {
+      palette = {
+        primary: '#4a4a4a',  // middle dark gray
+        secondary: '#6a6a6a', // lighter gray
+        accent: '#2a2a2a'    // darker gray
+      };
+    } else {
+      // All other sections use shifted palette
+      palette = colorPalettes[section % colorPalettes.length];
+    }
 
     try {
       // Update blob geometry
@@ -642,61 +698,11 @@ class ScrollManager {
     }
   }
 
-  private clickTimer: number | null = null;
-  private readonly SINGLE_CLICK_DELAY = 500; // ms delay to distinguish single vs double click
-
-  private setupVoiceRecognition(canvas: HTMLCanvasElement) {
-    // Check if browser supports speech recognition
-    const SpeechRecognition = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
-    
-    if (!SpeechRecognition) {
-      console.warn('⚠️ Speech recognition not supported in this browser');
-      return;
-    }
-
-    this.recognition = new SpeechRecognition();
-    this.recognition.continuous = true;
-    this.recognition.interimResults = true;
-    this.recognition.lang = 'en-US';
-
-    this.recognition.onresult = (event: any) => {
-      const transcript = Array.from(event.results)
-        .map((result: any) => result[0])
-        .map((result: any) => result.transcript)
-        .join('');
-
-      console.log('🎤 Heard:', transcript);
-
-      // Check if "kwami" was said
-      if (transcript.toLowerCase().includes('kwami')) {
-        console.log('✨ "Kwami" detected! Randomizing blob...');
-        this.randomizeBlobAndSkin();
-      }
-    };
-
-    this.recognition.onerror = (event: any) => {
-      console.error('Speech recognition error:', event.error);
-      this.isListening = false;
-      this.applyListeningVisualState(false);
-    };
-
-    this.recognition.onend = () => {
-      console.log('🎤 Listening stopped');
-      this.isListening = false;
-      this.applyListeningVisualState(false);
-    };
-
-    // Cancel any pending single-click action when a double-click is detected
+  private setupInteractions(canvas: HTMLCanvasElement) {
+    // Handle double-click for randomization
     canvas.addEventListener('dblclick', () => {
-      if (this.clickTimer) {
-        clearTimeout(this.clickTimer);
-        this.clickTimer = null;
-      }
-
-      // Ensure mic stays off when double-click occurs
-      if (this.isListening) {
-        this.stopListening();
-      }
+      console.log('🎲 Double-click detected, randomizing blob');
+      this.performFullRandomization();
     });
 
     // Add click handler with delay to distinguish from double-click
@@ -705,20 +711,15 @@ class ScrollManager {
       
       // Ignore if this is part of a multi-click (detail >= 2 for double/triple clicks)
       if (e.detail >= 2) {
-        console.log('🖱️ Multi-click detected, ignoring for voice recognition');
-        // Clear any pending timer from the first click
-        if (this.clickTimer) {
-          clearTimeout(this.clickTimer);
-          this.clickTimer = null;
-        }
+        console.log('🖱️ Multi-click detected, ignoring single click handler');
         return;
       }
 
-      // Check if video tab is active - if so, toggle video presentation instead of voice
-      const videoTab = document.querySelector('.tab-btn[data-tab="video"]');
-      const videoActive = videoTab?.classList.contains('active');
+      // Check which tab is active and handle accordingly
+      const activeTab = document.querySelector('.tab-btn.active');
+      const activeTabType = activeTab?.getAttribute('data-tab');
       
-      if (videoActive) {
+      if (activeTabType === 'video') {
         // For video tab, handle video toggling
         if (currentVideoUrl && currentVideoMode !== 'none' && !isVideoLoading) {
           console.log(`🎥 Blob clicked, switching from ${currentVideoMode} mode`);
@@ -730,57 +731,27 @@ class ScrollManager {
         }
         return;
       }
-
-      // Only handle voice recognition if not in video mode
-      // Clear any existing timer
-      if (this.clickTimer) {
-        clearTimeout(this.clickTimer);
-      }
-
-      // Wait a bit to see if a second click comes (double-click)
-      this.clickTimer = window.setTimeout(() => {
-        console.log('🎤 Single click confirmed, toggling voice recognition');
-        // If we get here, it was a true single click
-        if (this.isListening) {
-          this.stopListening();
-        } else {
-          this.startListening();
+      
+      if (activeTabType === 'music') {
+        // For music tab, toggle lowpass filter on blob click
+        const scrollManager = (window as any).scrollManager;
+        const kwami = scrollManager?.getKwami();
+        if (kwami?.body?.audio?.isPlaying()) {
+          console.log('🎚️ Blob clicked, toggling music lowpass filter');
+          toggleMusicLowpass();
         }
-        this.clickTimer = null;
-      }, this.SINGLE_CLICK_DELAY);
+        return;
+      }
+      
+      if (activeTabType === 'voice') {
+        // For voice tab, toggle voice playback on blob click
+        console.log('🎤 Blob clicked, toggling voice playback');
+        toggleVoicePlayback();
+        return;
+      }
     });
   }
 
-  private startListening() {
-    this.isListening = true;
-    this.applyListeningVisualState(true);
-
-    if (!this.recognition) {
-      console.warn('⚠️ Speech recognition not available');
-      return;
-    }
-
-    try {
-      this.recognition.start();
-      console.log('🎤 Started listening for "kwami"...');
-    } catch (error) {
-      console.error('Error starting recognition:', error);
-    }
-  }
-
-  private stopListening() {
-    this.applyListeningVisualState(false);
-    this.isListening = false;
-
-    if (!this.recognition) return;
-
-    try {
-      this.recognition.stop();
-      console.log('🛑 Stopped listening');
-    } catch (error) {
-      console.error('Error stopping recognition:', error);
-    }
-  }
 
   private performFullRandomization() {
     if (!this.kwami) return;
@@ -801,50 +772,6 @@ class ScrollManager {
     console.log(`🎲 Blob randomized with ${randomSkin} skin!`);
   }
 
-  private randomizeBlobAndSkin() {
-    // Perform full randomization
-    this.performFullRandomization();
-    
-    // Stop listening after detecting "kwami"
-    this.stopListening();
-  }
-
-  private applyListeningVisualState(active: boolean) {
-    if (!this.kwami) return;
-    if (active) {
-      this.kwami.setState('listening');
-      this.setMusicFilter('lowpass', { frequency: 200, q: 0.95 });
-    } else {
-      const audioPlaying = Boolean(this.kwami.body?.audio?.isPlaying());
-      this.kwami.setState(audioPlaying ? 'speaking' : 'idle');
-      this.setMusicFilter(null);
-    }
-  }
-
-  private setMusicFilter(
-    mode: 'highpass' | 'lowpass' | null,
-    options?: { frequency?: number; q?: number }
-  ) {
-    const audio = this.kwami?.body?.audio;
-    if (!audio) return;
-
-    if (mode === 'highpass') {
-      audio.disableLowpassFilter();
-      audio.enableHighpassFilter({
-        frequency: options?.frequency ?? 1500,
-        q: options?.q ?? 0.95,
-      });
-    } else if (mode === 'lowpass') {
-      audio.disableHighpassFilter();
-      audio.enableLowpassFilter({
-        frequency: options?.frequency ?? 200,
-        q: options?.q ?? 0.95,
-      });
-    } else {
-      audio.disableHighpassFilter();
-      audio.disableLowpassFilter();
-    }
-  }
 
   private addColorVariations(progress: number) {
     // Add subtle random variations to the gradient stops
@@ -1156,6 +1083,15 @@ class LanguageSwitcher {
     // Update current language display
     this.updateCurrentLanguageDisplay();
     
+    // Set initial text direction based on current language
+    const currentLang = getCurrentLanguage();
+    const htmlElement = document.documentElement;
+    if (currentLang === 'ar') {
+      htmlElement.setAttribute('dir', 'rtl');
+    } else {
+      htmlElement.setAttribute('dir', 'ltr');
+    }
+    
     // Toggle menu on button click
     this.langBtn!.addEventListener('click', (e) => {
       e.stopPropagation();
@@ -1196,14 +1132,61 @@ class LanguageSwitcher {
   private async changeLanguage(lang: string) {
     await changeLanguage(lang);
     this.updateCurrentLanguageDisplay();
+    
+    // Set text direction for RTL languages (Arabic)
+    const htmlElement = document.documentElement;
+    if (lang === 'ar') {
+      htmlElement.setAttribute('dir', 'rtl');
+    } else {
+      htmlElement.setAttribute('dir', 'ltr');
+    }
+    
     // Update all text content
     updatePageTranslations();
   }
 
   private updateCurrentLanguageDisplay() {
+    const lang = getCurrentLanguage().toLowerCase();
+    const flagMap: Record<string, string> = {
+      'en': '🇺🇸',
+      'es': '🇪🇸',
+      'fr': '🇫🇷',
+      'zh': '🇨🇳',
+      'ko': '🇰🇷',
+      'ja': '🇯🇵',
+      'pt': '🇵🇹',
+      'it': '🇮🇹',
+      'ru': '🇷🇺',
+      'ar': '🇸🇦',
+      'nl': '🇳🇱'
+    };
+    
+    const langCodeMap: Record<string, string> = {
+      'en': 'EN',
+      'es': 'ES',
+      'fr': 'FR',
+      'zh': 'ZH',
+      'ko': 'KO',
+      'ja': 'JA',
+      'pt': 'PT',
+      'it': 'IT',
+      'ru': 'RU',
+      'ar': 'AR',
+      'nl': 'NL'
+    };
+    
+    const flag = flagMap[lang] || '🌐';
+    const langCode = langCodeMap[lang] || lang.toUpperCase().substring(0, 2);
+    
+    // Update flag icon
+    const langIcon = this.langBtn?.querySelector('.lang-icon');
+    if (langIcon) {
+      langIcon.textContent = flag;
+    }
+    
+    // Update language code
     if (this.currentLangDisplay) {
-      const lang = getCurrentLanguage().toUpperCase().substring(0, 2);
-      this.currentLangDisplay.textContent = lang;
+      this.currentLangDisplay.textContent = langCode;
     }
   }
 }
@@ -1327,11 +1310,9 @@ document.querySelectorAll('.tab-btn').forEach(button => {
     if (tabType === 'music') {
       stopVoicePlayback();
       stopVideoPlayback(undefined, { preserveUrl: true });
-      if (alreadyActive) {
-        await toggleMusicLowpass();
-      } else {
-        await playRandomMusic();
-      }
+      // Always play music when clicking the Music tab
+      // Lowpass filter is toggled by clicking the Kwami blob
+      await playRandomMusic();
     } else if (tabType === 'voice') {
       stopVideoPlayback(undefined, { preserveUrl: true });
       if (alreadyActive) {
@@ -1502,8 +1483,13 @@ function getMediaDisplayName(path: string): string {
   return fileName.replace(/\.[^/.]+$/, '');
 }
 
-// Show song title with marquee effect for long titles
+// Animation state for letters
+let titleAnimationFrameId: number | null = null;
+
+// Show song title with rhythm-based letter animations
 function showSongTitle(title: string, type: 'music' | 'video' | 'voice' = 'music') {
+  console.log(`🎵 showSongTitle called: "${title}" (${type})`);
+  
   let youtubeUrl: string | undefined;
   if (type === 'music') {
     const fileName = `${title}.mp3`;
@@ -1513,7 +1499,22 @@ function showSongTitle(title: string, type: 'music' | 'video' | 'voice' = 'music
     youtubeUrl = mediaLinks.video[fileName as keyof typeof mediaLinks.video];
   }
   
-  songTitleDisplay.textContent = title;
+  // Clear existing content and create letter spans
+  songTitleDisplay.innerHTML = '';
+  const letters = title.split('');
+  const letterSpans: HTMLSpanElement[] = [];
+  
+  console.log(`🎵 Creating ${letters.length} letter spans`);
+  
+  letters.forEach((char) => {
+    const span = document.createElement('span');
+    span.textContent = char;
+    span.className = 'title-letter';
+    span.style.display = 'inline-block';
+    span.style.transition = 'transform 0.15s ease-out';
+    letterSpans.push(span);
+    songTitleDisplay.appendChild(span);
+  });
   
   if (youtubeUrl) {
     songTitleDisplay.href = youtubeUrl;
@@ -1531,12 +1532,27 @@ function showSongTitle(title: string, type: 'music' | 'video' | 'voice' = 'music
     songTitleDisplay.title = 'Playing voice sample';
   }
   
+  console.log(`🎵 Title display opacity set to: ${songTitleDisplay.style.opacity}`);
+  console.log(`🎵 Title display element position:`, {
+    bottom: songTitleDisplay.style.bottom,
+    zIndex: songTitleDisplay.style.zIndex,
+    opacity: songTitleDisplay.style.opacity,
+    width: songTitleDisplay.style.width
+  });
+  
+  // Start rhythm-based animation for music and video
+  if (type === 'music' || type === 'video') {
+    console.log(`🎵 Starting letter animation for ${letterSpans.length} letters`);
+    startTitleAnimation(letterSpans);
+  }
+  
   // If title is long, add scrolling animation
   const titleWidth = songTitleDisplay.scrollWidth;
-  const containerWidth = window.innerWidth; // Use full screen width
+  const containerWidth = window.innerWidth;
+  
+  console.log(`🎵 Title width: ${titleWidth}px, Container width: ${containerWidth}px`);
   
   if (titleWidth > containerWidth) {
-    // Add marquee animation for long titles
     songTitleDisplay.style.animation = 'none';
     setTimeout(() => {
       songTitleDisplay.style.animation = 'marquee 15s linear infinite';
@@ -1544,12 +1560,110 @@ function showSongTitle(title: string, type: 'music' | 'video' | 'voice' = 'music
   } else {
     songTitleDisplay.style.animation = 'none';
   }
+  
+  console.log(`🎵 showSongTitle completed successfully`);
+}
+
+// Animate letters based on audio rhythm
+function startTitleAnimation(letterSpans: HTMLSpanElement[]) {
+  if (titleAnimationFrameId !== null) {
+    cancelAnimationFrame(titleAnimationFrameId);
+  }
+  
+  const scrollManager = (window as any).scrollManager;
+  const kwami = scrollManager?.getKwami();
+  
+  let lastBeatTime = 0;
+  const beatThreshold = 0.6; // Sensitivity for beat detection
+  const minBeatInterval = 100; // Minimum ms between beats
+  
+  const animate = () => {
+    if (!kwami?.body?.audio) {
+      titleAnimationFrameId = requestAnimationFrame(animate);
+      return;
+    }
+    
+    const audioSystem = kwami.body.audio;
+    const analyzer = audioSystem.getAnalyser?.();
+    
+    if (analyzer) {
+      const bufferLength = analyzer.frequencyBinCount;
+      const dataArray = new Uint8Array(bufferLength);
+      analyzer.getByteFrequencyData(dataArray);
+      
+      // Calculate average volume (bass frequencies for beat detection)
+      const bassEnd = Math.floor(bufferLength * 0.15);
+      let bassSum = 0;
+      for (let i = 0; i < bassEnd; i++) {
+        bassSum += dataArray[i];
+      }
+      const bassAverage = bassSum / bassEnd / 255;
+      
+      // Detect beat
+      const now = Date.now();
+      if (bassAverage > beatThreshold && (now - lastBeatTime) > minBeatInterval) {
+        lastBeatTime = now;
+        
+        // Make random letters jump
+        const numLettersToJump = Math.floor(Math.random() * 3) + 2; // 2-4 letters
+        const selectedIndices = new Set<number>();
+        
+        while (selectedIndices.size < numLettersToJump && selectedIndices.size < letterSpans.length) {
+          const randomIndex = Math.floor(Math.random() * letterSpans.length);
+          selectedIndices.add(randomIndex);
+        }
+        
+        selectedIndices.forEach(index => {
+          const span = letterSpans[index];
+          const jumpHeight = (Math.random() * 8 + 4); // Random jump 4-12px
+          const rotation = (Math.random() * 20 - 10); // Random rotation -10 to 10 degrees
+          
+          span.style.transform = `translateY(-${jumpHeight}px) rotate(${rotation}deg)`;
+          
+          // Reset after animation
+          setTimeout(() => {
+            span.style.transform = 'translateY(0) rotate(0deg)';
+          }, 150);
+        });
+      } else {
+        // Subtle continuous movement based on overall volume
+        const midEnd = Math.floor(bufferLength * 0.5);
+        let midSum = 0;
+        for (let i = bassEnd; i < midEnd; i++) {
+          midSum += dataArray[i];
+        }
+        const midAverage = midSum / (midEnd - bassEnd) / 255;
+        
+        // Apply subtle scale/movement to random letters
+        if (Math.random() < midAverage * 0.3) {
+          const randomIndex = Math.floor(Math.random() * letterSpans.length);
+          const span = letterSpans[randomIndex];
+          const scale = 1 + (midAverage * 0.1);
+          
+          span.style.transform = `scale(${scale})`;
+          setTimeout(() => {
+            span.style.transform = 'scale(1)';
+          }, 100);
+        }
+      }
+    }
+    
+    titleAnimationFrameId = requestAnimationFrame(animate);
+  };
+  
+  titleAnimationFrameId = requestAnimationFrame(animate);
 }
 
 // Hide song title
 function hideSongTitle() {
   songTitleDisplay.style.opacity = '0';
   songTitleDisplay.style.animation = 'none';
+  
+  // Stop animation loop
+  if (titleAnimationFrameId !== null) {
+    cancelAnimationFrame(titleAnimationFrameId);
+    titleAnimationFrameId = null;
+  }
 }
 
 function pickRandomVoiceUrl(): string | null {
