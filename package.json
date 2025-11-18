@@ -30,14 +30,17 @@
     "test:coverage": "vitest run --coverage",
     "test:coverage:ui": "vitest --coverage --ui",
     "sync-version": "node scripts/sync-version.js",
+    "download-video": "node scripts/download-video.js",
     "prebuild": "npm run sync-version",
     "build": "tsc",
     "dev": "tsc --watch",
     "playground": "vite playground --port 3000",
     "pg": "npm run playground",
+    "web": "vite web --port 3001",
     "build:playground": "vite build playground"
   },
   "dependencies": {
+    "@distube/ytdl-core": "^4.14.4",
     "@elevenlabs/elevenlabs-js": "^2.20.1",
     "js-yaml": "^4.1.1",
     "simplex-noise": "^4.0.1",
