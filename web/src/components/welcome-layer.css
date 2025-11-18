@@ -247,12 +247,12 @@
 }
 
 #mainSVG {
-  position: absolute;
+  position: fixed;
   top: 50%;
   left: 50%;
-  transform: translate(-50%, -50%);
-  width: min(1400px, 95vw);
-  height: auto;
+  transform: translate(-50%, -50%) scale(1.8);
+  width: 100vw;
+  height: 100vh;
   z-index: 2;
   visibility: hidden;
   opacity: 0;
@@ -277,7 +277,7 @@
 
 #version {
   position: fixed;
-  bottom: 2.5rem;
+  bottom: 2rem;
   left: 50%;
   transform: translateX(-50%);
   font-size: 0.7rem;
