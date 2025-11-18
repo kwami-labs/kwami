@@ -104,6 +104,20 @@ export function updatePageTranslations() {
   });
 }
 
+// Helper to get messages array for a section
+export function getSectionMessages(sectionNumber: string): string[] {
+  const key = `sections.${sectionNumber}.messages`;
+  const messages = i18next.t(key, { returnObjects: true });
+  
+  // Check if messages is an array
+  if (Array.isArray(messages)) {
+    return messages;
+  }
+  
+  // Fallback to empty array if not found
+  return [];
+}
+
 // Listen for language changes
 i18next.on('languageChanged', () => {
   updatePageTranslations();
