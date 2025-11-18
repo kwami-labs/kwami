@@ -5,6 +5,14 @@ import LanguageDetector from 'i18next-browser-languagedetector';
 import en from './locales/en.json';
 import es from './locales/es.json';
 import fr from './locales/fr.json';
+import zh from './locales/zh.json';
+import ko from './locales/ko.json';
+import ja from './locales/ja.json';
+import pt from './locales/pt.json';
+import it from './locales/it.json';
+import ru from './locales/ru.json';
+import ar from './locales/ar.json';
+import nl from './locales/nl.json';
 
 // Initialize i18next
 await i18next
@@ -12,11 +20,19 @@ await i18next
   .init({
     debug: false,
     fallbackLng: 'en',
-    supportedLngs: ['en', 'es', 'fr'],
+    supportedLngs: ['en', 'es', 'fr', 'zh', 'ko', 'ja', 'pt', 'it', 'ru', 'ar', 'nl'],
     resources: {
       en: { translation: en },
       es: { translation: es },
-      fr: { translation: fr }
+      fr: { translation: fr },
+      zh: { translation: zh },
+      ko: { translation: ko },
+      ja: { translation: ja },
+      pt: { translation: pt },
+      it: { translation: it },
+      ru: { translation: ru },
+      ar: { translation: ar },
+      nl: { translation: nl }
     },
     detection: {
       order: ['localStorage', 'navigator'],
@@ -45,7 +61,7 @@ export function getCurrentLanguage(): string {
 
 // Helper function to get available languages
 export function getAvailableLanguages(): string[] {
-  return ['en', 'es', 'fr'];
+  return ['en', 'es', 'fr', 'zh', 'ko', 'ja', 'pt', 'it', 'ru', 'ar', 'nl'];
 }
 
 // Update all elements with data-i18n attribute
@@ -111,7 +127,7 @@ export function getSectionMessages(sectionNumber: string): string[] {
   
   // Check if messages is an array
   if (Array.isArray(messages)) {
-    return messages;
+    return (messages as string[]).filter((msg) => typeof msg === "string");
   }
   
   // Fallback to empty array if not found

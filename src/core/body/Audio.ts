@@ -26,6 +26,13 @@ export class KwamiAudio {
     frequency: 220,
     q: 0.85,
   };
+  private clampLowpassFrequency(frequency: number): number {
+    if (!this.audioContext) {
+      return Math.max(10, frequency);
+    }
+    const nyquist = this.audioContext.sampleRate / 2;
+    return Math.max(10, Math.min(frequency, nyquist));
+  }
   public parentKwami: any; // Reference to parent Kwami instance for state management
 
   constructor(audioFiles: string[] = [], config?: AudioConfig) {
@@ -518,6 +525,62 @@ export class KwamiAudio {
    */
   isLowpassFilterEnabled(): boolean {
     return this.isLowpassEnabled;
+  }
+
+  /**
+   * Smoothly adjust the active lowpass filter frequency
+   */
+  setLowpassFrequency(
+    frequency: number,
+    options?: { q?: number; transitionTime?: number }
+  ): void {
+    if (!this.analyser || !this.audioContext || !this.sourceNode) {
+      this.initialize();
+    }
+
+    this.ensureLowpassFilters();
+
+    if (!this.lowpassFilters.length || !this.audioContext) {
+      return;
+    }
+
+    if (!this.isLowpassEnabled) {
+      this.isLowpassEnabled = true;
+      this.rebuildAudioGraph();
+    }
+
+    const targetFrequency = this.clampLowpassFrequency(frequency);
+    const baseQ = options?.q ?? this.lowpassDefaults.q;
+    this.lowpassDefaults.frequency = targetFrequency;
+    this.lowpassDefaults.q = baseQ;
+
+    const transition = Math.max(0, options?.transitionTime ?? 0);
+    const currentTime = this.audioContext.currentTime;
+
+    this.lowpassFilters.forEach((filter, index) => {
+      const stageFrequency = Math.max(10, targetFrequency * Math.pow(0.6, index));
+      const stageQ = baseQ + index * 0.35;
+
+      filter.frequency.cancelScheduledValues(currentTime);
+      filter.Q.cancelScheduledValues(currentTime);
+
+      if (transition > 0) {
+        filter.frequency.setValueAtTime(filter.frequency.value, currentTime);
+        filter.frequency.linearRampToValueAtTime(stageFrequency, currentTime + transition);
+        filter.Q.setValueAtTime(filter.Q.value, currentTime);
+        filter.Q.linearRampToValueAtTime(stageQ, currentTime + transition);
+      } else {
+        filter.frequency.value = stageFrequency;
+        filter.Q.value = stageQ;
+      }
+    });
+  }
+
+  /**
+   * Get the current base lowpass frequency target
+   */
+  getLowpassFrequency(): number {
+    return this.lowpassDefaults.frequency;
   }
 
   /**

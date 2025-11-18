@@ -15,7 +15,7 @@
     "candy": "Mint Your Kwami NFT",
     "github": "Star on GitHub"
   },
-  "sections": {
+  "pages": {
     "00": {
       "title": "Meet Kwami",
       "main": "Kwami is a single canvas where AI voice, music, and motion stay perfectly in sync.",
@@ -252,6 +252,12 @@
     "kwami_detected": "✨ \"Kwami\" detected! Randomizing blob...",
     "double_click_detected": "🎲 Double-click detected, randomizing blob",
     "blob_randomized": "🎲 Blob randomized with {{skin}} skin!"
+  },
+  "welcome_layer": {
+    "heading": "Welcome to Kwami's voice canvas.",
+    "line1": "Tap the blob to unlock audio playback directly in your browser.",
+    "line2": "Everything lives on this device—no servers, trackers, or cookies involved.",
+    "line3": "Touching the blob still counts as accepting our invisible cookies."
   },
   "console": {
     "welcome": "🎨 Kwami - Interactive AI Companion",

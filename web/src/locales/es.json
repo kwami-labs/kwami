@@ -15,7 +15,7 @@
     "candy": "Mintea tu NFT de Kwami",
     "github": "Estrella en GitHub"
   },
-  "sections": {
+  "pages": {
     "00": {
       "title": "Conoce a Kwami",
       "main": "Kwami es un lienzo único donde la voz IA, la música y el movimiento permanecen perfectamente sincronizados.",
@@ -252,6 +252,12 @@
     "kwami_detected": "✨ \"Kwami\" detectado! Aleatorizando blob...",
     "double_click_detected": "🎲 Doble clic detectado, aleatorizando blob",
     "blob_randomized": "🎲 Blob aleatorizado con skin {{skin}}!"
+  },
+  "welcome_layer": {
+    "heading": "Bienvenido al lienzo de voz de Kwami.",
+    "line1": "Toca el blob para desbloquear la reproducción de audio directamente en tu navegador.",
+    "line2": "Todo vive en este dispositivo—sin servidores, rastreadores o cookies involucradas.",
+    "line3": "Tocar el blob todavía cuenta como aceptar nuestras cookies invisibles."
   },
   "console": {
     "welcome": "🎨 Kwami - Compañero IA Interactivo",

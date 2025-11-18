@@ -1,4 +1,6 @@
 import { gsap } from 'gsap';
+import { Kwami } from 'kwami';
+import i18next, { t } from '../i18n';
 
 export class WelcomeLayer {
   private showButton = true;
@@ -9,6 +11,12 @@ export class WelcomeLayer {
   private readonly secondsContainer: number;
   private container: HTMLElement | null = null;
   private audioElement: HTMLAudioElement | null = null;
+  private kwami: Kwami | null = null;
+  private kwamiContainer: HTMLElement | null = null;
+  private welcomeInfo: HTMLElement | null = null;
+  private blobSpikeState = { x: 0, y: 0, z: 0 };
+  private blobTimeState = { x: 0, y: 0, z: 0 };
+  private hasStartedSvgAnimation = false;
 
   constructor() {
     this.secondsContainer = this.secondsLoader + 2;
@@ -29,15 +37,22 @@ export class WelcomeLayer {
     this.container.className = 'loader-container';
     this.container.style.opacity = '1';
 
-    // Create button
-    const button = document.createElement('button');
-    button.className = 'start-button fade-in-leave-active';
-    button.innerHTML = `
-      <div class="welcome-button">
-        <span class="welcome-text">Start Experience</span>
-      </div>
-    `;
-    button.addEventListener('click', () => this.handleClick());
+    // Create Kwami container
+    this.kwamiContainer = document.createElement('div');
+    this.kwamiContainer.className = 'welcome-kwami-container fade-in-leave-active';
+    this.kwamiContainer.addEventListener('click', () => this.handleClick());
+
+    // Create welcome info text
+    this.welcomeInfo = document.createElement('div');
+    this.welcomeInfo.className = 'welcome-info';
+    this.populateWelcomeText();
+    
+    // Listen for language changes and reload text with animation
+    i18next.on('languageChanged', () => {
+      if (this.welcomeInfo && this.showButton) {
+        this.reloadWelcomeText();
+      }
+    });
 
     // Create SVG
     const svg = this.createSVG();
@@ -47,22 +62,138 @@ export class WelcomeLayer {
     const versionDiv = document.createElement('div');
     versionDiv.id = 'version';
     versionDiv.className = 'fixed bottom-10 text-sm text-gray-400 opacity-80';
-    versionDiv.textContent = 'v.0.0.1';
+    versionDiv.textContent = 'v.1.3.4';
 
     // Append elements
-    this.container.appendChild(button);
+    this.container.appendChild(this.kwamiContainer);
+    if (this.welcomeInfo) {
+      this.container.appendChild(this.welcomeInfo);
+    }
     this.container.appendChild(svg);
     this.container.appendChild(versionDiv);
 
     // Add to body
     document.body.appendChild(this.container);
+
+    // Initialize Kwami
+    this.initWelcomeKwami();
   }
+
+  private async initWelcomeKwami() {
+    if (!this.kwamiContainer) return;
+
+    try {
+      // Create canvas for Kwami
+      const canvas = document.createElement('canvas');
+      canvas.style.width = '100%';
+      canvas.style.height = '100%';
+      canvas.style.display = 'block';
+      this.kwamiContainer.appendChild(canvas);
+
+      // Wait for canvas to be in DOM
+      await new Promise(resolve => setTimeout(resolve, 10));
+
+      // Initialize Kwami with FIXED black configuration (no randomness)
+      const spikes = {
+        x: 1.4,
+        y: 0.9,
+        z: 1.8
+      };
+
+      const timeConfig = {
+        x: 3,
+        y: 3,
+        z: 3
+      };
+
+      this.blobSpikeState = { ...spikes };
+      this.blobTimeState = { ...timeConfig };
+
+      // FIXED BLACK KWAMI - no random variation
+      this.kwami = new Kwami(canvas, {
+        body: {
+          initialSkin: 'Donut',
+          blob: {
+            resolution: 180,
+            spikes,  // FIXED: {x: 1.4, y: 0.9, z: 1.8}
+            time: timeConfig,  // FIXED: {x: 3, y: 3, z: 3}
+            rotation: { x: 0, y: 0, z: 0 },
+            wireframe: false,
+            shininess: 0,
+            colors: {
+              x: '#000000',  // FIXED: pure black
+              y: '#ffffff',  // FIXED: white
+              z: '#000000'   // FIXED: dark gray
+            }
+          },
+          scene: {
+            cameraPosition: { x: 0, y: 0, z: 12 },
+            enableControls: false
+          }
+        }
+      });
+      
+      console.log('✨ Fixed black & white welcome Kwami initialized:', {
+        skin: 'Donut',
+        spikes,
+        time: timeConfig,
+        colors: { x: '#000000', y: '#ffffff', z: '#000000' },
+        shininess: 0
+      });
+
+      // Set blob scale based on screen size - bigger for welcome screen
+      const isMobile = window.innerWidth <= 768;
+      const blobScale = isMobile ? 5.5 : 7.8;
+      this.kwami.body.blob.setScale(blobScale);
+      this.kwami.body.blob.setWireframe(false);
+      
+      // FORCE set colors explicitly after initialization to override any defaults
+      this.kwami.body.blob.setColors('#000000', '#ffffff', '#000000');
+      
+      // FORCE set spikes and time explicitly
+      this.kwami.body.blob.setSpikes(1.4, 0.9, 1.8);
+      this.kwami.body.blob.setTime(3, 3, 3);
+      
+      // FORCE set skin explicitly
+      this.kwami.body.blob.setSkin('Donut');
+      
+      // FORCE set shininess to 0 (no shine/glossiness)
+      this.kwami.body.blob.setShininess(0);
+      
+      console.log('🔒 Forced black & white blob configuration:', {
+        colors: ['#000000', '#ffffff', '#000000'],
+        spikes: [1.4, 0.9, 1.8],
+        time: [3, 3, 3],
+        skin: 'Donut',
+        wireframe: false,
+        shininess: 0
+      });
+
+      const blobMesh = this.kwami.body.blob.getMesh();
+      blobMesh.position.set(0, 0, 0);
+
+      // Auto-rotate (faster)
+      const animate = () => {
+        if (this.kwami && this.showButton) {
+          blobMesh.rotation.y += 0.012;
+          blobMesh.rotation.x += 0.003;
+          requestAnimationFrame(animate);
+        }
+      };
+      animate();
+
+      console.log('✨ Welcome Kwami initialized!');
+    } catch (error) {
+      console.error('❌ Failed to initialize welcome Kwami:', error);
+    }
+  }
+
 
   private createSVG(): SVGSVGElement {
     const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
     svg.id = 'mainSVG';
     svg.setAttribute('viewBox', '0 0 800 600');
-    svg.setAttribute('width', '900');
+    svg.setAttribute('preserveAspectRatio', 'xMidYMid meet');
 
     // Create defs with gradient
     const defs = document.createElementNS('http://www.w3.org/2000/svg', 'defs');
@@ -121,15 +252,136 @@ export class WelcomeLayer {
   }
 
   private async handleClick() {
-    const button = this.container?.querySelector('.start-button') as HTMLElement;
+    if (!this.showButton) return;
+    
+    const kwamiContainer = this.container?.querySelector('.welcome-kwami-container') as HTMLElement;
+    const infoBlock = this.container?.querySelector('.welcome-info') as HTMLElement;
     const svg = this.container?.querySelector('#mainSVG') as SVGSVGElement;
 
-    if (button && svg) {
+    if (kwamiContainer && svg && this.kwami) {
       this.showButton = false;
-      button.classList.add('hidden');
-      svg.classList.remove('hidden');
-      svg.classList.add('block');
-      this.startAnimation = true;
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+      
+      // Make blob spherical and animate it
+      const blobMesh = this.kwami.body.blob.getMesh();
+      const blobRef = this.kwami.body.blob;
+      const spikeState = { ...this.blobSpikeState };
+      const timeState = { ...this.blobTimeState };
+      
+      // PHASE 1: Become spherical and get smaller
+      gsap.to(spikeState, {
+        duration: 6,
+        x: 0,
+        y: 0,
+        z: 0,
+        ease: 'power2.inOut',
+        onUpdate: () => {
+          blobRef.setSpikes(spikeState.x, spikeState.y, spikeState.z);
+          blobRef.setOpacity(0.8);
+        }
+      });
+
+      gsap.to(timeState, {
+        duration: 3,
+        x: 22,
+        y: 4,
+        z: 0,
+        ease: 'power2.inOut',
+        onUpdate: () => {
+          blobRef.setTime(timeState.x, timeState.y, timeState.z);
+        }
+      });
+      
+      // Scale-down animation
+      const currentScale = blobRef.getScale();
+      const scaleState = { value: currentScale };
+      gsap.to(scaleState, {
+        duration: 4,
+        delay: 2,
+        value: currentScale * 0.5, // 50% smaller
+        ease: 'power2.inOut',
+        onUpdate: () => {
+          blobRef.setScale(scaleState.value);
+        }
+      });
+      
+      // PHASE 2: Transition white to black
+      // Helper to interpolate between white and black
+      const colorState = { 
+        r: 255, // white
+        g: 255, 
+        b: 255 
+      };
+      
+      gsap.to(colorState, {
+        duration: 2,
+        delay: 2,
+        r: 0, // black
+        g: 0,
+        b: 0,
+        ease: 'power2.in',
+        onUpdate: () => {
+          const r = Math.round(colorState.r);
+          const g = Math.round(colorState.g);
+          const b = Math.round(colorState.b);
+          const yColor = `#${r.toString(16).padStart(2, '0')}${g.toString(16).padStart(2, '0')}${b.toString(16).padStart(2, '0')}`;
+          blobRef.setColors('#000000', yColor, '#000000');
+        }
+      });
+      
+      // PHASE 2: Fade out with accelerating rotation
+      let rotationSpeed = 0.1; // Start with current idle speed
+      let animationActive = true;
+      let startTime = Date.now();
+      
+      const accelerateRotation = () => {
+        if (animationActive && blobMesh) {
+          const elapsed = (Date.now() - startTime) / 1000;
+          
+          // Normal rotation for first 2 seconds
+          if (elapsed < 2) {
+            blobMesh.rotation.y += rotationSpeed;
+            blobMesh.rotation.x += rotationSpeed * 0.25;
+          } 
+          // Accelerate after 2 seconds
+          else {
+            rotationSpeed += 0.0008; // Faster acceleration in phase 2
+            blobMesh.rotation.y += rotationSpeed;
+            blobMesh.rotation.x += rotationSpeed * 0.5;
+            blobMesh.rotation.z += rotationSpeed * 0.3;
+          }
+          
+          requestAnimationFrame(accelerateRotation);
+        }
+      };
+      accelerateRotation();
+
+      // Keep opacity at 1 for first 2 seconds, then fade out over next 2 seconds
+      gsap.to(kwamiContainer, {
+        duration: 2,
+        delay: 4,
+        opacity: 0,
+        ease: 'power2.in',
+        onComplete: () => {
+          animationActive = false;
+          kwamiContainer.style.display = 'none';
+        }
+      });
+
+      // Fade out info block quickly
+      if (infoBlock) {
+        gsap.to(infoBlock, {
+          duration: 0.5,
+          opacity: 0,
+          y: 10,
+          ease: 'power2.out'
+        });
+      }
+      
+      // Reveal SVG animation smoothly
+      setTimeout(() => {
+        this.revealSvgAndStartAnimation(svg);
+      }, 1000);
       
       // Play intro audio
       if (this.audioElement) {
@@ -141,11 +393,19 @@ export class WelcomeLayer {
         }
       }
       
-      this.initAnimation();
+      // Clean up Kwami instance after animation (4s total + 0.5s buffer)
+      setTimeout(() => {
+        if (this.kwami) {
+          animationActive = false;
+          this.kwami = null;
+        }
+      }, 4500);
     }
   }
 
+
   private initAnimation() {
+    // @ts-ignore - gsap trialWarn config
     gsap.config({ trialWarn: false });
 
     const mainSVG = document.querySelector('#mainSVG') as SVGSVGElement;
@@ -267,6 +527,93 @@ export class WelcomeLayer {
         this.audioElement = null;
       }
     }, this.secondsContainer * 1000);
+  }
+
+  private revealSvgAndStartAnimation(svg: SVGSVGElement) {
+    if (this.hasStartedSvgAnimation) return;
+    this.hasStartedSvgAnimation = true;
+
+    svg.classList.remove('hidden');
+    svg.classList.add('visible');
+
+    gsap.fromTo(svg, { opacity: 0 }, {
+      opacity: 1,
+      duration: 1.2,
+      ease: 'power2.out'
+    });
+
+    this.startAnimation = true;
+    this.initAnimation();
+  }
+
+  private populateWelcomeText() {
+    if (!this.welcomeInfo) return;
+    
+    const infoLines = [
+      { text: t('welcome_layer.heading'), className: 'info-line heading' },
+      { text: t('welcome_layer.line1'), className: 'info-line' },
+      { text: t('welcome_layer.line2'), className: 'info-line' },
+      { text: t('welcome_layer.line3'), className: 'info-line subtle' }
+    ];
+    
+    infoLines.forEach((line, index) => this.appendAnimatedLine(line.text, index, line.className));
+  }
+
+  private reloadWelcomeText() {
+    if (!this.welcomeInfo) return;
+    
+    // Fade out current text
+    gsap.to(this.welcomeInfo, {
+      duration: 0.3,
+      opacity: 0,
+      y: -10,
+      ease: 'power2.in',
+      onComplete: () => {
+        // Clear existing content
+        if (this.welcomeInfo) {
+          this.welcomeInfo.innerHTML = '';
+          
+          // Reload with new language
+          this.populateWelcomeText();
+          
+          // Fade back in
+          gsap.fromTo(this.welcomeInfo, 
+            { opacity: 0, y: 10 },
+            { duration: 0.4, opacity: 1, y: 0, ease: 'power2.out' }
+          );
+        }
+      }
+    });
+  }
+
+  private appendAnimatedLine(text: string, lineIndex: number, className = 'info-line') {
+    if (!this.welcomeInfo) return;
+
+    const lineEl = document.createElement('p');
+    lineEl.className = className;
+
+    const characters = Array.from(text);
+    const charAnimDuration = 0.025; // 25ms per character
+    const lineDuration = characters.length * charAnimDuration;
+    
+    // Calculate delay: sum of all previous lines' durations + 0.3s gap between lines
+    let baseDelay = 0.5; // Initial delay
+    for (let i = 0; i < lineIndex; i++) {
+      const prevLine = this.welcomeInfo.children[i];
+      if (prevLine) {
+        const prevText = prevLine.textContent || '';
+        baseDelay += prevText.length * charAnimDuration + 0.3; // 300ms gap between lines
+      }
+    }
+    
+    characters.forEach((char, charIndex) => {
+      const span = document.createElement('span');
+      span.textContent = char === ' ' ? '\u00A0' : char;
+      span.style.animationDelay = `${baseDelay + charIndex * charAnimDuration}s`;
+      lineEl.appendChild(span);
+    });
+
+    this.welcomeInfo.appendChild(lineEl);
   }
 }
 

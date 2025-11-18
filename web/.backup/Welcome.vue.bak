@@ -1,0 +1,319 @@
+<template>
+  <div class="loader-container z-50" :style="{ opacity: showLoader ? 1 : 0 }" v-if="showContainer">
+    <ButtonWelcome v-if="showButton" class="start-button z-50 fade-in-leave-active" @click="handleClick" />
+    <!-- <button @click="handleClick">Hello there</button> -->
+
+    <svg :class="showButton ? 'hidden' : 'block'" id="mainSVG" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 600"
+      width="900">
+      <defs>
+        <linearGradient id="aiGrad" x1="213.98" y1="290" x2="179.72" y2="320" gradientUnits="userSpaceOnUse">
+          <stop offset="0" stop-color="#000" stop-opacity="0" />
+          <stop offset=".15" stop-color="#EF476F" />
+          <stop offset=".4" stop-color="#359eee" />
+          <stop offset=".6" stop-color="#03cea4" />
+          <stop offset=".78" stop-color="#FFC43D" />
+          <stop offset="1" stop-color="#000" stop-opacity="0" />
+        </linearGradient>
+      </defs>
+      <ellipse class="ell" cx="400" cy="300" rx="80" ry="80" />
+      <ellipse class="ell" cx="400" cy="300" rx="80" ry="80" />
+      <ellipse class="ell" cx="400" cy="300" rx="80" ry="80" />
+      <ellipse class="ell" cx="400" cy="300" rx="80" ry="80" />
+      <ellipse class="ell" cx="400" cy="300" rx="80" ry="80" />
+      <ellipse class="ell" cx="400" cy="300" rx="80" ry="80" />
+      <ellipse class="ell" cx="400" cy="300" rx="80" ry="80" />
+      <ellipse class="ell" cx="400" cy="300" rx="80" ry="80" />
+      <ellipse class="ell" cx="400" cy="300" rx="80" ry="80" />
+      <ellipse class="ell" cx="400" cy="300" rx="80" ry="80" />
+      <ellipse class="ell" cx="400" cy="300" rx="80" ry="80" />
+      <ellipse class="ell" cx="400" cy="300" rx="80" ry="80" />
+      <ellipse class="ell" cx="400" cy="300" rx="80" ry="80" />
+      <ellipse class="ell" cx="400" cy="300" rx="80" ry="80" />
+      <ellipse class="ell" cx="400" cy="300" rx="80" ry="80" />
+      <ellipse class="ell" cx="400" cy="300" rx="80" ry="80" />
+      <ellipse class="ell" cx="400" cy="300" rx="80" ry="80" />
+      <ellipse class="ell" cx="400" cy="300" rx="80" ry="80" />
+      <ellipse class="ell" cx="400" cy="300" rx="80" ry="80" />
+      <ellipse class="ell" cx="400" cy="300" rx="80" ry="80" />
+      <ellipse class="ell" cx="400" cy="300" rx="80" ry="80" />
+      <ellipse class="ell" cx="400" cy="300" rx="80" ry="80" />
+      <ellipse class="ell" cx="400" cy="300" rx="80" ry="80" />
+      <ellipse class="ell" cx="400" cy="300" rx="80" ry="80" />
+      <ellipse class="ell" cx="400" cy="300" rx="80" ry="80" />
+      <ellipse class="ell" cx="400" cy="300" rx="80" ry="80" />
+      <ellipse class="ell" cx="400" cy="300" rx="80" ry="80" />
+      <ellipse class="ell" cx="400" cy="300" rx="80" ry="80" />
+      <ellipse class="ell" cx="400" cy="300" rx="80" ry="80" />
+      <ellipse class="ell" cx="400" cy="300" rx="80" ry="80" />
+      <ellipse class="ell" cx="400" cy="300" rx="80" ry="80" />
+      <ellipse class="ell" cx="400" cy="300" rx="80" ry="80" />
+      <ellipse class="ell" cx="400" cy="300" rx="80" ry="80" />
+      <ellipse class="ell" cx="400" cy="300" rx="80" ry="80" />
+      <ellipse class="ell" cx="400" cy="300" rx="80" ry="80" />
+      <ellipse class="ell" cx="400" cy="300" rx="80" ry="80" />
+      <ellipse class="ell" cx="400" cy="300" rx="80" ry="80" />
+      <ellipse class="ell" cx="400" cy="300" rx="80" ry="80" />
+      <ellipse class="ell" cx="400" cy="300" rx="80" ry="80" />
+      <ellipse class="ell" cx="400" cy="300" rx="80" ry="80" />
+      <ellipse class="ell" cx="400" cy="300" rx="80" ry="80" />
+      <ellipse class="ell" cx="400" cy="300" rx="80" ry="80" />
+      <ellipse class="ell" cx="400" cy="300" rx="80" ry="80" />
+      <ellipse class="ell" cx="400" cy="300" rx="80" ry="80" />
+      <ellipse class="ell" cx="400" cy="300" rx="80" ry="80" />
+      <ellipse class="ell" cx="400" cy="300" rx="80" ry="80" />
+      <ellipse class="ell" cx="400" cy="300" rx="80" ry="80" />
+      <ellipse class="ell" cx="400" cy="300" rx="80" ry="80" />
+      <ellipse class="ell" cx="400" cy="300" rx="80" ry="80" />
+      <ellipse class="ell" cx="400" cy="300" rx="80" ry="80" />
+      <ellipse class="ell" cx="400" cy="300" rx="80" ry="80" />
+      <ellipse class="ell" cx="400" cy="300" rx="80" ry="80" />
+      <ellipse class="ell" cx="400" cy="300" rx="80" ry="80" />
+      <ellipse class="ell" cx="400" cy="300" rx="80" ry="80" />
+      <ellipse class="ell" cx="400" cy="300" rx="80" ry="80" />
+      <ellipse class="ell" cx="400" cy="300" rx="80" ry="80" />
+      <ellipse class="ell" cx="400" cy="300" rx="80" ry="80" />
+      <ellipse class="ell" cx="400" cy="300" rx="80" ry="80" />
+      <ellipse class="ell" cx="400" cy="300" rx="80" ry="80" />
+      <ellipse class="ell" cx="400" cy="300" rx="80" ry="80" />
+      <ellipse class="ell" cx="400" cy="300" rx="80" ry="80" />
+      <ellipse class="ell" cx="400" cy="300" rx="80" ry="80" />
+      <ellipse class="ell" cx="400" cy="300" rx="80" ry="80" />
+      <ellipse class="ell" cx="400" cy="300" rx="80" ry="80" />
+      <ellipse class="ell" cx="400" cy="300" rx="80" ry="80" />
+      <ellipse class="ell" cx="400" cy="300" rx="80" ry="80" />
+      <ellipse class="ell" cx="400" cy="300" rx="80" ry="80" />
+      <ellipse class="ell" cx="400" cy="300" rx="80" ry="80" />
+      <ellipse class="ell" cx="400" cy="300" rx="80" ry="80" />
+      <ellipse class="ell" cx="400" cy="300" rx="80" ry="80" />
+      <ellipse class="ell" cx="400" cy="300" rx="80" ry="80" />
+      <ellipse class="ell" cx="400" cy="300" rx="80" ry="80" />
+      <ellipse class="ell" cx="400" cy="300" rx="80" ry="80" />
+      <ellipse class="ell" cx="400" cy="300" rx="80" ry="80" />
+      <ellipse class="ell" cx="400" cy="300" rx="80" ry="80" />
+      <ellipse class="ell" cx="400" cy="300" rx="80" ry="80" />
+      <ellipse class="ell" cx="400" cy="300" rx="80" ry="80" />
+      <ellipse class="ell" cx="400" cy="300" rx="80" ry="80" />
+      <ellipse class="ell" cx="400" cy="300" rx="80" ry="80" />
+      <ellipse class="ell" cx="400" cy="300" rx="80" ry="80" />
+      <ellipse class="ell" cx="400" cy="300" rx="80" ry="80" />
+      <ellipse class="ell" cx="400" cy="300" rx="80" ry="80" />
+      <ellipse class="ell" cx="400" cy="300" rx="80" ry="80" />
+      <ellipse class="ell" cx="400" cy="300" rx="80" ry="80" />
+      <ellipse class="ell" cx="400" cy="300" rx="80" ry="80" />
+      <ellipse class="ell" cx="400" cy="300" rx="80" ry="80" />
+      <ellipse class="ell" cx="400" cy="300" rx="80" ry="80" />
+      <ellipse class="ell" cx="400" cy="300" rx="80" ry="80" />
+      <ellipse class="ell" cx="400" cy="300" rx="80" ry="80" />
+      <ellipse class="ell" cx="400" cy="300" rx="80" ry="80" />
+      <ellipse class="ell" cx="400" cy="300" rx="80" ry="80" />
+      <ellipse class="ell" cx="400" cy="300" rx="80" ry="80" />
+      <ellipse class="ell" cx="400" cy="300" rx="80" ry="80" />
+      <ellipse class="ell" cx="400" cy="300" rx="80" ry="80" />
+      <ellipse class="ell" cx="400" cy="300" rx="80" ry="80" />
+      <ellipse class="ell" cx="400" cy="300" rx="80" ry="80" />
+      <ellipse class="ell" cx="400" cy="300" rx="80" ry="80" />
+      <ellipse class="ell" cx="400" cy="300" rx="80" ry="80" />
+      <ellipse class="ell" cx="400" cy="300" rx="80" ry="80" />
+      <ellipse class="ell" cx="400" cy="300" rx="80" ry="80" />
+      <ellipse class="ell" cx="400" cy="300" rx="80" ry="80" />
+      <ellipse class="ell" cx="400" cy="300" rx="80" ry="80" />
+      <ellipse class="ell" cx="400" cy="300" rx="80" ry="80" />
+      <ellipse class="ell" cx="400" cy="300" rx="80" ry="80" />
+      <ellipse class="ell" cx="400" cy="300" rx="80" ry="80" />
+      <ellipse class="ell" cx="400" cy="300" rx="80" ry="80" />
+      <ellipse class="ell" cx="400" cy="300" rx="80" ry="80" />
+      <ellipse class="ell" cx="400" cy="300" rx="80" ry="80" />
+      <ellipse class="ell" cx="400" cy="300" rx="80" ry="80" />
+      <ellipse class="ell" cx="400" cy="300" rx="80" ry="80" />
+      <ellipse class="ell" cx="400" cy="300" rx="80" ry="80" />
+      <ellipse class="ell" cx="400" cy="300" rx="80" ry="80" />
+      <ellipse class="ell" cx="400" cy="300" rx="80" ry="80" />
+      <ellipse class="ell" cx="400" cy="300" rx="80" ry="80" />
+      <ellipse class="ell" cx="400" cy="300" rx="80" ry="80" />
+      <ellipse class="ell" cx="400" cy="300" rx="80" ry="80" />
+      <ellipse class="ell" cx="400" cy="300" rx="80" ry="80" />
+      <ellipse class="ell" cx="400" cy="300" rx="80" ry="80" />
+      <ellipse class="ell" cx="400" cy="300" rx="80" ry="80" />
+      <ellipse class="ell" cx="400" cy="300" rx="80" ry="80" />
+      <path id="ai" opacity=0.95
+        d="M 200.8 70 L 200.8 67.1 L 240.2 67.1 L 240.2 7.2 L 217.7 55.4 L 195.2 7.1 L 195.2 70.1 L 192.2 70 L 192.2 0 L 195.2 0 L 217.7 48.3 L 240.2 0.1 L 243.2 0 L 243.2 70.1 L 200.8 70 Z M 121.7 3.1 L 59.1 3.1 L 59.1 0.1 L 126 0.1 L 100.5 70.2 L 87.5 34.6 L 74.6 70.2 L 49.1 0.1 L 52.3 0.1 L 74.6 61.4 L 87.5 25.8 L 100.5 61.4 L 121.7 3.1 Z M 139.4 70.1 L 139.4 67.1 L 176.2 67.1 L 155 8.8 L 132.7 70.1 L 129.5 70.1 L 155 0 L 180.5 70.1 L 139.4 70.1 Z M 39.8 0.1 L 44.1 0.1 L 10.5 33.5 L 47.3 70.1 L 43 70.1 L 6.2 33.5 L 39.8 0.1 Z M 0 0.1 L 3 0.1 L 3 70.1 L 0 70.1 L 0 0.1 Z M 266 0.1 L 266 70.1 L 263 70.1 L 263 0.1 L 266 0.1 Z"
+        stroke="url(#aiGrad)" stroke-linecap="round" stroke-miterlimit="100" stroke-width="1"
+        transform="translate(267,264.9)" />
+    </svg>
+    <div id="version" class="fixed bottom-10 text-sm text-gray-400 opacity-80">
+      v.0.0.1
+    </div>
+  </div>
+</template>
+
+<script setup>
+import { gsap } from 'gsap';
+import introSound from "~/assets/sounds/intro.mp3"
+// import { getRandomBetween } from '~/utils/randoms';
+
+const showButton = ref(true);
+
+const handleClick = () => {
+  showButton.value = false;
+  startAnimation.value = true;
+  const sound = new Audio(introSound);
+  sound.play();
+}
+
+const startAnimation = ref(false);
+const showLoader = ref(true);
+const showContainer = ref(true);
+const secondsLoader = 8;
+const secondsContainer = secondsLoader + 2;
+
+onMounted(() => {
+
+  // const playedSound = false;
+  // function playSound() {
+  //   if (!playedSound) {
+  //     const sound = new Audio(introSound);
+  //     sound.play();
+  //     playedSound = true;
+  //   }
+  // }
+  // document.body.addEventListener('mouseover', playSound, { once: true });
+  // document.body.addEventListener('click', playSound, { once: true });
+  // document.body.addEventListener('mouseout', playSound, { once: true });
+
+  gsap.config({ trialWarn: false });
+  let select = s => document.querySelector(s),
+    toArray = s => gsap.utils.toArray(s),
+    mainSVG = select('#mainSVG'),
+    allEll = toArray('.ell'),
+    colorArr = ['#359EEE', '#FFC43D', '#EF476F', '#03CEA4']
+
+  let colorInterp = gsap.utils.interpolate(colorArr);
+
+  gsap.set(mainSVG, {
+    visibility: 'visible'
+  })
+
+  function animate(el, count) {
+    let tl = gsap.timeline({
+      defaults: {
+        ease: 'sine.inOut'
+      },
+      repeat: -1
+    });
+    gsap.set(el, {
+      opacity: 1 - count / (allEll.length),
+      stroke: colorInterp(count / (allEll.length))
+    })
+
+    tl.to(el, {
+      attr: {
+        ry: `+=${count * 2}`,
+        rx: `+=${count * 2}`
+      },
+      ease: 'sine.in'
+    })
+      .to(el, {
+        attr: {
+          ry: `+=${count * 2}`,
+          rx: `+=${count * 2}`
+        },
+        ease: 'sine'
+      })
+      .to(el, {
+        duration: secondsLoader,
+        rotation: 2160,
+        transformOrigin: '50% 50%'
+      }, 0).timeScale(0.6);
+  }
+
+  watchEffect(() => {
+    if (startAnimation.value) {
+      allEll.forEach((c, i) => {
+        gsap.delayedCall(i / (allEll.length - 1), animate, [c, i + 1])
+      });
+
+      gsap.to('#aiGrad', {
+        duration: 4,
+        delay: 0.25,
+        attr: {
+          x1: '+=380',
+          x2: '+=300'
+        },
+        scale: 1.4,
+        transformOrigin: '50% 50%',
+        repeat: 1,
+        ease: 'none'
+      })
+
+      gsap.to('#ai', {
+        duration: 8,
+        scale: 3,
+        transformOrigin: '50% 50%',
+        repeat: 1,
+        yoyo: true,
+        ease: 'sine.inOut'
+      })
+
+      gsap.to(allEll, {
+        duration: secondsLoader - 2,
+        opacity: 0,
+        ease: "sine.inOut",
+      });
+
+      gsap.to("#version", {
+        duration: secondsLoader - 2,
+        opacity: 0,
+        ease: "sine.inOut",
+      });
+
+      setTimeout(() => {
+        showLoader.value = false;
+        document.body.removeEventListener('mouseover', playSound, { once: true });
+        document.body.removeEventListener('click', playSound, { once: true });
+        document.body.removeEventListener('mouseout', playSound, { once: true });
+      }, secondsLoader * 1000);
+
+      setTimeout(() => {
+        showContainer.value = false;
+      }, secondsContainer * 1000);
+    }
+  });
+});
+
+</script>
+
+<style scoped>
+.start-button {
+  z-index: 9999 !important;
+}
+
+.loader-container {
+  position: fixed;
+  top: 0;
+  left: 0;
+  z-index: 9999;
+  background: radial-gradient(circle at center, #17011a, #05000F, #010411);
+  overflow: hidden;
+  text-align: center;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 100vh;
+  width: 100vw;
+  margin: 0;
+  padding: 0;
+  transition: opacity 3s ease;
+}
+
+svg {
+  width: 100%;
+  height: 100%;
+  visibility: hidden;
+  opacity: 50%;
+}
+
+.ell,
+#ai {
+  fill: none;
+}
+</style>

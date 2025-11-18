@@ -1,7 +1,17 @@
 import './style.css';
+import './components/welcome-layer.css';
 import { Kwami } from 'kwami';
-import videoLinks from '../../assets/vid/links.json';
 import { t, changeLanguage, getCurrentLanguage, updatePageTranslations } from './i18n';
+import { WelcomeLayer } from './components/WelcomeLayer';
+import mediaLinks from './media-links.json';
+
+// Video files from public/video/ directory
+// Add more video files here as you add them to web/public/video/
+// Note: Use exact filenames with proper Unicode characters
+const VIDEO_FILES = [
+  '/video/BLACKPINK - \u2018Shut Down\u2019 MV.mp4',
+  '/video/BLACKPINK - \u2018\uB6F0\uC5B4(JUMP)\u2019 MV.mp4',
+];
 
 // Tailwind -500 colors ordered from top to bottom of color spectrum (22 colors)
 const tailwindColors500 = [
@@ -331,7 +341,12 @@ class SidebarNavigator {
       sphere.style.background = `linear-gradient(135deg, ${palette.primary}, ${palette.secondary})`;
       
       // Add click handler for navigation with animated color transitions
-      sphere.addEventListener('click', () => this.navigateToSectionAnimated(i));
+      sphere.addEventListener('click', (event) => {
+        event.stopPropagation();
+        const target = event.currentTarget as HTMLElement;
+        const sectionIndex = parseInt(target.getAttribute('data-section') || '0', 10);
+        this.navigateToSectionAnimated(sectionIndex);
+      });
       
       this.sphereElements.push(sphere);
       this.container!.appendChild(sphere);
@@ -1169,18 +1184,36 @@ class LanguageSwitcher {
 
   private updateCurrentLanguageDisplay() {
     if (this.currentLangDisplay) {
-      const lang = getCurrentLanguage().toUpperCase().substring(0, 2);
-      this.currentLangDisplay.textContent = lang;
+      const lang = getCurrentLanguage().toLowerCase();
+      const flagMap: Record<string, string> = {
+        'en': '🇺🇸',
+        'es': '🇪🇸',
+        'fr': '🇫🇷',
+        'zh': '🇨🇳',
+        'ko': '🇰🇷',
+        'ja': '🇯🇵',
+        'pt': '🇵🇹',
+        'it': '🇮🇹',
+        'ru': '🇷🇺',
+        'ar': '🇸🇦',
+        'nl': '🇳🇱'
+      };
+      const flag = flagMap[lang] || '🌐';
+      this.currentLangDisplay.textContent = flag;
     }
   }
 }
 
 // Initialize
 document.addEventListener('DOMContentLoaded', () => {
+  // Initialize welcome layer
+  new WelcomeLayer();
+  
   const scrollManager = new ScrollManager();
   new ModeSwitcher();
   new ActionButtonManager();
   new LanguageSwitcher();
+  initBlobVideoClickToggle();
   
   // Update initial translations
   updatePageTranslations();
@@ -1219,73 +1252,111 @@ const MUSIC_FILES = [
   '/music/OTYKEN - STORM (Official Music Video).mp3',
 ];
 
-const VIDEO_LIBRARY: string[] = Array.isArray(videoLinks) ? (videoLinks as string[]) : [];
-const PLAYABLE_VIDEO_LINKS = VIDEO_LIBRARY
-  .map(link => (typeof link === 'string' ? link.trim() : ''))
-  .filter(link => link.length > 0 && !/youtube\.com/i.test(link) && /\.(mp4|webm|mov)(\?|$)/i.test(link));
+const VOICE_FILES = [
+  '/voices/test.mp3'
+];
+
+// Use local video files from public/video directory
+const PLAYABLE_VIDEO_LINKS = VIDEO_FILES.filter(url => typeof url === 'string' && url.length > 0);
 
 let currentVideoUrl: string | null = null;
 let isVideoLoading = false;
-let isVideoPlayingInBlob = false;
+let currentVideoMode: 'none' | 'background' | 'blob' = 'none';
 let activeVideoStream: MediaStream | null = null;
 let videoElementCleanup: (() => void) | null = null;
+let previousKwamiSkinForVideo: string | null = null;
+let glassModeActiveForVideo = false;
 type VideoAttachResult = 'success' | 'no-audio' | 'stream-error';
 
 // Music player state
 let currentMusicIndex = -1;
-let isPlaying = false;
+let isMusicPlaying = false;
+let isLowpassFilterActive = false;
+let lowpassReleaseHandle: number | null = null;
+const LOWPASS_OPEN_FREQUENCY = 18000;
+const LOWPASS_CLOSED_FREQUENCY = 420;
 
-// Create song title display element
-const songTitleDisplay = document.createElement('div');
+// Voice playback state
+let isVoicePlaying = false;
+let currentVoiceUrl: string | null = null;
+let voiceEndedHandler: (() => void) | null = null;
+
+// Create song title display element as a clickable link
+const songTitleDisplay = document.createElement('a');
 songTitleDisplay.id = 'song-title-display';
+songTitleDisplay.target = '_blank';
+songTitleDisplay.rel = 'noopener noreferrer';
 songTitleDisplay.style.cssText = `
   position: fixed;
-  bottom: 8vh;
-  left: 50%;
-  transform: translateX(-50%);
+  bottom: 100px;
+  left: 0;
+  right: 0;
+  width: 100vw;
   color: rgba(255, 255, 255, 0.5);
   font-size: 0.75rem;
   font-weight: 400;
   z-index: 9998;
-  max-width: 320px;
-  width: min(80vw, 320px);
   white-space: nowrap;
   overflow: hidden;
   text-align: center;
   opacity: 0;
-  transition: opacity 0.3s ease;
+  transition: all 0.3s ease;
   pointer-events: none;
+  text-decoration: none;
+  cursor: pointer;
 `;
 document.body.appendChild(songTitleDisplay);
 
 // Bottom tabs functionality
 document.querySelectorAll('.tab-btn').forEach(button => {
   button.addEventListener('click', async function(this: HTMLButtonElement) {
-    // Remove active class from all tabs
-    document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
-    
-    // Add active class to clicked tab
-    this.classList.add('active');
-    
-    // Get tab type
+    const alreadyActive = this.classList.contains('active');
     const tabType = this.getAttribute('data-tab');
-    console.log(`🎵 Switched to ${tabType} tab`);
-    
-    // Handle Media tabs
+    if (!tabType) {
+      return;
+    }
+
+    document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+    this.classList.add('active');
+    triggerTabAnimation(this, tabType);
+    console.log(`🎵 Switched to ${tabType} tab${alreadyActive ? ' (repeat click)' : ''}`);
+
     if (tabType === 'music') {
-      stopVideoPlayback();
-      await playRandomMusic();
+      stopVoicePlayback();
+      stopVideoPlayback(undefined, { preserveUrl: true });
+      if (alreadyActive) {
+        await toggleMusicLowpass();
+      } else {
+        await playRandomMusic();
+      }
     } else if (tabType === 'voice') {
-      // Stop any audio when switching to voice mode
-      stopMusic();
-      stopVideoPlayback();
+      stopVideoPlayback(undefined, { preserveUrl: true });
+      if (alreadyActive) {
+        await toggleVoicePlayback();
+      } else {
+        await playRandomVoiceClip();
+      }
     } else if (tabType === 'video') {
-      // Switch to blob video playback
-      stopMusic();
-      await playRandomVideoInBlob();
+      stopKwamiAudio();
+      if (alreadyActive) {
+        await toggleVideoPresentation();
+      } else {
+        await playRandomVideo({ mode: 'background' });
+      }
     }
   });
 });
+
+function triggerTabAnimation(button: HTMLButtonElement, tabType: string) {
+  const animationClass = `tab-anim-${tabType}`;
+  button.classList.remove(animationClass);
+  // Force reflow so repeated clicks retrigger the animation
+  void button.offsetWidth;
+  button.classList.add(animationClass);
+  button.addEventListener('animationend', () => {
+    button.classList.remove(animationClass);
+  }, { once: true });
+}
 
 // Play random music function
 async function playRandomMusic() {
@@ -1325,7 +1396,7 @@ async function playRandomMusic() {
     
     currentMusicIndex = newIndex;
     const selectedSong = MUSIC_FILES[newIndex];
-    const songName = selectedSong.split('/').pop()?.replace('.mp3', '') || 'Unknown';
+    const songName = getMediaDisplayName(selectedSong);
     
     // Show song title with scrolling animation
     showSongTitle(songName);
@@ -1352,11 +1423,15 @@ async function playRandomMusic() {
     
     // Play the audio
     console.log('🎵 Starting playback...');
+    kwami.body.audio.disableLowpassFilter();
+    isLowpassFilterActive = false;
     await kwami.body.audio.play();
     
     // Set blob to speaking state for audio reactivity
     kwami.setState('speaking');
-    isPlaying = true;
+    isMusicPlaying = true;
+    isVoicePlaying = false;
+    isLowpassFilterActive = false;
     
     console.log(`✅ Now playing: ${songName}`);
     
@@ -1365,7 +1440,9 @@ async function playRandomMusic() {
     audioElement.addEventListener('ended', () => {
       console.log('🎵 Song ended');
       kwami.setState('idle');
-      isPlaying = false;
+      isMusicPlaying = false;
+      kwami.body.audio.disableLowpassFilter();
+      isLowpassFilterActive = false;
       hideSongTitle();
     }, { once: true });
     
@@ -1373,7 +1450,7 @@ async function playRandomMusic() {
     audioElement.addEventListener('error', (e: Event) => {
       console.error('🎵 Audio element error:', e);
       kwami.setState('idle');
-      isPlaying = false;
+      isMusicPlaying = false;
     }, { once: true });
     
   } catch (error) {
@@ -1384,28 +1461,76 @@ async function playRandomMusic() {
   }
 }
 
-// Stop music function
-function stopMusic() {
-  const scrollManager = (window as any).scrollManager;
-  const kwami = scrollManager?.getKwami();
+// Stop any Kwami-managed audio (music or voice)
+function stopKwamiAudio() {
+  const kwami = getKwamiInstance();
+  const audio = kwami?.body?.audio;
   
-  if (kwami && isPlaying) {
-    kwami.body.audio.pause();
-    kwami.setState('idle');
-    isPlaying = false;
-    hideSongTitle();
-    console.log('🛑 Music stopped');
+  if (!kwami || !audio) {
+    isMusicPlaying = false;
+    isVoicePlaying = false;
+    return;
   }
+
+  if (voiceEndedHandler) {
+    audio.getAudioElement().removeEventListener('ended', voiceEndedHandler);
+    voiceEndedHandler = null;
+  }
+
+  if (lowpassReleaseHandle !== null) {
+    window.clearTimeout(lowpassReleaseHandle);
+    lowpassReleaseHandle = null;
+  }
+  audio.disableLowpassFilter();
+  audio.disableHighpassFilter();
+  audio.pause();
+  audio.setCurrentTime(0);
+  kwami.setState('idle');
+
+  isMusicPlaying = false;
+  isVoicePlaying = false;
+  isLowpassFilterActive = false;
+  hideSongTitle();
+  console.log('🛑 Audio stopped');
+}
+
+function getMediaDisplayName(path: string): string {
+  const fileName = path.split('/').pop() ?? path;
+  return fileName.replace(/\.[^/.]+$/, '');
 }
 
 // Show song title with marquee effect for long titles
-function showSongTitle(title: string) {
+function showSongTitle(title: string, type: 'music' | 'video' | 'voice' = 'music') {
+  let youtubeUrl: string | undefined;
+  if (type === 'music') {
+    const fileName = `${title}.mp3`;
+    youtubeUrl = mediaLinks.music[fileName as keyof typeof mediaLinks.music];
+  } else if (type === 'video') {
+    const fileName = `${title}.mp4`;
+    youtubeUrl = mediaLinks.video[fileName as keyof typeof mediaLinks.video];
+  }
+  
   songTitleDisplay.textContent = title;
+  
+  if (youtubeUrl) {
+    songTitleDisplay.href = youtubeUrl;
+    songTitleDisplay.style.pointerEvents = 'auto';
+    songTitleDisplay.title = 'Click to watch on YouTube';
+  } else {
+    songTitleDisplay.removeAttribute('href');
+    songTitleDisplay.style.pointerEvents = 'none';
+    songTitleDisplay.title = '';
+  }
+  
   songTitleDisplay.style.opacity = '1';
+  if (type === 'voice') {
+    songTitleDisplay.style.pointerEvents = 'none';
+    songTitleDisplay.title = 'Playing voice sample';
+  }
   
   // If title is long, add scrolling animation
   const titleWidth = songTitleDisplay.scrollWidth;
-  const containerWidth = 300; // max-width
+  const containerWidth = window.innerWidth; // Use full screen width
   
   if (titleWidth > containerWidth) {
     // Add marquee animation for long titles
@@ -1422,6 +1547,141 @@ function showSongTitle(title: string) {
 function hideSongTitle() {
   songTitleDisplay.style.opacity = '0';
   songTitleDisplay.style.animation = 'none';
+}
+
+function pickRandomVoiceUrl(): string | null {
+  if (!VOICE_FILES.length) {
+    return null;
+  }
+
+  if (VOICE_FILES.length === 1) {
+    return VOICE_FILES[0];
+  }
+
+  let candidate: string | null = null;
+  const attempts = new Set<string>();
+
+  while (attempts.size < VOICE_FILES.length) {
+    const next = VOICE_FILES[Math.floor(Math.random() * VOICE_FILES.length)];
+    if (next !== currentVoiceUrl) {
+      candidate = next;
+      break;
+    }
+    attempts.add(next);
+  }
+
+  return candidate ?? VOICE_FILES[0];
+}
+
+async function playRandomVoiceClip() {
+  if (!VOICE_FILES.length) {
+    console.warn('🎤 No voice files found in /voices/');
+    return;
+  }
+
+  const kwami = getKwamiInstance();
+  if (!kwami) {
+    console.warn('🎤 Kwami instance not ready yet');
+    return;
+  }
+
+  const nextUrl = pickRandomVoiceUrl();
+  if (!nextUrl) {
+    console.warn('🎤 Could not select a voice file to play');
+    return;
+  }
+
+  currentVoiceUrl = nextUrl;
+  stopKwamiAudio();
+
+  try {
+    kwami.body.audio.loadAudioSource(nextUrl);
+    await kwami.body.audio.play();
+    kwami.setState('speaking');
+    isVoicePlaying = true;
+    isMusicPlaying = false;
+    isLowpassFilterActive = false;
+
+    const voiceName = getMediaDisplayName(nextUrl);
+    showSongTitle(voiceName, 'voice');
+
+    const audioElement = kwami.body.audio.getAudioElement();
+    if (voiceEndedHandler) {
+      audioElement.removeEventListener('ended', voiceEndedHandler);
+    }
+    voiceEndedHandler = () => {
+      isVoicePlaying = false;
+      kwami.setState('idle');
+      hideSongTitle();
+    };
+    audioElement.addEventListener('ended', voiceEndedHandler, { once: true });
+  } catch (error) {
+    console.error('❌ Failed to play voice clip:', error);
+    stopVoicePlayback();
+  }
+}
+
+async function toggleVoicePlayback() {
+  if (isVoicePlaying) {
+    stopVoicePlayback();
+  } else {
+    await playRandomVoiceClip();
+  }
+}
+
+function stopVoicePlayback() {
+  if (!isVoicePlaying) {
+    return;
+  }
+  stopKwamiAudio();
+  isVoicePlaying = false;
+  currentVoiceUrl = null;
+}
+
+function getOpenLowpassFrequency(audio: any): number {
+  const ctx = audio.getAudioContext?.();
+  if (ctx) {
+    return Math.min(LOWPASS_OPEN_FREQUENCY, ctx.sampleRate / 2 - 100);
+  }
+  return LOWPASS_OPEN_FREQUENCY;
+}
+
+async function toggleMusicLowpass(forceState?: boolean) {
+  const kwami = getKwamiInstance();
+  const audio = kwami?.body?.audio;
+
+  if (!kwami || !audio) {
+    console.warn('🎚️ Lowpass toggle skipped - Kwami audio not ready');
+    return;
+  }
+
+  if (!audio.isPlaying() && !isMusicPlaying) {
+    console.warn('🎚️ Lowpass toggle skipped - no music playing');
+    return;
+  }
+
+  const nextState = typeof forceState === 'boolean' ? forceState : !isLowpassFilterActive;
+  const transitionSeconds = 1.15;
+  const openFrequency = getOpenLowpassFrequency(audio);
+
+  if (lowpassReleaseHandle !== null) {
+    window.clearTimeout(lowpassReleaseHandle);
+    lowpassReleaseHandle = null;
+  }
+
+  if (nextState) {
+    audio.enableLowpassFilter({ frequency: openFrequency, q: 0.95 });
+    audio.setLowpassFrequency(LOWPASS_CLOSED_FREQUENCY, { transitionTime: transitionSeconds, q: 1.3 });
+  } else {
+    audio.setLowpassFrequency(openFrequency, { transitionTime: transitionSeconds, q: 0.95 });
+    lowpassReleaseHandle = window.setTimeout(() => {
+      audio.disableLowpassFilter();
+      lowpassReleaseHandle = null;
+    }, transitionSeconds * 1000 + 150);
+  }
+
+  isLowpassFilterActive = nextState;
+  console.log(`🎚️ Lowpass filter ${nextState ? 'enabled' : 'disabled'} with smooth ramp`);
 }
 
 function getKwamiVideoElement(kwami: Kwami): HTMLVideoElement | null {
@@ -1487,41 +1747,57 @@ function releaseActiveVideoStream() {
   }
 }
 
-function stopVideoPlayback(explicitKwami?: Kwami | null) {
+function stopVideoPlayback(explicitKwami?: Kwami | null, options: { preserveUrl?: boolean } = {}) {
   const kwami = explicitKwami ?? getKwamiInstance();
 
   cleanupVideoElementListeners();
   releaseActiveVideoStream();
+  
+  // Hide video title when stopping
+  hideSongTitle();
 
   if (!kwami) {
     currentVideoUrl = null;
-    isVideoPlayingInBlob = false;
+    currentVideoMode = 'none';
     isVideoLoading = false;
     return;
   }
 
-  const activeVideo = getKwamiVideoElement(kwami);
-  if (activeVideo) {
-    try {
-      activeVideo.pause();
-    } catch (error) {
-      console.warn('🎥 Failed to pause video element:', error);
-    }
+  try {
+    const activeVideo = getKwamiVideoElement(kwami);
+    activeVideo?.pause();
+  } catch (error) {
+    console.warn('🎥 Failed to pause video element:', error);
   }
 
-  kwami.body.clearBackgroundMedia();
-  if (typeof kwami.body.setBlobSurfaceVideo === 'function') {
-    kwami.body.setBlobSurfaceVideo(null);
-  }
   kwami.body.audio.disconnectMediaStream();
 
-  if (isVideoPlayingInBlob) {
+  if (currentVideoMode === 'background') {
+    kwami.body.clearBackgroundMedia();
+  }
+  if (currentVideoMode === 'blob' && typeof kwami.body.setBlobSurfaceVideo === 'function') {
+    kwami.body.setBlobSurfaceVideo(null);
+  }
+
+  if (glassModeActiveForVideo) {
+    kwami.body.setBlobImageTransparencyMode(false);
+    glassModeActiveForVideo = false;
+  }
+
+  if (previousKwamiSkinForVideo) {
+    kwami.body.blob.setSkin(previousKwamiSkinForVideo as any);
+    previousKwamiSkinForVideo = null;
+  }
+
+  if (currentVideoMode !== 'none') {
     kwami.setState('idle');
   }
 
-  isVideoPlayingInBlob = false;
+  currentVideoMode = 'none';
   isVideoLoading = false;
-  currentVideoUrl = null;
+  if (!options.preserveUrl) {
+    currentVideoUrl = null;
+  }
 }
 
 async function waitForKwamiVideoElement(kwami: Kwami, timeout = 7000): Promise<HTMLVideoElement | null> {
@@ -1553,14 +1829,19 @@ async function waitForKwamiVideoElement(kwami: Kwami, timeout = 7000): Promise<H
   });
 }
 
-async function attachVideoAudioToKwami(kwami: Kwami, videoElement: HTMLVideoElement, sourceUrl: string): Promise<VideoAttachResult> {
+async function attachVideoAudioToKwami(
+  kwami: Kwami,
+  videoElement: HTMLVideoElement,
+  sourceUrl: string,
+  mode: 'background' | 'blob'
+): Promise<VideoAttachResult> {
   cleanupVideoElementListeners();
 
   const handleEnded = () => {
     if (videoElement.loop) {
       return;
     }
-    isVideoPlayingInBlob = false;
+    currentVideoMode = 'none';
     kwami.setState('idle');
   };
 
@@ -1610,6 +1891,7 @@ async function attachVideoAudioToKwami(kwami: Kwami, videoElement: HTMLVideoElem
 
     kwami.setState('speaking');
     console.log(`🎥 Blob video audio stream attached: ${sourceUrl}`);
+    currentVideoMode = mode;
     return 'success';
   } catch (error) {
     console.error('🎥 Unable to connect video audio stream:', error);
@@ -1617,14 +1899,17 @@ async function attachVideoAudioToKwami(kwami: Kwami, videoElement: HTMLVideoElem
   }
 }
 
-async function playRandomVideoInBlob() {
+async function playRandomVideo(options: { mode?: 'background' | 'blob'; reuseCurrent?: boolean } = {}) {
+  const mode = options.mode ?? 'background';
+  const reuseCurrent = options.reuseCurrent ?? false;
+
   if (isVideoLoading) {
     console.warn('🎥 A video is already loading, please wait...');
     return;
   }
 
   if (!PLAYABLE_VIDEO_LINKS.length) {
-    console.warn('🎥 No playable video links available in links.json');
+    console.warn('🎥 No video files found in /video/ directory');
     return;
   }
 
@@ -1638,11 +1923,17 @@ async function playRandomVideoInBlob() {
   let playbackStarted = false;
 
   isVideoLoading = true;
-  stopVideoPlayback(kwami);
+  stopVideoPlayback(kwami, { preserveUrl: reuseCurrent });
 
   try {
     while (attempted.size < PLAYABLE_VIDEO_LINKS.length) {
-      const nextUrl = pickRandomVideoUrl(attempted);
+      let nextUrl: string | null = null;
+      if (reuseCurrent && currentVideoUrl && attempted.size === 0) {
+        nextUrl = currentVideoUrl;
+      } else {
+        nextUrl = pickRandomVideoUrl(attempted);
+      }
+
       if (!nextUrl) {
         break;
       }
@@ -1650,60 +1941,169 @@ async function playRandomVideoInBlob() {
       attempted.add(nextUrl);
       currentVideoUrl = nextUrl;
 
-      console.log(`🎥 Loading blob video stream: ${nextUrl}`);
+      console.log(`🎥 Loading ${mode === 'blob' ? 'blob' : 'background'} video stream: ${nextUrl}`);
 
-      try {
-        kwami.body.setBackgroundVideo(nextUrl, {
-          autoplay: true,
-          loop: true,
-          muted: true,
-          fit: 'cover',
-        });
-        const videoElement = await waitForKwamiVideoElement(kwami);
+      playbackStarted = mode === 'blob'
+        ? await playVideoInsideBlob(kwami, nextUrl)
+        : await playVideoAsBackground(kwami, nextUrl);
 
-        if (!videoElement) {
-          console.warn('🎥 Video element was not ready, trying another source...');
-          stopVideoPlayback(kwami);
-          continue;
-        }
-
-        videoElement.muted = true;
-        videoElement.volume = 0;
-
-        const attachResult = await attachVideoAudioToKwami(kwami, videoElement, nextUrl);
-
-        if (attachResult === 'success') {
-          isVideoPlayingInBlob = true;
-          playbackStarted = true;
-          console.log('🎥 Video streaming with audio-reactive blob!');
-          break;
-        }
-
-        if (attachResult === 'no-audio') {
-          console.warn('🎥 Video has no audio track. Playing visual-only mode (no audio reactivity).');
-          kwami.setState('thinking');
-          isVideoPlayingInBlob = true;
-          playbackStarted = true;
-          break;
-        }
-
-        console.warn('🎥 Unable to attach the video audio stream, trying another clip...');
-      } catch (error) {
-        console.error('🎥 Error while loading blob video:', error);
+      if (playbackStarted) {
+        break;
       }
-
-      stopVideoPlayback(kwami);
     }
 
     if (!playbackStarted) {
-      console.warn('🎥 Could not find any video with an audio track from links.json');
+      console.warn('🎥 Could not start video playback from /video/ directory');
     }
   } finally {
     if (!playbackStarted) {
-      stopVideoPlayback(kwami);
+      stopVideoPlayback(kwami, { preserveUrl: reuseCurrent });
     }
     isVideoLoading = false;
   }
+}
+
+async function playVideoAsBackground(kwami: Kwami, url: string): Promise<boolean> {
+  try {
+    kwami.body.clearBackgroundMedia();
+    kwami.body.setBackgroundVideo(url, {
+      autoplay: true,
+      loop: true,
+      muted: true,
+      fit: 'cover',
+    });
+
+    const videoElement = await waitForKwamiVideoElement(kwami);
+
+    if (!videoElement) {
+      console.warn('🎥 Background video element was not ready, trying another source...');
+      return false;
+    }
+
+    videoElement.muted = true;
+    videoElement.volume = 0;
+
+    if (videoElement.paused) {
+      try {
+        await videoElement.play();
+      } catch (playError) {
+        console.warn('🎥 Failed to auto-play background video:', playError);
+      }
+    }
+
+    const attachResult = await attachVideoAudioToKwami(kwami, videoElement, url, 'background');
+    const videoName = getMediaDisplayName(url);
+    showSongTitle(videoName, 'video');
+
+    if (attachResult === 'success') {
+      console.log('🎥 Video streaming with audio-reactive blob!');
+      return true;
+    }
+
+    if (attachResult === 'no-audio') {
+      console.warn('🎥 Video has no audio track. Playing visual-only background.');
+      kwami.setState('thinking');
+      currentVideoMode = 'background';
+      return true;
+    }
+
+    return false;
+  } catch (error) {
+    console.error('🎥 Error while loading background video:', error);
+    return false;
+  }
+}
+
+async function playVideoInsideBlob(kwami: Kwami, url: string): Promise<boolean> {
+  try {
+    kwami.body.clearBackgroundMedia();
+
+    if (!glassModeActiveForVideo) {
+      previousKwamiSkinForVideo = previousKwamiSkinForVideo ?? kwami.body.blob.getCurrentSkin();
+      kwami.body.setBlobImageTransparencyMode(true, { mode: 'glass', opacity: 0.4 });
+      glassModeActiveForVideo = true;
+    }
+
+    kwami.body.setBlobSurfaceVideo(url, {
+      autoplay: true,
+      loop: true,
+      muted: true,
+      playbackRate: 1,
+    });
+
+    const videoElement = await waitForKwamiVideoElement(kwami);
+
+    if (!videoElement) {
+      console.warn('🎥 Blob video element was not ready, trying another source...');
+      return false;
+    }
+
+    videoElement.muted = true;
+
+    if (videoElement.paused) {
+      try {
+        await videoElement.play();
+      } catch (playError) {
+        console.warn('🎥 Failed to auto-play blob video:', playError);
+      }
+    }
+
+    const attachResult = await attachVideoAudioToKwami(kwami, videoElement, url, 'blob');
+    const videoName = getMediaDisplayName(url);
+    showSongTitle(videoName, 'video');
+
+    if (attachResult === 'success') {
+      console.log('🎥 Video streaming inside blob with glass effect!');
+      return true;
+    }
+
+    if (attachResult === 'no-audio') {
+      console.warn('🎥 Blob video has no audio track. Showing visual-only mode.');
+      kwami.setState('thinking');
+      currentVideoMode = 'blob';
+      return true;
+    }
+
+    return false;
+  } catch (error) {
+    console.error('🎥 Error while loading blob video:', error);
+    return false;
+  }
+}
+
+async function toggleVideoPresentation() {
+  if (currentVideoMode === 'background') {
+    await playRandomVideo({ mode: 'blob', reuseCurrent: true });
+    return;
+  }
+
+  if (currentVideoMode === 'blob') {
+    await playRandomVideo({ mode: 'background', reuseCurrent: true });
+    return;
+  }
+
+  await playRandomVideo({ mode: 'background' });
+}
+
+function initBlobVideoClickToggle() {
+  const container = document.getElementById('kwami-container');
+  if (!container) return;
+
+  container.addEventListener('click', async (event) => {
+    // Only handle clicks when video tab is active and video is playing
+    const videoTab = document.querySelector('.tab-btn[data-tab="video"]');
+    const videoActive = videoTab?.classList.contains('active');
+    
+    if (!videoActive || isVideoLoading || !currentVideoUrl || currentVideoMode === 'none') {
+      return;
+    }
+
+    event.stopPropagation();
+    event.preventDefault();
+
+    console.log(`🎥 Blob clicked, switching from ${currentVideoMode} mode`);
+    await toggleVideoPresentation();
+  });
 }
 
 // Console message

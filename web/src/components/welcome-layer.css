@@ -4,7 +4,13 @@
   top: 0;
   left: 0;
   z-index: 9999;
-  background: radial-gradient(circle at center, #17011a, #05000F, #010411);
+  background-color: #000000;
+  background: radial-gradient(
+      circle at center,
+      #0a0a0a 0%,
+      #050505 45%,
+      #000000 100%
+    );
   overflow: hidden;
   text-align: center;
   display: flex;
@@ -17,52 +23,103 @@
   transition: opacity 3s ease;
 }
 
-.start-button {
-  z-index: 10000;
+.welcome-kwami-container {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 600px;
+  height: 600px;
   cursor: pointer;
-  border: none;
-  background: transparent;
-  padding: 0;
-  outline: none;
+  z-index: 10000;
+  animation: fadeInScale 1s ease-out, floatAnimation 3s ease-in-out infinite;
+  transition: transform 0.3s ease;
 }
 
-.start-button.hidden {
-  display: none;
+.welcome-kwami-container:hover {
+  transform: translate(-50%, -50%)
 }
 
-.welcome-button {
-  position: relative;
-  padding: 1.5rem 3rem;
-  font-size: 1.25rem;
-  font-weight: 600;
-  color: white;
-  background: linear-gradient(135deg, #EF476F, #359eee, #03cea4, #FFC43D);
-  background-size: 300% 300%;
-  border-radius: 50px;
-  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
-  animation: gradientShift 4s ease infinite;
-  transition: transform 0.3s ease, box-shadow 0.3s ease;
+.welcome-info {
+  position: absolute;
+  bottom: 10%;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  max-width: 680px;
+  width: min(85vw, 680px);
+  text-align: center;
+  color: rgba(255, 255, 255, 0.95);
+  z-index: 10001;
+  pointer-events: none;
+  font-family: -apple-system, BlinkMacSystemFont, 'Inter', 'SF Pro Display', 'Segoe UI', system-ui, sans-serif;
 }
 
-.welcome-button:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 15px 50px rgba(239, 71, 111, 0.4);
+.info-line {
+  margin: 0.2rem 0;
+  font-size: 1.05rem;
+  font-weight: 400;
+  line-height: 1.5;
+  letter-spacing: 0.01em;
 }
 
-.welcome-button:active {
-  transform: translateY(0);
+.info-line.heading {
+  font-size: 1.5rem;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  margin-bottom: 0.8rem;
+  background: linear-gradient(135deg, #ffffff 0%, #e0e0e0 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
 }
 
-.welcome-text {
-  position: relative;
-  z-index: 1;
-  text-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
-}
-
-.welcome-text::after {
-  content: ' 🔊';
+.info-line.subtle {
+  font-size: 0.92rem;
   opacity: 0.7;
-  font-size: 0.9em;
+  font-weight: 300;
+  letter-spacing: 0.02em;
+}
+
+.info-line span {
+  display: inline-block;
+  opacity: 0;
+  transform: translateY(8px);
+  animation: infoType 0.6s ease-out forwards;
+}
+
+
+@keyframes fadeInScale {
+  from {
+    opacity: 0;
+    transform: translate(-50%, -50%) scale(0.5);
+  }
+  to {
+    opacity: 1;
+    transform: translate(-50%, -50%) scale(1);
+  }
+}
+
+@keyframes floatAnimation {
+  0%, 100% {
+    transform: translate(-50%, -50%) translateY(0);
+  }
+  50% {
+    transform: translate(-50%, -50%) translateY(-20px);
+  }
+}
+
+@keyframes infoType {
+  0% {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 @keyframes gradientShift {
@@ -93,19 +150,27 @@
 }
 
 #mainSVG {
-  width: 100%;
-  height: 100%;
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: min(1400px, 95vw);
+  height: auto;
+  z-index: 2;
   visibility: hidden;
-  opacity: 50%;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.8s ease;
 }
 
 #mainSVG.hidden {
   display: none;
 }
 
-#mainSVG.block {
+#mainSVG.visible {
   display: block;
   visibility: visible;
+  opacity: 1;
 }
 
 .ell,
@@ -121,5 +186,46 @@
   font-size: 0.875rem;
   color: rgba(156, 163, 175, 0.8);
   opacity: 0.8;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .welcome-kwami-container {
+    width: 450px;
+    height: 450px;
+  }
+
+  .welcome-info {
+    bottom: 12%;
+    width: min(90vw, 500px);
+  }
+
+  .info-line {
+    font-size: 0.98rem;
+  }
+
+  .info-line.heading {
+    font-size: 1.25rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .welcome-kwami-container {
+    width: 380px;
+    height: 380px;
+  }
+
+  .welcome-info {
+    bottom: 14%;
+    width: min(90vw, 360px);
+  }
+
+  .info-line {
+    font-size: 0.92rem;
+  }
+  
+  .info-line.heading {
+    font-size: 1.1rem;
+  }
 }
 

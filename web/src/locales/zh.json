@@ -1,0 +1,299 @@
+{
+  "page": {
+    "title": "Kwami - 您的交互式AI伴侣"
+  },
+  "nav": {
+    "aria_navigate": "导航到第{{number}}部分"
+  },
+  "tabs": {
+    "voice": "语音",
+    "music": "音乐",
+    "video": "视频"
+  },
+  "header_links": {
+    "playground": "尝试交互式游乐场",
+    "candy": "铸造您的Kwami NFT",
+    "github": "在GitHub上点赞"
+  },
+  "pages": {
+    "00": {
+      "title": "认识Kwami",
+      "main": "Kwami是一个单一画布，AI语音、音乐和动作完美同步。",
+      "messages": [
+        "在左侧滚动故事，同时右侧的blob镜像每个状态变化。",
+        "Kwami是一个单一画布，AI语音、音乐和动作完美同步。"
+      ],
+      "button": "🚀 启动游乐场"
+    },
+    "01": {
+      "title": "为什么选择Kwami",
+      "main": "因为我们厌倦了大科技公司利用我们的数据，我们不希望AI行业由公司治理，而是由人民治理。",
+      "messages": [
+        "我们希望创建一个社区驱动的AI行业，人们可以控制自己的数据和AI伴侣。",
+        "因为我们厌倦了大科技公司利用我们的数据。",
+        "我们相信AI应该由人民治理，而不是公司。"
+      ],
+      "button": "💡 了解更多"
+    },
+    "02": {
+      "title": "快速开始",
+      "main": "安装包，运行游乐场，并将Kwami指向任何画布。",
+      "messages": [
+        "单击监听，双击随机化—无需额外布线。",
+        "通过简单的npm安装，几分钟内即可开始。",
+        "将Kwami指向任何画布，看着它变得生动。"
+      ],
+      "button": "▶️ 本地运行游乐场"
+    },
+    "03": {
+      "title": "架构",
+      "main": "Mind、Body和Soul保持解耦，因此团队可以独立调整逻辑、视觉效果或氛围。",
+      "messages": [
+        "在游乐场内交换侧边栏，感受每层的连接方式。",
+        "Mind处理AI逻辑，Body处理视觉效果，Soul处理个性。",
+        "清晰的分离意味着您可以独立自定义任何层。"
+      ],
+      "button": "🔁 旋转侧边栏"
+    },
+    "04": {
+      "title": "Mind层",
+      "main": "定义提供者，输入ElevenLabs密钥，一键启动对话。",
+      "messages": [
+        "通过简单接口连接任何AI提供者。",
+        "ElevenLabs集成，实现自然语音对话。",
+        "在OpenAI、Anthropic或自定义提供者之间无缝切换。"
+      ],
+      "button": "🤖 初始化AI代理"
+    },
+    "05": {
+      "title": "Body层",
+      "main": "WebGL blob实时响应FFT数据、触摸涟漪和指针手势。",
+      "messages": [
+        "音频响应式视觉效果，随每个节拍脉动。",
+        "触摸和手势交互产生涟漪效果。",
+        "可自定义皮肤：Donut、Poles或Vintage风格。"
+      ],
+      "button": "🎲 随机化Blob"
+    },
+    "06": {
+      "title": "Soul层",
+      "main": "十个情感特征引导提示、语音语调和动画状态。",
+      "messages": [
+        "用情感特征定义您伴侣的个性。",
+        "特征影响语音语调、响应和动画。",
+        "创建从顽皮到专业的独特个性。"
+      ],
+      "button": "✨ 应用Soul配置"
+    },
+    "07": {
+      "title": "交互流程",
+      "main": "空闲、监听、思考和说话状态使blob一目了然。",
+      "messages": [
+        "视觉状态准确显示您的伴侣在做什么。",
+        "在空闲、监听、思考和说话之间平滑过渡。",
+        "音频过滤器增强存在感和注意力感。"
+      ],
+      "button": "👂 测试监听模式"
+    },
+    "08": {
+      "title": "视觉样式",
+      "main": "选择渐变、玻璃、图像或视频，并保持排版与调色板变化同步。",
+      "messages": [
+        "动态调色板随滚动而变化。",
+        "设置自定义背景：渐变、图像或视频。",
+        "排版自动与您选择的调色板同步。"
+      ],
+      "button": "🖼️ 调整背景"
+    },
+    "09": {
+      "title": "音频和语音",
+      "main": "Web Audio分析驱动峰值，而ElevenLabs处理低延迟语音。",
+      "messages": [
+        "实时FFT分析创建音频响应式动画。",
+        "使用ElevenLabs进行低延迟语音合成。",
+        "播放音乐，看着blob随节奏起舞。"
+      ],
+      "button": "🎤 让Kwami说话"
+    },
+    "10": {
+      "title": "提供者架构",
+      "main": "每个供应商实现相同的`connect / speak / listen / dispose`接口。",
+      "messages": [
+        "所有AI提供者的统一接口。",
+        "使用标准方法轻松添加自定义提供者。",
+        "无需更改应用代码即可切换提供者。"
+      ],
+      "button": "🔌 交换提供者"
+    },
+    "11": {
+      "title": "自定义和配置",
+      "main": "使用类型安全的配置调整峰值、时间、皮肤、旋转和情感范围。",
+      "messages": [
+        "微调blob外观的每个方面。",
+        "类型安全的配置确保运行时无意外。",
+        "在游乐场中实时预览您的更改。"
+      ],
+      "button": "🛠️ 调整峰值"
+    },
+    "12": {
+      "title": "开发者工具包",
+      "main": "导出GLB模型，重用Nuxt/Bun启动器，或直接放入任何SPA。",
+      "messages": [
+        "将您的blob导出为GLB，用于3D应用。",
+        "Nuxt、Bun和vanilla JS的启动模板。",
+        "适用于任何框架：React、Vue、Svelte或vanilla。"
+      ],
+      "button": "💾 下载GLB"
+    },
+    "13": {
+      "title": "性能和测试",
+      "main": "60fps目标、Vitest套件和严格的TS设置使实验可部署。",
+      "messages": [
+        "针对流畅的60fps动画进行优化。",
+        "使用Vitest进行全面的测试套件。",
+        "严格的TypeScript用于及早发现错误。"
+      ],
+      "button": "🤔 测试思考模式"
+    },
+    "14": {
+      "title": "用例",
+      "main": "从DJ设置到健康伴侣，上传任何曲目，观看blob响应。",
+      "messages": [
+        "非常适合DJ设置和音乐可视化。",
+        "创建健康和冥想伴侣。",
+        "构建具有个性的客户服务机器人。"
+      ],
+      "button": "📁 上传音频"
+    },
+    "15": {
+      "title": "连接生态系统",
+      "main": "Kwami连接到kwami.io、qwami.io和quami.io，因此一个NFT伴侣跨越Web2/Web3工作流。",
+      "messages": [
+        "一个NFT伴侣可在我们所有平台上工作。",
+        "Web2和Web3之间的无缝集成。",
+        "您伴侣的DNA在链上持久化。"
+      ],
+      "button": "🌐 连接服务"
+    },
+    "16": {
+      "title": "所有权和Web3",
+      "main": "在Solana上铸造Kwami，并保持blob的DNA哈希与实时配置同步。",
+      "messages": [
+        "在Solana上将您的伴侣铸造为NFT。",
+        "Blob DNA存储在链上，实现真正的所有权。",
+        "将链上配置与您的实时实例同步。"
+      ],
+      "button": "💎 铸造Kwami"
+    },
+    "17": {
+      "title": "路线图",
+      "main": "WebXR、多角色场景、物理和插件已经在进行中。",
+      "messages": [
+        "即将推出WebXR支持，提供沉浸式体验。",
+        "用于群体交互的多角色场景。",
+        "物理引擎和插件系统正在开发中。"
+      ],
+      "button": "🔮 查看路线图"
+    },
+    "18": {
+      "title": "学习路径",
+      "main": "在几分钟内从入门到Mind/Body/Soul深入探索，跟随文档。",
+      "messages": [
+        "从初学者到高级的全面文档。",
+        "深入探索Mind、Body和Soul层。",
+        "包含视频教程和实时示例。"
+      ],
+      "button": "📚 打开指南"
+    },
+    "19": {
+      "title": "社区",
+      "main": "分享着色器、提供者或文档PR—一切都在开放中。",
+      "messages": [
+        "加入我们的Discord，与其他构建者联系。",
+        "分享自定义着色器、提供者和配置。",
+        "为文档做出贡献，获得社区认可。"
+      ],
+      "button": "🤝 加入Discord"
+    },
+    "20": {
+      "title": "专业版和企业版",
+      "main": "升级以获得白标、高级提供者、分析和专用支持。",
+      "messages": [
+        "使用您的品牌对平台进行白标。",
+        "访问高级AI提供者和功能。",
+        "提供专用支持和自定义集成。"
+      ],
+      "button": "🏢 与团队交谈"
+    },
+    "21": {
+      "title": "启动您的伴侣",
+      "main": "分叉仓库，重新混合blob，并在几分钟内投放您自己的AI伴侣。",
+      "messages": [
+        "分叉仓库并自定义一切。",
+        "将您的伴侣部署到任何托管平台。",
+        "今天加入Kwami构建者社区。"
+      ],
+      "button": "🚀 开始会话"
+    }
+  },
+  "labels": {
+    "kwami": "Kwami"
+  },
+  "messages": {
+    "loading_music": "🎵 加载中：{{name}}",
+    "now_playing": "✅ 正在播放：{{name}}",
+    "music_stopped": "🛑 音乐已停止",
+    "song_ended": "🎵 歌曲结束",
+    "no_music_files": "⚠️ 没有可用的音乐文件",
+    "kwami_not_initialized": "⚠️ Kwami尚未初始化",
+    "mode_switched": "模式切换到：{{mode}}",
+    "listening_started": "🎤 开始监听\"kwami\"...",
+    "listening_stopped": "🛑 停止监听",
+    "kwami_detected": "✨ 检测到\"Kwami\"！正在随机化blob...",
+    "double_click_detected": "🎲 检测到双击，正在随机化blob",
+    "blob_randomized": "🎲 Blob已随机化，使用{{skin}}皮肤！"
+  },
+  "welcome_layer": {
+    "heading": "欢迎来到Kwami的语音画布。",
+    "line1": "点击blob以在浏览器中直接解锁音频播放。",
+    "line2": "一切都存储在此设备上—不涉及服务器、跟踪器或cookie。",
+    "line3": "触摸blob仍然算作接受我们的隐形cookie。"
+  },
+  "console": {
+    "welcome": "🎨 Kwami - 交互式AI伴侣",
+    "github": "👻 https://github.com/alexcolls/kwami",
+    "tip_scroll": "提示：滚动以查看真实的Kwami blob变形！",
+    "tip_double_click": "提示：双击blob以随机化它！🎲",
+    "tip_voice": "提示：单击blob开始监听，然后说\"kwami\"以随机化！🎤",
+    "tip_music": "提示：单击音乐标签播放随机歌曲！🎵"
+  },
+  "action_feedback": {
+    "launch_playground": "正在打开实时游乐场...",
+    "view_demo": "正在加载演示布局...",
+    "run_playground": "已复制：npm run playground",
+    "swap_sidebars": "在游乐场内交换侧边栏",
+    "init_mind": "Mind控件在新标签页中打开",
+    "randomize_blob": "在游乐场中点击🎲随机化Blob",
+    "apply_soul": "Soul预设已准备好应用",
+    "test_listening": "监听模式已在游乐场中排队",
+    "set_background": "背景控件已打开",
+    "speak": "准备向ElevenLabs发送新行",
+    "switch_provider": "Mind提供者合约已打开",
+    "adjust_spikes": "峰值滑块已在游乐场中准备好",
+    "download_glb": "将您的blob导出为GLB",
+    "test_thinking": "思考模式已启用",
+    "upload_audio": "在音频播放器中上传曲目",
+    "connect_services": "正在打开quami.io服务中心",
+    "mint_nft": "在Solana上铸造Kwami",
+    "view_roadmap": "路线图已在GitHub上打开",
+    "open_guides": "文档在新标签页中打开",
+    "join_discord": "Discord邀请已打开",
+    "contact_team": "向Kwami团队问好",
+    "create_session": "开始新的游乐场会话",
+    "copy_unavailable": "复制不可用"
+  },
+  "lang_switcher": {
+    "label": "语言"
+  }
+}
+
