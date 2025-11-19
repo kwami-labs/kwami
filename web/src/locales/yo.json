@@ -1,14 +1,14 @@
 {
   "page": {
-    "title": "Kwami - Your Interactive AI Companion"
+    "title": "Kwami - Ọrẹ AI Ti O Nṣiṣẹ Lọwọlọwọ Rẹ"
   },
   "nav": {
     "aria_navigate": "Navigate to section {{number}}"
   },
   "tabs": {
-    "voice": "Voice",
-    "music": "Music",
-    "video": "Video"
+    "voice": "Ohùn",
+    "music": "Orin",
+    "video": "Fidio"
   },
   "header_links": {
     "playground": "Try Interactive Playground",
@@ -293,7 +293,6 @@
     "copy_unavailable": "Copy unavailable"
   },
   "lang_switcher": {
-    "label": "Language"
+    "label": "Èdè"
   }
 }
-

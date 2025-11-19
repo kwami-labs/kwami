@@ -1,299 +1,298 @@
 {
   "page": {
-    "title": "Kwami - Your Interactive AI Companion"
+    "title": "Kwami - Twój Interaktywny Towarzysz AI"
   },
   "nav": {
-    "aria_navigate": "Navigate to section {{number}}"
+    "aria_navigate": "Przejdź do sekcji {{number}}"
   },
   "tabs": {
-    "voice": "Voice",
-    "music": "Music",
-    "video": "Video"
+    "voice": "Głos",
+    "music": "Muzyka",
+    "video": "Wideo"
   },
   "header_links": {
-    "playground": "Try Interactive Playground",
-    "candy": "Mint Your Kwami NFT",
-    "github": "Star on GitHub"
+    "playground": "Wypróbuj Interaktywny Plac Zabaw",
+    "candy": "Wybij Swoje NFT Kwami",
+    "github": "Gwiazdka na GitHub"
   },
   "pages": {
     "00": {
-      "title": "Meet Kwami",
-      "main": "Kwami is a single canvas where AI voice, music, and motion stay perfectly in sync.",
+      "title": "Poznaj Kwami",
+      "main": "Kwami to pojedyncze płótno, na którym głos AI, muzyka i ruch pozostają idealnie zsynchronizowane.",
       "messages": [
-        "Scroll the story on the left while the blob mirrors every state change on the right.",
-        "Kwami is a single canvas where AI voice, music, and motion stay perfectly in sync."
+        "Przewijaj historię po lewej, podczas gdy kropla odzwierciedla każdą zmianę stanu po prawej.",
+        "Kwami to pojedyncze płótno, na którym głos AI, muzyka i ruch pozostają idealnie zsynchronizowane."
       ],
-      "button": "🚀 Launch Playground"
+      "button": "🚀 Uruchom Plac Zabaw"
     },
     "01": {
-      "title": "Why Kwami",
-      "main": "Because we are tired of big tech exploiting our data and we don't want an AI industry govern by corporations but by the people.",
+      "title": "Dlaczego Kwami",
+      "main": "Ponieważ jesteśmy zmęczeni eksploatacją naszych danych przez wielkie technologie i nie chcemy przemysłu AI rządzonego przez korporacje, ale przez ludzi.",
       "messages": [
-        "We want to create a community-driven AI industry where people are in control of their data and their AI companions.",
-        "Because we are tired of big tech exploiting our data.",
-        "We believe AI should be governed by the people, not corporations."
+        "Chcemy stworzyć przemysł AI napędzany przez społeczność, w którym ludzie kontrolują swoje dane i swoich towarzyszy AI.",
+        "Ponieważ jesteśmy zmęczeni eksploatacją naszych danych przez wielkie technologie.",
+        "Wierzymy, że AI powinno być zarządzane przez ludzi, a nie korporacje."
       ],
-      "button": "💡 Learn More"
+      "button": "💡 Dowiedz się więcej"
     },
     "02": {
-      "title": "Quick Start",
-      "main": "Install the package, run the playground, and point Kwami at any canvas.",
+      "title": "Szybki Start",
+      "main": "Zainstaluj pakiet, uruchom plac zabaw i skieruj Kwami na dowolne płótno.",
       "messages": [
-        "Single-click listens, double-click randomizes—no extra wiring required.",
-        "Get started in minutes with simple npm install.",
-        "Point Kwami at any canvas and watch it come alive."
+        "Pojedyncze kliknięcie słucha, podwójne kliknięcie losuje - nie wymaga dodatkowego okablowania.",
+        "Zacznij w minuty z prostym npm install.",
+        "Skieruj Kwami na dowolne płótno i obserwuj, jak ożywa."
       ],
-      "button": "▶️ Run Playground Locally"
+      "button": "▶️ Uruchom Plac Zabaw Lokalnie"
     },
     "03": {
-      "title": "Architecture",
-      "main": "Mind, Body, and Soul stay decoupled so teams can tweak logic, visuals, or vibe independently.",
+      "title": "Architektura",
+      "main": "Mind, Body i Soul pozostają rozdzielone, więc zespoły mogą niezależnie dostosowywać logikę, wizualizacje lub klimat.",
       "messages": [
-        "Swap sidebars inside the Playground to feel how each layer plugs in.",
-        "Mind handles AI logic, Body handles visuals, Soul handles personality.",
-        "Clean separation means you can customize any layer independently."
+        "Zamień paski boczne w Placu Zabaw, aby poczuć, jak każda warstwa się podłącza.",
+        "Mind obsługuje logikę AI, Body obsługuje wizualizacje, Soul obsługuje osobowość.",
+        "Czyste rozdzielenie oznacza, że możesz dostosować każdą warstwę niezależnie."
       ],
-      "button": "🔁 Rotate Sidebars"
+      "button": "🔁 Obróć Paski Boczne"
     },
     "04": {
-      "title": "Mind Layer",
-      "main": "Define providers, enter an ElevenLabs key, and spin up conversations with one click.",
+      "title": "Warstwa Mind",
+      "main": "Zdefiniuj dostawców, wprowadź klucz ElevenLabs i uruchom rozmowy jednym kliknięciem.",
       "messages": [
-        "Plug in any AI provider with a simple interface.",
-        "ElevenLabs integration for natural voice conversations.",
-        "Switch between OpenAI, Anthropic, or custom providers seamlessly."
+        "Podłącz dowolnego dostawcę AI za pomocą prostego interfejsu.",
+        "Integracja ElevenLabs dla naturalnych rozmów głosowych.",
+        "Przełączaj się płynnie między OpenAI, Anthropic lub niestandardowymi dostawcami."
       ],
-      "button": "🤖 Initialize AI Agent"
+      "button": "🤖 Zainicjuj Agenta AI"
     },
     "05": {
-      "title": "Body Layer",
-      "main": "The WebGL blob reacts to FFT data, touch ripples, and pointer gestures in real time.",
+      "title": "Warstwa Body",
+      "main": "Kropla WebGL reaguje na dane FFT, fale dotykowe i gesty wskaźnika w czasie rzeczywistym.",
       "messages": [
-        "Audio-reactive visuals that pulse with every beat.",
-        "Touch and gesture interactions create ripple effects.",
-        "Customizable skins: Donut, Poles, or Vintage styles."
+        "Wizualizacje reaktywne na dźwięk, które pulsują z każdym uderzeniem.",
+        "Interakcje dotykowe i gestami tworzą efekty fal.",
+        "Konfigurowalne skórki: Donut, Poles lub style Vintage."
       ],
-      "button": "🎲 Randomize Blob"
+      "button": "🎲 Losuj Kroplę"
     },
     "06": {
-      "title": "Soul Layer",
-      "main": "Ten emotional traits steer prompts, voice tone, and animation states.",
+      "title": "Warstwa Soul",
+      "main": "Dziesięć cech emocjonalnych steruje podpowiedziami, tonem głosu i stanami animacji.",
       "messages": [
-        "Define your companion's personality with emotional traits.",
-        "Traits influence voice tone, responses, and animations.",
-        "Create unique personalities from playful to professional."
+        "Zdefiniuj osobowość swojego towarzysza za pomocą cech emocjonalnych.",
+        "Cechy wpływają na ton głosu, odpowiedzi i animacje.",
+        "Twórz unikalne osobowości od zabawnych po profesjonalne."
       ],
-      "button": "✨ Apply Soul Config"
+      "button": "✨ Zastosuj Konfigurację Soul"
     },
     "07": {
-      "title": "Interaction Flow",
-      "main": "Idle, listening, thinking, and speaking states keep the blob legible at a glance.",
+      "title": "Przepływ Interakcji",
+      "main": "Stany bezczynności, słuchania, myślenia i mówienia sprawiają, że kropla jest czytelna na pierwszy rzut oka.",
       "messages": [
-        "Visual states show exactly what your companion is doing.",
-        "Smooth transitions between idle, listening, thinking, and speaking.",
-        "Audio filters enhance the sense of presence and attention."
+        "Stany wizualne pokazują dokładnie, co robi twój towarzysz.",
+        "Płynne przejścia między bezczyn się, słuchaniem, myśleniem i mówieniem.",
+        "Filtry audio wzmacniają poczucie obecności i uwagi."
       ],
-      "button": "👂 Test Listening Mode"
+      "button": "👂 Testuj Tryb Słuchania"
     },
     "08": {
-      "title": "Visual Styles",
-      "main": "Pick gradients, glass, imagery, or videos and keep typography synced with palette shifts.",
+      "title": "Style Wizualne",
+      "main": "Wybierz gradienty, szkło, obrazy lub filmy i utrzymuj typografię zsynchronizowaną ze zmianami palety.",
       "messages": [
-        "Dynamic color palettes that shift as you scroll.",
-        "Set custom backgrounds: gradients, images, or videos.",
-        "Typography automatically syncs with your chosen palette."
+        "Dynamiczne palety kolorów, które zmieniają się podczas przewijania.",
+        "Ustaw niestandardowe tła: gradienty, obrazy lub filmy.",
+        "Typografia automatycznie synchronizuje się z wybraną paletą."
       ],
-      "button": "🖼️ Tune Background"
+      "button": "🖼️ Dostosuj Tło"
     },
     "09": {
-      "title": "Audio & Voice",
-      "main": "Web Audio analysis drives spikes while ElevenLabs handles low-latency speech.",
+      "title": "Audio i Głos",
+      "main": "Analiza Web Audio napędza kolce, podczas gdy ElevenLabs obsługuje mowę o niskim opóźnieniu.",
       "messages": [
-        "Real-time FFT analysis creates audio-reactive animations.",
-        "Low-latency voice synthesis with ElevenLabs.",
-        "Play music and watch the blob dance to the rhythm."
+        "Analiza FFT w czasie rzeczywistym tworzy animacje reaktywne na dźwięk.",
+        "Synteza mowy o niskim opóźnieniu z ElevenLabs.",
+        "Odtwarzaj muzykę i obserwuj, jak kropla tańczy do rytmu."
       ],
-      "button": "🎤 Make Kwami Speak"
+      "button": "🎤 Spraw, by Kwami Mówiło"
     },
     "10": {
-      "title": "Provider Architecture",
-      "main": "Every vendor implements the same `connect / speak / listen / dispose` surface.",
+      "title": "Architektura Dostawców",
+      "main": "Każdy dostawca implementuje tę samą powierzchnię 'connect / speak / listen / dispose'.",
       "messages": [
-        "Unified interface for all AI providers.",
-        "Easy to add custom providers with standard methods.",
-        "Switch providers without changing your app code."
+        "Zunifikowany interfejs dla wszystkich dostawców AI.",
+        "Łatwo dodawaj niestandardowych dostawców ze standardowymi metodami.",
+        "Przełączaj dostawców bez zmiany kodu aplikacji."
       ],
-      "button": "🔌 Swap Providers"
+      "button": "🔌 Zamień Dostawców"
     },
     "11": {
-      "title": "Customization & Config",
-      "main": "Adjust spikes, time, skins, rotation, and emotional ranges with type-safe configs.",
+      "title": "Dostosowanie i Konfiguracja",
+      "main": "Dostosuj kolce, czas, skórki, obrót i zakresy emocjonalne za pomocą bezpiecznych typowo konfiguracji.",
       "messages": [
-        "Fine-tune every aspect of your blob's appearance.",
-        "Type-safe configuration ensures no runtime surprises.",
-        "Live preview your changes in the playground."
+        "Dostrajaj każdy aspekt wyglądu swojej kropli.",
+        "Konfiguracja bezpieczna typowo zapewnia brak niespodzianek w czasie wykonywania.",
+        "Podgląd zmian na żywo w Placu Zabaw."
       ],
-      "button": "🛠️ Adjust Spikes"
+      "button": "🛠️ Dostosuj Kolce"
     },
     "12": {
-      "title": "Developer Toolkit",
-      "main": "Export GLB models, reuse Nuxt/Bun starters, or drop straight into any SPA.",
+      "title": "Zestaw Narzędzi dla Deweloperów",
+      "main": "Eksportuj modele GLB, użyj starterów Nuxt/Bun lub wrzuć bezpośrednio do dowolnej SPA.",
       "messages": [
-        "Export your blob as a GLB for use in 3D apps.",
-        "Starter templates for Nuxt, Bun, and vanilla JS.",
-        "Works with any framework: React, Vue, Svelte, or vanilla."
+        "Eksportuj swoją kroplę jako GLB do użytku w aplikacjach 3D.",
+        "Szablony startowe dla Nuxt, Bun i Vanilla JS.",
+        "Działa z każdym frameworkiem: React, Vue, Svelte lub Vanilla."
       ],
-      "button": "💾 Download GLB"
+      "button": "💾 Pobierz GLB"
     },
     "13": {
-      "title": "Performance & Testing",
-      "main": "60fps targets, Vitest suites, and strict TS settings keep experiments shippable.",
+      "title": "Wydajność i Testy",
+      "main": "Cele 60fps, zestawy Vitest i ścisłe ustawienia TS utrzymują eksperymenty gotowe do wysyłki.",
       "messages": [
-        "Optimized for smooth 60fps animations.",
-        "Comprehensive test suites with Vitest.",
-        "Strict TypeScript for catching bugs early."
+        "Zoptymalizowane dla płynnych animacji 60fps.",
+        "Kompleksowe zestawy testów z Vitest.",
+        "Ścisły TypeScript do wczesnego wychwytywania błędów."
       ],
-      "button": "🤔 Test Thinking Mode"
+      "button": "🤔 Testuj Tryb Myślenia"
     },
     "14": {
-      "title": "Use Cases",
-      "main": "From DJ sets to wellness companions, upload any track and watch the blob respond.",
+      "title": "Przypadki Użycia",
+      "main": "Od zestawów DJ po towarzyszy wellness, prześlij dowolny utwór i obserwuj reakcję kropli.",
       "messages": [
-        "Perfect for DJ sets and music visualizations.",
-        "Create wellness and meditation companions.",
-        "Build customer service bots with personality."
+        "Idealny do zestawów DJ i wizualizacji muzyki.",
+        "Twórz towarzyszy wellness i medytacji.",
+        "Buduj boty obsługi klienta z osobowością."
       ],
-      "button": "📁 Upload Audio"
+      "button": "📁 Prześlij Audio"
     },
     "15": {
-      "title": "Connected Ecosystem",
-      "main": "Kwami ties into kwami.io, qwami.io, and quami.io so one NFT companion spans Web2/Web3 workflows.",
+      "title": "Połączony Ekosystem",
+      "main": "Kwami łączy się z kwami.io, qwami.io i quami.io, więc jeden towarzysz NFT obejmuje przepływy pracy Web2/Web3.",
       "messages": [
-        "One NFT companion works across all our platforms.",
-        "Seamless integration between Web2 and Web3.",
-        "Your companion's DNA persists on-chain."
+        "Jeden towarzysz NFT działa na wszystkich naszych platformach.",
+        "Bezproblemowa integracja między Web2 i Web3.",
+        "DNA twojego towarzysza pozostaje w łańcuchu."
       ],
-      "button": "🌐 Connect Services"
+      "button": "🌐 Połącz Usługi"
     },
     "16": {
-      "title": "Ownership & Web3",
-      "main": "Mint a Kwami on Solana and keep the blob's DNA hash synced with live configs.",
+      "title": "Własność i Web3",
+      "main": "Wybij Kwami na Solana i utrzymuj hash DNA kropli zsynchronizowany z konfiguracjami na żywo.",
       "messages": [
-        "Mint your companion as an NFT on Solana.",
-        "Blob DNA stored on-chain for true ownership.",
-        "Sync on-chain config with your live instance."
+        "Wybij swojego towarzysza jako NFT na Solana.",
+        "DNA kropli przechowywane w łańcuchu dla prawdziwej własności.",
+        "Synchronizuj konfigurację w łańcuchu z instancją na żywo."
       ],
-      "button": "💎 Mint a Kwami"
+      "button": "💎 Wybij Kwami"
     },
     "17": {
-      "title": "Roadmap",
-      "main": "WebXR, multi-character scenes, physics, and plugins are already in flight.",
+      "title": "Mapa Drogowa",
+      "main": "WebXR, sceny wielopostaciowe, fizyka i wtyczki są już w locie.",
       "messages": [
-        "WebXR support coming soon for immersive experiences.",
-        "Multi-character scenes for group interactions.",
-        "Physics engine and plugin system in development."
+        "Wsparcie WebXR wkrótce dla immersyjnych doświadczeń.",
+        "Sceny wielopostaciowe dla interakcji grupowych.",
+        "Silnik fizyki i system wtyczek w rozwoju."
       ],
-      "button": "🔮 View Roadmap"
+      "button": "🔮 Zobacz Mapę Drogową"
     },
     "18": {
-      "title": "Learning Path",
-      "main": "Follow the docs from Getting Started to Mind/Body/Soul deep dives within minutes.",
+      "title": "Ścieżka Nauki",
+      "main": "Śledź dokumenty od Rozpoczęcia do głębokich nurkować Mind/Body/Soul w ciągu minut.",
       "messages": [
-        "Comprehensive docs from beginner to advanced.",
-        "Deep dives into Mind, Body, and Soul layers.",
-        "Video tutorials and live examples included."
+        "Kompleksowa dokumentacja od początkującego do zaawansowanego.",
+        "Głębokie nurkowanie w warstwy Mind, Body i Soul.",
+        "Samouczki wideo i przykłady na żywo w zestawie."
       ],
-      "button": "📚 Open Guides"
+      "button": "📚 Otwórz Przewodniki"
     },
     "19": {
-      "title": "Community",
-      "main": "Share shaders, providers, or docs PRs—everything lives in the open.",
+      "title": "Społeczność",
+      "main": "Udostępniaj shadery, dostawców lub PRy dokumentów - wszystko żyje na otwartej przestrzeni.",
       "messages": [
-        "Join our Discord to connect with other builders.",
-        "Share custom shaders, providers, and configs.",
-        "Contribute to docs and earn community recognition."
+        "Dołącz do naszego Discord, aby połączyć się z innymi twórcami.",
+        "Udostępniaj niestandardowe shadery, dostawców i konfiguracje.",
+        "Wnieś wkład w dokumenty i zdobądź uznanie społeczności."
       ],
-      "button": "🤝 Join Discord"
+      "button": "🤝 Dołącz do Discord"
     },
     "20": {
-      "title": "Pro & Enterprise",
-      "main": "Upgrade for white-labeling, premium providers, analytics, and dedicated support.",
+      "title": "Pro i Enterprise",
+      "main": "Upgrade dla white-labelingu, premium dostawców, analityki i dedykowanego wsparcia.",
       "messages": [
-        "White-label the platform with your branding.",
-        "Access premium AI providers and features.",
-        "Dedicated support and custom integrations available."
+        "White-label platformy z własną marką.",
+        "Dostęp do premium dostawców AI i funkcji.",
+        "Dedykowane wsparcie i niestandardowe integracje dostępne."
       ],
-      "button": "🏢 Talk to the Team"
+      "button": "🏢 Porozmawiaj z Zespołem"
     },
     "21": {
-      "title": "Launch Your Companion",
-      "main": "Fork the repo, remix the blob, and drop your own AI companion in minutes.",
+      "title": "Uruchom Swojego Towarzysza",
+      "main": "Sforkuj repozytorium, zremiksuj kroplę i umieść własnego towarzysza AI w minuty.",
       "messages": [
-        "Fork the repo and customize everything.",
-        "Deploy your companion to any hosting platform.",
-        "Join the community of Kwami builders today."
+        "Sforkuj repozytorium i dostosuj wszystko.",
+        "Wdroż swojego towarzysza na dowolnej platformie hostingowej.",
+        "Dołącz do społeczności twórców Kwami dzisiaj."
       ],
-      "button": "🚀 Start a Session"
+      "button": "🚀 Rozpocznij Sesję"
     }
   },
   "labels": {
     "kwami": "Kwami"
   },
   "messages": {
-    "loading_music": "🎵 Loading: {{name}}",
-    "now_playing": "✅ Now playing: {{name}}",
-    "music_stopped": "🛑 Music stopped",
-    "song_ended": "🎵 Song ended",
-    "no_music_files": "⚠️ No music files available",
-    "kwami_not_initialized": "⚠️ Kwami not initialized yet",
-    "mode_switched": "Mode switched to: {{mode}}",
-    "listening_started": "🎤 Started listening for \"kwami\"...",
-    "listening_stopped": "🛑 Stopped listening",
-    "kwami_detected": "✨ \"Kwami\" detected! Randomizing blob...",
-    "double_click_detected": "🎲 Double-click detected, randomizing blob",
-    "blob_randomized": "🎲 Blob randomized with {{skin}} skin!"
+    "loading_music": "🎵 Ładowanie: {{name}}",
+    "now_playing": "✅ Teraz gra: {{name}}",
+    "music_stopped": "🛑 Muzyka zatrzymana",
+    "song_ended": "🎵 Piosenka zakończona",
+    "no_music_files": "⚠️ Brak dostępnych plików muzycznych",
+    "kwami_not_initialized": "⚠️ Kwami jeszcze nie zainicjowane",
+    "mode_switched": "Tryb przełączony na: {{mode}}",
+    "listening_started": "🎤 Rozpoczęto słuchanie \"kwami\"...",
+    "listening_stopped": "🛑 Zatrzymano słuchanie",
+    "kwami_detected": "✨ Wykryto \"Kwami\"! Losowanie kropli...",
+    "double_click_detected": "🎲 Wykryto podwójne kliknięcie, losowanie kropli",
+    "blob_randomized": "🎲 Kropla wylosowana z {{skin}} skórką!"
   },
   "welcome_layer": {
-    "heading": "Welcome to Kwami's voice canvas.",
-    "line1": "Tap the blob to unlock audio playback directly in your browser.",
-    "line2": "Everything lives on this device—no servers, trackers, or cookies involved.",
-    "line3": "Touching the blob still counts as accepting our invisible cookies."
+    "heading": "Witamy na płótnie głosowym Kwami.",
+    "line1": "Dotknij kropli, aby odblokować odtwarzanie audio bezpośrednio w przeglądarce.",
+    "line2": "Wszystko żyje na tym urządzeniu - bez serwerów, trackerów czy ciasteczek.",
+    "line3": "Dotknięcie kropli nadal liczy się jako akceptacja naszych niewidzialnych ciasteczek."
   },
   "console": {
-    "welcome": "🎨 Kwami - Interactive AI Companion",
+    "welcome": "🎨 Kwami - Interaktywny Towarzysz AI",
     "github": "👻 https://github.com/alexcolls/kwami",
-    "tip_scroll": "Tip: Scroll to see the real Kwami blob morph!",
-    "tip_double_click": "Tip: Double-click the blob to randomize it! 🎲",
-    "tip_voice": "Tip: Click the blob to start listening, then say \"kwami\" to randomize! 🎤",
-    "tip_music": "Tip: Click the Music tab to play a random song! 🎵"
+    "tip_scroll": "Wskazówka: Przewijaj, aby zobaczyć prawdziwą kroplę Kwami morphującą się!",
+    "tip_double_click": "Wskazówka: Kliknij dwukrotnie kroplę, aby ją wylosować! 🎲",
+    "tip_voice": "Wskazówka: Kliknij kroplę, aby rozpocząć słuchanie, następnie powiedz \"kwami\", aby wylosować! 🎤",
+    "tip_music": "Wskazówka: Kliknij zakładkę Muzyka, aby odtworzyć losową piosenkę! 🎵"
   },
   "action_feedback": {
-    "launch_playground": "Opening the live playground...",
-    "view_demo": "Loading the demo layout...",
-    "run_playground": "Copied: npm run playground",
-    "swap_sidebars": "Swap the sidebars inside the playground",
-    "init_mind": "Mind controls opened in a new tab",
-    "randomize_blob": "Hit 🎲 Randomize Blob in the playground",
-    "apply_soul": "Soul presets ready to apply",
-    "test_listening": "Listening mode queued in the playground",
-    "set_background": "Background controls opened",
-    "speak": "Ready to send a new line to ElevenLabs",
-    "switch_provider": "Mind provider contract opened",
-    "adjust_spikes": "Spike sliders ready in playground",
-    "download_glb": "Export your blob as a GLB",
-    "test_thinking": "Thinking mode engaged",
-    "upload_audio": "Upload a track in the audio player",
-    "connect_services": "Opening the quami.io service hub",
-    "mint_nft": "Mint a Kwami on Solana",
-    "view_roadmap": "Roadmap opened on GitHub",
-    "open_guides": "Docs opened in a new tab",
-    "join_discord": "Discord invite opened",
-    "contact_team": "Say hello to the Kwami team",
-    "create_session": "Start a fresh playground session",
-    "copy_unavailable": "Copy unavailable"
+    "launch_playground": "Otwieranie placu zabaw na żywo...",
+    "view_demo": "Ładowanie układu demo...",
+    "run_playground": "Skopiowano: npm run playground",
+    "swap_sidebars": "Zamień paski boczne w placu zabaw",
+    "init_mind": "Sterowanie Mind otwarte w nowej karcie",
+    "randomize_blob": "Naciśnij 🎲 Losuj Kroplę w placu zabaw",
+    "apply_soul": "Ustawienia wstępne Soul gotowe do zastosowania",
+    "test_listening": "Tryb słuchania w kolejce w placu zabaw",
+    "set_background": "Sterowanie tłem otwarte",
+    "speak": "Gotowy do wysłania nowej linii do ElevenLabs",
+    "switch_provider": "Kontrakt dostawcy Mind otwarty",
+    "adjust_spikes": "Suwaki kolców gotowe w placu zabaw",
+    "download_glb": "Eksportuj swoją kroplę jako GLB",
+    "test_thinking": "Tryb myślenia włączony",
+    "upload_audio": "Prześlij utwór w odtwarzaczu audio",
+    "connect_services": "Otwieranie centrum usług quami.io",
+    "mint_nft": "Wybij Kwami na Solana",
+    "view_roadmap": "Mapa drogowa otwarta na GitHub",
+    "open_guides": "Dokumentacja otwarta w nowej karcie",
+    "join_discord": "Zaproszenie Discord otwarte",
+    "contact_team": "Przywitaj się z zespołem Kwami",
+    "create_session": "Rozpocznij świeżą sesję placu zabaw",
+    "copy_unavailable": "Kopiowanie niedostępne"
   },
   "lang_switcher": {
-    "label": "Language"
+    "label": "Język"
   }
 }
-

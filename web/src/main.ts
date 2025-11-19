@@ -308,23 +308,41 @@ class CursorLight {
 }
 
 // Sidebar Navigation Manager
+const RTL_LANGUAGES = ['ar', 'he', 'fa', 'ur'];
+
+function isRTLLanguage(language: string): boolean {
+  if (!language) return false;
+  const normalized = language.toLowerCase().split('-')[0];
+  return RTL_LANGUAGES.includes(normalized);
+}
+
 class SidebarNavigator {
+  private static readonly SIDE_TRANSITION_MS = 350;
+  private static readonly WAVE_ANIMATION_MS = 520;
+  private static readonly WAVE_DELAY_MS = 70;
   private sphereElements: HTMLElement[] = [];
   private container: HTMLElement | null = null;
-  private sidebarNav: HTMLElement | null = null;
+  private navElement: HTMLElement | null = null;
   private totalSections: number;
   private scrollManager: ScrollManager | null = null;
   private isAnimating = false;
-  private hasPlayedInitialAnimation = false;
+  private currentIsRTL = false;
+  private relocationTimeout: number | null = null;
+  private waveResetTimeout: number | null = null;
 
   constructor(totalSections: number) {
     this.totalSections = totalSections;
     this.container = document.getElementById('sphere-container');
-    this.sidebarNav = document.getElementById('sidebar-nav');
+    this.navElement = document.getElementById('sidebar-nav');
+    this.currentIsRTL = isRTLLanguage(getCurrentLanguage());
+    this.setSideAttribute(this.currentIsRTL);
+
     if (this.container) {
+      this.container.style.setProperty('--wave-delay-step', `${SidebarNavigator.WAVE_DELAY_MS}ms`);
+      this.container.style.setProperty('--sphere-count', `${this.totalSections}`);
       this.generateSpheres();
-      // Trigger initial wave animation after a short delay
-      setTimeout(() => this.playWaveAnimation(), 100);
+      this.applyWaveDelays();
+      this.triggerWaveAnimation();
     }
   }
 
@@ -364,48 +382,94 @@ class SidebarNavigator {
         this.navigateToSectionAnimated(sectionIndex);
       });
       
+      sphere.style.setProperty('--sphere-index', i.toString());
       this.sphereElements.push(sphere);
       this.container!.appendChild(sphere);
     }
   }
 
-  // Play wave animation from top to bottom
-  public playWaveAnimation() {
+  private applyWaveDelays() {
+    if (!this.sphereElements.length) return;
+
+    const count = this.sphereElements.length;
     this.sphereElements.forEach((sphere, index) => {
-      // Remove any existing animation class first
-      sphere.classList.remove('wave-in');
-      // Reset styles
-      sphere.style.opacity = '0';
-      sphere.style.transform = 'translateY(-20px)';
-      
-      // Add wave-in class with staggered delay
-      setTimeout(() => {
-        sphere.classList.add('wave-in');
-      }, index * 50); // 50ms delay between each sphere
+      const delayIndex = this.currentIsRTL ? (count - index - 1) : index;
+      const delay = delayIndex * SidebarNavigator.WAVE_DELAY_MS;
+      sphere.style.setProperty('--wave-delay', `${delay}ms`);
     });
-    
-    this.hasPlayedInitialAnimation = true;
   }
 
-  // Handle RTL transition: hide, then show with wave animation
-  public async handleRTLTransition() {
-    if (!this.sidebarNav) return;
-    
-    // If we haven't played the initial animation yet, just play it
-    if (!this.hasPlayedInitialAnimation) {
-      this.playWaveAnimation();
+  private setSideAttribute(isRTL: boolean) {
+    if (!this.navElement) return;
+    this.navElement.setAttribute('data-side', isRTL ? 'rtl' : 'ltr');
+  }
+
+  private animateSideChange(nextIsRTL: boolean) {
+    if (!this.navElement) {
+      this.currentIsRTL = nextIsRTL;
+      this.applyWaveDelays();
+      this.triggerWaveAnimation();
       return;
     }
-    
-    // Hide the sidebar
-    this.sidebarNav.classList.add('hiding');
-    
-    // Wait for hide animation to complete
-    await new Promise(resolve => setTimeout(resolve, 300));
-    
-    // Show the sidebar again with wave animation
-    this.sidebarNav.classList.remove('hiding');
-    this.playWaveAnimation();
+
+    this.navElement.classList.add('is-repositioning');
+
+    if (this.relocationTimeout) {
+      window.clearTimeout(this.relocationTimeout);
+    }
+
+    this.relocationTimeout = window.setTimeout(() => {
+      this.setSideAttribute(nextIsRTL);
+      this.currentIsRTL = nextIsRTL;
+      this.applyWaveDelays();
+
+      requestAnimationFrame(() => {
+        this.navElement?.classList.remove('is-repositioning');
+        this.triggerWaveAnimation();
+      });
+
+      this.relocationTimeout = null;
+    }, SidebarNavigator.SIDE_TRANSITION_MS);
+  }
+
+  public handleLanguageChange(language: string, animate = true) {
+    const nextIsRTL = isRTLLanguage(language);
+
+    if (!animate) {
+      this.setSideAttribute(nextIsRTL);
+      this.currentIsRTL = nextIsRTL;
+      this.applyWaveDelays();
+      this.triggerWaveAnimation();
+      return;
+    }
+
+    if (nextIsRTL !== this.currentIsRTL) {
+      this.animateSideChange(nextIsRTL);
+    } else {
+      this.applyWaveDelays();
+      this.triggerWaveAnimation();
+    }
+  }
+
+  private triggerWaveAnimation() {
+    if (!this.container || this.sphereElements.length === 0) return;
+
+    if (this.waveResetTimeout) {
+      window.clearTimeout(this.waveResetTimeout);
+      this.waveResetTimeout = null;
+    }
+
+    this.container.classList.remove('wave-enter');
+    void this.container.offsetWidth;
+    this.container.classList.add('wave-enter');
+
+    const totalDuration = SidebarNavigator.WAVE_ANIMATION_MS +
+      SidebarNavigator.WAVE_DELAY_MS * Math.max(this.sphereElements.length - 1, 0);
+
+    this.waveResetTimeout = window.setTimeout(() => {
+      this.container?.classList.remove('wave-enter');
+      this.waveResetTimeout = null;
+    }, totalDuration + 50);
   }
 
   private async navigateToSectionAnimated(targetSection: number) {
@@ -505,8 +569,8 @@ class ScrollManager {
     return this.kwami;
   }
 
-  public getSidebarNav(): SidebarNavigator {
-    return this.sidebarNav;
+  public syncLanguageDirection(language: string, animate = true) {
+    this.sidebarNav.handleLanguageChange(language, animate);
   }
 
   public updateBlobPosition(animated: boolean = true) {
@@ -515,7 +579,7 @@ class ScrollManager {
     const blobMesh = this.kwami.body.blob.getMesh();
     const isMobile = window.innerWidth <= 1024;
     const currentLang = getCurrentLanguage();
-    const isRTL = ['ar', 'he', 'fa', 'ur'].includes(currentLang);
+    const isRTL = isRTLLanguage(currentLang);
 
     // Calculate target position based on language and device
     let targetX: number;
@@ -524,7 +588,7 @@ class ScrollManager {
     if (isMobile) {
       // Mobile: keep blob at bottom center (even lower)
       targetX = 0;
-      targetY = -14;
+      targetY = -9;
     } else {
       // Desktop: move blob left for RTL (Arabic), right for LTR
       targetX = isRTL ? -8 : 8;
@@ -1203,7 +1267,7 @@ function initLanguageSwitcher() {
   // Set initial text direction based on current language
   const currentLang = getCurrentLanguage();
   const htmlElement = document.documentElement;
-  if (['ar', 'he', 'fa', 'ur'].includes(currentLang)) {
+  if (isRTLLanguage(currentLang)) {
     htmlElement.setAttribute('dir', 'rtl');
   } else {
     htmlElement.setAttribute('dir', 'ltr');
@@ -1232,18 +1296,7 @@ document.addEventListener('DOMContentLoaded', () => {
   // Listen for language changes and update blob position with smooth animation
   i18next.on('languageChanged', (lng: string) => {
     console.log(`🌐 Language changed to: ${lng}`);
-    
-    const isRTL = ['ar', 'he', 'fa', 'ur'].includes(lng);
-    
-    // If switching to/from RTL, animate the sidebar spheres
-    const currentDir = document.documentElement.getAttribute('dir');
-    const newDir = isRTL ? 'rtl' : 'ltr';
-    
-    if (currentDir !== newDir) {
-      // Trigger sphere animation when direction changes
-      scrollManager.getSidebarNav().handleRTLTransition();
-    }
-    
+    scrollManager.syncLanguageDirection(lng);
     // Wait a tick for the language to be fully applied
     setTimeout(() => {
       scrollManager.updateBlobPosition(true); // Animate the blob position

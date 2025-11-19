@@ -1,13 +1,13 @@
 {
   "page": {
-    "title": "Kwami - Your Interactive AI Companion"
+    "title": "Kwami - Wo AI Nhyɛso a Ɛyɛ Nhyɛso"
   },
   "nav": {
     "aria_navigate": "Navigate to section {{number}}"
   },
   "tabs": {
-    "voice": "Voice",
-    "music": "Music",
+    "voice": "Nne",
+    "music": "Nnwom",
     "video": "Video"
   },
   "header_links": {
@@ -293,7 +293,6 @@
     "copy_unavailable": "Copy unavailable"
   },
   "lang_switcher": {
-    "label": "Language"
+    "label": "Kasa"
   }
 }
-

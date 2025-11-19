@@ -1,14 +1,14 @@
 {
   "page": {
-    "title": "Kwami - בן לוויה AI האינטראקטיבי שלך"
+    "title": "Kwami - Your Interactive AI Companion"
   },
   "nav": {
     "aria_navigate": "Navigate to section {{number}}"
   },
   "tabs": {
-    "voice": "קול",
-    "music": "מוזיקה",
-    "video": "וידאו"
+    "voice": "Voice",
+    "music": "Music",
+    "video": "Video"
   },
   "header_links": {
     "playground": "Try Interactive Playground",
@@ -293,6 +293,7 @@
     "copy_unavailable": "Copy unavailable"
   },
   "lang_switcher": {
-    "label": "שפה"
+    "label": "Language"
   }
 }
+

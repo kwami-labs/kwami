@@ -1,13 +1,13 @@
 {
   "page": {
-    "title": "Kwami - Your Interactive AI Companion"
+    "title": "Kwami - Mshirika Wako wa AI wa Kuingiliana"
   },
   "nav": {
     "aria_navigate": "Navigate to section {{number}}"
   },
   "tabs": {
-    "voice": "Voice",
-    "music": "Music",
+    "voice": "Sauti",
+    "music": "Muziki",
     "video": "Video"
   },
   "header_links": {
@@ -293,7 +293,6 @@
     "copy_unavailable": "Copy unavailable"
   },
   "lang_switcher": {
-    "label": "Language"
+    "label": "Lugha"
   }
 }
-

@@ -236,18 +236,17 @@ export function createLanguageSwitcher(className = 'language-switcher'): HTMLEle
     option.textContent = `${lang.flag} ${lang.name}`;
     
     option.addEventListener('click', async () => {
-      // Update text direction for RTL languages BEFORE changing language
-      // so the animation can detect the direction change
+      await i18next.changeLanguage(lang.code);
+      currentLang.textContent = lang.code.toUpperCase();
+      langIcon.textContent = lang.flag; // Update flag icon
+      langMenu.classList.remove('open');
+      
+      // Update text direction for RTL languages
       if (['ar', 'he', 'fa', 'ur'].includes(lang.code)) {
         document.documentElement.setAttribute('dir', 'rtl');
       } else {
         document.documentElement.setAttribute('dir', 'ltr');
       }
-      
-      await i18next.changeLanguage(lang.code);
-      currentLang.textContent = lang.code.toUpperCase();
-      langIcon.textContent = lang.flag; // Update flag icon
-      langMenu.classList.remove('open');
       
       console.log(`🌐 Language changed to ${lang.name}`);
     });

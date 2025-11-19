@@ -1,14 +1,14 @@
 {
   "page": {
-    "title": "Kwami - Your Interactive AI Companion"
+    "title": "Kwami - เพื่อน AI แบบโต้ตอบของคุณ"
   },
   "nav": {
     "aria_navigate": "Navigate to section {{number}}"
   },
   "tabs": {
-    "voice": "Voice",
-    "music": "Music",
-    "video": "Video"
+    "voice": "เสียง",
+    "music": "เพลง",
+    "video": "วิดีโอ"
   },
   "header_links": {
     "playground": "Try Interactive Playground",
@@ -293,7 +293,6 @@
     "copy_unavailable": "Copy unavailable"
   },
   "lang_switcher": {
-    "label": "Language"
+    "label": "ภาษา"
   }
 }
-
