@@ -6,7 +6,9 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "build": "tsc && vite build",
+    "prebuild": "cd .. && npm install",
+    "build": "vite build",
+    "build:check": "tsc && vite build",
     "preview": "vite preview"
   },
   "dependencies": {
@@ -21,6 +23,7 @@
   },
   "devDependencies": {
     "@types/js-yaml": "^4.0.9",
+    "@types/three": "^0.160.0",
     "typescript": "~5.9.3",
     "vite": "^7.2.2"
   }
