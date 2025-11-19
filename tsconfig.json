@@ -39,6 +39,11 @@
         "utils",
         "options",
         "types/index.d.ts",
-        "src/tests"
+        "src/tests",
+        "src/core/mind/examples/**",
+        "playground",
+        "web",
+        "candy",
+        "market"
     ]
 }

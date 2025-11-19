@@ -5,7 +5,11 @@
  * API Reference: https://elevenlabs.io/docs/api-reference/tools
  */
 
-export interface ToolParameter {
+import type { ToolParameter as ToolParameterBase } from '../../../types/elevenlabs-agents';
+
+export type ToolParameter = ToolParameterBase;
+
+export interface ToolParameterLegacy {
   name: string;
   type: 'string' | 'number' | 'boolean' | 'object' | 'array';
   description: string;

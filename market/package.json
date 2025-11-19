@@ -1,5 +1,5 @@
 {
-  "name": "market",
+  "name": "kwami-marketplace",
   "type": "module",
   "private": true,
   "scripts": {
@@ -10,8 +10,25 @@
     "postinstall": "nuxt prepare"
   },
   "dependencies": {
+    "@coral-xyz/anchor": "^0.30.1",
+    "@metaplex-foundation/js": "^0.20.1",
+    "@metaplex-foundation/mpl-token-metadata": "^3.2.1",
+    "@pinia/nuxt": "^0.5.1",
+    "@solana/spl-token": "^0.4.1",
+    "@solana/wallet-adapter-base": "^0.9.23",
+    "@solana/wallet-adapter-vue": "^0.6.1",
+    "@solana/wallet-adapter-wallets": "^0.19.26",
+    "@solana/web3.js": "^1.95.4",
+    "@vueuse/core": "^11.3.0",
+    "bn.js": "^5.2.1",
     "nuxt": "^4.2.1",
+    "pinia": "^2.3.0",
     "vue": "^3.5.24",
     "vue-router": "^4.6.3"
+  },
+  "devDependencies": {
+    "@nuxtjs/tailwindcss": "^6.13.1",
+    "@types/bn.js": "^5.1.6",
+    "sass": "^1.83.3"
   }
 }

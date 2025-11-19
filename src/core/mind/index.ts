@@ -24,7 +24,6 @@ export {
 // Tools API
 export { ToolsAPI, createSimpleTool, createToolParameter } from './apis/ToolsAPI';
 export type {
-  ToolParameter,
   CreateToolRequest,
   ToolResponse,
   UpdateToolRequest,
