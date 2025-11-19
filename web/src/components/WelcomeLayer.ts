@@ -1,6 +1,6 @@
 import { gsap } from 'gsap';
 import { Kwami } from 'kwami';
-import i18next, { t } from '../i18n';
+import i18next, { t, createLanguageSwitcher } from '../i18n';
 
 // Helper function to blend two hex colors for middle gradient
 function blendColors(color1: string, color2: string): string {
@@ -142,8 +142,12 @@ export class WelcomeLayer {
     versionDiv.className = 'fixed bottom-10 text-sm text-gray-400 opacity-80';
     versionDiv.textContent = 'KWAMI v.1.3.4';
 
+    // Create welcome language switcher using shared function
+    const welcomeLangSwitcher = createLanguageSwitcher('welcome-language-switcher');
+
     this.container.appendChild(svg);
     this.container.appendChild(versionDiv);
+    this.container.appendChild(welcomeLangSwitcher);
     document.body.appendChild(this.container);
 
     // Preload audio for skipped version
@@ -232,6 +236,9 @@ export class WelcomeLayer {
     versionDiv.className = 'fixed bottom-10 text-sm text-gray-400 opacity-80';
     versionDiv.textContent = 'KWAMI v.1.3.4';
 
+    // Create welcome language switcher using shared function
+    const welcomeLangSwitcher = createLanguageSwitcher('welcome-language-switcher');
+
     // Append elements
     this.container.appendChild(this.kwamiContainer);
     if (this.welcomeInfo) {
@@ -239,6 +246,7 @@ export class WelcomeLayer {
     }
     this.container.appendChild(svg);
     this.container.appendChild(versionDiv);
+    this.container.appendChild(welcomeLangSwitcher);
 
     // Add to body
     document.body.appendChild(this.container);
@@ -302,7 +310,7 @@ export class WelcomeLayer {
 
       // Set blob scale based on screen size - bigger for welcome screen
       const isMobile = window.innerWidth <= 768;
-      const blobScale = isMobile ? 6.5 : 7.8;
+      const blobScale = isMobile ? 7.5 : 7.8;
       this.kwami.body.blob.setScale(blobScale);
       this.kwami.body.blob.setWireframe(false);
       
@@ -461,6 +469,7 @@ export class WelcomeLayer {
     const kwamiContainer = this.container?.querySelector('.welcome-kwami-container') as HTMLElement;
     const infoBlock = this.container?.querySelector('.welcome-info') as HTMLElement;
     const svg = this.container?.querySelector('#mainSVG') as SVGSVGElement;
+    const welcomeLangSwitcher = this.container?.querySelector('.welcome-language-switcher') as HTMLElement;
 
     if (kwamiContainer && svg && this.kwami) {
       this.showButton = false;
@@ -582,6 +591,16 @@ export class WelcomeLayer {
           opacity: 0,
           y: 10,
           ease: 'power2.out'
+        });
+      }
+
+      // Fade out welcome language switcher very fast
+      if (welcomeLangSwitcher) {
+        gsap.to(welcomeLangSwitcher, {
+          duration: 0.2,
+          opacity: 0,
+          scale: 0.8,
+          ease: 'power2.in'
         });
       }
       
