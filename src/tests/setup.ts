@@ -5,22 +5,37 @@ vi.mock('three', async () => {
   const actual = await vi.importActual('three');
   return {
     ...actual,
-    WebGLRenderer: vi.fn(() => ({
-      setSize: vi.fn(),
-      render: vi.fn(),
-      dispose: vi.fn(),
-      domElement: document.createElement('canvas'),
-    })),
-    Scene: vi.fn(() => ({
-      add: vi.fn(),
-      remove: vi.fn(),
-      background: null,
-    })),
-    PerspectiveCamera: vi.fn(() => ({
-      position: { x: 0, y: 0, z: 5 },
-      aspect: 1,
-      updateProjectionMatrix: vi.fn(),
-    })),
+    WebGLRenderer: vi.fn(function(this: any) {
+      this.setSize = vi.fn();
+      this.setPixelRatio = vi.fn();
+      this.render = vi.fn();
+      this.dispose = vi.fn();
+      this.shadowMap = { enabled: false, type: null };
+      this.domElement = document.createElement('canvas');
+      return this;
+    }),
+    Scene: vi.fn(function(this: any) {
+      this.add = vi.fn();
+      this.remove = vi.fn();
+      this.background = null;
+      return this;
+    }),
+    PerspectiveCamera: vi.fn(function(this: any) {
+      this.position = { 
+        x: 0, 
+        y: 0, 
+        z: 5,
+        set: vi.fn(function(x: number, y: number, z: number) {
+          this.x = x;
+          this.y = y;
+          this.z = z;
+        })
+      };
+      this.aspect = 1;
+      this.updateProjectionMatrix = vi.fn();
+      this.lookAt = vi.fn();
+      return this;
+    }),
   };
 });
 
@@ -31,9 +46,24 @@ class MockAudioContext {
     connect: vi.fn(),
     disconnect: vi.fn(),
   }));
+  createMediaElementSource = vi.fn(() => ({
+    connect: vi.fn(),
+    disconnect: vi.fn(),
+  }));
   createAnalyser = vi.fn(() => ({
     frequencyBinCount: 128,
+    fftSize: 2048,
+    smoothingTimeConstant: 0.35,
+    minDecibels: -90,
+    maxDecibels: -10,
     getByteFrequencyData: vi.fn(),
+    connect: vi.fn(),
+    disconnect: vi.fn(),
+  }));
+  createBiquadFilter = vi.fn(() => ({
+    type: 'lowpass',
+    frequency: { value: 220 },
+    Q: { value: 0.85 },
     connect: vi.fn(),
     disconnect: vi.fn(),
   }));
@@ -43,6 +73,7 @@ class MockAudioContext {
     disconnect: vi.fn(),
   }));
   decodeAudioData = vi.fn((buffer) => Promise.resolve(buffer));
+  close = vi.fn(() => Promise.resolve());
 }
 
 global.AudioContext = MockAudioContext as any;
@@ -75,13 +106,39 @@ class MockMediaRecorder {
 
 global.MediaRecorder = MockMediaRecorder as any;
 
+// Mock MediaStreamTrack
+class MockMediaStreamTrack {
+  kind = 'audio';
+  id = 'mock-track-id';
+  label = 'Mock Audio Track';
+  enabled = true;
+  muted = false;
+  readyState = 'live';
+  
+  stop() {
+    this.readyState = 'ended';
+  }
+  
+  clone() {
+    return new MockMediaStreamTrack();
+  }
+}
+
 // Mock MediaStream
 class MockMediaStream {
   id = 'mock-stream-id';
   active = true;
-  private tracks: any[] = [];
+  private tracks: MockMediaStreamTrack[] = [new MockMediaStreamTrack()];
 
   getAudioTracks() {
+    return this.tracks;
+  }
+
+  getVideoTracks() {
+    return [];
+  }
+
+  getTracks() {
     return this.tracks;
   }
 
@@ -104,14 +161,29 @@ class MockMediaSource {
   static isTypeSupported = vi.fn(() => true);
 
   addSourceBuffer() {
-    return {
+    const sourceBuffer = {
       mode: 'sequence',
-      onupdateend: null,
-      appendBuffer: vi.fn(),
+      onupdateend: null as (() => void) | null,
+      appendBuffer: vi.fn(function() {
+        // Trigger onupdateend asynchronously
+        setTimeout(() => {
+          if (sourceBuffer.onupdateend) {
+            sourceBuffer.onupdateend();
+          }
+        }, 0);
+      }),
     };
+    return sourceBuffer;
   }
 
-  endOfStream() {}
+  endOfStream() {
+    // Trigger onsourceended after endOfStream is called
+    setTimeout(() => {
+      if (this.onsourceended) {
+        this.onsourceended();
+      }
+    }, 0);
+  }
 }
 
 global.MediaSource = MockMediaSource as any;
@@ -176,7 +248,17 @@ global.fetch = vi.fn((url: string) => {
 }) as any;
 
 // Mock URL.createObjectURL
-global.URL.createObjectURL = vi.fn(() => 'blob:mock-url');
+global.URL.createObjectURL = vi.fn((obj: any) => {
+  // If it's a MediaSource, trigger onsourceopen asynchronously
+  if (obj instanceof MockMediaSource) {
+    setTimeout(() => {
+      if (obj.onsourceopen) {
+        obj.onsourceopen();
+      }
+    }, 0);
+  }
+  return 'blob:mock-url';
+});
 global.URL.revokeObjectURL = vi.fn();
 
 // Mock FileReader

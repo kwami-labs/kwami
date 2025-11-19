@@ -147,7 +147,9 @@ export default class SpeechSynthesisRecorder {
   }
 
   blob(): Promise<{ tts: SpeechSynthesisRecorder; data: Blob | any }> {
-    if (!this.chunks.length) { throw new Error('no data to return'); }
+    if (!this.chunks.length) { 
+      return Promise.reject(new Error('no data to return')); 
+    }
     return Promise.resolve({
       tts: this,
       data:
@@ -162,7 +164,9 @@ export default class SpeechSynthesisRecorder {
   arrayBuffer(
     blob?: Blob,
   ): Promise<{ tts: SpeechSynthesisRecorder; data: ArrayBuffer }> {
-    if (!this.chunks.length) { throw new Error('no data to return'); }
+    if (!this.chunks.length) { 
+      return Promise.reject(new Error('no data to return')); 
+    }
     return new Promise((resolve) => {
       const reader = new FileReader();
       reader.onload = _ =>
@@ -188,7 +192,9 @@ export default class SpeechSynthesisRecorder {
     tts: SpeechSynthesisRecorder;
     data: AudioBuffer;
   }> {
-    if (!this.chunks.length) { throw new Error('no data to return'); }
+    if (!this.chunks.length) { 
+      return Promise.reject(new Error('no data to return')); 
+    }
     const ab = await this.arrayBuffer();
     const buffer = await this.audioContext.decodeAudioData(ab.data);
     return {
@@ -201,7 +207,9 @@ export default class SpeechSynthesisRecorder {
     tts: SpeechSynthesisRecorder;
     data: MediaSource;
   }> {
-    if (!this.chunks.length) { throw new Error('no data to return'); }
+    if (!this.chunks.length) { 
+      return Promise.reject(new Error('no data to return')); 
+    }
     const { data: ab } = await this.arrayBuffer();
     return await new Promise<{
       tts: SpeechSynthesisRecorder;
@@ -232,7 +240,9 @@ export default class SpeechSynthesisRecorder {
     options: ReadableStreamOptions = {},
   ): Promise<{ tts: SpeechSynthesisRecorder; data: ReadableStream }> {
     const { size = 1024, controllerOptions = {}, rsOptions = {} } = options;
-    if (!this.chunks.length) { throw new Error('no data to return'); }
+    if (!this.chunks.length) { 
+      return Promise.reject(new Error('no data to return')); 
+    }
     const src: BlobPart[] = this.chunks.slice(0);
     const chunk: number = size;
     return Promise.resolve({

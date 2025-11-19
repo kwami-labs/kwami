@@ -409,6 +409,122 @@ export class KwamiAudio {
   }
 
   /**
+   * Get the number of audio files
+   */
+  getFileCount(): number {
+    return this.files.length;
+  }
+
+  /**
+   * Get the current file index
+   */
+  getCurrentFileIndex(): number {
+    return this.currentFileIndex;
+  }
+
+  /**
+   * Get all audio files
+   */
+  getFiles(): string[] {
+    return [...this.files];
+  }
+
+  /**
+   * Update frequency data from the analyser
+   */
+  updateFrequencyData(): void {
+    if (this.analyser && this.frequencyData.length > 0) {
+      this.analyser.getByteFrequencyData(this.frequencyData as Uint8Array<ArrayBuffer>);
+    }
+  }
+
+  /**
+   * Connect a media stream for real-time analysis
+   */
+  connectStreamForAnalysis(stream: MediaStream): void {
+    if (!this.audioContext) {
+      this.initialize();
+    }
+
+    try {
+      if (this.streamSource) {
+        this.disconnectStream();
+      }
+
+      if (this.audioContext && this.analyser) {
+        this.streamSource = this.audioContext.createMediaStreamSource(stream);
+        this.streamSource.connect(this.analyser);
+      }
+    } catch (error) {
+      console.warn('Failed to connect stream for analysis:', error);
+    }
+  }
+
+  /**
+   * Disconnect the current media stream
+   */
+  disconnectStream(): void {
+    if (this.streamSource) {
+      try {
+        this.streamSource.disconnect();
+        this.streamSource = null;
+      } catch (error) {
+        console.warn('Failed to disconnect stream:', error);
+      }
+    }
+  }
+
+  /**
+   * Seek to a specific time position
+   */
+  seek(time: number): void {
+    this.setCurrentTime(time);
+  }
+
+  /**
+   * Set playback rate
+   */
+  setPlaybackRate(rate: number): void {
+    if (this.instance) {
+      this.instance.playbackRate = Math.max(0.25, Math.min(rate, 4.0));
+    }
+  }
+
+  /**
+   * Get current playback rate
+   */
+  getPlaybackRate(): number {
+    return this.instance?.playbackRate || 1.0;
+  }
+
+  /**
+   * Set loop mode
+   */
+  setLoop(loop: boolean): void {
+    if (this.instance) {
+      this.instance.loop = loop;
+    }
+  }
+
+  /**
+   * Add event listener to the audio element
+   */
+  addEventListener(event: string, handler: EventListener): void {
+    if (this.instance) {
+      this.instance.addEventListener(event, handler);
+    }
+  }
+
+  /**
+   * Remove event listener from the audio element
+   */
+  removeEventListener(event: string, handler: EventListener): void {
+    if (this.instance) {
+      this.instance.removeEventListener(event, handler);
+    }
+  }
+
+  /**
    * Set FFT size for frequency analysis
    */
   setFFTSize(size: 512 | 1024 | 2048 | 4096): void {
@@ -690,6 +806,11 @@ export class KwamiAudio {
       // ignore
     }
     try {
+      this.analyser?.disconnect();
+    } catch {
+      // ignore
+    }
+    try {
       this.highpassFilter?.disconnect();
     } catch {
       // ignore
@@ -701,6 +822,7 @@ export class KwamiAudio {
         // ignore
       }
     });
+    this.analyser = null;
     this.highpassFilter = null;
     this.lowpassFilters = [];
     this.sourceNode = null;

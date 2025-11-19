@@ -4,7 +4,7 @@ import { createMockAudioElement, createMockElevenLabsProvider } from '../../util
 import type { MindConfig, VoiceSettings } from '../../../types';
 
 // Mock the factory
-vi.mock('../../../src/core/mind/providers/factory', () => ({
+vi.mock('../../../core/mind/providers/factory', () => ({
   createMindProvider: vi.fn(() => createMockElevenLabsProvider()),
 }));
 

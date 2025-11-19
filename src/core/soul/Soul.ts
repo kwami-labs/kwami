@@ -26,7 +26,8 @@ export class KwamiSoul {
   private config: SoulConfig;
 
   constructor(config?: SoulConfig) {
-    this.config = config || this.getDefaultConfig();
+    const defaults = this.getDefaultConfig();
+    this.config = config ? { ...defaults, ...config } : defaults;
   }
 
   /**
