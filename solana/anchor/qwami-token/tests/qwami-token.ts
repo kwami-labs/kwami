@@ -15,8 +15,8 @@ describe("qwami-token", () => {
   let authority: anchor.web3.PublicKey;
   let tokenAccount: anchor.web3.PublicKey;
 
-  const MAX_SUPPLY = new anchor.BN(1_000_000_000_000).mul(new anchor.BN(1_000_000_000)); // 1T tokens * 10^9 decimals
-  const DECIMALS = 9;
+  const MAX_SUPPLY = new anchor.BN(1_000_000_000_000); // 1 trillion tokens (0 decimals - integer token)
+  const DECIMALS = 0;
   const BASE_PRICE_USD_CENTS = new anchor.BN(1); // $0.01
 
   before(async () => {
@@ -89,7 +89,7 @@ describe("qwami-token", () => {
 
   describe("Mint Tokens", () => {
     it("Mints tokens to user account", async () => {
-      const amount = new anchor.BN(1_000_000).mul(new anchor.BN(1_000_000_000)); // 1M tokens
+      const amount = new anchor.BN(1_000_000); // 1M tokens (integer)
 
       const tx = await program.methods
         .mintTokens(amount)
@@ -116,7 +116,7 @@ describe("qwami-token", () => {
     });
 
     it("Mints additional tokens", async () => {
-      const amount = new anchor.BN(500_000).mul(new anchor.BN(1_000_000_000)); // 500K tokens
+      const amount = new anchor.BN(500_000); // 500K tokens (integer)
 
       const beforeBalance = await provider.connection.getTokenAccountBalance(tokenAccount);
       const beforeMinted = (await program.account.qwamiTokenAuthority.fetch(authority)).totalMinted;
@@ -171,7 +171,7 @@ describe("qwami-token", () => {
 
   describe("Burn Tokens", () => {
     it("Burns tokens from user account", async () => {
-      const burnAmount = new anchor.BN(100_000).mul(new anchor.BN(1_000_000_000)); // 100K tokens
+      const burnAmount = new anchor.BN(100_000); // 100K tokens (integer)
 
       const beforeBalance = await provider.connection.getTokenAccountBalance(tokenAccount);
       const beforeBurned = (await program.account.qwamiTokenAuthority.fetch(authority)).totalBurned;

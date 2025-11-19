@@ -1,20 +1,67 @@
-# 🪙 QWAMI Token Program
+# ☀️ QWAMI Token Program
 
-Solana SPL token implementation for the QWAMI utility token using Anchor Framework.
+Solana SPL token implementation for the QWAMI utility token - the native token that powers KWAMI AI companions and distributes weekly dividends.
 
-## 📋 Specifications
+## 🎯 Overview
 
-- **Symbol:** QWAMI (or QWA)
-- **Decimals:** 9
+QWAMI is the native KWAMI ecosystem token built on Solana. It enables AI companion capabilities, powers ecosystem transactions, and provides holders with **weekly dividend distributions every Friday** from marketplace and minting profits.
+
+## 📋 Token Specifications
+
+- **Symbol:** QWAMI
+- **Name:** QWAMI Token
+- **Decimals:** 0 (Integer token - no fractional tokens)
 - **Max Supply:** 1,000,000,000,000 (1 trillion tokens)
 - **Base Price:** $0.01 USD per token
 - **Standard:** SPL Token
-- **Features:**
-  - Authority-controlled minting
-  - Burn functionality
-  - Supply tracking (minted/burned/circulating)
-  - Base price management
-  - Authority transfer
+- **Network:** Solana
+- **Model:** Deflationary (burn-based) + Revenue sharing
+
+## 📊 Tokenomics
+
+- **Price:** 1 QWAMI = $0.01 USD
+- **Max Supply:** 1,000,000,000,000 (1 Trillion)
+- **Decimals:** 0 (Integer token)
+- **Network:** Solana SPL
+- **Model:** Deflationary (burn-based) + Revenue sharing
+- **Dividends:** 80% of profits distributed weekly (every Friday)
+- **Revenue Sources:** 
+  - market.kwami.io (marketplace transactions)
+  - candy.kwami.io (NFT minting)
+
+## 🎯 Token Utility
+
+### Core Features
+
+1. **💰 Weekly Dividends** 
+   - Earn 80% of ecosystem profits every Friday
+   - Distributed proportionally to all token holders
+   
+2. **🔒 Staking** 
+   - Stake for APY rewards
+   - Maintain dividend eligibility while staked
+   
+3. **⚡ Energy**
+   - Powers AI API calls (ElevenLabs, OpenAI)
+   - Fuels DAO voting power
+   
+4. **🔗 Connections**
+   - Expands app integration capacity
+   - Enables Instagram, WhatsApp, Gmail, etc. integrations
+   
+5. **🦋 Metamorphosis**
+   - Unlocks multiple KWAMI configurations
+   - Switch between Mind, Soul, and Body modes
+
+## 🔧 Program Features
+
+- Authority-controlled minting
+- Deflationary burn mechanism
+- Supply tracking (minted/burned/circulating)
+- Base price management
+- Authority transfer
+- Maximum supply enforcement
+- Integer-only token amounts (no decimals)
 
 ## 🏗️ Architecture
 
@@ -169,9 +216,9 @@ await program.methods
 ### Mint Tokens
 
 ```typescript
-// Amount in smallest units (9 decimals)
-// 1 QWAMI = 1_000_000_000
-const amount = new anchor.BN(1000_000_000_000); // 1000 QWAMI
+// Amount in whole tokens (0 decimals)
+// 1 QWAMI = 1
+const amount = new anchor.BN(1000); // 1000 QWAMI
 
 await program.methods
   .mintTokens(amount)
@@ -188,7 +235,7 @@ await program.methods
 ### Burn Tokens
 
 ```typescript
-const amount = new anchor.BN(100_000_000_000); // 100 QWAMI
+const amount = new anchor.BN(100); // 100 QWAMI
 
 await program.methods
   .burnTokens(amount)
@@ -307,8 +354,20 @@ spl-token display <mint_address>
 1. **Program ID:** Update `declare_id!()` after first deployment
 2. **Authority:** Keep authority private key secure
 3. **Max Supply:** Hard-coded at 1 trillion, cannot be changed without upgrade
-4. **Decimals:** Fixed at 9, standard for Solana tokens
+4. **Decimals:** Fixed at 0 (integer token), no fractional tokens allowed
 5. **Devnet Only:** Current configuration is for devnet testing
+
+## 🌐 Ecosystem Integration
+
+QWAMI is part of the broader KWAMI ecosystem:
+
+- **kwami.io** - Core AI companion framework
+- **qwami.io** - QWAMI utility token landing page
+- **candy.kwami.io** - KWAMI NFT minting platform
+- **market.kwami.io** - NFT marketplace
+- **DAO** - Governance and community participation
+
+Revenue from candy.kwami.io and market.kwami.io flows back to token holders as weekly dividends.
 
 ## 📚 Resources
 

@@ -3,8 +3,8 @@ use anchor_spl::token::{self, Mint, Token, TokenAccount, MintTo, Burn};
 
 declare_id!("11111111111111111111111111111111"); // Will be updated after deployment
 
-/// Maximum supply: 1 trillion tokens (with 9 decimals)
-const MAX_SUPPLY: u64 = 1_000_000_000_000_000_000_000; // 1e21 (1 trillion * 10^9)
+/// Maximum supply: 1 trillion tokens (0 decimals - integer token)
+const MAX_SUPPLY: u64 = 1_000_000_000_000; // 1 trillion whole tokens
 
 /// Base price in USD cents (1 cent = 0.01 USD)
 const BASE_PRICE_USD_CENTS: u64 = 1;
@@ -26,7 +26,7 @@ pub mod qwami_token {
         msg!("QWAMI Token initialized");
         msg!("Authority: {}", token_authority.authority);
         msg!("Mint: {}", token_authority.mint);
-        msg!("Max Supply: {} tokens", MAX_SUPPLY / 10u64.pow(9));
+        msg!("Max Supply: {} tokens", MAX_SUPPLY);
 
         Ok(())
     }
@@ -155,7 +155,7 @@ pub struct Initialize<'info> {
     #[account(
         init,
         payer = payer,
-        mint::decimals = 9,
+        mint::decimals = 0,
         mint::authority = token_authority,
     )]
     pub mint: Account<'info, Mint>,

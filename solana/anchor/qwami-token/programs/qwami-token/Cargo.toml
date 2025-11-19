@@ -1,7 +1,7 @@
 [package]
 name = "qwami-token"
 version = "0.1.0"
-description = "QWAMI SPL Token program with 1 trillion supply cap"
+description = "QWAMI SPL Token - Integer token with 1 trillion supply, powering KWAMI AI ecosystem"
 edition = "2021"
 
 [lib]
