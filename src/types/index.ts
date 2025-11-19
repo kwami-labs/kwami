@@ -290,6 +290,9 @@ export interface BlobOptions {
   spikes?: { x: number; y: number; z: number };
   time?: { x: number; y: number; z: number };
   rotation?: { x: number; y: number; z: number };
+  colors?: { x: string; y: string; z: string };
+  shininess?: number;
+  wireframe?: boolean;
   onAfterRender?: () => void;
 }
 

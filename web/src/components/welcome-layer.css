@@ -48,18 +48,19 @@
   left: 50%;
   transform: translateX(-50%);
   display: flex;
-  direction: ltr;
-  text-align: center;
+  text-align: center !important;
   flex-direction: column;
+  align-items: center;
   gap: 0.5rem;
-  max-width: 100%;
-  width: min(95vw, 100%);
+  max-width: 90%;
+  width: auto;
   padding: 0 2rem;
-  text-align: center;
   color: rgba(255, 255, 255, 0.95);
   z-index: 10001;
   pointer-events: none;
   font-family: -apple-system, BlinkMacSystemFont, 'Inter', 'SF Pro Display', 'Segoe UI', system-ui, sans-serif;
+  /* Prevent direction changes during transitions */
+  isolation: isolate;
 }
 
 .info-line {
@@ -74,6 +75,7 @@
   text-shadow: 
     0 0 8px rgba(255, 255, 255, 0.2),
     0 0 15px rgba(255, 255, 255, 0.1);
+  text-align: center !important;
 }
 
 .info-line.heading {
@@ -90,6 +92,7 @@
     0 0 10px rgba(255, 255, 255, 0.5),
     0 0 20px rgba(255, 255, 255, 0.3),
     0 0 30px rgba(255, 255, 255, 0.2);
+  text-align: center !important;
 }
 
 .info-line.subtle {
@@ -100,6 +103,7 @@
   text-shadow: 
     0 0 6px rgba(255, 255, 255, 0.15),
     0 0 12px rgba(255, 255, 255, 0.1);
+  text-align: center !important;
 }
 
 .info-line span {
@@ -298,7 +302,7 @@
   position: fixed;
   bottom: 2rem;
   right: 2rem;
-  z-index: 10001;
+  z-index: 30000;
   pointer-events: auto;
 }
 
@@ -347,9 +351,9 @@
 
 .welcome-language-switcher .lang-menu {
   position: absolute;
-  bottom: 100%;
+  top: 100%;
   right: 0;
-  margin-bottom: 0.5rem;
+  margin-top: 0.5rem;
   background: rgba(10, 10, 10, 0.6);
   backdrop-filter: blur(20px) saturate(180%);
   -webkit-backdrop-filter: blur(20px) saturate(180%);
@@ -359,15 +363,51 @@
   box-shadow: 0 4px 16px rgba(0, 0, 0, 0.5);
   opacity: 0;
   visibility: hidden;
-  transform: translateY(10px);
+  transform: translateY(-10px);
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   min-width: 150px;
+  max-height: 400px;
+  overflow-y: auto;
+  overflow-x: hidden;
+  z-index: 30001;
 }
 
 .welcome-language-switcher .lang-menu.open {
   opacity: 1;
   visibility: visible;
   transform: translateY(0);
+}
+
+.welcome-language-switcher .lang-menu.open-upward {
+  top: auto;
+  bottom: 100%;
+  margin-top: 0;
+  margin-bottom: 0.5rem;
+  transform: translateY(10px);
+}
+
+.welcome-language-switcher .lang-menu.open-upward.open {
+  transform: translateY(0);
+}
+
+/* Custom scrollbar for welcome language menu */
+.welcome-language-switcher .lang-menu::-webkit-scrollbar {
+  width: 6px;
+}
+
+.welcome-language-switcher .lang-menu::-webkit-scrollbar-track {
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 3px;
+}
+
+.welcome-language-switcher .lang-menu::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.2);
+  border-radius: 3px;
+  transition: background 0.2s ease;
+}
+
+.welcome-language-switcher .lang-menu::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.3);
 }
 
 .welcome-language-switcher .lang-option {
@@ -405,13 +445,6 @@
   .welcome-language-switcher .lang-btn {
     padding: 0.5rem 0.8rem;
   }
-  
-  .welcome-language-switcher .lang-menu {
-    bottom: auto;
-    top: 100%;
-    margin-bottom: 0;
-    margin-top: 0.5rem;
-  }
 }
 
 @media (max-width: 640px) {
@@ -435,7 +468,7 @@
 
   .welcome-info {
     bottom: 12%;
-    width: min(95vw, 100%);
+    max-width: 95%;
     padding: 0 1rem;
   }
 
@@ -456,7 +489,7 @@
 
   .welcome-info {
     bottom: 14%;
-    width: min(95vw, 100%);
+    max-width: 95%;
     padding: 0 0.5rem;
   }
 
@@ -466,6 +499,54 @@
   
   .info-line.heading {
     font-size: 1.1rem;
+  }
+}
+
+/* Welcome Loader Overlay */
+.welcome-loader-overlay {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 600px;
+  height: 600px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 9999;
+  opacity: 1;
+  transition: opacity 0.8s ease;
+  pointer-events: none;
+}
+
+.welcome-loader-overlay.fade-out {
+  opacity: 0;
+}
+
+.welcome-loader-image {
+  width: auto;
+  height: 60%;
+  max-height: 60%;
+  object-fit: contain;
+  filter: drop-shadow(0 0 20px rgba(255, 255, 255, 0.3));
+}
+
+@media (max-width: 768px) {
+  .welcome-loader-overlay {
+    width: 500px;
+    height: 500px;
+  }
+}
+
+@media (max-width: 480px) {
+  .welcome-loader-overlay {
+    width: 420px;
+    height: 420px;
+  }
+  
+  .welcome-loader-image {
+    height: 55%;
+    max-height: 55%;
   }
 }
 

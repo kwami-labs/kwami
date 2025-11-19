@@ -321,6 +321,12 @@ We welcome contributions! Please:
 3. Make changes with tests
 4. Submit PR to `dev` (not `main`)
 
+### For Maintainers
+
+- **Automated Publishing:** Package auto-publishes to npm when version changes on `main`
+- **Setup Guide:** [.github/NPM_SETUP.md](.github/NPM_SETUP.md)
+- **Release Process:** See [CONTRIBUTING.md](./CONTRIBUTING.md#release-process-automated)
+
 ## 📄 License
 
 **Dual License:**

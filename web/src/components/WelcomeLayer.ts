@@ -2,6 +2,9 @@ import { gsap } from 'gsap';
 import { Kwami } from 'kwami';
 import i18next, { t, createLanguageSwitcher } from '../i18n';
 
+// Static loader path (from public/loader folder)
+const LOADER_GIF = '/loader/laoder.gif';
+
 // Helper function to blend two hex colors for middle gradient
 function blendColors(color1: string, color2: string): string {
   const r1 = parseInt(color1.slice(1, 3), 16);
@@ -68,6 +71,7 @@ export class WelcomeLayer {
   private audioElement: HTMLAudioElement | null = null;
   private kwami: Kwami | null = null;
   private kwamiContainer: HTMLElement | null = null;
+  private loaderOverlay: HTMLElement | null = null;
   private welcomeInfo: HTMLElement | null = null;
   private blobSpikeState = { x: 0, y: 0, z: 0 };
   private blobTimeState = { x: 0, y: 0, z: 0 };
@@ -75,6 +79,8 @@ export class WelcomeLayer {
   private scrollHandler: (() => void) | null = null;
   private currentSection = 0;
   private static readonly STORAGE_KEY = 'kwami_skip_welcome';
+  private sidebarNav: HTMLElement | null = null;
+  private sidebarPlaceholder: Comment | null = null;
 
   constructor() {
     this.secondsContainer = this.secondsLoader + 2;
@@ -149,6 +155,7 @@ export class WelcomeLayer {
     this.container.appendChild(versionDiv);
     this.container.appendChild(welcomeLangSwitcher);
     document.body.appendChild(this.container);
+    this.attachSidebarNavigation();
 
     // Preload audio for skipped version
     this.audioElement = new Audio('/fx/intro.mp3');
@@ -176,14 +183,27 @@ export class WelcomeLayer {
     this.container.className = 'loader-container';
     this.container.style.opacity = '1';
 
-    // Create Kwami container
+    // Create loader overlay (shown while blob is loading)
+    this.loaderOverlay = document.createElement('div');
+    this.loaderOverlay.className = 'welcome-loader-overlay';
+    const loaderImage = document.createElement('img');
+    loaderImage.className = 'welcome-loader-image';
+    loaderImage.src = LOADER_GIF;
+    loaderImage.style.opacity = '0.5';
+    loaderImage.alt = 'Loading...';
+    this.loaderOverlay.appendChild(loaderImage);
+
+    // Create Kwami container (initially hidden with opacity 0)
     this.kwamiContainer = document.createElement('div');
     this.kwamiContainer.className = 'welcome-kwami-container fade-in-leave-active';
+    this.kwamiContainer.style.opacity = '0';
     this.kwamiContainer.addEventListener('click', () => this.handleClick());
 
-    // Create welcome info text
+    // Create welcome info text (initially hidden)
     this.welcomeInfo = document.createElement('div');
     this.welcomeInfo.className = 'welcome-info';
+    this.welcomeInfo.style.opacity = '0';
+    this.welcomeInfo.style.visibility = 'hidden';
     
     // Create "Don't show again" checkbox FIRST
     const skipContainer = document.createElement('div');
@@ -226,20 +246,27 @@ export class WelcomeLayer {
       }
     });
 
-    // Create SVG
+    // Create SVG (initially hidden)
     const svg = this.createSVG();
     svg.classList.add('hidden');
+    svg.style.visibility = 'hidden';
+    svg.style.opacity = '0';
 
-    // Create version display
+    // Create version display (initially hidden)
     const versionDiv = document.createElement('div');
     versionDiv.id = 'version';
     versionDiv.className = 'fixed bottom-10 text-sm text-gray-400 opacity-80';
     versionDiv.textContent = 'KWAMI v.1.3.4';
+    versionDiv.style.visibility = 'hidden';
+    versionDiv.style.opacity = '0';
 
-    // Create welcome language switcher using shared function
+    // Create welcome language switcher using shared function (initially hidden)
     const welcomeLangSwitcher = createLanguageSwitcher('welcome-language-switcher');
+    welcomeLangSwitcher.style.opacity = '0';
+    welcomeLangSwitcher.style.visibility = 'hidden';
 
-    // Append elements
+    // Append elements (loader overlay first, then kwami container)
+    this.container.appendChild(this.loaderOverlay);
     this.container.appendChild(this.kwamiContainer);
     if (this.welcomeInfo) {
       this.container.appendChild(this.welcomeInfo);
@@ -250,9 +277,71 @@ export class WelcomeLayer {
 
     // Add to body
     document.body.appendChild(this.container);
+    this.attachSidebarNavigation();
 
     // Initialize Kwami
     this.initWelcomeKwami();
+  }
+
+  private attachSidebarNavigation() {
+    if (this.sidebarNav || !this.container) return;
+
+    const nav = document.getElementById('sidebar-nav');
+    if (!nav || !nav.parentNode) return;
+
+    this.sidebarPlaceholder = document.createComment('sidebar-nav-placeholder');
+    nav.parentNode.insertBefore(this.sidebarPlaceholder, nav);
+    this.container.appendChild(nav);
+    nav.classList.add('inside-welcome-layer');
+    this.sidebarNav = nav;
+
+    // Trigger wave animation after a short delay to ensure DOM is ready
+    setTimeout(() => {
+      this.triggerSidebarWave();
+    }, 100);
+  }
+
+  private triggerSidebarWave() {
+    if (!this.sidebarNav) return;
+    const sphereContainer = this.sidebarNav.querySelector('.sphere-container');
+    if (!sphereContainer) return;
+
+    sphereContainer.classList.remove('wave-enter');
+    void sphereContainer.getBoundingClientRect(); // Force reflow
+    sphereContainer.classList.add('wave-enter');
+  }
+
+  private triggerSidebarExit() {
+    if (!this.sidebarNav) return;
+    const spheres = Array.from(this.sidebarNav.querySelectorAll('.nav-sphere'));
+    if (spheres.length === 0) return;
+
+    // Animate spheres out from bottom to top (reverse order)
+    spheres.reverse().forEach((sphere, index) => {
+      const htmlSphere = sphere as HTMLElement;
+      gsap.to(htmlSphere, {
+        opacity: 0,
+        y: 12,
+        scale: 0.6,
+        duration: 0.3,
+        delay: index * 0.05, // 50ms stagger
+        ease: 'power2.in'
+      });
+    });
+  }
+
+  private detachSidebarNavigation() {
+    if (!this.sidebarNav) return;
+
+    if (this.sidebarPlaceholder && this.sidebarPlaceholder.parentNode) {
+      this.sidebarPlaceholder.parentNode.replaceChild(this.sidebarNav, this.sidebarPlaceholder);
+    } else {
+      document.body.appendChild(this.sidebarNav);
+    }
+
+    this.sidebarNav.classList.remove('inside-welcome-layer');
+    this.sidebarNav = null;
+    this.sidebarPlaceholder = null;
   }
 
   private async initWelcomeKwami() {
@@ -310,16 +399,23 @@ export class WelcomeLayer {
 
       // Set blob scale based on screen size - bigger for welcome screen
       const isMobile = window.innerWidth <= 768;
-      const blobScale = isMobile ? 7.5 : 7.8;
-      this.kwami.body.blob.setScale(blobScale);
+      const finalBlobScale = isMobile ? 7.5 : 7.8;
+      
+      // Start SMALL (50% of final size) - will grow during animation
+      const initialScale = finalBlobScale * 0.5;
+      this.kwami.body.blob.setScale(initialScale);
       this.kwami.body.blob.setWireframe(false);
       
       // FORCE set colors explicitly after initialization - section 0 white/gray/black gradient
       this.kwami.body.blob.setColors('#ffffff', '#808080', '#000000');
       
-      // FORCE set spikes and time explicitly
-      this.kwami.body.blob.setSpikes(0.05, 5.2, 0.05);
+      // Start FULLY SPHERICAL (no spikes)
+      this.kwami.body.blob.setSpikes(0, 0, 0);
       this.kwami.body.blob.setTime(3, 6, 3);
+      
+      // Store final target values for animation
+      this.blobSpikeState = { x: 0.05, y: 5.2, z: 0.05 };
+      this.blobTimeState = { x: 3, y: 6, z: 3 };
       
       // FORCE set skin explicitly
       this.kwami.body.blob.setSkin('Donut');
@@ -329,6 +425,14 @@ export class WelcomeLayer {
 
       const blobMesh = this.kwami.body.blob.getMesh();
       blobMesh.position.set(0, 0, 0);
+      
+      // Set initial rotation to 90 degrees on Y-axis after a brief delay
+      setTimeout(() => {
+        if (blobMesh) {
+          blobMesh.rotation.y = Math.PI / 2;
+          console.log('🔄 Blob rotated 90° on Y-axis:', blobMesh.rotation.y);
+        }
+      }, 50);
 
       // Auto-rotate (faster)
       const animate = () => {
@@ -344,8 +448,134 @@ export class WelcomeLayer {
       
       // Setup scroll handler to update blob color based on page section
       this.setupScrollHandler();
+      
+      // Smoothly transition from loader to blob
+      this.transitionLoaderToBlob();
     } catch (error) {
       console.error('❌ Failed to initialize welcome Kwami:', error);
+      // Hide loader even on error
+      this.hideLoader();
+    }
+  }
+
+  private transitionLoaderToBlob() {
+    // Wait a bit to ensure blob is fully rendered
+    setTimeout(() => {
+      if (this.loaderOverlay && this.kwamiContainer && this.kwami) {
+        // Fade out loader
+        this.loaderOverlay.classList.add('fade-out');
+        
+        // Fade in blob container
+        gsap.to(this.kwamiContainer, {
+          duration: 0.8,
+          opacity: 1,
+          ease: 'power2.out'
+        });
+        
+        // Animate blob from small sphere to final spiked form
+        this.animateBlobToFinalState();
+        
+        // Show and animate welcome info text after blob starts fading in
+        setTimeout(() => {
+          this.showWelcomeContent();
+        }, 400); // Start text animation halfway through blob fade-in
+        
+        // Remove loader from DOM after transition
+        setTimeout(() => {
+          if (this.loaderOverlay && this.loaderOverlay.parentNode) {
+            this.loaderOverlay.parentNode.removeChild(this.loaderOverlay);
+            this.loaderOverlay = null;
+          }
+        }, 800);
+      }
+    }, 500); // Small delay to ensure blob is fully initialized
+  }
+
+  private animateBlobToFinalState() {
+    if (!this.kwami) return;
+    
+    const blobRef = this.kwami.body.blob;
+    const isMobile = window.innerWidth <= 768;
+    const finalScale = isMobile ? 7.5 : 7.8;
+    const initialScale = finalScale * 0.4;
+    
+    // Animate scale and spikes at the same time using a GSAP timeline
+    const scaleState = { value: initialScale };
+    const currentSpikes = { x: 0, y: 0, z: 0 };
+    const targetSpikes = { x: 0.05, y: 5.2, z: 0.05 };
+
+    const tl = gsap.timeline();
+
+    // Add scale and spikes to the timeline to run simultaneously
+    tl.to(currentSpikes, {
+      duration: 1.25,
+      x: targetSpikes.x,
+      y: targetSpikes.y,
+      z: targetSpikes.z,
+      ease: 'power2.inOut',
+      onUpdate: () => {
+        blobRef.setSpikes(currentSpikes.x, currentSpikes.y, currentSpikes.z);
+      }
+    }, 0) // start at time 0
+    .to(scaleState, {
+      duration: 2.5,
+      value: finalScale,
+      ease: 'power2.out',
+      onUpdate: () => {
+        blobRef.setScale(scaleState.value);
+      }
+    }, 0); // start at time 0
+
+  }
+
+  private showWelcomeContent() {
+    // SVG stays hidden - it only appears when user clicks the blob
+    
+    // Show and fade in version display
+    const versionDiv = this.container?.querySelector('#version') as HTMLElement;
+    if (versionDiv) {
+      versionDiv.style.visibility = 'visible';
+      gsap.to(versionDiv, {
+        duration: 0.6,
+        opacity: 0.8,
+        ease: 'power2.out'
+      });
+    }
+    
+    // Show and fade in welcome info
+    if (this.welcomeInfo) {
+      this.welcomeInfo.style.visibility = 'visible';
+      gsap.to(this.welcomeInfo, {
+        duration: 0.6,
+        opacity: 1,
+        ease: 'power2.out'
+      });
+      
+      // Text will auto-animate via existing character animation
+    }
+    
+    // Show and fade in language switcher
+    const welcomeLangSwitcher = this.container?.querySelector('.welcome-language-switcher') as HTMLElement;
+    if (welcomeLangSwitcher) {
+      welcomeLangSwitcher.style.visibility = 'visible';
+      gsap.to(welcomeLangSwitcher, {
+        duration: 0.6,
+        delay: 0.3, // Slight delay after welcome info
+        opacity: 1,
+        ease: 'power2.out'
+      });
+    }
+  }
+
+  private hideLoader() {
+    if (this.loaderOverlay) {
+      this.loaderOverlay.classList.add('fade-out');
+      setTimeout(() => {
+        if (this.loaderOverlay && this.loaderOverlay.parentNode) {
+          this.loaderOverlay.parentNode.removeChild(this.loaderOverlay);
+          this.loaderOverlay = null;
+        }
+      }, 800);
     }
   }
 
@@ -455,8 +685,7 @@ export class WelcomeLayer {
     path.setAttribute('stroke-miterlimit', '100');
     path.setAttribute('stroke-width', '2');
     
-    // Center the KWAMI text - scale it based on viewport size
-    const textScale = Math.min(vw, vh) / 600; // Scale based on viewport
+    const textScale = Math.min(vw, vh) / 500;
     path.setAttribute('transform', `translate(${centerX - 133 * textScale}, ${centerY - 35 * textScale}) scale(${textScale})`);
     svg.appendChild(path);
 
@@ -474,6 +703,9 @@ export class WelcomeLayer {
     if (kwamiContainer && svg && this.kwami) {
       this.showButton = false;
       window.scrollTo({ top: 0, behavior: 'smooth' });
+      
+      // Trigger sidebar exit animation (bottom to top)
+      this.triggerSidebarExit();
       
       // Clean up scroll handler since we're starting the exit animation
       this.cleanupScrollHandler();
@@ -733,6 +965,7 @@ export class WelcomeLayer {
     setTimeout(() => {
       this.showContainer = false;
       if (this.container) {
+        this.detachSidebarNavigation();
         this.container.remove();
       }
       
@@ -864,6 +1097,7 @@ export class WelcomeLayer {
     setTimeout(() => {
       this.showContainer = false;
       if (this.container) {
+        this.detachSidebarNavigation();
         this.container.remove();
       }
       

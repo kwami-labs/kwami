@@ -1,0 +1,298 @@
+{
+  "page": {
+    "title": "Kwami - Twój Interaktywny Towarzysz AI"
+  },
+  "nav": {
+    "aria_navigate": "Przejdź do sekcji {{number}}"
+  },
+  "tabs": {
+    "voice": "Głos",
+    "music": "Muzyka",
+    "video": "Wideo"
+  },
+  "header_links": {
+    "playground": "Wypróbuj Interaktywny Plac Zabaw",
+    "candy": "Wybij Swoje NFT Kwami",
+    "github": "Gwiazdka na GitHub"
+  },
+  "pages": {
+    "00": {
+      "title": "Poznaj Kwami",
+      "main": "Kwami to pojedyncze płótno, na którym głos AI, muzyka i ruch pozostają idealnie zsynchronizowane.",
+      "messages": [
+        "Przewijaj historię po lewej, podczas gdy kropla odzwierciedla każdą zmianę stanu po prawej.",
+        "Kwami to pojedyncze płótno, na którym głos AI, muzyka i ruch pozostają idealnie zsynchronizowane."
+      ],
+      "button": "🚀 Uruchom Plac Zabaw"
+    },
+    "01": {
+      "title": "Dlaczego Kwami",
+      "main": "Ponieważ jesteśmy zmęczeni eksploatacją naszych danych przez wielkie technologie i nie chcemy przemysłu AI rządzonego przez korporacje, ale przez ludzi.",
+      "messages": [
+        "Chcemy stworzyć przemysł AI napędzany przez społeczność, w którym ludzie kontrolują swoje dane i swoich towarzyszy AI.",
+        "Ponieważ jesteśmy zmęczeni eksploatacją naszych danych przez wielkie technologie.",
+        "Wierzymy, że AI powinno być zarządzane przez ludzi, a nie korporacje."
+      ],
+      "button": "💡 Dowiedz się więcej"
+    },
+    "02": {
+      "title": "Szybki Start",
+      "main": "Zainstaluj pakiet, uruchom plac zabaw i skieruj Kwami na dowolne płótno.",
+      "messages": [
+        "Pojedyncze kliknięcie słucha, podwójne kliknięcie losuje - nie wymaga dodatkowego okablowania.",
+        "Zacznij w minuty z prostym npm install.",
+        "Skieruj Kwami na dowolne płótno i obserwuj, jak ożywa."
+      ],
+      "button": "▶️ Uruchom Plac Zabaw Lokalnie"
+    },
+    "03": {
+      "title": "Architektura",
+      "main": "Mind, Body i Soul pozostają rozdzielone, więc zespoły mogą niezależnie dostosowywać logikę, wizualizacje lub klimat.",
+      "messages": [
+        "Zamień paski boczne w Placu Zabaw, aby poczuć, jak każda warstwa się podłącza.",
+        "Mind obsługuje logikę AI, Body obsługuje wizualizacje, Soul obsługuje osobowość.",
+        "Czyste rozdzielenie oznacza, że możesz dostosować każdą warstwę niezależnie."
+      ],
+      "button": "🔁 Obróć Paski Boczne"
+    },
+    "04": {
+      "title": "Warstwa Mind",
+      "main": "Zdefiniuj dostawców, wprowadź klucz ElevenLabs i uruchom rozmowy jednym kliknięciem.",
+      "messages": [
+        "Podłącz dowolnego dostawcę AI za pomocą prostego interfejsu.",
+        "Integracja ElevenLabs dla naturalnych rozmów głosowych.",
+        "Przełączaj się płynnie między OpenAI, Anthropic lub niestandardowymi dostawcami."
+      ],
+      "button": "🤖 Zainicjuj Agenta AI"
+    },
+    "05": {
+      "title": "Warstwa Body",
+      "main": "Kropla WebGL reaguje na dane FFT, fale dotykowe i gesty wskaźnika w czasie rzeczywistym.",
+      "messages": [
+        "Wizualizacje reaktywne na dźwięk, które pulsują z każdym uderzeniem.",
+        "Interakcje dotykowe i gestami tworzą efekty fal.",
+        "Konfigurowalne skórki: Donut, Poles lub style Vintage."
+      ],
+      "button": "🎲 Losuj Kroplę"
+    },
+    "06": {
+      "title": "Warstwa Soul",
+      "main": "Dziesięć cech emocjonalnych steruje podpowiedziami, tonem głosu i stanami animacji.",
+      "messages": [
+        "Zdefiniuj osobowość swojego towarzysza za pomocą cech emocjonalnych.",
+        "Cechy wpływają na ton głosu, odpowiedzi i animacje.",
+        "Twórz unikalne osobowości od zabawnych po profesjonalne."
+      ],
+      "button": "✨ Zastosuj Konfigurację Soul"
+    },
+    "07": {
+      "title": "Przepływ Interakcji",
+      "main": "Stany bezczynności, słuchania, myślenia i mówienia sprawiają, że kropla jest czytelna na pierwszy rzut oka.",
+      "messages": [
+        "Stany wizualne pokazują dokładnie, co robi twój towarzysz.",
+        "Płynne przejścia między bezczyn się, słuchaniem, myśleniem i mówieniem.",
+        "Filtry audio wzmacniają poczucie obecności i uwagi."
+      ],
+      "button": "👂 Testuj Tryb Słuchania"
+    },
+    "08": {
+      "title": "Style Wizualne",
+      "main": "Wybierz gradienty, szkło, obrazy lub filmy i utrzymuj typografię zsynchronizowaną ze zmianami palety.",
+      "messages": [
+        "Dynamiczne palety kolorów, które zmieniają się podczas przewijania.",
+        "Ustaw niestandardowe tła: gradienty, obrazy lub filmy.",
+        "Typografia automatycznie synchronizuje się z wybraną paletą."
+      ],
+      "button": "🖼️ Dostosuj Tło"
+    },
+    "09": {
+      "title": "Audio i Głos",
+      "main": "Analiza Web Audio napędza kolce, podczas gdy ElevenLabs obsługuje mowę o niskim opóźnieniu.",
+      "messages": [
+        "Analiza FFT w czasie rzeczywistym tworzy animacje reaktywne na dźwięk.",
+        "Synteza mowy o niskim opóźnieniu z ElevenLabs.",
+        "Odtwarzaj muzykę i obserwuj, jak kropla tańczy do rytmu."
+      ],
+      "button": "🎤 Spraw, by Kwami Mówiło"
+    },
+    "10": {
+      "title": "Architektura Dostawców",
+      "main": "Każdy dostawca implementuje tę samą powierzchnię 'connect / speak / listen / dispose'.",
+      "messages": [
+        "Zunifikowany interfejs dla wszystkich dostawców AI.",
+        "Łatwo dodawaj niestandardowych dostawców ze standardowymi metodami.",
+        "Przełączaj dostawców bez zmiany kodu aplikacji."
+      ],
+      "button": "🔌 Zamień Dostawców"
+    },
+    "11": {
+      "title": "Dostosowanie i Konfiguracja",
+      "main": "Dostosuj kolce, czas, skórki, obrót i zakresy emocjonalne za pomocą bezpiecznych typowo konfiguracji.",
+      "messages": [
+        "Dostrajaj każdy aspekt wyglądu swojej kropli.",
+        "Konfiguracja bezpieczna typowo zapewnia brak niespodzianek w czasie wykonywania.",
+        "Podgląd zmian na żywo w Placu Zabaw."
+      ],
+      "button": "🛠️ Dostosuj Kolce"
+    },
+    "12": {
+      "title": "Zestaw Narzędzi dla Deweloperów",
+      "main": "Eksportuj modele GLB, użyj starterów Nuxt/Bun lub wrzuć bezpośrednio do dowolnej SPA.",
+      "messages": [
+        "Eksportuj swoją kroplę jako GLB do użytku w aplikacjach 3D.",
+        "Szablony startowe dla Nuxt, Bun i Vanilla JS.",
+        "Działa z każdym frameworkiem: React, Vue, Svelte lub Vanilla."
+      ],
+      "button": "💾 Pobierz GLB"
+    },
+    "13": {
+      "title": "Wydajność i Testy",
+      "main": "Cele 60fps, zestawy Vitest i ścisłe ustawienia TS utrzymują eksperymenty gotowe do wysyłki.",
+      "messages": [
+        "Zoptymalizowane dla płynnych animacji 60fps.",
+        "Kompleksowe zestawy testów z Vitest.",
+        "Ścisły TypeScript do wczesnego wychwytywania błędów."
+      ],
+      "button": "🤔 Testuj Tryb Myślenia"
+    },
+    "14": {
+      "title": "Przypadki Użycia",
+      "main": "Od zestawów DJ po towarzyszy wellness, prześlij dowolny utwór i obserwuj reakcję kropli.",
+      "messages": [
+        "Idealny do zestawów DJ i wizualizacji muzyki.",
+        "Twórz towarzyszy wellness i medytacji.",
+        "Buduj boty obsługi klienta z osobowością."
+      ],
+      "button": "📁 Prześlij Audio"
+    },
+    "15": {
+      "title": "Połączony Ekosystem",
+      "main": "Kwami łączy się z kwami.io, qwami.io i quami.io, więc jeden towarzysz NFT obejmuje przepływy pracy Web2/Web3.",
+      "messages": [
+        "Jeden towarzysz NFT działa na wszystkich naszych platformach.",
+        "Bezproblemowa integracja między Web2 i Web3.",
+        "DNA twojego towarzysza pozostaje w łańcuchu."
+      ],
+      "button": "🌐 Połącz Usługi"
+    },
+    "16": {
+      "title": "Własność i Web3",
+      "main": "Wybij Kwami na Solana i utrzymuj hash DNA kropli zsynchronizowany z konfiguracjami na żywo.",
+      "messages": [
+        "Wybij swojego towarzysza jako NFT na Solana.",
+        "DNA kropli przechowywane w łańcuchu dla prawdziwej własności.",
+        "Synchronizuj konfigurację w łańcuchu z instancją na żywo."
+      ],
+      "button": "💎 Wybij Kwami"
+    },
+    "17": {
+      "title": "Mapa Drogowa",
+      "main": "WebXR, sceny wielopostaciowe, fizyka i wtyczki są już w locie.",
+      "messages": [
+        "Wsparcie WebXR wkrótce dla immersyjnych doświadczeń.",
+        "Sceny wielopostaciowe dla interakcji grupowych.",
+        "Silnik fizyki i system wtyczek w rozwoju."
+      ],
+      "button": "🔮 Zobacz Mapę Drogową"
+    },
+    "18": {
+      "title": "Ścieżka Nauki",
+      "main": "Śledź dokumenty od Rozpoczęcia do głębokich nurkować Mind/Body/Soul w ciągu minut.",
+      "messages": [
+        "Kompleksowa dokumentacja od początkującego do zaawansowanego.",
+        "Głębokie nurkowanie w warstwy Mind, Body i Soul.",
+        "Samouczki wideo i przykłady na żywo w zestawie."
+      ],
+      "button": "📚 Otwórz Przewodniki"
+    },
+    "19": {
+      "title": "Społeczność",
+      "main": "Udostępniaj shadery, dostawców lub PRy dokumentów - wszystko żyje na otwartej przestrzeni.",
+      "messages": [
+        "Dołącz do naszego Discord, aby połączyć się z innymi twórcami.",
+        "Udostępniaj niestandardowe shadery, dostawców i konfiguracje.",
+        "Wnieś wkład w dokumenty i zdobądź uznanie społeczności."
+      ],
+      "button": "🤝 Dołącz do Discord"
+    },
+    "20": {
+      "title": "Pro i Enterprise",
+      "main": "Upgrade dla white-labelingu, premium dostawców, analityki i dedykowanego wsparcia.",
+      "messages": [
+        "White-label platformy z własną marką.",
+        "Dostęp do premium dostawców AI i funkcji.",
+        "Dedykowane wsparcie i niestandardowe integracje dostępne."
+      ],
+      "button": "🏢 Porozmawiaj z Zespołem"
+    },
+    "21": {
+      "title": "Uruchom Swojego Towarzysza",
+      "main": "Sforkuj repozytorium, zremiksuj kroplę i umieść własnego towarzysza AI w minuty.",
+      "messages": [
+        "Sforkuj repozytorium i dostosuj wszystko.",
+        "Wdroż swojego towarzysza na dowolnej platformie hostingowej.",
+        "Dołącz do społeczności twórców Kwami dzisiaj."
+      ],
+      "button": "🚀 Rozpocznij Sesję"
+    }
+  },
+  "labels": {
+    "kwami": "Kwami"
+  },
+  "messages": {
+    "loading_music": "🎵 Ładowanie: {{name}}",
+    "now_playing": "✅ Teraz gra: {{name}}",
+    "music_stopped": "🛑 Muzyka zatrzymana",
+    "song_ended": "🎵 Piosenka zakończona",
+    "no_music_files": "⚠️ Brak dostępnych plików muzycznych",
+    "kwami_not_initialized": "⚠️ Kwami jeszcze nie zainicjowane",
+    "mode_switched": "Tryb przełączony na: {{mode}}",
+    "listening_started": "🎤 Rozpoczęto słuchanie \"kwami\"...",
+    "listening_stopped": "🛑 Zatrzymano słuchanie",
+    "kwami_detected": "✨ Wykryto \"Kwami\"! Losowanie kropli...",
+    "double_click_detected": "🎲 Wykryto podwójne kliknięcie, losowanie kropli",
+    "blob_randomized": "🎲 Kropla wylosowana z {{skin}} skórką!"
+  },
+  "welcome_layer": {
+    "heading": "Witamy na płótnie głosowym Kwami.",
+    "line1": "Dotknij kropli, aby odblokować odtwarzanie audio bezpośrednio w przeglądarce.",
+    "line2": "Wszystko żyje na tym urządzeniu - bez serwerów, trackerów czy ciasteczek.",
+    "line3": "Dotknięcie kropli nadal liczy się jako akceptacja naszych niewidzialnych ciasteczek."
+  },
+  "console": {
+    "welcome": "🎨 Kwami - Interaktywny Towarzysz AI",
+    "github": "👻 https://github.com/alexcolls/kwami",
+    "tip_scroll": "Wskazówka: Przewijaj, aby zobaczyć prawdziwą kroplę Kwami morphującą się!",
+    "tip_double_click": "Wskazówka: Kliknij dwukrotnie kroplę, aby ją wylosować! 🎲",
+    "tip_voice": "Wskazówka: Kliknij kroplę, aby rozpocząć słuchanie, następnie powiedz \"kwami\", aby wylosować! 🎤",
+    "tip_music": "Wskazówka: Kliknij zakładkę Muzyka, aby odtworzyć losową piosenkę! 🎵"
+  },
+  "action_feedback": {
+    "launch_playground": "Otwieranie placu zabaw na żywo...",
+    "view_demo": "Ładowanie układu demo...",
+    "run_playground": "Skopiowano: npm run playground",
+    "swap_sidebars": "Zamień paski boczne w placu zabaw",
+    "init_mind": "Sterowanie Mind otwarte w nowej karcie",
+    "randomize_blob": "Naciśnij 🎲 Losuj Kroplę w placu zabaw",
+    "apply_soul": "Ustawienia wstępne Soul gotowe do zastosowania",
+    "test_listening": "Tryb słuchania w kolejce w placu zabaw",
+    "set_background": "Sterowanie tłem otwarte",
+    "speak": "Gotowy do wysłania nowej linii do ElevenLabs",
+    "switch_provider": "Kontrakt dostawcy Mind otwarty",
+    "adjust_spikes": "Suwaki kolców gotowe w placu zabaw",
+    "download_glb": "Eksportuj swoją kroplę jako GLB",
+    "test_thinking": "Tryb myślenia włączony",
+    "upload_audio": "Prześlij utwór w odtwarzaczu audio",
+    "connect_services": "Otwieranie centrum usług quami.io",
+    "mint_nft": "Wybij Kwami na Solana",
+    "view_roadmap": "Mapa drogowa otwarta na GitHub",
+    "open_guides": "Dokumentacja otwarta w nowej karcie",
+    "join_discord": "Zaproszenie Discord otwarte",
+    "contact_team": "Przywitaj się z zespołem Kwami",
+    "create_session": "Rozpocznij świeżą sesję placu zabaw",
+    "copy_unavailable": "Kopiowanie niedostępne"
+  },
+  "lang_switcher": {
+    "label": "Język"
+  }
+}

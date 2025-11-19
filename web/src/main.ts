@@ -4,6 +4,7 @@ import { Kwami } from 'kwami';
 import { t, changeLanguage, getCurrentLanguage, updatePageTranslations, createLanguageSwitcher } from './i18n';
 import { WelcomeLayer } from './components/WelcomeLayer';
 import mediaLinks from './media-links.json';
+import i18next from './i18n';
 
 // Video files from public/video/ directory
 // Add more video files here as you add them to web/public/video/
@@ -307,18 +308,41 @@ class CursorLight {
 }
 
 // Sidebar Navigation Manager
+const RTL_LANGUAGES = ['ar', 'he', 'fa', 'ur'];
+
+function isRTLLanguage(language: string): boolean {
+  if (!language) return false;
+  const normalized = language.toLowerCase().split('-')[0];
+  return RTL_LANGUAGES.includes(normalized);
+}
+
 class SidebarNavigator {
+  private static readonly SIDE_TRANSITION_MS = 350;
+  private static readonly WAVE_ANIMATION_MS = 520;
+  private static readonly WAVE_DELAY_MS = 70;
   private sphereElements: HTMLElement[] = [];
   private container: HTMLElement | null = null;
+  private navElement: HTMLElement | null = null;
   private totalSections: number;
   private scrollManager: ScrollManager | null = null;
   private isAnimating = false;
+  private currentIsRTL = false;
+  private relocationTimeout: number | null = null;
+  private waveResetTimeout: number | null = null;
 
   constructor(totalSections: number) {
     this.totalSections = totalSections;
     this.container = document.getElementById('sphere-container');
+    this.navElement = document.getElementById('sidebar-nav');
+    this.currentIsRTL = isRTLLanguage(getCurrentLanguage());
+    this.setSideAttribute(this.currentIsRTL);
+
     if (this.container) {
+      this.container.style.setProperty('--wave-delay-step', `${SidebarNavigator.WAVE_DELAY_MS}ms`);
+      this.container.style.setProperty('--sphere-count', `${this.totalSections}`);
       this.generateSpheres();
+      this.applyWaveDelays();
+      this.triggerWaveAnimation();
     }
   }
 
@@ -358,9 +382,94 @@ class SidebarNavigator {
         this.navigateToSectionAnimated(sectionIndex);
       });
       
+      sphere.style.setProperty('--sphere-index', i.toString());
       this.sphereElements.push(sphere);
       this.container!.appendChild(sphere);
     }
+  }
+
+  private applyWaveDelays() {
+    if (!this.sphereElements.length) return;
+
+    const count = this.sphereElements.length;
+    this.sphereElements.forEach((sphere, index) => {
+      const delayIndex = this.currentIsRTL ? (count - index - 1) : index;
+      const delay = delayIndex * SidebarNavigator.WAVE_DELAY_MS;
+      sphere.style.setProperty('--wave-delay', `${delay}ms`);
+    });
+  }
+
+  private setSideAttribute(isRTL: boolean) {
+    if (!this.navElement) return;
+    this.navElement.setAttribute('data-side', isRTL ? 'rtl' : 'ltr');
+  }
+
+  private animateSideChange(nextIsRTL: boolean) {
+    if (!this.navElement) {
+      this.currentIsRTL = nextIsRTL;
+      this.applyWaveDelays();
+      this.triggerWaveAnimation();
+      return;
+    }
+
+    this.navElement.classList.add('is-repositioning');
+
+    if (this.relocationTimeout) {
+      window.clearTimeout(this.relocationTimeout);
+    }
+
+    this.relocationTimeout = window.setTimeout(() => {
+      this.setSideAttribute(nextIsRTL);
+      this.currentIsRTL = nextIsRTL;
+      this.applyWaveDelays();
+
+      requestAnimationFrame(() => {
+        this.navElement?.classList.remove('is-repositioning');
+        this.triggerWaveAnimation();
+      });
+
+      this.relocationTimeout = null;
+    }, SidebarNavigator.SIDE_TRANSITION_MS);
+  }
+
+  public handleLanguageChange(language: string, animate = true) {
+    const nextIsRTL = isRTLLanguage(language);
+
+    if (!animate) {
+      this.setSideAttribute(nextIsRTL);
+      this.currentIsRTL = nextIsRTL;
+      this.applyWaveDelays();
+      this.triggerWaveAnimation();
+      return;
+    }
+
+    if (nextIsRTL !== this.currentIsRTL) {
+      this.animateSideChange(nextIsRTL);
+    } else {
+      this.applyWaveDelays();
+      this.triggerWaveAnimation();
+    }
+  }
+
+  private triggerWaveAnimation() {
+    if (!this.container || this.sphereElements.length === 0) return;
+
+    if (this.waveResetTimeout) {
+      window.clearTimeout(this.waveResetTimeout);
+      this.waveResetTimeout = null;
+    }
+
+    this.container.classList.remove('wave-enter');
+    void this.container.offsetWidth;
+    this.container.classList.add('wave-enter');
+
+    const totalDuration = SidebarNavigator.WAVE_ANIMATION_MS +
+      SidebarNavigator.WAVE_DELAY_MS * Math.max(this.sphereElements.length - 1, 0);
+
+    this.waveResetTimeout = window.setTimeout(() => {
+      this.container?.classList.remove('wave-enter');
+      this.waveResetTimeout = null;
+    }, totalDuration + 50);
   }
 
   private async navigateToSectionAnimated(targetSection: number) {
@@ -460,6 +569,63 @@ class ScrollManager {
     return this.kwami;
   }
 
+  public syncLanguageDirection(language: string, animate = true) {
+    this.sidebarNav.handleLanguageChange(language, animate);
+  }
+
+  public updateBlobPosition(animated: boolean = true) {
+    if (!this.kwami) return;
+
+    const blobMesh = this.kwami.body.blob.getMesh();
+    const isMobile = window.innerWidth <= 1024;
+    const currentLang = getCurrentLanguage();
+    const isRTL = isRTLLanguage(currentLang);
+
+    // Calculate target position based on language and device
+    let targetX: number;
+    let targetY: number;
+
+    if (isMobile) {
+      // Mobile: keep blob at bottom center (even lower)
+      targetX = 0;
+      targetY = -9;
+    } else {
+      // Desktop: move blob left for RTL (Arabic), right for LTR
+      targetX = isRTL ? -8 : 8;
+      targetY = 0;
+    }
+
+    if (animated) {
+      // Smooth animation using GSAP-like approach
+      const startX = blobMesh.position.x;
+      const startY = blobMesh.position.y;
+      const duration = 800; // milliseconds
+      const startTime = performance.now();
+
+      const animate = (currentTime: number) => {
+        const elapsed = currentTime - startTime;
+        const progress = Math.min(elapsed / duration, 1);
+
+        // Ease-out cubic function for smooth deceleration
+        const easeProgress = 1 - Math.pow(1 - progress, 3);
+
+        blobMesh.position.x = startX + (targetX - startX) * easeProgress;
+        blobMesh.position.y = startY + (targetY - startY) * easeProgress;
+
+        if (progress < 1) {
+          requestAnimationFrame(animate);
+        }
+      };
+
+      requestAnimationFrame(animate);
+    } else {
+      // Instant update
+      blobMesh.position.set(targetX, targetY, 0);
+    }
+
+    console.log(`🎨 Blob position updated: x=${targetX.toFixed(1)}, y=${targetY.toFixed(1)} (${isRTL ? 'RTL' : 'LTR'})`);
+  }
+
   private async init() {
     // Set initial colors for section 0 (white to black gradient)
     this.updateColors(0);
@@ -534,11 +700,9 @@ class ScrollManager {
         this.kwami.body.blob.setOpacity(0.8);
       }
 
-      // Position blob more to the right (desktop only), bottom on mobile
+      // Position blob based on language and device using new method
       const blobMesh = this.kwami.body.blob.getMesh();
-      // Use direct world coordinates - x:8 positions it in center of right half
-      // On mobile: y:-7 positions it at the bottom of the screen (lower)
-      blobMesh.position.set(isMobile ? 0 : 8, isMobile ? -7 : 0, 0);
+      this.updateBlobPosition(false); // Initial position without animation
 
       // Enable auto-rotation on Y-axis only (rotates in place)
       blobMesh.rotation.y = 0;
@@ -552,7 +716,7 @@ class ScrollManager {
       window.addEventListener('resize', () => {
         const mobile = window.innerWidth <= 1024;
         const blobScale = mobile ? 4.5 : 5.5;
-        blobMesh.position.set(mobile ? 0 : 8, mobile ? -7 : 0, 0);
+        this.updateBlobPosition(false); // Update position on resize without animation
         this.kwami?.body.blob.setScale(blobScale);
         if (mobile) {
           this.kwami?.body.blob.setOpacity(0.8);
@@ -913,7 +1077,7 @@ interface ActionConfig {
   message: string;
 }
 
-const PLAYGROUND_URL = 'https://playground.kwami.io';
+const PLAYGROUND_URL = 'https://pg.kwami.io';
 
 const ACTION_ROUTES: Record<string, ActionConfig> = {
   'launch-playground': {
@@ -1089,14 +1253,21 @@ class ActionButtonManager {
 
 // Language switcher initialization using shared function from i18n
 function initLanguageSwitcher() {
-  // Create and append the language switcher to the body
+  // Create and append the language switcher to the header
   const langSwitcher = createLanguageSwitcher('language-switcher');
-  document.body.appendChild(langSwitcher);
+  const rightHeader = document.querySelector('.right-header');
+  
+  if (rightHeader) {
+    rightHeader.appendChild(langSwitcher);
+  } else {
+    // Fallback to body if header not found
+    document.body.appendChild(langSwitcher);
+  }
   
   // Set initial text direction based on current language
   const currentLang = getCurrentLanguage();
   const htmlElement = document.documentElement;
-  if (currentLang === 'ar') {
+  if (isRTLLanguage(currentLang)) {
     htmlElement.setAttribute('dir', 'rtl');
   } else {
     htmlElement.setAttribute('dir', 'ltr');
@@ -1121,6 +1292,16 @@ document.addEventListener('DOMContentLoaded', () => {
   
   // Make scrollManager accessible globally for music functions
   (window as any).scrollManager = scrollManager;
+  
+  // Listen for language changes and update blob position with smooth animation
+  i18next.on('languageChanged', (lng: string) => {
+    console.log(`🌐 Language changed to: ${lng}`);
+    scrollManager.syncLanguageDirection(lng);
+    // Wait a tick for the language to be fully applied
+    setTimeout(() => {
+      scrollManager.updateBlobPosition(true); // Animate the blob position
+    }, 50);
+  });
 });
 
 // Add scroll indicator on first section

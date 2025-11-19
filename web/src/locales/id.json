@@ -1,0 +1,298 @@
+{
+  "page": {
+    "title": "Kwami - Pendamping AI Interaktif Anda"
+  },
+  "nav": {
+    "aria_navigate": "Navigasi ke bagian {{number}}"
+  },
+  "tabs": {
+    "voice": "Suara",
+    "music": "Musik",
+    "video": "Video"
+  },
+  "header_links": {
+    "playground": "Coba Playground Interaktif",
+    "candy": "Cetak NFT Kwami Anda",
+    "github": "Bintangi di GitHub"
+  },
+  "pages": {
+    "00": {
+      "title": "Kenali Kwami",
+      "main": "Kwami adalah kanvas tunggal di mana suara AI, musik, dan gerakan tetap tersinkronisasi sempurna.",
+      "messages": [
+        "Gulir cerita di sebelah kiri sementara blob mencerminkan setiap perubahan status di sebelah kanan.",
+        "Kwami adalah kanvas tunggal di mana suara AI, musik, dan gerakan tetap tersinkronisasi sempurna."
+      ],
+      "button": "🚀 Luncurkan Playground"
+    },
+    "01": {
+      "title": "Mengapa Kwami",
+      "main": "Karena kami lelah dengan perusahaan teknologi besar yang mengeksploitasi data kami dan kami tidak menginginkan industri AI yang diatur oleh korporasi tetapi oleh masyarakat.",
+      "messages": [
+        "Kami ingin menciptakan industri AI yang digerakkan oleh komunitas di mana orang-orang mengontrol data mereka dan pendamping AI mereka.",
+        "Karena kami lelah dengan perusahaan teknologi besar yang mengeksploitasi data kami.",
+        "Kami percaya AI harus diatur oleh masyarakat, bukan korporasi."
+      ],
+      "button": "💡 Pelajari Lebih Lanjut"
+    },
+    "02": {
+      "title": "Mulai Cepat",
+      "main": "Instal paket, jalankan playground, dan arahkan Kwami ke kanvas mana pun.",
+      "messages": [
+        "Klik sekali mendengarkan, klik dua kali mengacak—tidak perlu pengkabelan tambahan.",
+        "Mulai dalam hitungan menit dengan npm install sederhana.",
+        "Arahkan Kwami ke kanvas mana pun dan saksikan ia menjadi hidup."
+      ],
+      "button": "▶️ Jalankan Playground Secara Lokal"
+    },
+    "03": {
+      "title": "Arsitektur",
+      "main": "Mind, Body, dan Soul tetap terpisah sehingga tim dapat mengubah logika, visual, atau suasana secara independen.",
+      "messages": [
+        "Tukar sidebar di dalam Playground untuk merasakan bagaimana setiap lapisan terhubung.",
+        "Mind menangani logika AI, Body menangani visual, Soul menangani kepribadian.",
+        "Pemisahan yang bersih berarti Anda dapat menyesuaikan setiap lapisan secara independen."
+      ],
+      "button": "🔁 Putar Sidebar"
+    },
+    "04": {
+      "title": "Lapisan Mind",
+      "main": "Tentukan penyedia, masukkan kunci ElevenLabs, dan mulai percakapan dengan satu klik.",
+      "messages": [
+        "Hubungkan penyedia AI apa pun dengan antarmuka sederhana.",
+        "Integrasi ElevenLabs untuk percakapan suara alami.",
+        "Beralih dengan mulus antara OpenAI, Anthropic, atau penyedia kustom."
+      ],
+      "button": "🤖 Inisialisasi Agen AI"
+    },
+    "05": {
+      "title": "Lapisan Body",
+      "main": "Blob WebGL bereaksi terhadap data FFT, riak sentuhan, dan gerakan pointer secara real-time.",
+      "messages": [
+        "Visual reaktif audio yang berdenyut dengan setiap ketukan.",
+        "Interaksi sentuhan dan gerakan menciptakan efek riak.",
+        "Kulit yang dapat disesuaikan: Donut, Poles, atau gaya Vintage."
+      ],
+      "button": "🎲 Acak Blob"
+    },
+    "06": {
+      "title": "Lapisan Soul",
+      "main": "Sepuluh sifat emosional mengarahkan prompt, nada suara, dan status animasi.",
+      "messages": [
+        "Tentukan kepribadian pendamping Anda dengan sifat emosional.",
+        "Sifat mempengaruhi nada suara, respons, dan animasi.",
+        "Buat kepribadian unik dari yang menyenangkan hingga profesional."
+      ],
+      "button": "✨ Terapkan Konfigurasi Soul"
+    },
+    "07": {
+      "title": "Alur Interaksi",
+      "main": "Status idle, listening, thinking, dan speaking membuat blob dapat dibaca sekilas.",
+      "messages": [
+        "Status visual menunjukkan dengan tepat apa yang dilakukan pendamping Anda.",
+        "Transisi mulus antara idle, listening, thinking, dan speaking.",
+        "Filter audio meningkatkan rasa kehadiran dan perhatian."
+      ],
+      "button": "👂 Uji Mode Mendengarkan"
+    },
+    "08": {
+      "title": "Gaya Visual",
+      "main": "Pilih gradien, kaca, gambar, atau video dan jaga tipografi tetap tersinkronisasi dengan perubahan palet.",
+      "messages": [
+        "Palet warna dinamis yang berubah saat Anda menggulir.",
+        "Atur latar belakang kustom: gradien, gambar, atau video.",
+        "Tipografi secara otomatis tersinkronisasi dengan palet pilihan Anda."
+      ],
+      "button": "🖼️ Sesuaikan Latar Belakang"
+    },
+    "09": {
+      "title": "Audio & Suara",
+      "main": "Analisis Web Audio menggerakkan lonjakan sementara ElevenLabs menangani ucapan latensi rendah.",
+      "messages": [
+        "Analisis FFT real-time menciptakan animasi reaktif audio.",
+        "Sintesis suara latensi rendah dengan ElevenLabs.",
+        "Putar musik dan saksikan blob menari mengikuti irama."
+      ],
+      "button": "🎤 Buat Kwami Berbicara"
+    },
+    "10": {
+      "title": "Arsitektur Penyedia",
+      "main": "Setiap vendor mengimplementasikan permukaan 'connect / speak / listen / dispose' yang sama.",
+      "messages": [
+        "Antarmuka terpadu untuk semua penyedia AI.",
+        "Mudah menambahkan penyedia kustom dengan metode standar.",
+        "Beralih penyedia tanpa mengubah kode aplikasi Anda."
+      ],
+      "button": "🔌 Ganti Penyedia"
+    },
+    "11": {
+      "title": "Kustomisasi & Konfigurasi",
+      "main": "Sesuaikan lonjakan, waktu, kulit, rotasi, dan rentang emosional dengan konfigurasi type-safe.",
+      "messages": [
+        "Setel setiap aspek penampilan blob Anda dengan halus.",
+        "Konfigurasi type-safe memastikan tidak ada kejutan runtime.",
+        "Pratinjau perubahan Anda secara langsung di playground."
+      ],
+      "button": "🛠️ Sesuaikan Lonjakan"
+    },
+    "12": {
+      "title": "Toolkit Pengembang",
+      "main": "Ekspor model GLB, gunakan starter Nuxt/Bun, atau masukkan langsung ke SPA mana pun.",
+      "messages": [
+        "Ekspor blob Anda sebagai GLB untuk digunakan dalam aplikasi 3D.",
+        "Template starter untuk Nuxt, Bun, dan Vanilla JS.",
+        "Bekerja dengan framework apa pun: React, Vue, Svelte, atau Vanilla."
+      ],
+      "button": "💾 Unduh GLB"
+    },
+    "13": {
+      "title": "Kinerja & Pengujian",
+      "main": "Target 60fps, suite Vitest, dan pengaturan TS ketat menjaga eksperimen tetap siap dikirim.",
+      "messages": [
+        "Dioptimalkan untuk animasi 60fps yang mulus.",
+        "Suite tes komprehensif dengan Vitest.",
+        "TypeScript ketat untuk menangkap bug lebih awal."
+      ],
+      "button": "🤔 Uji Mode Berpikir"
+    },
+    "14": {
+      "title": "Kasus Penggunaan",
+      "main": "Dari set DJ hingga pendamping kesehatan, unggah trek apa pun dan saksikan respons blob.",
+      "messages": [
+        "Sempurna untuk set DJ dan visualisasi musik.",
+        "Buat pendamping kesehatan dan meditasi.",
+        "Bangun bot layanan pelanggan dengan kepribadian."
+      ],
+      "button": "📁 Unggah Audio"
+    },
+    "15": {
+      "title": "Ekosistem Terhubung",
+      "main": "Kwami terhubung dengan kwami.io, qwami.io, dan quami.io sehingga satu pendamping NFT mencakup alur kerja Web2/Web3.",
+      "messages": [
+        "Satu pendamping NFT bekerja di semua platform kami.",
+        "Integrasi mulus antara Web2 dan Web3.",
+        "DNA pendamping Anda bertahan di on-chain."
+      ],
+      "button": "🌐 Hubungkan Layanan"
+    },
+    "16": {
+      "title": "Kepemilikan & Web3",
+      "main": "Cetak Kwami di Solana dan jaga hash DNA blob tetap tersinkronisasi dengan konfigurasi langsung.",
+      "messages": [
+        "Cetak pendamping Anda sebagai NFT di Solana.",
+        "DNA blob disimpan on-chain untuk kepemilikan sejati.",
+        "Sinkronkan konfigurasi on-chain dengan instance langsung Anda."
+      ],
+      "button": "💎 Cetak Kwami"
+    },
+    "17": {
+      "title": "Peta Jalan",
+      "main": "WebXR, adegan multi-karakter, fisika, dan plugin sudah dalam pengembangan.",
+      "messages": [
+        "Dukungan WebXR segera hadir untuk pengalaman imersif.",
+        "Adegan multi-karakter untuk interaksi grup.",
+        "Mesin fisika dan sistem plugin dalam pengembangan."
+      ],
+      "button": "🔮 Lihat Peta Jalan"
+    },
+    "18": {
+      "title": "Jalur Pembelajaran",
+      "main": "Ikuti dokumen dari Memulai hingga penyelaman mendalam Mind/Body/Soul dalam hitungan menit.",
+      "messages": [
+        "Dokumentasi komprehensif dari pemula hingga lanjutan.",
+        "Penyelaman mendalam ke lapisan Mind, Body, dan Soul.",
+        "Tutorial video dan contoh langsung disertakan."
+      ],
+      "button": "📚 Buka Panduan"
+    },
+    "19": {
+      "title": "Komunitas",
+      "main": "Bagikan shader, penyedia, atau PR docs—semuanya hidup di tempat terbuka.",
+      "messages": [
+        "Bergabunglah dengan Discord kami untuk terhubung dengan pembangun lain.",
+        "Bagikan shader, penyedia, dan konfigurasi kustom.",
+        "Berkontribusi pada dokumen dan dapatkan pengakuan komunitas."
+      ],
+      "button": "🤝 Bergabung dengan Discord"
+    },
+    "20": {
+      "title": "Pro & Enterprise",
+      "main": "Upgrade untuk white-labeling, penyedia premium, analitik, dan dukungan khusus.",
+      "messages": [
+        "White-label platform dengan branding Anda.",
+        "Akses ke penyedia AI premium dan fitur.",
+        "Dukungan khusus dan integrasi kustom tersedia."
+      ],
+      "button": "🏢 Bicara dengan Tim"
+    },
+    "21": {
+      "title": "Luncurkan Pendamping Anda",
+      "main": "Fork repo, remix blob, dan letakkan pendamping AI Anda sendiri dalam hitungan menit.",
+      "messages": [
+        "Fork repo dan sesuaikan segalanya.",
+        "Deploy pendamping Anda ke platform hosting mana pun.",
+        "Bergabunglah dengan komunitas pembangun Kwami hari ini."
+      ],
+      "button": "🚀 Mulai Sesi"
+    }
+  },
+  "labels": {
+    "kwami": "Kwami"
+  },
+  "messages": {
+    "loading_music": "🎵 Memuat: {{name}}",
+    "now_playing": "✅ Sekarang memutar: {{name}}",
+    "music_stopped": "🛑 Musik dihentikan",
+    "song_ended": "🎵 Lagu berakhir",
+    "no_music_files": "⚠️ Tidak ada file musik tersedia",
+    "kwami_not_initialized": "⚠️ Kwami belum diinisialisasi",
+    "mode_switched": "Mode beralih ke: {{mode}}",
+    "listening_started": "🎤 Mulai mendengarkan \"kwami\"...",
+    "listening_stopped": "🛑 Berhenti mendengarkan",
+    "kwami_detected": "✨ \"Kwami\" terdeteksi! Mengacak blob...",
+    "double_click_detected": "🎲 Klik ganda terdeteksi, mengacak blob",
+    "blob_randomized": "🎲 Blob diacak dengan kulit {{skin}}!"
+  },
+  "welcome_layer": {
+    "heading": "Selamat datang di kanvas suara Kwami.",
+    "line1": "Ketuk blob untuk membuka pemutaran audio langsung di browser Anda.",
+    "line2": "Semuanya ada di perangkat ini—tidak ada server, pelacak, atau cookie yang terlibat.",
+    "line3": "Menyentuh blob tetap dihitung sebagai menerima cookie tak terlihat kami."
+  },
+  "console": {
+    "welcome": "🎨 Kwami - Pendamping AI Interaktif",
+    "github": "👻 https://github.com/alexcolls/kwami",
+    "tip_scroll": "Tip: Gulir untuk melihat blob Kwami asli bermorf!",
+    "tip_double_click": "Tip: Klik ganda blob untuk mengacaknya! 🎲",
+    "tip_voice": "Tip: Klik blob untuk mulai mendengarkan, lalu ucapkan \"kwami\" untuk mengacak! 🎤",
+    "tip_music": "Tip: Klik tab Musik untuk memutar lagu acak! 🎵"
+  },
+  "action_feedback": {
+    "launch_playground": "Membuka playground langsung...",
+    "view_demo": "Memuat tata letak demo...",
+    "run_playground": "Disalin: npm run playground",
+    "swap_sidebars": "Tukar sidebar di dalam playground",
+    "init_mind": "Kontrol Mind dibuka di tab baru",
+    "randomize_blob": "Tekan 🎲 Acak Blob di playground",
+    "apply_soul": "Preset Soul siap diterapkan",
+    "test_listening": "Mode mendengarkan dimasukkan ke antrian di playground",
+    "set_background": "Kontrol latar belakang dibuka",
+    "speak": "Siap mengirim baris baru ke ElevenLabs",
+    "switch_provider": "Kontrak penyedia Mind dibuka",
+    "adjust_spikes": "Slider lonjakan siap di playground",
+    "download_glb": "Ekspor blob Anda sebagai GLB",
+    "test_thinking": "Mode berpikir diaktifkan",
+    "upload_audio": "Unggah trek di pemutar audio",
+    "connect_services": "Membuka hub layanan quami.io",
+    "mint_nft": "Cetak Kwami di Solana",
+    "view_roadmap": "Peta jalan dibuka di GitHub",
+    "open_guides": "Dokumen dibuka di tab baru",
+    "join_discord": "Undangan Discord dibuka",
+    "contact_team": "Sapa tim Kwami",
+    "create_session": "Mulai sesi playground baru",
+    "copy_unavailable": "Salin tidak tersedia"
+  },
+  "lang_switcher": {
+    "label": "Bahasa"
+  }
+}
