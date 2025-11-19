@@ -34,10 +34,12 @@
     "prebuild": "npm run sync-version",
     "build": "tsc",
     "dev": "tsc --watch",
-    "playground": "vite playground --port 3000",
+    "playground": "vite playground --port 3333",
     "pg": "npm run playground",
-    "web": "vite web --port 3001",
-    "build:playground": "vite build playground"
+    "web": "vite web --port 3334",
+    "build:playground": "vite build playground",
+    "prepublishOnly": "npm run build && npm test",
+    "postpublish": "echo '✅ Successfully published kwami to npm!'"
   },
   "dependencies": {
     "@distube/ytdl-core": "^4.14.4",
