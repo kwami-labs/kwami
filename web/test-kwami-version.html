@@ -1,0 +1,206 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Kwami v1.4.1 Test</title>
+  <style>
+    body {
+      margin: 0;
+      padding: 20px;
+      background: #000;
+      color: #fff;
+      font-family: sans-serif;
+    }
+    #canvas-container {
+      width: 100%;
+      height: 500px;
+      background: #111;
+      border-radius: 10px;
+      margin: 20px 0;
+    }
+    canvas {
+      width: 100%;
+      height: 100%;
+      display: block;
+    }
+    .info {
+      background: #222;
+      padding: 20px;
+      border-radius: 10px;
+      margin: 20px 0;
+    }
+    .success {
+      color: #0f0;
+    }
+    .error {
+      color: #f00;
+    }
+    button {
+      background: #4CAF50;
+      color: white;
+      border: none;
+      padding: 10px 20px;
+      margin: 5px;
+      border-radius: 5px;
+      cursor: pointer;
+      font-size: 16px;
+    }
+    button:hover {
+      background: #45a049;
+    }
+  </style>
+</head>
+<body>
+  <h1>🎨 Kwami v1.4.1 Verification Test</h1>
+  
+  <div class="info">
+    <h2>Package Info:</h2>
+    <p><strong>Expected Version:</strong> <span id="expected-version">1.4.1</span></p>
+    <p><strong>Actual Version:</strong> <span id="actual-version">Loading...</span></p>
+    <p><strong>Status:</strong> <span id="status">Initializing...</span></p>
+  </div>
+
+  <div class="info">
+    <h2>Test Actions:</h2>
+    <button onclick="testRandomize()">🎲 Randomize Blob</button>
+    <button onclick="testScale()">📏 Test Scale</button>
+    <button onclick="testColors()">🎨 Test Colors</button>
+    <button onclick="testWireframe()">🔲 Toggle Wireframe</button>
+  </div>
+
+  <div id="canvas-container">
+    <canvas id="test-canvas"></canvas>
+  </div>
+
+  <div class="info">
+    <h2>Feature Tests:</h2>
+    <ul id="test-results">
+      <li>Loading...</li>
+    </ul>
+  </div>
+
+  <script type="module">
+    import { Kwami } from 'kwami';
+    
+    let kwami;
+    const results = [];
+    
+    function log(message, success = true) {
+      results.push({ message, success });
+      updateResults();
+    }
+    
+    function updateResults() {
+      const list = document.getElementById('test-results');
+      list.innerHTML = results.map(r => 
+        `<li class="${r.success ? 'success' : 'error'}">${r.success ? '✅' : '❌'} ${r.message}</li>`
+      ).join('');
+    }
+    
+    async function init() {
+      try {
+        // Check version
+        const version = Kwami.getVersion();
+        document.getElementById('actual-version').textContent = version;
+        
+        if (version === '1.4.1') {
+          document.getElementById('status').innerHTML = '<span class="success">✅ Version Match!</span>';
+          log('Version check passed (1.4.1)');
+        } else {
+          document.getElementById('status').innerHTML = '<span class="error">❌ Version Mismatch!</span>';
+          log(`Version mismatch: expected 1.4.1, got ${version}`, false);
+        }
+        
+        // Initialize Kwami
+        const canvas = document.getElementById('test-canvas');
+        kwami = new Kwami(canvas, {
+          body: {
+            initialSkin: 'tricolor',
+            blob: {
+              resolution: 128,
+              spikes: { x: 0.3, y: 0.3, z: 0.3 },
+              time: { x: 1, y: 1, z: 1 },
+              wireframe: false,
+              colors: {
+                x: '#ff0066',
+                y: '#00ff66',
+                z: '#6600ff'
+              }
+            },
+            scene: {
+              cameraPosition: { x: 0, y: 0, z: 8 },
+              enableControls: false
+            }
+          }
+        });
+        
+        log('Kwami instance created successfully');
+        
+        // Test core features
+        log('Kwami.body exists', !!kwami.body);
+        log('Kwami.body.blob exists', !!kwami.body.blob);
+        log('Kwami.body.audio exists', !!kwami.body.audio);
+        log('Kwami.body.scene exists', !!kwami.body.scene);
+        
+        // Test blob methods
+        log('blob.getMesh() exists', typeof kwami.body.blob.getMesh === 'function');
+        log('blob.setSpikes() exists', typeof kwami.body.blob.setSpikes === 'function');
+        log('blob.setColors() exists', typeof kwami.body.blob.setColors === 'function');
+        log('blob.setScale() exists', typeof kwami.body.blob.setScale === 'function');
+        log('blob.setWireframe() exists', typeof kwami.body.blob.setWireframe === 'function');
+        log('blob.setSkin() exists', typeof kwami.body.blob.setSkin === 'function');
+        
+        // Test body methods
+        log('body.randomizeBlob() exists', typeof kwami.body.randomizeBlob === 'function');
+        
+        // Test audio methods
+        log('audio.play() exists', typeof kwami.body.audio.play === 'function');
+        log('audio.pause() exists', typeof kwami.body.audio.pause === 'function');
+        log('audio.loadAudio() exists', typeof kwami.body.audio.loadAudio === 'function');
+        
+        // Make test functions available globally
+        window.kwami = kwami;
+        
+        log('All features loaded successfully! ✨');
+        
+      } catch (error) {
+        log(`Initialization failed: ${error.message}`, false);
+        console.error('Error:', error);
+      }
+    }
+    
+    // Test functions
+    window.testRandomize = function() {
+      if (!kwami) return;
+      kwami.body.randomizeBlob();
+      log('Randomize test successful');
+    };
+    
+    window.testScale = function() {
+      if (!kwami) return;
+      const newScale = Math.random() * 2 + 1;
+      kwami.body.blob.setScale(newScale);
+      log(`Scale set to ${newScale.toFixed(2)}`);
+    };
+    
+    window.testColors = function() {
+      if (!kwami) return;
+      const r = () => Math.floor(Math.random() * 255).toString(16).padStart(2, '0');
+      kwami.body.blob.setColors(`#${r()}${r()}${r()}`, `#${r()}${r()}${r()}`, `#${r()}${r()}${r()}`);
+      log('Colors randomized');
+    };
+    
+    window.testWireframe = function() {
+      if (!kwami) return;
+      const current = kwami.body.blob.getMesh().material.wireframe;
+      kwami.body.blob.setWireframe(!current);
+      log(`Wireframe ${!current ? 'enabled' : 'disabled'}`);
+    };
+    
+    // Initialize on load
+    init();
+  </script>
+</body>
+</html>
+
