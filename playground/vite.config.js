@@ -17,8 +17,8 @@ export default defineConfig({
     }
   },
   
-  // Ensure assets are served correctly from root
-  publicDir: resolve(__dirname, '../assets'),
+  // Ensure assets are served correctly from playground
+  publicDir: resolve(__dirname, './assets'),
   
   server: {
     port: 3000,

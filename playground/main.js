@@ -1353,12 +1353,12 @@ const BACKGROUND_IMAGES = [
   '/assets/img/bg/white-tree.jpg'
 ];
 
-const imageModules = import.meta.glob('../assets/img/bg/*', {
+const imageModules = import.meta.glob('./assets/img/bg/*', {
   query: '?url',
   import: 'default',
   eager: true,
 });
-const videoModules = import.meta.glob('../assets/vid/bg/*', {
+const videoModules = import.meta.glob('./assets/vid/bg/*', {
   query: '?url',
   import: 'default',
   eager: true,
