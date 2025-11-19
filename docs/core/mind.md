@@ -9,6 +9,10 @@ The Mind is responsible for:
 - **Text-to-Speech (TTS)** - Converting text to natural voice
 - **Speech-to-Text (STT)** - Converting voice to text (coming soon)
 - **Conversational AI** - Full voice conversations (beta)
+- **Agent Management** - Create and manage AI agents (v1.4.1+)
+- **Tools API** - Custom tool calling with webhooks (v1.4.1+)
+- **Knowledge Base** - RAG with document management (v1.4.1+)
+- **Workflows** - Multi-agent orchestration (v1.4.1+)
 - **Provider Management** - Hot-swappable AI backends
 - **Voice Configuration** - Fine-tuning voice characteristics
 
@@ -26,13 +30,13 @@ KwamiMind
 
 ### Available Providers
 
-| Provider       | Status          | TTS | STT | Conversation | Agents |
-| -------------- | --------------- | --- | --- | ------------ | ------ |
-| **ElevenLabs** | ✅ Complete     | ✅  | ❌  | 🟡 Beta      | ✅     |
-| **OpenAI**     | 🟡 Experimental | ✅  | ❌  | ❌ WIP       | ❌     |
-| **Vapi**       | 📅 Planned      | -   | -   | -            | -      |
-| **Retell**     | 📅 Planned      | -   | -   | -            | -      |
-| **Bland**      | 📅 Planned      | -   | -   | -            | -      |
+| Provider       | Status          | TTS | STT | Conversation | Agents | Tools | Knowledge Base |
+| -------------- | --------------- | --- | --- | ------------ | ------ | ----- | -------------- |
+| **ElevenLabs** | ✅ Complete     | ✅  | ❌  | 🟡 Beta      | ✅     | ✅    | ✅             |
+| **OpenAI**     | 🟡 Experimental | ✅  | ❌  | ❌ WIP       | ❌     | ❌    | ❌             |
+| **Vapi**       | 📅 Planned      | -   | -   | -            | -      | -     | -              |
+| **Retell**     | 📅 Planned      | -   | -   | -            | -      | -     | -              |
+| **Bland**      | 📅 Planned      | -   | -   | -            | -      | -     | -              |
 
 ## Basic Usage
 
@@ -303,37 +307,108 @@ await mind.startConversation({
 });
 ```
 
-## Agent Management
+## Agent Management (v1.4.1+)
 
-Create and manage conversational AI agents (ElevenLabs only).
+Create and manage conversational AI agents with the new fluent API (ElevenLabs only).
 
-### Creating an Agent
+### AgentConfigBuilder - Fluent API
+
+The new `AgentConfigBuilder` provides a type-safe, fluent interface for creating agents:
 
 ```typescript
-const agent = await mind.createAgent({
-  name: "My Agent",
-  firstMessage: "Hello! How can I assist you?",
-  language: "en",
+import { AgentConfigBuilder } from "kwami";
 
-  // Conversation config
-  conversation_config: {
-    tts: {
-      model_id: "eleven_turbo_v2_5",
-      voice_id: "your-voice-id",
-      optimize_streaming_latency: 3,
-    },
-  },
+const config = new AgentConfigBuilder()
+  .withName("Support Agent")
+  .withVoice("pNInz6obpgDQGcFmaJgB", {
+    model_id: "eleven_turbo_v2_5",
+    stability: 0.5,
+    similarity_boost: 0.75,
+    optimize_streaming_latency: "3",
+  })
+  .withPrompt("You are a helpful support agent")
+  .withLLM("gpt-4o")
+  .withTemperature(0.7)
+  .withMaxTokens(1000)
+  .withFirstMessage("Hello! How can I help you today?")
+  .withLanguage("en")
+  .withMaxDuration(1800) // 30 minutes
+  .build();
 
-  // Prompt
-  prompt: {
-    prompt: kwami.soul.getSystemPrompt(),
-    llm: "gpt-4",
-    temperature: 0.7,
-    max_tokens: 500,
-  },
-});
-
+const agent = await mind.createAgent(config);
 console.log("Agent ID:", agent.agent_id);
+```
+
+### Quick Agent Creation
+
+For simple agents, use the helper function:
+
+```typescript
+import { createBasicAgentConfig } from "kwami";
+
+const config = createBasicAgentConfig(
+  "pNInz6obpgDQGcFmaJgB", // Voice ID
+  "You are a helpful assistant",
+  {
+    name: "Quick Agent",
+    firstMessage: "Hi there!",
+    language: "en",
+    llm: "gpt-4o-mini",
+  }
+);
+
+const agent = await mind.createAgent(config);
+```
+
+### Agent Configuration Options
+
+The builder supports extensive configuration:
+
+```typescript
+const config = new AgentConfigBuilder()
+  // Basic settings
+  .withName("Advanced Agent")
+  .withTags(["support", "production"])
+
+  // Voice & TTS
+  .withVoice("voice_id", {
+    model_id: "eleven_turbo_v2_5",
+    stability: 0.5,
+    speed: 1.0,
+    similarity_boost: 0.75,
+  })
+
+  // LLM Configuration
+  .withLLM("gpt-4o")
+  .withPrompt("You are an expert assistant")
+  .withTemperature(0.7)
+  .withMaxTokens(1000)
+
+  // ASR (Speech Recognition)
+  .withASR({
+    quality: "high",
+    provider: "elevenlabs",
+    keywords: ["support", "help"],
+  })
+
+  // Turn Management
+  .withTurnConfig({
+    turn_timeout: 10,
+    turn_eagerness: "normal",
+    soft_timeout_config: {
+      timeout_seconds: 5,
+      message: "Are you still there?",
+    },
+  })
+
+  // Conversation Settings
+  .withFirstMessage("Hello!")
+  .withLanguage("en")
+  .withMaxDuration(1800)
+  .withTextOnly(false)
+  .withClientEvents(["user_transcript", "agent_response"])
+
+  .build();
 ```
 
 ### Managing Agents
@@ -342,19 +417,400 @@ console.log("Agent ID:", agent.agent_id);
 // Get agent
 const agent = await mind.getAgent("agent-id");
 
-// List agents
-const agents = await mind.listAgents();
+// List agents with pagination
+const agents = await mind.listAgents({
+  page_size: 10,
+  page_token: "token",
+});
 
 // Update agent
 await mind.updateAgent("agent-id", {
-  name: "Updated Name",
+  conversation_config: {
+    agent: {
+      first_message: "Updated greeting!",
+    },
+  },
 });
 
 // Delete agent
 await mind.deleteAgent("agent-id");
 
 // Duplicate agent
-const newAgent = await mind.duplicateAgent("agent-id");
+const newAgent = await mind.duplicateAgent("agent-id", {
+  new_name: "Copy of Agent",
+});
+
+// Get agent link (for sharing)
+const link = await mind.getAgentLink("agent-id");
+console.log("Share link:", link.link_url);
+```
+
+### Agent Validation
+
+Validate configuration before creating an agent:
+
+```typescript
+import { validateAgentConfig, formatValidationErrors } from "kwami";
+
+const config = new AgentConfigBuilder()
+  .withVoice("voice_id")
+  .withTemperature(1.5) // Invalid! Should be 0-1
+  .build();
+
+const result = validateAgentConfig(config);
+
+if (!result.valid) {
+  console.error("Validation errors:");
+  console.error(formatValidationErrors(result.errors));
+} else {
+  const agent = await mind.createAgent(config);
+}
+```
+
+## Tools API (v1.4.1+)
+
+Create custom tools that agents can call during conversations.
+
+### Creating Tools
+
+```typescript
+const toolsAPI = mind.getToolsAPI();
+
+// Create a tool with webhook
+const tool = await toolsAPI.createTool({
+  name: "get_weather",
+  description: "Get current weather for a location",
+  url: "https://your-api.com/weather",
+  method: "POST",
+  parameters: [
+    {
+      name: "location",
+      type: "string",
+      description: "City name or ZIP code",
+      required: true,
+    },
+    {
+      name: "units",
+      type: "string",
+      description: "Temperature units",
+      enum: ["celsius", "fahrenheit"],
+    },
+  ],
+});
+
+console.log("Tool created:", tool.tool_id);
+```
+
+### Using Tools with Agents
+
+```typescript
+const config = new AgentConfigBuilder()
+  .withName("Weather Assistant")
+  .withVoice("voice_id")
+  .withPrompt("You are a weather assistant. Use tools to help users.")
+  .withTools([
+    {
+      name: "get_weather",
+      description: "Get current weather",
+      url: "https://your-api.com/weather",
+      parameters: [
+        {
+          name: "location",
+          type: "string",
+          description: "Location to check",
+          required: true,
+        },
+      ],
+    },
+    {
+      name: "get_forecast",
+      description: "Get weather forecast",
+      url: "https://your-api.com/forecast",
+      parameters: [
+        {
+          name: "location",
+          type: "string",
+          description: "Location",
+          required: true,
+        },
+        {
+          name: "days",
+          type: "number",
+          description: "Number of days",
+        },
+      ],
+    },
+  ])
+  .build();
+
+const agent = await mind.createAgent(config);
+```
+
+### Managing Tools
+
+```typescript
+const toolsAPI = mind.getToolsAPI();
+
+// List all tools
+const tools = await toolsAPI.listTools();
+console.log("Available tools:", tools.tools);
+
+// Get specific tool
+const tool = await toolsAPI.getTool("tool_123");
+
+// Update tool
+await toolsAPI.updateTool("tool_123", {
+  description: "Updated description",
+  parameters: [
+    /* updated parameters */
+  ],
+});
+
+// Check which agents use this tool
+const dependents = await toolsAPI.getDependentAgents("tool_123");
+console.log("Used by agents:", dependents.agent_ids);
+
+// Delete tool
+await toolsAPI.deleteTool("tool_123");
+```
+
+### Tool Helper Functions
+
+```typescript
+import { createSimpleTool, createToolParameter } from "kwami";
+
+// Quick tool creation
+const tool = createSimpleTool(
+  "send_email",
+  "Send an email",
+  "https://api.example.com/email",
+  [
+    createToolParameter("to", "string", "Recipient email", { required: true }),
+    createToolParameter("subject", "string", "Email subject"),
+    createToolParameter("body", "string", "Email content"),
+  ]
+);
+
+await toolsAPI.createTool(tool);
+```
+
+## Knowledge Base API (v1.4.1+)
+
+Manage knowledge bases for RAG (Retrieval Augmented Generation) with agents.
+
+### Creating Knowledge Bases
+
+```typescript
+const kbAPI = mind.getKnowledgeBaseAPI();
+
+// Create knowledge base
+const kb = await kbAPI.createKnowledgeBase({
+  name: "Product Documentation",
+  description: "All product manuals and guides",
+});
+
+console.log("Knowledge base created:", kb.knowledge_base_id);
+```
+
+### Adding Documents
+
+```typescript
+// From URL (PDF, web page, etc.)
+const doc1 = await kbAPI.createDocumentFromURL(kb.knowledge_base_id, {
+  url: "https://docs.example.com/manual.pdf",
+  name: "User Manual",
+});
+
+// From text
+const doc2 = await kbAPI.createDocumentFromText(kb.knowledge_base_id, {
+  text: "Product features include...",
+  name: "Features Overview",
+  metadata: { version: "1.0", category: "features" },
+});
+
+// From file upload
+const fileInput = document.querySelector('input[type="file"]');
+const file = fileInput.files[0];
+const doc3 = await kbAPI.createDocumentFromFile(kb.knowledge_base_id, {
+  file,
+  name: "Technical Specs.pdf",
+  metadata: { department: "engineering" },
+});
+```
+
+### RAG Index Management
+
+```typescript
+// Compute RAG index for semantic search
+const indexStatus = await kbAPI.computeRAGIndex(kb.knowledge_base_id);
+console.log("Indexing status:", indexStatus.status);
+
+// Check index status
+const status = await kbAPI.getRAGIndex(kb.knowledge_base_id);
+if (status.status === "ready") {
+  console.log("Index ready with", status.indexed_chunks, "chunks");
+}
+
+// Get overview of all indexes
+const overview = await kbAPI.getRAGIndexOverview();
+overview.forEach((kb) => {
+  console.log(`KB ${kb.knowledge_base_id}:`);
+  console.log(`  Documents: ${kb.total_documents}`);
+  console.log(`  Chunks: ${kb.total_chunks}`);
+  console.log(`  Status: ${kb.status}`);
+});
+```
+
+### Using Knowledge Base with Agents
+
+```typescript
+const config = new AgentConfigBuilder()
+  .withName("Support Agent")
+  .withVoice("voice_id")
+  .withPrompt("You are a support agent. Use the knowledge base to answer questions.")
+  .withKnowledgeBase([
+    {
+      knowledge_base_id: kb.knowledge_base_id,
+      type: "document",
+    },
+  ])
+  .build();
+
+const agent = await mind.createAgent(config);
+```
+
+### Managing Documents
+
+```typescript
+// List documents
+const docs = await kbAPI.listDocuments(kb.knowledge_base_id, {
+  page_size: 20,
+});
+
+// Get document content
+const content = await kbAPI.getDocumentContent(kb.knowledge_base_id, "doc_123");
+console.log("Content:", content.content);
+
+// Get specific chunk
+const chunk = await kbAPI.getDocumentChunk(kb.knowledge_base_id, "doc_123", "chunk_456");
+
+// Delete document
+await kbAPI.deleteDocument(kb.knowledge_base_id, "doc_123");
+
+// Delete entire knowledge base
+await kbAPI.deleteKnowledgeBase(kb.knowledge_base_id);
+```
+
+### Knowledge Base Utilities
+
+```typescript
+// Get storage usage
+const size = await kbAPI.getKnowledgeBaseSize(kb.knowledge_base_id);
+console.log("KB size:", size.size_bytes, "bytes");
+
+// Check which agents use this KB
+const dependents = await kbAPI.getDependentAgents(kb.knowledge_base_id);
+console.log("Used by agents:", dependents.agent_ids);
+```
+
+## Workflows (v1.4.1+)
+
+Create multi-agent workflows with conditional routing.
+
+### Creating a Workflow
+
+```typescript
+import type { AgentWorkflow } from "kwami";
+
+const workflow: AgentWorkflow = {
+  nodes: {
+    start: {
+      id: "start",
+      type: "start",
+      position: { x: 0, y: 0 },
+    },
+    main_agent: {
+      id: "main_agent",
+      type: "override_agent",
+      position: { x: 100, y: 0 },
+      label: "Main Assistant",
+      additional_prompt: "You are the main assistant. Transfer to specialist if needed.",
+    },
+    specialist: {
+      id: "specialist",
+      type: "standalone_agent",
+      position: { x: 200, y: 0 },
+      agent_id: "agent_specialist_123",
+      transfer_message: "Transferring you to a specialist...",
+      enable_transferred_agent_first_message: true,
+    },
+    end: {
+      id: "end",
+      type: "end",
+      position: { x: 300, y: 0 },
+    },
+  },
+  edges: {
+    edge1: {
+      source: "start",
+      target: "main_agent",
+    },
+    edge2: {
+      source: "main_agent",
+      target: "specialist",
+      condition: "needs_specialist",
+    },
+    edge3: {
+      source: "specialist",
+      target: "end",
+    },
+  },
+};
+
+const config = new AgentConfigBuilder()
+  .withName("Support System")
+  .withVoice("voice_id")
+  .withWorkflow(workflow)
+  .build();
+
+const agent = await mind.createAgent(config);
+```
+
+### Workflow Node Types
+
+- **Start Node**: Entry point for the workflow
+- **End Node**: Exit point for the workflow
+- **Override Agent Node**: Inline agent with custom configuration
+- **Standalone Agent Node**: Reference to existing agent
+- **Tool Node**: Execute tool calls
+- **Phone Number Node**: Telephony integration
+
+### Workflow with Tools
+
+```typescript
+const workflow: AgentWorkflow = {
+  nodes: {
+    start: { id: "start", type: "start", position: { x: 0, y: 0 } },
+    agent: {
+      id: "agent",
+      type: "override_agent",
+      position: { x: 100, y: 0 },
+      additional_prompt: "Use tools to help users",
+    },
+    tools: {
+      id: "tools",
+      type: "tool",
+      position: { x: 200, y: 0 },
+      tools: [{ tool_id: "tool_123" }, { tool_id: "tool_456" }],
+    },
+    end: { id: "end", type: "end", position: { x: 300, y: 0 } },
+  },
+  edges: {
+    e1: { source: "start", target: "agent" },
+    e2: { source: "agent", target: "tools" },
+    e3: { source: "tools", target: "end" },
+  },
+};
 ```
 
 ## Provider Switching
@@ -549,14 +1005,27 @@ mind.dispose();
 - **Cartesia** - Sonic models (40-100ms)
 - **PlayHT** - 800+ voices, multilingual
 
-See [Mind Architecture](../architecture/mind-architecture.md#voicerealtime-providers-landscape) for details.
+See [Mind Architecture](../architecture/mind-arch.md#voice-provider-landscape) for details.
+
+## Complete Examples
+
+For comprehensive examples covering all features, see:
+
+- **[Mind Examples](../../src/core/mind/examples/README.md)** - Complete usage examples
+  - Basic and advanced agent creation
+  - Tools API with webhooks
+  - Knowledge Base with RAG
+  - Multi-agent workflows
+  - Complete customer support agent example
+- **[Test Suite](../../src/core/mind/examples/test-agent-apis.ts)** - Automated API testing
 
 ## See Also
 
+- **[Mind Architecture](../architecture/mind-arch.md)** - Provider architecture deep dive
 - **[Provider Integration Guide](../guides/providers.md)** - Adding custom providers
 - **[Soul Component](./soul.md)** - Personality integration
 - **[API Reference](../api/mind.md)** - Complete API docs
 
 ---
 
-The Mind component enables rich voice AI interactions with flexible provider support.
+**Version 1.4.1+** - The Mind component now provides complete agent management, tools, knowledge base, and workflow capabilities alongside flexible provider support for voice AI interactions.

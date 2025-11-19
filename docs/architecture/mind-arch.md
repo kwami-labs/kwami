@@ -22,17 +22,17 @@
 
 Kwami's Mind layer orchestrates AI voice capabilities through a **provider-based architecture**. Each provider encapsulates all vendor-specific logic (API clients, transport protocols, feature implementations), while `Mind.ts` remains provider-agnostic and focused on orchestration.
 
-### Current Status
+### Current Status (v1.4.1)
 
-| Provider   | Status      | Capabilities                                      |
-| ---------- | ----------- | ------------------------------------------------- |
-| ElevenLabs | ✅ Complete | TTS, ConvAI WebSocket, Agents API, Analytics      |
-| OpenAI     | 🚧 WIP      | TTS via `/v1/audio/speech` (Realtime API pending) |
-| Vapi       | 📋 Planned  | Full-stack phone/web agents                       |
-| Retell AI  | 📋 Planned  | Call center automation                            |
-| Deepgram   | 📋 Planned  | Ultra-low latency STT + agent framework           |
-| Cartesia   | 📋 Planned  | Low-latency streaming TTS                         |
-| PlayHT     | 📋 Planned  | Multilingual conversational AI                    |
+| Provider   | Status      | Capabilities                                                                          |
+| ---------- | ----------- | ------------------------------------------------------------------------------------- |
+| ElevenLabs | ✅ Complete | TTS, ConvAI WebSocket, Agents API, Tools API, Knowledge Base API, Workflows, RAG     |
+| OpenAI     | 🚧 WIP      | TTS via `/v1/audio/speech` (Realtime API pending)                                     |
+| Vapi       | 📋 Planned  | Full-stack phone/web agents                                                           |
+| Retell AI  | 📋 Planned  | Call center automation                                                                |
+| Deepgram   | 📋 Planned  | Ultra-low latency STT + agent framework                                               |
+| Cartesia   | 📋 Planned  | Low-latency streaming TTS                                                             |
+| PlayHT     | 📋 Planned  | Multilingual conversational AI                                                        |
 
 ---
 
@@ -61,29 +61,44 @@ Unimplemented features log informative errors rather than crashing, allowing gra
 
 ---
 
-## Directory Structure
+## Directory Structure (v1.4.1)
 
 ```
 src/core/mind/
-├─ Mind.ts                 # Main orchestrator class
-├─ README.md               # Implementation guide
-└─ providers/
-   ├─ factory.ts           # Provider instantiation & registry
-   ├─ types.ts             # Shared interfaces & contracts
-   ├─ elevenlabs/
-   │  └─ ElevenLabsProvider.ts
-   └─ openai/
-      └─ OpenAIProvider.ts
+├─ Mind.ts                      # Main orchestrator class
+├─ AgentConfigBuilder.ts        # Fluent API for agent configuration
+├─ validation.ts                # Configuration validation utilities
+├─ index.ts                     # Module exports
+├─ README.md                    # Implementation guide
+├─ apis/
+│  ├─ ToolsAPI.ts              # Tools management (create, update, delete tools)
+│  └─ KnowledgeBaseAPI.ts      # Knowledge Base & RAG (documents, indexing)
+├─ providers/
+│  ├─ factory.ts               # Provider instantiation & registry
+│  ├─ types.ts                 # Shared interfaces & contracts
+│  ├─ elevenlabs/
+│  │  └─ ElevenLabsProvider.ts # ElevenLabs implementation
+│  └─ openai/
+│     └─ OpenAIProvider.ts     # OpenAI implementation
+└─ examples/
+   ├─ README.md                # Comprehensive usage examples
+   └─ test-agent-apis.ts       # Complete API test suite
 ```
 
 ### File Responsibilities
 
-| File                      | Purpose                                                               |
-| ------------------------- | --------------------------------------------------------------------- |
-| `Mind.ts`                 | Public API, config management, pronunciation dictionary, delegation   |
-| `providers/types.ts`      | `MindProvider` interface, callback types, shared contracts            |
-| `providers/factory.ts`    | Maps `MindProviderType` string to concrete provider instances         |
-| `providers/*/Provider.ts` | Full vendor implementation: API clients, WebSocket/WebRTC, agent APIs |
+| File                       | Purpose                                                                           |
+| -------------------------- | --------------------------------------------------------------------------------- |
+| `Mind.ts`                  | Public API, config management, pronunciation dictionary, delegation               |
+| `AgentConfigBuilder.ts`    | Fluent builder for creating agent configurations with validation                  |
+| `validation.ts`            | Validation functions for agent configs, TTS, ASR, turn settings, tools, workflows |
+| `apis/ToolsAPI.ts`         | Tools management: CRUD operations, webhooks, parameter schemas                    |
+| `apis/KnowledgeBaseAPI.ts` | Knowledge Base: documents, RAG indexing, semantic search                          |
+| `providers/types.ts`       | `MindProvider` interface, callback types, shared contracts                        |
+| `providers/factory.ts`     | Maps `MindProviderType` string to concrete provider instances                     |
+| `providers/*/Provider.ts`  | Full vendor implementation: API clients, WebSocket/WebRTC, agent APIs             |
+| `examples/README.md`       | Complete usage examples for all features                                          |
+| `examples/test-agent-apis.ts` | Automated test suite for all API endpoints                                     |
 
 ---
 
@@ -128,9 +143,81 @@ The contract that all providers must implement. It defines ~30 methods covering:
 - **TTS**: `speak()`, `generateSpeechBlob()`, `getAvailableVoices()`
 - **STT**: `listen()`, `stopListening()`, `testMicrophone()`
 - **Conversations**: `startConversation()`, `stopConversation()`, `sendConversationMessage()`
-- **Agents**: `createAgent()`, `updateAgent()`, `deleteAgent()`, `listAgents()`
+- **Agents**: `createAgent()`, `updateAgent()`, `deleteAgent()`, `listAgents()`, `duplicateAgent()`
 - **Analytics**: `simulateConversation()`, `calculateLLMUsage()`, `listConversations()`
 - **Lifecycle**: `initialize()`, `dispose()`, `updateConfig()`
+
+### 3. AgentConfigBuilder (v1.4.1)
+
+Fluent API for building agent configurations with built-in validation:
+
+```typescript
+const config = new AgentConfigBuilder()
+  .withName("Support Agent")
+  .withVoice("voice_id")
+  .withLLM("gpt-4o")
+  .withPrompt("You are helpful")
+  .withTools([{ name: "tool", url: "https://api.example.com" }])
+  .withKnowledgeBase([{ knowledge_base_id: "kb_123" }])
+  .build(); // Validates before returning
+```
+
+### 4. Tools API (v1.4.1)
+
+Dedicated API for managing tools that agents can call:
+
+```typescript
+const toolsAPI = mind.getToolsAPI();
+
+// Create tool with webhook
+const tool = await toolsAPI.createTool({
+  name: "get_weather",
+  description: "Get weather",
+  url: "https://api.weather.com",
+  parameters: [{ name: "location", type: "string", required: true }],
+});
+
+// CRUD operations
+await toolsAPI.getTool(toolId);
+await toolsAPI.listTools();
+await toolsAPI.updateTool(toolId, { description: "Updated" });
+await toolsAPI.deleteTool(toolId);
+await toolsAPI.getDependentAgents(toolId);
+```
+
+### 5. Knowledge Base API (v1.4.1)
+
+API for RAG (Retrieval Augmented Generation) with document management:
+
+```typescript
+const kbAPI = mind.getKnowledgeBaseAPI();
+
+// Create KB and add documents
+const kb = await kbAPI.createKnowledgeBase({ name: "Docs" });
+await kbAPI.createDocumentFromURL(kb.knowledge_base_id, {
+  url: "https://docs.example.com/manual.pdf",
+});
+await kbAPI.createDocumentFromText(kb.knowledge_base_id, {
+  text: "Product info...",
+});
+
+// RAG indexing for semantic search
+await kbAPI.computeRAGIndex(kb.knowledge_base_id);
+const status = await kbAPI.getRAGIndex(kb.knowledge_base_id);
+```
+
+### 6. Validation System (v1.4.1)
+
+Comprehensive validation for all configuration aspects:
+
+```typescript
+import { validateAgentConfig, formatValidationErrors } from "kwami";
+
+const result = validateAgentConfig(config);
+if (!result.valid) {
+  console.error(formatValidationErrors(result.errors));
+}
+```
 
 **Core interface structure:**
 
@@ -161,7 +248,7 @@ export interface MindProvider {
 }
 ```
 
-### 3. Provider Factory (providers/factory.ts)
+### 7. Provider Factory (providers/factory.ts)
 
 Translates `MindProviderType` strings into concrete provider instances.
 
@@ -802,15 +889,194 @@ Interested in adding a provider? See the [Adding a New Provider](#adding-a-new-p
 
 ---
 
+## v1.4.1 Features Deep Dive
+
+### AgentConfigBuilder Design
+
+The fluent API builder follows these principles:
+
+1. **Type Safety**: All methods are fully typed with TypeScript
+2. **Validation on Build**: Configuration is validated before returning
+3. **Immutability**: Each method returns `this` for chaining
+4. **Fail-Fast**: Invalid configurations throw descriptive errors immediately
+
+**Implementation highlights:**
+
+```typescript
+class AgentConfigBuilder {
+  private config: CreateAgentRequestFull;
+
+  withVoice(voiceId: string, settings?: Partial<TTSConversationalConfig>): this {
+    if (!this.config.conversation_config!.tts) {
+      this.config.conversation_config!.tts = { voice_id: voiceId };
+    }
+    if (settings) {
+      this.config.conversation_config!.tts = {
+        ...this.config.conversation_config!.tts,
+        ...settings,
+      };
+    }
+    return this;
+  }
+
+  build(): CreateAgentRequestFull {
+    this.validate(); // Throws if invalid
+    return this.config;
+  }
+}
+```
+
+### Tools API Architecture
+
+**Design principles:**
+
+1. **RESTful API Wrapper**: Clean abstraction over ElevenLabs Tools API
+2. **Parameter Validation**: Rich parameter type system with validation
+3. **Webhook Support**: Full HTTP method and header customization
+4. **Dependency Tracking**: Find which agents use which tools
+
+**Key features:**
+
+- Parameter types: `string`, `number`, `boolean`, `object`, `array`
+- Nested parameters for complex schemas
+- Required/optional flags
+- Enum validation for restricted values
+- Helper functions for quick tool creation
+
+### Knowledge Base API Architecture
+
+**Design principles:**
+
+1. **Multi-Source Documents**: URL, text, file upload support
+2. **RAG Integration**: Automatic chunking and vector embeddings
+3. **Metadata Support**: Custom metadata for filtering and organization
+4. **Async Indexing**: Non-blocking index computation
+
+**RAG workflow:**
+
+```
+1. Create KB → 2. Add Documents → 3. Compute RAG Index → 4. Use in Agent
+   ↓               ↓                  ↓                     ↓
+   KB ID          Doc IDs            Indexed Chunks        Agent with KB
+```
+
+**Index status flow:**
+
+```
+initiating → indexing → ready
+                ↓
+             failed (with error)
+```
+
+### Validation System Design
+
+**Multi-level validation:**
+
+1. **Type-level**: TypeScript ensures correct types at compile time
+2. **Range validation**: Numeric values (stability 0-1, speed 0.25-4.0)
+3. **Required fields**: Voice ID, tool names, parameter types
+4. **Reference validation**: Workflow nodes/edges, tool IDs, KB IDs
+5. **Format validation**: URLs, enum values, array lengths
+
+**Validation results:**
+
+```typescript
+interface ValidationResult {
+  valid: boolean;
+  errors: ValidationError[]; // Field, message, code
+}
+```
+
+### ElevenLabs Provider Extensions
+
+**New capabilities in v1.4.1:**
+
+1. **Tools API Instance**: `provider.tools` automatically initialized
+2. **Knowledge Base API Instance**: `provider.knowledgeBase` automatically initialized
+3. **Automatic API Key Propagation**: APIs inherit from Mind config
+4. **Lifecycle Management**: APIs disposed with provider
+
+**Integration pattern:**
+
+```typescript
+class ElevenLabsProvider implements MindProvider {
+  public tools: ToolsAPI | null = null;
+  public knowledgeBase: KnowledgeBaseAPI | null = null;
+
+  async initialize(): Promise<void> {
+    if (this.config.apiKey) {
+      this.tools = new ToolsAPI(this.config.apiKey);
+      this.knowledgeBase = new KnowledgeBaseAPI(this.config.apiKey);
+    }
+  }
+}
+```
+
+### Type System Overview
+
+**New types in v1.4.1:**
+
+- `src/types/elevenlabs-agents.ts`: 500+ lines of complete API types
+- ASR, TTS, Turn, Conversation, VAD, LLM configurations
+- Workflow nodes (6 types) and edges
+- Tools with parameter schemas
+- Knowledge Base with document types
+- Platform settings for widget/telephony
+- Secrets management
+
+**Type coverage:**
+
+```
+CreateAgentRequestFull     → Complete agent configuration
+AgentWorkflow             → Multi-agent orchestration
+ToolConfig                → Tool definitions with parameters
+KnowledgeBaseLocator      → KB references
+ValidationResult          → Validation errors
+```
+
+### Testing Strategy
+
+The `test-agent-apis.ts` suite covers:
+
+1. **Agent Lifecycle**: Create, read, update, delete, duplicate
+2. **Tools CRUD**: All tool management operations
+3. **Knowledge Base**: KB creation, document upload, RAG indexing
+4. **Validation**: Config validation with error formatting
+5. **Cleanup**: Resource disposal after tests
+
+**Test execution:**
+
+```typescript
+await runTests(); // Returns { passed, failed, skipped, total, success }
+```
+
+### Performance Considerations
+
+**API call optimization:**
+
+1. **Batch Operations**: List operations with pagination
+2. **Lazy Loading**: RAG indexes computed on demand
+3. **Caching**: Tool and KB metadata cached locally
+4. **Parallel Requests**: Multiple documents uploaded concurrently
+
+**Memory management:**
+
+1. **Proper Disposal**: All APIs clean up on provider dispose
+2. **Reference Cleanup**: No circular references
+3. **Stream Management**: File uploads use streaming
+4. **Chunk Processing**: Large documents processed in chunks
+
 ## Additional Resources
 
 - **ElevenLabs Documentation**: [elevenlabs.io/docs](https://elevenlabs.io/docs)
+- **ElevenLabs Agents API**: [elevenlabs.io/docs/api-reference/agents](https://elevenlabs.io/docs/api-reference/agents)
 - **OpenAI Realtime API**: [platform.openai.com/docs/guides/realtime](https://platform.openai.com/docs/guides/realtime)
 - **Provider SDK Examples**: See `src/core/mind/providers/*/` for reference implementations
-- **Kwami Discord**: Join the community for provider integration discussions
+- **Complete Examples**: See `src/core/mind/examples/README.md` for comprehensive usage
+- **Test Suite**: See `src/core/mind/examples/test-agent-apis.ts` for API testing
 
 ---
 
-**Last Updated**: November 2025  
-**Document Version**: 2.0  
+**Last Updated**: November 2025 (v1.4.1)  
+**Document Version**: 3.0  
 **Maintainers**: Kwami Core Team
