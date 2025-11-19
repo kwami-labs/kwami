@@ -296,6 +296,13 @@ html[dir="rtl"] .welcome-info p {
   transition: background 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
+.section-hash {
+  font-size: 0.7em;
+  opacity: 1;
+  -webkit-text-fill-color: initial;
+  color: var(--color-primary);
+}
+
 .text-section h1,
 .text-section h2 {
   font-size: clamp(2.5rem, 6vw, 5rem);
@@ -669,7 +676,7 @@ html[dir="rtl"] .welcome-info p {
 @media (max-width: 900px) {
   .bottom-tabs {
     width: calc(100vw - 32px);
-    bottom: 24px;
+    bottom: 16px;
   }
 }
 
@@ -678,7 +685,7 @@ html[dir="rtl"] .welcome-info p {
     flex-wrap: wrap;
     gap: 0.4rem;
     padding: 0.4rem;
-    bottom: 20px;
+    bottom: 12px;
   }
 
   .tab-btn {
@@ -756,22 +763,17 @@ html[dir="rtl"] .welcome-info p {
     height: auto;
     min-height: calc(var(--section-count, 22) * 100vh);
     padding: 2rem;
-    padding-bottom: 45vh;
-    z-index: 101;
+    padding-bottom: 4rem;
+    z-index: 50;
   }
 
   .content-right {
     position: fixed;
     width: 100%;
-    height: 40vh;
-    top: auto;
+    height: 100vh;
+    top: 0;
     bottom: 0;
-    background: linear-gradient(
-      to top,
-      rgba(10, 10, 10, 0.95) 0%,
-      rgba(10, 10, 10, 0.8) 50%,
-      transparent 100%
-    );
+    background: transparent;
     z-index: 100;
     padding-right: 0;
   }
@@ -795,11 +797,13 @@ html[dir="rtl"] .welcome-info p {
   }
 
   .sidebar-navigation {
-    z-index: 102;
+    z-index: 101;
   }
 
   .text-section {
     padding: 2rem 1rem;
+    justify-content: flex-start;
+    padding-top: 8rem;
   }
 
   .kwami-label {
@@ -819,6 +823,10 @@ html[dir="rtl"] .welcome-info p {
 }
 
 @media (max-width: 640px) {
+  .text-section {
+    padding-top: 6rem;
+  }
+
   .section-number {
     font-size: 4rem;
   }
@@ -862,7 +870,7 @@ html[dir="rtl"] .welcome-info p {
   }
   
   .bottom-tabs {
-    bottom: 12vh !important;
+    bottom: 8px !important;
     left: 50% !important;
     right: auto;
     transform: translateX(-50%) !important;
@@ -1089,14 +1097,14 @@ html[dir="rtl"] .welcome-info p {
 /* Responsive adjustments for song title */
 @media (max-width: 900px) {
   #song-title-display {
-    bottom: 90px !important;
+    bottom: 70px !important;
     font-size: 0.7rem;
   }
 }
 
 @media (max-width: 640px) {
   #song-title-display {
-    bottom: 80px !important;
+    bottom: 60px !important;
     font-size: 0.65rem;
   }
 }
@@ -1106,7 +1114,7 @@ html[dir="rtl"] .welcome-info p {
   position: fixed;
   bottom: 2rem;
   right: 2rem;
-  z-index: 10000;
+  z-index: 9000;
   pointer-events: auto;
 }
 
@@ -1203,13 +1211,33 @@ html[dir="rtl"] .welcome-info p {
   background: rgba(255, 255, 255, 0.15);
 }
 
-@media (max-width: 768px) {
+@media (max-width: 1024px) {
   .language-switcher {
-    bottom: 6rem;
+    top: 1rem;
     right: 1rem;
+    bottom: auto;
   }
   
   .lang-btn {
     padding: 0.5rem 0.8rem;
+  }
+  
+  .lang-menu {
+    bottom: auto;
+    top: 100%;
+    margin-bottom: 0;
+    margin-top: 0.5rem;
+  }
+}
+
+@media (max-width: 640px) {
+  .language-switcher {
+    top: 4.5rem;
+    right: 0.5rem;
+  }
+  
+  .lang-btn {
+    padding: 0.4rem 0.7rem;
+    font-size: 0.85rem;
   }
 }

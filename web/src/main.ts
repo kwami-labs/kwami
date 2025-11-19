@@ -1,7 +1,7 @@
 import './style.css';
 import './components/welcome-layer.css';
 import { Kwami } from 'kwami';
-import { t, changeLanguage, getCurrentLanguage, updatePageTranslations } from './i18n';
+import { t, changeLanguage, getCurrentLanguage, updatePageTranslations, createLanguageSwitcher } from './i18n';
 import { WelcomeLayer } from './components/WelcomeLayer';
 import mediaLinks from './media-links.json';
 
@@ -521,17 +521,24 @@ class ScrollManager {
         }
       });
 
-      // Set blob scale
-      this.kwami.body.blob.setScale(5.5);
+      // Set blob scale - bigger on mobile
+      const isMobile = window.innerWidth <= 1024;
+      const blobScale = isMobile ? 4.5 : 5.5;
+      this.kwami.body.blob.setScale(blobScale);
 
       // Enable wireframe mode
       this.kwami.body.blob.setWireframe(true);
 
-      // Position blob more to the right (desktop only)
+      // Set opacity for mobile - always 0.8 (transparent)
+      if (isMobile) {
+        this.kwami.body.blob.setOpacity(0.8);
+      }
+
+      // Position blob more to the right (desktop only), bottom on mobile
       const blobMesh = this.kwami.body.blob.getMesh();
-      const isMobile = window.innerWidth <= 1024;
       // Use direct world coordinates - x:8 positions it in center of right half
-      blobMesh.position.set(isMobile ? 0 : 8, 0, 0);
+      // On mobile: y:-7 positions it at the bottom of the screen (lower)
+      blobMesh.position.set(isMobile ? 0 : 8, isMobile ? -7 : 0, 0);
 
       // Enable auto-rotation on Y-axis only (rotates in place)
       blobMesh.rotation.y = 0;
@@ -544,8 +551,14 @@ class ScrollManager {
       // Adjust on resize
       window.addEventListener('resize', () => {
         const mobile = window.innerWidth <= 1024;
-        blobMesh.position.set(mobile ? 0 : 8, 0, 0);
-        this.kwami?.body.blob.setScale(mobile ? 4.0 : 6.0);
+        const blobScale = mobile ? 4.5 : 5.5;
+        blobMesh.position.set(mobile ? 0 : 8, mobile ? -7 : 0, 0);
+        this.kwami?.body.blob.setScale(blobScale);
+        if (mobile) {
+          this.kwami?.body.blob.setOpacity(0.8);
+        } else {
+          this.kwami?.body.blob.setOpacity(1.0);
+        }
       });
 
       // Setup custom double-click behavior to randomize blob
@@ -688,6 +701,12 @@ class ScrollManager {
       // Update colors
       this.kwami.body.blob.setColors(palette.primary, palette.secondary, palette.accent);
 
+      // Preserve opacity for mobile - always 0.8 (transparent)
+      const isMobile = window.innerWidth <= 1024;
+      if (isMobile) {
+        this.kwami.body.blob.setOpacity(0.8);
+      }
+
       // Much shorter delay for smooth transitions
       setTimeout(() => {
         this.isTransitioning = false;
@@ -768,6 +787,12 @@ class ScrollManager {
     ];
     const randomSkin = skinTypes[Math.floor(Math.random() * skinTypes.length)] as 'Donut' | 'Poles' | 'Vintage';
     this.kwami.body.blob.setSkin(randomSkin);
+    
+    // Preserve opacity for mobile - always 0.8 (transparent)
+    const isMobile = window.innerWidth <= 1024;
+    if (isMobile) {
+      this.kwami.body.blob.setOpacity(0.8);
+    }
     
     console.log(`🎲 Blob randomized with ${randomSkin} skin!`);
   }
@@ -1062,133 +1087,22 @@ class ActionButtonManager {
   }
 }
 
-// Language Switcher Manager
-class LanguageSwitcher {
-  private langBtn: HTMLElement | null = null;
-  private langMenu: HTMLElement | null = null;
-  private currentLangDisplay: HTMLElement | null = null;
-  private isOpen = false;
-
-  constructor() {
-    this.langBtn = document.getElementById('lang-btn');
-    this.langMenu = document.getElementById('lang-menu');
-    this.currentLangDisplay = document.getElementById('current-lang');
-    
-    if (this.langBtn && this.langMenu) {
-      this.init();
-    }
+// Language switcher initialization using shared function from i18n
+function initLanguageSwitcher() {
+  // Create and append the language switcher to the body
+  const langSwitcher = createLanguageSwitcher('language-switcher');
+  document.body.appendChild(langSwitcher);
+  
+  // Set initial text direction based on current language
+  const currentLang = getCurrentLanguage();
+  const htmlElement = document.documentElement;
+  if (currentLang === 'ar') {
+    htmlElement.setAttribute('dir', 'rtl');
+  } else {
+    htmlElement.setAttribute('dir', 'ltr');
   }
-
-  private init() {
-    // Update current language display
-    this.updateCurrentLanguageDisplay();
-    
-    // Set initial text direction based on current language
-    const currentLang = getCurrentLanguage();
-    const htmlElement = document.documentElement;
-    if (currentLang === 'ar') {
-      htmlElement.setAttribute('dir', 'rtl');
-    } else {
-      htmlElement.setAttribute('dir', 'ltr');
-    }
-    
-    // Toggle menu on button click
-    this.langBtn!.addEventListener('click', (e) => {
-      e.stopPropagation();
-      this.toggleMenu();
-    });
-    
-    // Handle language selection
-    const langOptions = this.langMenu!.querySelectorAll('.lang-option');
-    langOptions.forEach(option => {
-      option.addEventListener('click', async (e) => {
-        const target = e.currentTarget as HTMLElement;
-        const lang = target.getAttribute('data-lang');
-        if (lang) {
-          await this.changeLanguage(lang);
-          this.closeMenu();
-        }
-      });
-    });
-    
-    // Close menu when clicking outside
-    document.addEventListener('click', (e) => {
-      if (this.isOpen && !this.langMenu!.contains(e.target as Node) && !this.langBtn!.contains(e.target as Node)) {
-        this.closeMenu();
-      }
-    });
-  }
-
-  private toggleMenu() {
-    this.isOpen = !this.isOpen;
-    this.langMenu!.classList.toggle('open', this.isOpen);
-  }
-
-  private closeMenu() {
-    this.isOpen = false;
-    this.langMenu!.classList.remove('open');
-  }
-
-  private async changeLanguage(lang: string) {
-    await changeLanguage(lang);
-    this.updateCurrentLanguageDisplay();
-    
-    // Set text direction for RTL languages (Arabic)
-    const htmlElement = document.documentElement;
-    if (lang === 'ar') {
-      htmlElement.setAttribute('dir', 'rtl');
-    } else {
-      htmlElement.setAttribute('dir', 'ltr');
-    }
-    
-    // Update all text content
-    updatePageTranslations();
-  }
-
-  private updateCurrentLanguageDisplay() {
-    const lang = getCurrentLanguage().toLowerCase();
-    const flagMap: Record<string, string> = {
-      'en': '🇺🇸',
-      'es': '🇪🇸',
-      'fr': '🇫🇷',
-      'zh': '🇨🇳',
-      'ko': '🇰🇷',
-      'ja': '🇯🇵',
-      'pt': '🇵🇹',
-      'it': '🇮🇹',
-      'ru': '🇷🇺',
-      'ar': '🇸🇦',
-      'nl': '🇳🇱'
-    };
-    
-    const langCodeMap: Record<string, string> = {
-      'en': 'EN',
-      'es': 'ES',
-      'fr': 'FR',
-      'zh': 'ZH',
-      'ko': 'KO',
-      'ja': 'JA',
-      'pt': 'PT',
-      'it': 'IT',
-      'ru': 'RU',
-      'ar': 'AR',
-      'nl': 'NL'
-    };
-    
-    const flag = flagMap[lang] || '🌐';
-    const langCode = langCodeMap[lang] || lang.toUpperCase().substring(0, 2);
-    
-    // Update flag icon
-    const langIcon = this.langBtn?.querySelector('.lang-icon');
-    if (langIcon) {
-      langIcon.textContent = flag;
-    }
-    
-    // Update language code
-    if (this.currentLangDisplay) {
-      this.currentLangDisplay.textContent = langCode;
-    }
-  }
+  
+  console.log('🌐 Language switcher initialized');
 }
 
 // Initialize
@@ -1199,7 +1113,8 @@ document.addEventListener('DOMContentLoaded', () => {
   const scrollManager = new ScrollManager();
   new ModeSwitcher();
   new ActionButtonManager();
-  new LanguageSwitcher();
+  // Initialize language switcher
+  initLanguageSwitcher();
   
   // Update initial translations
   updatePageTranslations();

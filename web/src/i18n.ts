@@ -134,6 +134,90 @@ export function getSectionMessages(sectionNumber: string): string[] {
   return [];
 }
 
+// Language list configuration
+const LANGUAGE_LIST = [
+  { code: 'en', flag: '🇺🇸', name: 'English' },
+  { code: 'es', flag: '🇪🇸', name: 'Español' },
+  { code: 'fr', flag: '🇫🇷', name: 'Français' },
+  { code: 'zh', flag: '🇨🇳', name: '中文' },
+  { code: 'ko', flag: '🇰🇷', name: '한국어' },
+  { code: 'ja', flag: '🇯🇵', name: '日本語' },
+  { code: 'pt', flag: '🇵🇹', name: 'Português' },
+  { code: 'it', flag: '🇮🇹', name: 'Italiano' },
+  { code: 'ru', flag: '🇷🇺', name: 'Русский' },
+  { code: 'ar', flag: '🇸🇦', name: 'العربية' },
+  { code: 'nl', flag: '🇳🇱', name: 'Nederlands' }
+];
+
+// Shared function to create language switcher HTML
+export function createLanguageSwitcher(className = 'language-switcher'): HTMLElement {
+  const container = document.createElement('div');
+  container.className = className;
+
+  const langBtn = document.createElement('button');
+  langBtn.className = 'lang-btn';
+  langBtn.setAttribute('aria-label', 'Change language');
+
+  const langIcon = document.createElement('span');
+  langIcon.className = 'lang-icon';
+  // Set initial flag based on current language
+  const currentLanguage = i18next.language.toLowerCase();
+  const currentLangData = LANGUAGE_LIST.find(lang => lang.code === currentLanguage);
+  langIcon.textContent = currentLangData?.flag || '🌐';
+
+  const currentLang = document.createElement('span');
+  currentLang.className = 'current-lang';
+  currentLang.textContent = i18next.language.toUpperCase();
+
+  langBtn.appendChild(langIcon);
+  langBtn.appendChild(currentLang);
+
+  const langMenu = document.createElement('div');
+  langMenu.className = 'lang-menu';
+
+  LANGUAGE_LIST.forEach(lang => {
+    const option = document.createElement('button');
+    option.className = 'lang-option';
+    option.setAttribute('data-lang', lang.code);
+    option.textContent = `${lang.flag} ${lang.name}`;
+    
+    option.addEventListener('click', async () => {
+      await i18next.changeLanguage(lang.code);
+      currentLang.textContent = lang.code.toUpperCase();
+      langIcon.textContent = lang.flag; // Update flag icon
+      langMenu.classList.remove('open');
+      
+      // Update text direction for RTL languages
+      if (lang.code === 'ar') {
+        document.documentElement.setAttribute('dir', 'rtl');
+      } else {
+        document.documentElement.setAttribute('dir', 'ltr');
+      }
+      
+      console.log(`🌐 Language changed to ${lang.name}`);
+    });
+    
+    langMenu.appendChild(option);
+  });
+
+  langBtn.addEventListener('click', (e) => {
+    e.stopPropagation();
+    langMenu.classList.toggle('open');
+  });
+
+  // Close menu when clicking outside
+  document.addEventListener('click', (e) => {
+    if (!container.contains(e.target as Node)) {
+      langMenu.classList.remove('open');
+    }
+  });
+
+  container.appendChild(langBtn);
+  container.appendChild(langMenu);
+
+  return container;
+}
+
 // Listen for language changes
 i18next.on('languageChanged', () => {
   updatePageTranslations();
