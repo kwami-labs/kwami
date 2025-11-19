@@ -32,6 +32,9 @@ export { KwamiMind } from './src/core/mind/Mind';
 export { KwamiSoul } from './src/core/soul/Soul';
 export { Blob } from './src/core/body/blob/Blob';
 
+// Mind module exports (Agent management, Tools, Knowledge Base)
+export * from './src/core/mind/index';
+
 // Skills System
 export { SkillManager } from './src/core/mind/skills/SkillManager';
 

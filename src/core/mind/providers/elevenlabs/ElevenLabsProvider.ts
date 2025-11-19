@@ -30,6 +30,8 @@ import type {
   MindProviderSpeakOptions,
   MindConversationCallbacks,
 } from '../types';
+import { ToolsAPI } from '../../apis/ToolsAPI';
+import { KnowledgeBaseAPI } from '../../apis/KnowledgeBaseAPI';
 
 export class ElevenLabsProvider implements MindProvider {
   readonly type = 'elevenlabs';
@@ -40,6 +42,10 @@ export class ElevenLabsProvider implements MindProvider {
   private isInitialized = false;
   private currentAudioStream: MediaStream | null = null;
   private mediaRecorder: MediaRecorder | null = null;
+
+  // API instances for advanced features
+  public tools: ToolsAPI | null = null;
+  public knowledgeBase: KnowledgeBaseAPI | null = null;
 
   // Conversational AI WebSocket properties
   private conversationWebSocket: WebSocket | null = null;
@@ -71,6 +77,12 @@ export class ElevenLabsProvider implements MindProvider {
       throw new Error(
         'ElevenLabs API key not provided. Set it in MindConfig or ELEVEN_LABS_KEY environment variable.'
       );
+    }
+
+    // Initialize API instances
+    if (this.config.apiKey) {
+      this.tools = new ToolsAPI(this.config.apiKey);
+      this.knowledgeBase = new KnowledgeBaseAPI(this.config.apiKey);
     }
 
     this.isInitialized = true;
@@ -765,6 +777,12 @@ export class ElevenLabsProvider implements MindProvider {
     this.config = config;
     if (!this.client && config.apiKey) {
       this.client = new ElevenLabsClient({ apiKey: config.apiKey });
+    }
+    
+    // Update API instances
+    if (config.apiKey) {
+      this.tools = new ToolsAPI(config.apiKey);
+      this.knowledgeBase = new KnowledgeBaseAPI(config.apiKey);
     }
   }
 

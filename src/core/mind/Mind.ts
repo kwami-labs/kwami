@@ -520,4 +520,30 @@ export class KwamiMind {
 
     this.updateConfig({ provider });
   }
+
+  // ==================== Tools API ====================
+
+  /**
+   * Access the Tools API for managing agent tools
+   * Only available for ElevenLabs provider
+   */
+  getToolsAPI(): any {
+    if (this.config.provider === 'elevenlabs' || !this.config.provider) {
+      return (this.provider as any).tools;
+    }
+    throw new Error(`Tools API not available for provider: ${this.config.provider}`);
+  }
+
+  // ==================== Knowledge Base API ====================
+
+  /**
+   * Access the Knowledge Base API for managing agent knowledge
+   * Only available for ElevenLabs provider
+   */
+  getKnowledgeBaseAPI(): any {
+    if (this.config.provider === 'elevenlabs' || !this.config.provider) {
+      return (this.provider as any).knowledgeBase;
+    }
+    throw new Error(`Knowledge Base API not available for provider: ${this.config.provider}`);
+  }
 }
