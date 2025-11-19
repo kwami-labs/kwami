@@ -330,16 +330,52 @@ Related to #456
 - Once approved, your PR will be merged to `dev`! 🎉
 - Later, `dev` will be merged to `main` for release
 
-### Release Process
+### Release Process (Automated)
 
 When it's time for a release:
 
-1. `dev` is merged to `main` in a release PR
-2. Version is bumped (v2.0.0 → v2.1.0)
-3. CHANGELOG is finalized
-4. Tag is created
-5. Deployed to kwami.io
-6. `main` is merged back to `dev`
+1. **Prepare the release on `dev`:**
+   - Update version in `package.json` (following semver)
+   - Update CHANGELOG.md with release notes
+   - Commit changes: `git commit -m "🚀 Bump version to v2.1.0"`
+
+2. **Create release PR:**
+   - Open PR from `dev` → `main` with title: "🚀 Release v2.1.0"
+   - Get PR reviewed and approved by maintainers
+
+3. **Merge to `main` (triggers automation):**
+   - Once merged, GitHub Actions automatically:
+     - ✅ Runs tests
+     - 📦 Builds the package
+     - 🚀 Publishes to npm (if version changed)
+     - 🏷️ Creates a git tag (v2.1.0)
+   - View workflow progress at: Actions → 📦 Publish to npm
+
+4. **Deploy website:**
+   - Website (kwami.io) deploys automatically from `main`
+
+5. **Sync back to `dev`:**
+   - Merge `main` back to `dev` to keep branches in sync
+   - Push to keep development branch up to date
+
+### Manual Publishing (for maintainers)
+
+If you need to publish manually:
+
+```bash
+# Ensure you're on main with latest changes
+git checkout main
+git pull
+
+# Bump version and publish
+npm version patch|minor|major  # Bumps version and creates tag
+npm publish --access public
+
+# Push changes and tags
+git push && git push --tags
+```
+
+**Note:** Automated publishing is preferred. Manual publishing should only be used for hotfixes or if automation fails.
 
 ## 🎯 Coding Standards
 
