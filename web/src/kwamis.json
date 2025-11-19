@@ -1,0 +1,789 @@
+[
+  {
+    "page": "00",
+    "name": "Welcome - Black & White",
+    "description": "The welcome layer blob - black and white gradient with calm movement",
+    "spikes": {
+      "x": 0.05,
+      "y": 5.2,
+      "z": 0.05
+    },
+    "time": {
+      "x": 3,
+      "y": 6,
+      "z": 3
+    },
+    "colors": {
+      "x": "#ffffff",
+      "y": "#808080",
+      "z": "#000000"
+    },
+    "scale": 7.8,
+    "rotation": {
+      "x": 0,
+      "y": 0,
+      "z": 0
+    },
+    "skin": "Donut",
+    "resolution": 180,
+    "wireframe": false,
+    "shininess": 0.5,
+    "scene": {
+      "cameraPosition": {
+        "x": 0,
+        "y": 0,
+        "z": 12
+      },
+      "enableControls": false
+    }
+  },
+  {
+    "page": "01",
+    "name": "Introduction",
+    "description": "Calm and welcoming blob for the introduction section",
+    "spikes": {
+      "x": 0.2,
+      "y": 0.2,
+      "z": 0.2
+    },
+    "time": {
+      "x": 5,
+      "y": 5,
+      "z": 5
+    },
+    "colorPalette": "red-500",
+    "scale": 7.8,
+    "rotation": {
+      "x": 0,
+      "y": 0,
+      "z": 0
+    },
+    "skin": "Donut",
+    "resolution": 180,
+    "wireframe": false,
+    "shininess": 0.5,
+    "scene": {
+      "cameraPosition": {
+        "x": 0,
+        "y": 0,
+        "z": 12
+      },
+      "enableControls": false
+    }
+  },
+  {
+    "page": "02",
+    "name": "Why Kwami",
+    "description": "Energetic blob with vibrant movement",
+    "spikes": {
+      "x": 2.5,
+      "y": 2.5,
+      "z": 2.5
+    },
+    "time": {
+      "x": 8,
+      "y": 8,
+      "z": 8
+    },
+    "colorPalette": "orange-500",
+    "scale": 7.8,
+    "rotation": {
+      "x": 0,
+      "y": 0,
+      "z": 0
+    },
+    "skin": "Donut",
+    "resolution": 180,
+    "wireframe": false,
+    "shininess": 0.5,
+    "scene": {
+      "cameraPosition": {
+        "x": 0,
+        "y": 0,
+        "z": 12
+      },
+      "enableControls": false
+    }
+  },
+  {
+    "page": "03",
+    "name": "Quick Start",
+    "description": "Organic blob with flowing movement",
+    "spikes": {
+      "x": 5.0,
+      "y": 3.0,
+      "z": 4.0
+    },
+    "time": {
+      "x": 10,
+      "y": 7,
+      "z": 8
+    },
+    "colorPalette": "amber-500",
+    "scale": 7.8,
+    "rotation": {
+      "x": 0,
+      "y": 0,
+      "z": 0
+    },
+    "skin": "Donut",
+    "resolution": 180,
+    "wireframe": false,
+    "shininess": 0.5,
+    "scene": {
+      "cameraPosition": {
+        "x": 0,
+        "y": 0,
+        "z": 12
+      },
+      "enableControls": false
+    }
+  },
+  {
+    "page": "04",
+    "name": "Architecture",
+    "description": "Pulsing blob with rhythmic movement",
+    "spikes": {
+      "x": 1.0,
+      "y": 1.0,
+      "z": 1.0
+    },
+    "time": {
+      "x": 15,
+      "y": 15,
+      "z": 15
+    },
+    "colorPalette": "yellow-500",
+    "scale": 7.8,
+    "rotation": {
+      "x": 0,
+      "y": 0,
+      "z": 0
+    },
+    "skin": "Donut",
+    "resolution": 180,
+    "wireframe": false,
+    "shininess": 0.5,
+    "scene": {
+      "cameraPosition": {
+        "x": 0,
+        "y": 0,
+        "z": 12
+      },
+      "enableControls": false
+    }
+  },
+  {
+    "page": "05",
+    "name": "Mind Layer",
+    "description": "Spiral blob with swirling patterns",
+    "spikes": {
+      "x": 8.0,
+      "y": 2.0,
+      "z": 5.0
+    },
+    "time": {
+      "x": 12,
+      "y": 6,
+      "z": 9
+    },
+    "colorPalette": "lime-500",
+    "scale": 7.8,
+    "rotation": {
+      "x": 0,
+      "y": 0,
+      "z": 0
+    },
+    "skin": "Donut",
+    "resolution": 180,
+    "wireframe": false,
+    "shininess": 0.5,
+    "scene": {
+      "cameraPosition": {
+        "x": 0,
+        "y": 0,
+        "z": 12
+      },
+      "enableControls": false
+    }
+  },
+  {
+    "page": "06",
+    "name": "Body Layer",
+    "description": "Fluid blob with smooth transitions",
+    "spikes": {
+      "x": 3.0,
+      "y": 4.0,
+      "z": 2.5
+    },
+    "time": {
+      "x": 7,
+      "y": 9,
+      "z": 6
+    },
+    "colorPalette": "green-500",
+    "scale": 7.8,
+    "rotation": {
+      "x": 0,
+      "y": 0,
+      "z": 0
+    },
+    "skin": "Donut",
+    "resolution": 180,
+    "wireframe": false,
+    "shininess": 0.5,
+    "scene": {
+      "cameraPosition": {
+        "x": 0,
+        "y": 0,
+        "z": 12
+      },
+      "enableControls": false
+    }
+  },
+  {
+    "page": "07",
+    "name": "Soul Layer",
+    "description": "Wavy blob with ethereal movement",
+    "spikes": {
+      "x": 4.0,
+      "y": 4.0,
+      "z": 1.5
+    },
+    "time": {
+      "x": 6,
+      "y": 6,
+      "z": 10
+    },
+    "colorPalette": "emerald-500",
+    "scale": 7.8,
+    "rotation": {
+      "x": 0,
+      "y": 0,
+      "z": 0
+    },
+    "skin": "Donut",
+    "resolution": 180,
+    "wireframe": false,
+    "shininess": 0.5,
+    "scene": {
+      "cameraPosition": {
+        "x": 0,
+        "y": 0,
+        "z": 12
+      },
+      "enableControls": false
+    }
+  },
+  {
+    "page": "08",
+    "name": "Interaction Flow",
+    "description": "Angular blob with sharp movements",
+    "spikes": {
+      "x": 6.0,
+      "y": 1.0,
+      "z": 6.0
+    },
+    "time": {
+      "x": 8,
+      "y": 12,
+      "z": 8
+    },
+    "colorPalette": "teal-500",
+    "scale": 7.8,
+    "rotation": {
+      "x": 0,
+      "y": 0,
+      "z": 0
+    },
+    "skin": "Donut",
+    "resolution": 180,
+    "wireframe": false,
+    "shininess": 0.5,
+    "scene": {
+      "cameraPosition": {
+        "x": 0,
+        "y": 0,
+        "z": 12
+      },
+      "enableControls": false
+    }
+  },
+  {
+    "page": "09",
+    "name": "Visual Styles",
+    "description": "Bubble-like blob with gentle wobbles",
+    "spikes": {
+      "x": 0.8,
+      "y": 0.8,
+      "z": 0.8
+    },
+    "time": {
+      "x": 4,
+      "y": 4,
+      "z": 4
+    },
+    "colorPalette": "cyan-500",
+    "scale": 7.8,
+    "rotation": {
+      "x": 0,
+      "y": 0,
+      "z": 0
+    },
+    "skin": "Donut",
+    "resolution": 180,
+    "wireframe": false,
+    "shininess": 0.5,
+    "scene": {
+      "cameraPosition": {
+        "x": 0,
+        "y": 0,
+        "z": 12
+      },
+      "enableControls": false
+    }
+  },
+  {
+    "page": "10",
+    "name": "Audio & Voice",
+    "description": "Intricate blob with complex patterns",
+    "spikes": {
+      "x": 7.0,
+      "y": 5.0,
+      "z": 3.0
+    },
+    "time": {
+      "x": 11,
+      "y": 9,
+      "z": 7
+    },
+    "colorPalette": "sky-500",
+    "scale": 7.8,
+    "rotation": {
+      "x": 0,
+      "y": 0,
+      "z": 0
+    },
+    "skin": "Donut",
+    "resolution": 180,
+    "wireframe": false,
+    "shininess": 0.5,
+    "scene": {
+      "cameraPosition": {
+        "x": 0,
+        "y": 0,
+        "z": 12
+      },
+      "enableControls": false
+    }
+  },
+  {
+    "page": "11",
+    "name": "Provider Architecture",
+    "description": "Meditative blob with calm, centered movement",
+    "spikes": {
+      "x": 2.0,
+      "y": 3.0,
+      "z": 2.0
+    },
+    "time": {
+      "x": 3,
+      "y": 3,
+      "z": 3
+    },
+    "colorPalette": "blue-500",
+    "scale": 7.8,
+    "rotation": {
+      "x": 0,
+      "y": 0,
+      "z": 0
+    },
+    "skin": "Donut",
+    "resolution": 180,
+    "wireframe": false,
+    "shininess": 0.5,
+    "scene": {
+      "cameraPosition": {
+        "x": 0,
+        "y": 0,
+        "z": 12
+      },
+      "enableControls": false
+    }
+  },
+  {
+    "page": "12",
+    "name": "Customization",
+    "description": "Fast pulsing blob with energetic rhythm",
+    "spikes": {
+      "x": 3.5,
+      "y": 3.5,
+      "z": 3.5
+    },
+    "time": {
+      "x": 18,
+      "y": 18,
+      "z": 18
+    },
+    "colorPalette": "indigo-500",
+    "scale": 7.8,
+    "rotation": {
+      "x": 0,
+      "y": 0,
+      "z": 0
+    },
+    "skin": "Donut",
+    "resolution": 180,
+    "wireframe": false,
+    "shininess": 0.5,
+    "scene": {
+      "cameraPosition": {
+        "x": 0,
+        "y": 0,
+        "z": 12
+      },
+      "enableControls": false
+    }
+  },
+  {
+    "page": "13",
+    "name": "Developer Toolkit",
+    "description": "Asymmetric blob with dynamic variation",
+    "spikes": {
+      "x": 9.0,
+      "y": 2.5,
+      "z": 6.5
+    },
+    "time": {
+      "x": 13,
+      "y": 5,
+      "z": 9
+    },
+    "colorPalette": "violet-500",
+    "scale": 7.8,
+    "rotation": {
+      "x": 0,
+      "y": 0,
+      "z": 0
+    },
+    "skin": "Donut",
+    "resolution": 180,
+    "wireframe": false,
+    "shininess": 0.5,
+    "scene": {
+      "cameraPosition": {
+        "x": 0,
+        "y": 0,
+        "z": 12
+      },
+      "enableControls": false
+    }
+  },
+  {
+    "page": "14",
+    "name": "Performance",
+    "description": "Geometric blob with structured patterns",
+    "spikes": {
+      "x": 4.5,
+      "y": 4.5,
+      "z": 0.5
+    },
+    "time": {
+      "x": 7,
+      "y": 7,
+      "z": 14
+    },
+    "colorPalette": "purple-500",
+    "scale": 7.8,
+    "rotation": {
+      "x": 0,
+      "y": 0,
+      "z": 0
+    },
+    "skin": "Donut",
+    "resolution": 180,
+    "wireframe": false,
+    "shininess": 0.5,
+    "scene": {
+      "cameraPosition": {
+        "x": 0,
+        "y": 0,
+        "z": 12
+      },
+      "enableControls": false
+    }
+  },
+  {
+    "page": "15",
+    "name": "Use Cases",
+    "description": "Crystalline blob with faceted appearance",
+    "spikes": {
+      "x": 6.5,
+      "y": 6.5,
+      "z": 6.5
+    },
+    "time": {
+      "x": 9,
+      "y": 9,
+      "z": 9
+    },
+    "colorPalette": "fuchsia-500",
+    "scale": 7.8,
+    "rotation": {
+      "x": 0,
+      "y": 0,
+      "z": 0
+    },
+    "skin": "Donut",
+    "resolution": 180,
+    "wireframe": false,
+    "shininess": 0.5,
+    "scene": {
+      "cameraPosition": {
+        "x": 0,
+        "y": 0,
+        "z": 12
+      },
+      "enableControls": false
+    }
+  },
+  {
+    "page": "16",
+    "name": "Connected Ecosystem",
+    "description": "Gentle blob with soft, interconnected movement",
+    "spikes": {
+      "x": 1.5,
+      "y": 2.0,
+      "z": 1.5
+    },
+    "time": {
+      "x": 6,
+      "y": 8,
+      "z": 6
+    },
+    "colorPalette": "pink-500",
+    "scale": 7.8,
+    "rotation": {
+      "x": 0,
+      "y": 0,
+      "z": 0
+    },
+    "skin": "Donut",
+    "resolution": 180,
+    "wireframe": false,
+    "shininess": 0.5,
+    "scene": {
+      "cameraPosition": {
+        "x": 0,
+        "y": 0,
+        "z": 12
+      },
+      "enableControls": false
+    }
+  },
+  {
+    "page": "17",
+    "name": "Ownership & Web3",
+    "description": "Flowing blob with blockchain-inspired movement",
+    "spikes": {
+      "x": 3.2,
+      "y": 3.8,
+      "z": 3.5
+    },
+    "time": {
+      "x": 14,
+      "y": 11,
+      "z": 12
+    },
+    "colorPalette": "rose-500",
+    "scale": 7.8,
+    "rotation": {
+      "x": 0,
+      "y": 0,
+      "z": 0
+    },
+    "skin": "Donut",
+    "resolution": 180,
+    "wireframe": false,
+    "shininess": 0.5,
+    "scene": {
+      "cameraPosition": {
+        "x": 0,
+        "y": 0,
+        "z": 12
+      },
+      "enableControls": false
+    }
+  },
+  {
+    "page": "18",
+    "name": "Roadmap",
+    "description": "Reactive blob with forward momentum",
+    "spikes": {
+      "x": 4.5,
+      "y": 2.8,
+      "z": 3.5
+    },
+    "time": {
+      "x": 16,
+      "y": 8,
+      "z": 12
+    },
+    "colorPalette": "red-600",
+    "scale": 7.8,
+    "rotation": {
+      "x": 0,
+      "y": 0,
+      "z": 0
+    },
+    "skin": "Donut",
+    "resolution": 180,
+    "wireframe": false,
+    "shininess": 0.5,
+    "scene": {
+      "cameraPosition": {
+        "x": 0,
+        "y": 0,
+        "z": 12
+      },
+      "enableControls": false
+    }
+  },
+  {
+    "page": "19",
+    "name": "Learning Path",
+    "description": "Structured blob with educational patterns",
+    "spikes": {
+      "x": 7.5,
+      "y": 7.5,
+      "z": 2.0
+    },
+    "time": {
+      "x": 11,
+      "y": 11,
+      "z": 15
+    },
+    "colorPalette": "orange-600",
+    "scale": 7.8,
+    "rotation": {
+      "x": 0,
+      "y": 0,
+      "z": 0
+    },
+    "skin": "Donut",
+    "resolution": 180,
+    "wireframe": false,
+    "shininess": 0.5,
+    "scene": {
+      "cameraPosition": {
+        "x": 0,
+        "y": 0,
+        "z": 12
+      },
+      "enableControls": false
+    }
+  },
+  {
+    "page": "20",
+    "name": "Community",
+    "description": "Networked blob with collaborative energy",
+    "spikes": {
+      "x": 5.0,
+      "y": 6.0,
+      "z": 5.5
+    },
+    "time": {
+      "x": 9,
+      "y": 10,
+      "z": 8
+    },
+    "colorPalette": "amber-600",
+    "scale": 7.8,
+    "rotation": {
+      "x": 0,
+      "y": 0,
+      "z": 0
+    },
+    "skin": "Donut",
+    "resolution": 180,
+    "wireframe": false,
+    "shininess": 0.5,
+    "scene": {
+      "cameraPosition": {
+        "x": 0,
+        "y": 0,
+        "z": 12
+      },
+      "enableControls": false
+    }
+  },
+  {
+    "page": "21",
+    "name": "Pro & Enterprise",
+    "description": "Efficient blob with precise, fast movement",
+    "spikes": {
+      "x": 1.2,
+      "y": 1.2,
+      "z": 1.2
+    },
+    "time": {
+      "x": 20,
+      "y": 20,
+      "z": 20
+    },
+    "colorPalette": "yellow-600",
+    "scale": 7.8,
+    "rotation": {
+      "x": 0,
+      "y": 0,
+      "z": 0
+    },
+    "skin": "Donut",
+    "resolution": 180,
+    "wireframe": false,
+    "shininess": 0.5,
+    "scene": {
+      "cameraPosition": {
+        "x": 0,
+        "y": 0,
+        "z": 12
+      },
+      "enableControls": false
+    }
+  },
+  {
+    "page": "22",
+    "name": "Launch",
+    "description": "Vibrant blob with celebratory movement",
+    "spikes": {
+      "x": 4.0,
+      "y": 5.5,
+      "z": 4.5
+    },
+    "time": {
+      "x": 13,
+      "y": 9,
+      "z": 11
+    },
+    "colorPalette": "lime-600",
+    "scale": 7.8,
+    "rotation": {
+      "x": 0,
+      "y": 0,
+      "z": 0
+    },
+    "skin": "Donut",
+    "resolution": 180,
+    "wireframe": false,
+    "shininess": 0.5,
+    "scene": {
+      "cameraPosition": {
+        "x": 0,
+        "y": 0,
+        "z": 12
+      },
+      "enableControls": false
+    }
+  }
+]
+

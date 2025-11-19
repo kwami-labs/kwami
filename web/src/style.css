@@ -1,3 +1,5 @@
+@import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;500;600;700;800;900&family=Rajdhani:wght@300;400;500;600;700&display=swap');
+
 :root {
   --section-count: 22;
   --color-primary: #667eea;
@@ -324,10 +326,17 @@ html[dir="rtl"] .right-header {
 
 .text-section h1,
 .text-section h2 {
-  font-size: clamp(2.5rem, 6vw, 5rem);
-  font-weight: 900;
+  font-size: clamp(2rem, 3vw, 4rem);
+  font-weight: 700;
   margin-bottom: 2.5rem;
   line-height: 1.2;
+  font-family: 'Orbitron', 'Rajdhani', 'Courier New', monospace;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  text-shadow: 
+    0 0 10px rgba(255, 255, 255, 0.5),
+    0 0 20px rgba(255, 255, 255, 0.3),
+    0 0 30px rgba(255, 255, 255, 0.2);
 }
 
 /* Emoji keeps original colors */
@@ -965,12 +974,17 @@ html[dir="rtl"] .right-header {
   left: auto;
   top: 50%;
   transform: translateY(-50%);
-  z-index: 9999;
+  z-index: 14000;
   display: flex;
   flex-direction: column;
   align-items: center;
   pointer-events: auto;
   transition: opacity 0.35s ease, transform 0.35s ease, right 0.35s ease, left 0.35s ease;
+}
+
+.sidebar-navigation.inside-welcome-layer {
+  z-index: 18000;
+  filter: drop-shadow(0 0 20px rgba(0, 0, 0, 0.4));
 }
 
 .sidebar-navigation[data-side="rtl"] {
@@ -1319,6 +1333,18 @@ html[dir="rtl"] .right-header {
 .lang-menu.open {
   opacity: 1;
   visibility: visible;
+  transform: translateY(0);
+}
+
+.lang-menu.open-upward {
+  top: auto;
+  bottom: 100%;
+  margin-top: 0;
+  margin-bottom: 0.5rem;
+  transform: translateY(10px);
+}
+
+.lang-menu.open-upward.open {
   transform: translateY(0);
 }
 

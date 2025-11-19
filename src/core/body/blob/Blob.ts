@@ -123,8 +123,8 @@ export class Blob {
   constructor(private options: BlobOptions) {
     this.currentSkin = this.normalizeSkin(options.skin || 'tricolor');
 
-    // Initialize skins
-    this.initializeSkins();
+    // Initialize skins with optional color override
+    this.initializeSkins(options.colors);
 
     // Apply initial colors and opacity from configuration
     const activeSkinConfig
@@ -134,8 +134,19 @@ export class Blob {
           ? this.config.skins.tricolor2 || this.config.skins.tricolor
           : this.config.skins.zebra;
 
-    if ('color1' in activeSkinConfig) {
-      this.setColors(activeSkinConfig.color1, activeSkinConfig.color2, activeSkinConfig.color3);
+    // Update this.colors property to match what was used
+    if (options.colors) {
+      this.colors = {
+        x: options.colors.x,
+        y: options.colors.y,
+        z: options.colors.z
+      };
+    } else if ('color1' in activeSkinConfig) {
+      this.colors = {
+        x: activeSkinConfig.color1,
+        y: activeSkinConfig.color2,
+        z: activeSkinConfig.color3
+      };
     }
 
     this.opacity = activeSkinConfig.opacity ?? 1;
@@ -159,10 +170,30 @@ export class Blob {
       options.renderer.domElement as HTMLCanvasElement
     );
 
-    // Apply initial configuration
-    if (options.spikes) this.spikes = options.spikes;
-    if (options.time) this.time = options.time;
-    if (options.rotation) this.rotation = options.rotation;
+    // Apply initial configuration from options
+    // Use setters to ensure proper initialization
+    if (options.spikes) {
+      this.setSpikes(options.spikes.x, options.spikes.y, options.spikes.z);
+    }
+    if (options.time) {
+      this.setTime(options.time.x, options.time.y, options.time.z);
+    }
+    if (options.rotation) {
+      this.rotation = options.rotation;
+    }
+    
+    // Note: Colors are already baked into materials during initializeSkins()
+    // No need to call setColors here
+    
+    // Apply shininess from options
+    if (options.shininess !== undefined) {
+      this.setShininess(options.shininess);
+    }
+    
+    // Apply wireframe from options
+    if (options.wireframe !== undefined) {
+      this.setWireframe(options.wireframe);
+    }
     
     // Apply initial position if provided in config
     // Note: position config comes from the parent BlobConfig, not BlobOptions
@@ -174,26 +205,40 @@ export class Blob {
 
   /**
    * Initialize all available skins
+   * @param colorOverride - Optional color override to use instead of random config colors
    */
-  private initializeSkins(): void {
+  private initializeSkins(colorOverride?: { x: string; y: string; z: string }): void {
     const tricolorConfig = this.config.skins.tricolor;
     const tricolor2Config = this.config.skins.tricolor2 || tricolorConfig;
     const zebraConfig = this.config.skins.zebra;
 
-    const tricolorMaterial = createSkin('tricolor', tricolorConfig);
+    // Create config with optional color override
+    const getConfigWithColors = (baseConfig: any) => {
+      if (colorOverride) {
+        return {
+          ...baseConfig,
+          color1: colorOverride.x,
+          color2: colorOverride.y,
+          color3: colorOverride.z,
+        };
+      }
+      return baseConfig;
+    };
+
+    const tricolorMaterial = createSkin('tricolor', getConfigWithColors(tricolorConfig));
     this.applyBackgroundTextureToMaterial(tricolorMaterial);
     this.skins.set('tricolor', tricolorMaterial);
 
-    const tricolor2Material = createSkin('tricolor2', tricolor2Config);
+    const tricolor2Material = createSkin('tricolor2', getConfigWithColors(tricolor2Config));
     this.applyBackgroundTextureToMaterial(tricolor2Material);
     this.skins.set('tricolor2', tricolor2Material);
 
-    const zebraMaterial = createSkin('zebra', {
+    const zebraMaterial = createSkin('zebra', getConfigWithColors({
       ...zebraConfig,
       color1: zebraConfig.color1 ?? tricolorConfig.color1,
       color2: zebraConfig.color2 ?? tricolorConfig.color2,
       color3: zebraConfig.color3 ?? tricolorConfig.color3,
-    });
+    }));
     this.applyBackgroundTextureToMaterial(zebraMaterial);
     this.skins.set('zebra', zebraMaterial);
   }

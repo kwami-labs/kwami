@@ -351,9 +351,9 @@
 
 .welcome-language-switcher .lang-menu {
   position: absolute;
-  bottom: 100%;
+  top: 100%;
   right: 0;
-  margin-bottom: 0.5rem;
+  margin-top: 0.5rem;
   background: rgba(10, 10, 10, 0.6);
   backdrop-filter: blur(20px) saturate(180%);
   -webkit-backdrop-filter: blur(20px) saturate(180%);
@@ -363,7 +363,7 @@
   box-shadow: 0 4px 16px rgba(0, 0, 0, 0.5);
   opacity: 0;
   visibility: hidden;
-  transform: translateY(10px);
+  transform: translateY(-10px);
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   min-width: 150px;
   max-height: 400px;
@@ -372,10 +372,21 @@
   z-index: 30001;
 }
 
-
 .welcome-language-switcher .lang-menu.open {
   opacity: 1;
   visibility: visible;
+  transform: translateY(0);
+}
+
+.welcome-language-switcher .lang-menu.open-upward {
+  top: auto;
+  bottom: 100%;
+  margin-top: 0;
+  margin-bottom: 0.5rem;
+  transform: translateY(10px);
+}
+
+.welcome-language-switcher .lang-menu.open-upward.open {
   transform: translateY(0);
 }
 
@@ -434,13 +445,6 @@
   .welcome-language-switcher .lang-btn {
     padding: 0.5rem 0.8rem;
   }
-  
-  .welcome-language-switcher .lang-menu {
-    bottom: auto;
-    top: 100%;
-    margin-bottom: 0;
-    margin-top: 0.5rem;
-  }
 }
 
 @media (max-width: 640px) {
@@ -495,6 +499,54 @@
   
   .info-line.heading {
     font-size: 1.1rem;
+  }
+}
+
+/* Welcome Loader Overlay */
+.welcome-loader-overlay {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 600px;
+  height: 600px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 9999;
+  opacity: 1;
+  transition: opacity 0.8s ease;
+  pointer-events: none;
+}
+
+.welcome-loader-overlay.fade-out {
+  opacity: 0;
+}
+
+.welcome-loader-image {
+  width: auto;
+  height: 60%;
+  max-height: 60%;
+  object-fit: contain;
+  filter: drop-shadow(0 0 20px rgba(255, 255, 255, 0.3));
+}
+
+@media (max-width: 768px) {
+  .welcome-loader-overlay {
+    width: 500px;
+    height: 500px;
+  }
+}
+
+@media (max-width: 480px) {
+  .welcome-loader-overlay {
+    width: 420px;
+    height: 420px;
+  }
+  
+  .welcome-loader-image {
+    height: 55%;
+    max-height: 55%;
   }
 }
 

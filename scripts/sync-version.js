@@ -60,16 +60,17 @@ try {
   let welcomeLayerContent = readFileSync(welcomeLayerPath, 'utf8');
 
   // Replace version in versionDiv.textContent
-  // Match: versionDiv.textContent = 'v.0.0.1'; or versionDiv.textContent = "v.0.0.1";
-  const welcomeVersionRegex = /(versionDiv\.textContent = ['"])v\.[^'"]+(['"];)/;
+  // Match: versionDiv.textContent = 'KWAMI v.0.0.1'; or versionDiv.textContent = "KWAMI v.0.0.1";
+  const welcomeVersionRegexTest = /(versionDiv\.textContent = ['"])KWAMI v\.[^'"]+(['"];)/;
+  const welcomeVersionRegex = /(versionDiv\.textContent = ['"])KWAMI v\.[^'"]+(['"];)/g;
   
-  if (!welcomeVersionRegex.test(welcomeLayerContent)) {
+  if (!welcomeVersionRegexTest.test(welcomeLayerContent)) {
     throw new Error('versionDiv.textContent not found in WelcomeLayer.ts');
   }
 
   const updatedWelcomeContent = welcomeLayerContent.replace(
     welcomeVersionRegex,
-    `$1v.${version}$2`
+    `$1KWAMI v.${version}$2`
   );
 
   // Write updated content

@@ -256,7 +256,35 @@ export function createLanguageSwitcher(className = 'language-switcher'): HTMLEle
 
   langBtn.addEventListener('click', (e) => {
     e.stopPropagation();
+    const isOpening = !langMenu.classList.contains('open');
     langMenu.classList.toggle('open');
+    
+    // Determine if menu should open upward or downward based on available space
+    if (isOpening) {
+      const btnRect = langBtn.getBoundingClientRect();
+      const menuHeight = 400; // Max height from CSS
+      const spaceBelow = window.innerHeight - btnRect.bottom;
+      const spaceAbove = btnRect.top;
+      
+      // Check if this is the welcome layer switcher
+      const isWelcomeSwitcher = container.classList.contains('welcome-language-switcher');
+      
+      if (isWelcomeSwitcher) {
+        // Welcome layer: default is downward, check if should open upward
+        if (spaceBelow < menuHeight && spaceAbove > spaceBelow) {
+          langMenu.classList.add('open-upward');
+        } else {
+          langMenu.classList.remove('open-upward');
+        }
+      } else {
+        // Regular switcher: default is downward, check if should open upward
+        if (spaceBelow < menuHeight && spaceAbove > spaceBelow) {
+          langMenu.classList.add('open-upward');
+        } else {
+          langMenu.classList.remove('open-upward');
+        }
+      }
+    }
   });
 
   // Close menu when clicking outside
