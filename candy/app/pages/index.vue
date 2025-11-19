@@ -26,7 +26,7 @@
           </h2>
           <p class="text-xl text-gray-400 max-w-2xl mx-auto mb-8">
             Create a one-of-a-kind AI companion NFT on Solana blockchain. 
-            Each KWAMI has unique DNA - only 1 trillion will ever exist.
+            Each KWAMI has unique DNA - 10 billion by 2100, one for every human on Earth.
           </p>
           
           <!-- Stats -->

@@ -1,25 +1,23 @@
 <template>
-  <div class="card space-y-6">
-    <div>
-      <h3 class="font-bold text-lg mb-4">Filters</h3>
-    </div>
+  <div class="card sticky top-4">
+    <h3 class="text-xl font-bold mb-4">Filters</h3>
 
     <!-- Search -->
-    <div>
+    <div class="mb-6">
       <label class="block text-sm font-medium mb-2">Search</label>
       <input
         v-model="localFilters.search"
         type="text"
         placeholder="Search by name or mint..."
-        class="input"
+        class="input w-full"
         @input="debouncedUpdate"
       />
     </div>
 
     <!-- Price Range -->
-    <div>
+    <div class="mb-6">
       <label class="block text-sm font-medium mb-2">Price Range (SOL)</label>
-      <div class="grid grid-cols-2 gap-2">
+      <div class="grid grid-cols-2 gap-3">
         <input
           v-model.number="localFilters.priceMin"
           type="number"
@@ -27,7 +25,7 @@
           min="0"
           step="0.1"
           class="input"
-          @input="debouncedUpdate"
+          @change="handleUpdate"
         />
         <input
           v-model.number="localFilters.priceMax"
@@ -36,67 +34,67 @@
           min="0"
           step="0.1"
           class="input"
-          @input="debouncedUpdate"
+          @change="handleUpdate"
         />
       </div>
     </div>
 
     <!-- Rarity -->
-    <div>
+    <div class="mb-6">
       <label class="block text-sm font-medium mb-2">Rarity</label>
       <div class="space-y-2">
-        <label
-          v-for="rarity in rarities"
+        <label 
+          v-for="rarity in rarityOptions"
           :key="rarity"
-          class="flex items-center space-x-2 cursor-pointer"
+          class="flex items-center space-x-2 cursor-pointer hover:bg-gray-700/30 p-2 rounded"
         >
           <input
             type="checkbox"
             :value="rarity"
-            :checked="localFilters.rarity?.includes(rarity)"
-            @change="toggleRarity(rarity)"
-            class="w-4 h-4 rounded border-gray-600 bg-gray-800 text-primary-600 focus:ring-primary-600 focus:ring-offset-gray-900"
+            v-model="localFilters.rarity"
+            @change="handleUpdate"
+            class="checkbox"
           />
-          <span class="text-sm">{{ rarity }}</span>
+          <span>{{ rarity }}</span>
         </label>
       </div>
     </div>
 
     <!-- Sort By -->
-    <div>
+    <div class="mb-6">
       <label class="block text-sm font-medium mb-2">Sort By</label>
-      <select
+      <select 
         v-model="localFilters.sortBy"
-        class="input"
-        @change="updateFilters"
+        @change="handleUpdate"
+        class="input w-full"
       >
         <option value="recent">Recently Listed</option>
-        <option value="oldest">Oldest Listed</option>
+        <option value="oldest">Oldest First</option>
         <option value="price_asc">Price: Low to High</option>
         <option value="price_desc">Price: High to Low</option>
       </select>
     </div>
 
+    <!-- Results Count -->
+    <div class="pt-4 border-t border-gray-700">
+      <p class="text-sm text-gray-400">
+        <span class="font-bold text-white">{{ resultsCount }}</span> 
+        {{ resultsCount === 1 ? 'result' : 'results' }} found
+      </p>
+    </div>
+
     <!-- Clear Filters -->
     <button
       @click="clearFilters"
-      class="w-full btn btn-outline"
+      class="btn btn-outline w-full mt-4"
     >
-      Clear All Filters
+      Clear Filters
     </button>
-
-    <!-- Results Count -->
-    <div class="pt-4 border-t border-gray-700">
-      <p class="text-sm text-gray-400 text-center">
-        <span class="font-bold text-white">{{ resultsCount }}</span> 
-        {{ resultsCount === 1 ? 'result' : 'results' }}
-      </p>
-    </div>
   </div>
 </template>
 
 <script setup lang="ts">
-import { ref, reactive, watch } from 'vue'
+import { ref, watch } from 'vue'
 import type { MarketplaceFilters } from '~/stores/marketplace'
 
 interface Props {
@@ -105,62 +103,45 @@ interface Props {
 }
 
 const props = defineProps<Props>()
-
 const emit = defineEmits<{
   update: [filters: Partial<MarketplaceFilters>]
 }>()
 
-const rarities = ['Common', 'Uncommon', 'Rare', 'Epic', 'Legendary']
+const rarityOptions = ['Common', 'Rare', 'Epic', 'Legendary']
 
-const localFilters = reactive<MarketplaceFilters>({
+const localFilters = ref<MarketplaceFilters>({
   ...props.filters,
-  rarity: props.filters.rarity || [],
+  rarity: props.filters.rarity || []
 })
-
-// Debounce timer
-let debounceTimer: NodeJS.Timeout | null = null
-
-const debouncedUpdate = () => {
-  if (debounceTimer) {
-    clearTimeout(debounceTimer)
-  }
-  
-  debounceTimer = setTimeout(() => {
-    updateFilters()
-  }, 300)
-}
-
-const updateFilters = () => {
-  emit('update', { ...localFilters })
-}
-
-const toggleRarity = (rarity: string) => {
-  if (!localFilters.rarity) {
-    localFilters.rarity = []
-  }
-  
-  const index = localFilters.rarity.indexOf(rarity)
-  if (index >= 0) {
-    localFilters.rarity.splice(index, 1)
-  } else {
-    localFilters.rarity.push(rarity)
-  }
-  
-  updateFilters()
-}
-
-const clearFilters = () => {
-  localFilters.search = undefined
-  localFilters.priceMin = undefined
-  localFilters.priceMax = undefined
-  localFilters.rarity = []
-  localFilters.sortBy = 'recent'
-  updateFilters()
-}
 
 // Watch for external filter changes
 watch(() => props.filters, (newFilters) => {
-  Object.assign(localFilters, newFilters)
+  localFilters.value = {
+    ...newFilters,
+    rarity: newFilters.rarity || []
+  }
 }, { deep: true })
-</script>
 
+let debounceTimeout: NodeJS.Timeout | null = null
+
+const debouncedUpdate = () => {
+  if (debounceTimeout) {
+    clearTimeout(debounceTimeout)
+  }
+  debounceTimeout = setTimeout(() => {
+    emit('update', localFilters.value)
+  }, 300)
+}
+
+const handleUpdate = () => {
+  emit('update', localFilters.value)
+}
+
+const clearFilters = () => {
+  localFilters.value = {
+    sortBy: 'recent',
+    rarity: []
+  }
+  emit('update', localFilters.value)
+}
+</script>

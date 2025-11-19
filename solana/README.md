@@ -39,13 +39,21 @@ solana/
 
 - **Standard:** Metaplex NFT
 - **Symbol:** KWAMI
+- **Max Supply:** 10,000,000,000 (10 Billion by 2100)
+- **Launch:** January 1, 2026 (Generation #0)
+- **Model:** Generational release (133.33M per year)
 - **Storage:** Arweave (decentralized)
+- **Vision:** One KWAMI for every human on Earth
 - **Features:**
   - Unique DNA hash from body configuration
   - On-chain DNA registry preventing duplicates
+  - Generation-based supply caps
   - Burn-and-remint for DNA changes
   - Metadata updates for Mind/Soul changes
   - Full configuration stored in metadata
+
+**Supply Schedule:** 75 generations (2026-2100), unlocking 133,333,333 NFTs annually.  
+See [KWAMI_SUPPLY_SCHEDULE.md](./KWAMI_SUPPLY_SCHEDULE.md) for complete details.
 
 ## 🧬 DNA System
 

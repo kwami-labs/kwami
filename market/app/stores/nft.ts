@@ -1,49 +1,119 @@
 import { defineStore } from 'pinia'
-import { ref } from 'vue'
+import { ref, computed } from 'vue'
 import type { NFTListing } from './marketplace'
 
 export const useNftStore = defineStore('nft', () => {
-  const currentNft = ref<NFTListing | null>(null)
-  const userNfts = ref<NFTListing[]>([])
-  const loading = ref(false)
-
-  function setCurrentNft(nft: NFTListing | null) {
-    currentNft.value = nft
+  const nftCache = ref<Map<string, NFTListing>>(new Map())
+  const loading = ref<Map<string, boolean>>(new Map())
+  
+  /**
+   * Get NFT from cache
+   */
+  const getNft = (mint: string): NFTListing | undefined => {
+    return nftCache.value.get(mint)
   }
 
-  function setUserNfts(nfts: NFTListing[]) {
-    userNfts.value = nfts
+  /**
+   * Check if NFT is in cache
+   */
+  const hasNft = (mint: string): boolean => {
+    return nftCache.value.has(mint)
   }
 
-  function addUserNft(nft: NFTListing) {
-    const index = userNfts.value.findIndex(n => n.mint === nft.mint)
-    if (index >= 0) {
-      userNfts.value[index] = nft
+  /**
+   * Check if NFT is loading
+   */
+  const isLoading = (mint: string): boolean => {
+    return loading.value.get(mint) || false
+  }
+
+  /**
+   * Cache NFT data
+   */
+  const cacheNft = (nft: NFTListing) => {
+    nftCache.value.set(nft.mint, nft)
+  }
+
+  /**
+   * Cache multiple NFTs
+   */
+  const cacheNfts = (nfts: NFTListing[]) => {
+    nfts.forEach(nft => {
+      nftCache.value.set(nft.mint, nft)
+    })
+  }
+
+  /**
+   * Remove NFT from cache
+   */
+  const removeFromCache = (mint: string) => {
+    nftCache.value.delete(mint)
+  }
+
+  /**
+   * Set loading state for NFT
+   */
+  const setLoading = (mint: string, state: boolean) => {
+    if (state) {
+      loading.value.set(mint, true)
     } else {
-      userNfts.value.push(nft)
+      loading.value.delete(mint)
     }
   }
 
-  function removeUserNft(mint: string) {
-    const index = userNfts.value.findIndex(n => n.mint === mint)
-    if (index >= 0) {
-      userNfts.value.splice(index, 1)
-    }
+  /**
+   * Clear all cache
+   */
+  const clearCache = () => {
+    nftCache.value.clear()
+    loading.value.clear()
   }
 
-  function setLoading(state: boolean) {
-    loading.value = state
+  /**
+   * Get all cached NFTs
+   */
+  const allCachedNfts = computed(() => {
+    return Array.from(nftCache.value.values())
+  })
+
+  /**
+   * Get cached NFTs by owner
+   */
+  const getCachedByOwner = (owner: string): NFTListing[] => {
+    return allCachedNfts.value.filter(nft => nft.owner === owner)
+  }
+
+  /**
+   * Get listed NFTs from cache
+   */
+  const getCachedListed = computed(() => {
+    return allCachedNfts.value.filter(nft => nft.listed && nft.price && nft.price > 0)
+  })
+
+  /**
+   * Update NFT in cache
+   */
+  const updateNft = (mint: string, updates: Partial<NFTListing>) => {
+    const existing = nftCache.value.get(mint)
+    if (existing) {
+      nftCache.value.set(mint, { ...existing, ...updates })
+    }
   }
 
   return {
-    currentNft,
-    userNfts,
+    nftCache,
     loading,
-    setCurrentNft,
-    setUserNfts,
-    addUserNft,
-    removeUserNft,
+    getNft,
+    hasNft,
+    isLoading,
+    cacheNft,
+    cacheNfts,
+    removeFromCache,
     setLoading,
+    clearCache,
+    allCachedNfts,
+    getCachedByOwner,
+    getCachedListed,
+    updateNft,
   }
 })
-

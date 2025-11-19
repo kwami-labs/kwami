@@ -4,7 +4,7 @@
 
 ## 🌟 Overview
 
-Kwami.io is a Nuxt4-based candy machine for minting unique KWAMI NFTs on the Solana blockchain. Each KWAMI has a unique DNA derived from its body configuration, with a maximum supply of **1 trillion** KWAMIs.
+Kwami.io is a Nuxt4-based candy machine for minting unique KWAMI NFTs on the Solana blockchain. Each KWAMI has a unique DNA derived from its body configuration, with **10 billion KWAMIs by 2100** - one for every human on Earth. Supply unlocks generationally: 133.33M per year starting January 1, 2026.
 
 ## 🏗️ Platform Architecture
 
@@ -143,9 +143,13 @@ Each KWAMI has a unique DNA hash calculated from its body configuration:
 
 ### Supply Limit
 
-- **Maximum**: 1,000,000,000,000 (1 trillion) KWAMIs
-- **Enforcement**: On-chain validation in smart contract
+- **Maximum**: 10,000,000,000 (10 billion) KWAMIs by 2100
+- **Launch**: January 1, 2026 (Generation #0)
+- **Model**: Generational release - 133,333,333 NFTs per year
+- **Vision**: One KWAMI for every human on Earth
+- **Enforcement**: Generation-based supply caps + on-chain validation
 - **Uniqueness**: DNA hash must be unique per NFT
+- **See**: [Supply Schedule Documentation](../solana/KWAMI_SUPPLY_SCHEDULE.md)
 
 ## 🎮 Features
 

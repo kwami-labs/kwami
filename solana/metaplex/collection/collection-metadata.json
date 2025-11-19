@@ -1,7 +1,7 @@
 {
   "name": "Kwami Collection",
   "symbol": "KWAMI",
-  "description": "Unique AI companion NFTs with DNA-based uniqueness validation. Each Kwami has a distinct body configuration stored on Arweave with mind and soul customization.",
+  "description": "Unique AI companion NFTs with DNA-based uniqueness validation. 10 billion unique companions by 2100 - one for every human on Earth. Each Kwami has a distinct body configuration stored on Arweave with mind and soul customization. Launched January 1, 2026 with generational releases through 2100.",
   "seller_fee_basis_points": 500,
   "image": "collection-image.png",
   "external_url": "https://quami.io",
@@ -24,7 +24,23 @@
     },
     {
       "trait_type": "Version",
-      "value": "0.2.0"
+      "value": "1.0.0"
+    },
+    {
+      "trait_type": "Max Supply",
+      "value": "10 Billion"
+    },
+    {
+      "trait_type": "Launch Year",
+      "value": "2026"
+    },
+    {
+      "trait_type": "Completion Year",
+      "value": "2100"
+    },
+    {
+      "trait_type": "Generations",
+      "value": "75"
     }
   ],
   "properties": {

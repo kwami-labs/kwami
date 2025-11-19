@@ -1,10 +1,10 @@
 <template>
-  <header class="sticky top-0 z-50 glass border-b border-gray-800">
-    <nav class="container mx-auto px-4 py-4">
-      <div class="flex items-center justify-between">
+  <header class="sticky top-0 z-40 glass border-b border-gray-800">
+    <div class="container mx-auto px-4">
+      <div class="flex items-center justify-between h-20">
         <!-- Logo -->
-        <NuxtLink to="/" class="flex items-center space-x-2 group">
-          <div class="w-10 h-10 bg-gradient-to-br from-kwami-purple to-kwami-blue rounded-lg flex items-center justify-center group-hover:scale-110 transition-transform">
+        <NuxtLink to="/" class="flex items-center space-x-3 group">
+          <div class="w-12 h-12 bg-gradient-to-br from-primary-500 to-kwami-purple rounded-xl flex items-center justify-center group-hover:scale-110 transition-transform">
             <span class="text-2xl">👻</span>
           </div>
           <div>
@@ -13,116 +13,132 @@
           </div>
         </NuxtLink>
 
-        <!-- Navigation -->
-        <div class="hidden md:flex items-center space-x-6">
-          <NuxtLink to="/" class="nav-link">
+        <!-- Desktop Navigation -->
+        <nav class="hidden md:flex items-center space-x-1">
+          <NuxtLink
+            to="/"
+            class="nav-link"
+            active-class="nav-link-active"
+          >
             Explore
           </NuxtLink>
-          <NuxtLink to="/my-kwamis" class="nav-link">
+          <NuxtLink
+            to="/my-kwamis"
+            class="nav-link"
+            active-class="nav-link-active"
+          >
             My KWAMIs
           </NuxtLink>
-          <NuxtLink to="/create" class="nav-link">
-            Create
-          </NuxtLink>
-          <NuxtLink to="/activity" class="nav-link">
+          <NuxtLink
+            to="/activity"
+            class="nav-link"
+            active-class="nav-link-active"
+          >
             Activity
           </NuxtLink>
-        </div>
+          <NuxtLink
+            to="/create"
+            class="nav-link"
+            active-class="nav-link-active"
+          >
+            Create
+          </NuxtLink>
+        </nav>
 
-        <!-- Wallet & Profile -->
+        <!-- Wallet Button -->
         <div class="flex items-center space-x-4">
-          <!-- Network Badge -->
-          <div class="hidden sm:flex items-center space-x-2 px-3 py-1.5 rounded-lg bg-gray-800">
-            <div class="w-2 h-2 rounded-full bg-green-500 animate-pulse"></div>
-            <span class="text-sm text-gray-300">{{ network }}</span>
-          </div>
-
-          <!-- Wallet Button -->
           <WalletButton />
-
-          <!-- Mobile Menu -->
-          <button 
+          
+          <!-- Mobile Menu Button -->
+          <button
             @click="mobileMenuOpen = !mobileMenuOpen"
-            class="md:hidden p-2 rounded-lg hover:bg-gray-800"
+            class="md:hidden p-2 hover:bg-gray-800 rounded-lg"
           >
             <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path 
-                stroke-linecap="round" 
-                stroke-linejoin="round" 
-                stroke-width="2" 
-                :d="mobileMenuOpen ? 'M6 18L18 6M6 6l12 12' : 'M4 6h16M4 12h16M4 18h16'"
+              <path
+                v-if="!mobileMenuOpen"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                d="M4 6h16M4 12h16M4 18h16"
+              />
+              <path
+                v-else
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                d="M6 18L18 6M6 6l12 12"
               />
             </svg>
           </button>
         </div>
       </div>
 
-      <!-- Mobile Menu -->
-      <div 
-        v-if="mobileMenuOpen" 
-        class="md:hidden mt-4 pt-4 border-t border-gray-800 space-y-2"
+      <!-- Mobile Navigation -->
+      <Transition
+        enter-active-class="transition ease-out duration-200"
+        enter-from-class="opacity-0 -translate-y-1"
+        enter-to-class="opacity-100 translate-y-0"
+        leave-active-class="transition ease-in duration-150"
+        leave-from-class="opacity-100 translate-y-0"
+        leave-to-class="opacity-0 -translate-y-1"
       >
-        <NuxtLink 
-          to="/" 
-          class="block px-4 py-2 rounded-lg hover:bg-gray-800"
-          @click="mobileMenuOpen = false"
+        <nav
+          v-if="mobileMenuOpen"
+          class="md:hidden py-4 border-t border-gray-800"
         >
-          Explore
-        </NuxtLink>
-        <NuxtLink 
-          to="/my-kwamis" 
-          class="block px-4 py-2 rounded-lg hover:bg-gray-800"
-          @click="mobileMenuOpen = false"
-        >
-          My KWAMIs
-        </NuxtLink>
-        <NuxtLink 
-          to="/create" 
-          class="block px-4 py-2 rounded-lg hover:bg-gray-800"
-          @click="mobileMenuOpen = false"
-        >
-          Create
-        </NuxtLink>
-        <NuxtLink 
-          to="/activity" 
-          class="block px-4 py-2 rounded-lg hover:bg-gray-800"
-          @click="mobileMenuOpen = false"
-        >
-          Activity
-        </NuxtLink>
-      </div>
-    </nav>
+          <NuxtLink
+            to="/"
+            class="mobile-nav-link"
+            active-class="mobile-nav-link-active"
+            @click="mobileMenuOpen = false"
+          >
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
+            </svg>
+            <span>Explore</span>
+          </NuxtLink>
+          <NuxtLink
+            to="/my-kwamis"
+            class="mobile-nav-link"
+            active-class="mobile-nav-link-active"
+            @click="mobileMenuOpen = false"
+          >
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/>
+            </svg>
+            <span>My KWAMIs</span>
+          </NuxtLink>
+          <NuxtLink
+            to="/activity"
+            class="mobile-nav-link"
+            active-class="mobile-nav-link-active"
+            @click="mobileMenuOpen = false"
+          >
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"/>
+            </svg>
+            <span>Activity</span>
+          </NuxtLink>
+          <NuxtLink
+            to="/create"
+            class="mobile-nav-link"
+            active-class="mobile-nav-link-active"
+            @click="mobileMenuOpen = false"
+          >
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
+            </svg>
+            <span>Create</span>
+          </NuxtLink>
+        </nav>
+      </Transition>
+    </div>
   </header>
 </template>
 
 <script setup lang="ts">
 import { ref } from 'vue'
-import { useSolana } from '~/composables/useSolana'
 
-const { network } = useSolana()
 const mobileMenuOpen = ref(false)
 </script>
-
-<style scoped>
-.nav-link {
-  @apply text-gray-300 hover:text-white font-medium transition-colors relative;
-}
-
-.nav-link::after {
-  content: '';
-  @apply absolute bottom-0 left-0 w-0 h-0.5 bg-gradient-to-r from-kwami-purple to-kwami-blue transition-all duration-200;
-}
-
-.nav-link:hover::after {
-  @apply w-full;
-}
-
-.router-link-active {
-  @apply text-white;
-}
-
-.router-link-active::after {
-  @apply w-full;
-}
-</style>
-

@@ -2,53 +2,27 @@
   <div>
     <!-- Header -->
     <div class="mb-8">
-      <div class="flex items-center space-x-4 mb-4">
-        <div class="w-20 h-20 bg-gradient-to-br from-kwami-purple to-kwami-blue rounded-full flex items-center justify-center text-4xl">
-          👤
-        </div>
-        <div>
-          <h1 class="text-4xl font-bold mb-2">My KWAMIs</h1>
-          <p class="text-gray-400 font-mono">{{ walletStore.shortAddress }}</p>
-        </div>
-      </div>
-
-      <!-- Stats -->
-      <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
-        <div class="card text-center">
-          <p class="text-3xl font-bold">{{ userNfts.length }}</p>
-          <p class="text-sm text-gray-400">Total KWAMIs</p>
-        </div>
-        <div class="card text-center">
-          <p class="text-3xl font-bold">{{ listedCount }}</p>
-          <p class="text-sm text-gray-400">Listed</p>
-        </div>
-        <div class="card text-center">
-          <p class="text-3xl font-bold">{{ totalValue.toFixed(2) }}</p>
-          <p class="text-sm text-gray-400">Total Value (SOL)</p>
-        </div>
-        <div class="card text-center">
-          <p class="text-3xl font-bold">{{ walletStore.balance.toFixed(2) }}</p>
-          <p class="text-sm text-gray-400">Wallet Balance (SOL)</p>
-        </div>
-      </div>
+      <h1 class="text-4xl font-bold mb-2">My KWAMIs</h1>
+      <p class="text-gray-400">Manage your KWAMI collection</p>
     </div>
 
-    <!-- Wallet Not Connected -->
+    <!-- Not Connected State -->
     <div v-if="!walletStore.connected" class="card text-center py-16">
-      <div class="text-6xl mb-4">🔒</div>
-      <h3 class="text-2xl font-bold mb-2">Connect Your Wallet</h3>
+      <div class="text-6xl mb-4">🔐</div>
+      <h2 class="text-2xl font-bold mb-2">Connect Your Wallet</h2>
       <p class="text-gray-400 mb-6">
         Connect your wallet to view your KWAMI collection
       </p>
+      <WalletButton />
     </div>
 
     <!-- Loading State -->
     <LoadingSpinner v-else-if="loading" message="Loading your KWAMIs..." />
 
     <!-- Empty State -->
-    <div v-else-if="userNfts.length === 0" class="card text-center py-16">
+    <div v-else-if="myNfts.length === 0" class="card text-center py-16">
       <div class="text-6xl mb-4">👻</div>
-      <h3 class="text-2xl font-bold mb-2">No KWAMIs Yet</h3>
+      <h2 class="text-2xl font-bold mb-2">No KWAMIs Yet</h2>
       <p class="text-gray-400 mb-6">
         Start your collection by creating or buying a KWAMI
       </p>
@@ -57,39 +31,79 @@
           Create KWAMI
         </NuxtLink>
         <NuxtLink to="/" class="btn btn-outline">
-          Browse Marketplace
+          Explore Marketplace
         </NuxtLink>
       </div>
     </div>
 
     <!-- NFT Grid -->
     <div v-else>
-      <!-- Tabs -->
-      <div class="flex items-center space-x-4 mb-6 border-b border-gray-800">
+      <!-- Stats -->
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
+        <div class="stat-card">
+          <div class="stat-icon bg-primary-500/20 text-primary-400">
+            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"/>
+            </svg>
+          </div>
+          <div class="stat-content">
+            <p class="stat-label">Total KWAMIs</p>
+            <p class="stat-value">{{ myNfts.length }}</p>
+          </div>
+        </div>
+
+        <div class="stat-card">
+          <div class="stat-icon bg-green-500/20 text-green-400">
+            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/>
+            </svg>
+          </div>
+          <div class="stat-content">
+            <p class="stat-label">Listed</p>
+            <p class="stat-value">{{ listedCount }}</p>
+          </div>
+        </div>
+
+        <div class="stat-card">
+          <div class="stat-icon bg-blue-500/20 text-blue-400">
+            <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 20 20">
+              <path d="M8.433 7.418c.155-.103.346-.196.567-.267v1.698a2.305 2.305 0 01-.567-.267C8.07 8.34 8 8.114 8 8c0-.114.07-.34.433-.582zM11 12.849v-1.698c.22.071.412.164.567.267.364.243.433.468.433.582 0 .114-.07.34-.433.582a2.305 2.305 0 01-.567.267z"/>
+              <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-13a1 1 0 10-2 0v.092a4.535 4.535 0 00-1.676.662C6.602 6.234 6 7.009 6 8c0 .99.602 1.765 1.324 2.246.48.32 1.054.545 1.676.662v1.941c-.391-.127-.68-.317-.843-.504a1 1 0 10-1.51 1.31c.562.649 1.413 1.076 2.353 1.253V15a1 1 0 102 0v-.092a4.535 4.535 0 001.676-.662C13.398 13.766 14 12.991 14 12c0-.99-.602-1.765-1.324-2.246A4.535 4.535 0 0011 9.092V7.151c.391.127.68.317.843.504a1 1 0 101.511-1.31c-.563-.649-1.413-1.076-2.354-1.253V5z" clip-rule="evenodd"/>
+            </svg>
+          </div>
+          <div class="stat-content">
+            <p class="stat-label">Total Value</p>
+            <p class="stat-value">{{ totalValue.toFixed(2) }} ◎</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Filter Tabs -->
+      <div class="flex items-center space-x-2 mb-6">
         <button
-          @click="activeTab = 'all'"
-          class="tab"
-          :class="{ 'tab-active': activeTab === 'all' }"
+          @click="filter = 'all'"
+          class="btn"
+          :class="filter === 'all' ? 'btn-primary' : 'btn-outline'"
         >
-          All ({{ userNfts.length }})
+          All ({{ myNfts.length }})
         </button>
         <button
-          @click="activeTab = 'listed'"
-          class="tab"
-          :class="{ 'tab-active': activeTab === 'listed' }"
+          @click="filter = 'listed'"
+          class="btn"
+          :class="filter === 'listed' ? 'btn-primary' : 'btn-outline'"
         >
           Listed ({{ listedCount }})
         </button>
         <button
-          @click="activeTab = 'unlisted'"
-          class="tab"
-          :class="{ 'tab-active': activeTab === 'unlisted' }"
+          @click="filter = 'unlisted'"
+          class="btn"
+          :class="filter === 'unlisted' ? 'btn-primary' : 'btn-outline'"
         >
-          Not Listed ({{ unlistedCount }})
+          Unlisted ({{ myNfts.length - listedCount }})
         </button>
       </div>
 
-      <!-- NFTs -->
+      <!-- NFT Grid -->
       <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
         <NftCard
           v-for="nft in filteredNfts"
@@ -109,7 +123,6 @@
       :show="showListModal"
       @close="showListModal = false"
       @confirm="confirmList"
-      @unlist="confirmUnlist"
     />
   </div>
 </template>
@@ -117,59 +130,47 @@
 <script setup lang="ts">
 import { ref, computed, onMounted, watch } from 'vue'
 import { useRouter } from 'vue-router'
-import { useNftStore } from '~/stores/nft'
 import { useWalletStore } from '~/stores/wallet'
 import { useMetaplex } from '~/composables/useMetaplex'
 import { useMarketplace } from '~/composables/useMarketplace'
 import type { NFTListing } from '~/stores/marketplace'
 
 const router = useRouter()
-const nftStore = useNftStore()
 const walletStore = useWalletStore()
 const { fetchWalletNfts } = useMetaplex()
-const { listNft, unlistNft } = useMarketplace()
+const { listNft } = useMarketplace()
 
+const myNfts = ref<NFTListing[]>([])
 const loading = ref(false)
-const activeTab = ref<'all' | 'listed' | 'unlisted'>('all')
+const filter = ref<'all' | 'listed' | 'unlisted'>('all')
 const selectedNft = ref<NFTListing | null>(null)
 const showListModal = ref(false)
 
-const userNfts = computed(() => nftStore.userNfts)
-
-const listedNfts = computed(() => 
-  userNfts.value.filter(nft => nft.listed && nft.price && nft.price > 0)
-)
-
-const unlistedNfts = computed(() => 
-  userNfts.value.filter(nft => !nft.listed || !nft.price || nft.price <= 0)
-)
-
 const filteredNfts = computed(() => {
-  switch (activeTab.value) {
-    case 'listed':
-      return listedNfts.value
-    case 'unlisted':
-      return unlistedNfts.value
-    default:
-      return userNfts.value
-  }
+  if (filter.value === 'all') return myNfts.value
+  if (filter.value === 'listed') return myNfts.value.filter(nft => nft.listed)
+  return myNfts.value.filter(nft => !nft.listed)
 })
 
-const listedCount = computed(() => listedNfts.value.length)
-const unlistedCount = computed(() => unlistedNfts.value.length)
-const totalValue = computed(() => 
-  listedNfts.value.reduce((sum, nft) => sum + (nft.price || 0), 0)
-)
+const listedCount = computed(() => {
+  return myNfts.value.filter(nft => nft.listed).length
+})
 
-const loadUserNfts = async () => {
+const totalValue = computed(() => {
+  return myNfts.value
+    .filter(nft => nft.listed && nft.price)
+    .reduce((sum, nft) => sum + (nft.price || 0), 0)
+})
+
+const loadMyNfts = async () => {
   if (!walletStore.publicKey) return
-
-  loading.value = true
+  
   try {
+    loading.value = true
     const nfts = await fetchWalletNfts(walletStore.publicKey)
-    nftStore.setUserNfts(nfts)
-  } catch (error) {
-    console.error('Error loading user NFTs:', error)
+    myNfts.value = nfts
+  } catch (err) {
+    console.error('Error loading NFTs:', err)
   } finally {
     loading.value = false
   }
@@ -186,59 +187,31 @@ const handleList = (nft: NFTListing) => {
 
 const confirmList = async (price: number) => {
   if (!selectedNft.value || !walletStore.publicKey) return
-
+  
   const success = await listNft(selectedNft.value, price, walletStore.publicKey)
   if (success) {
     showListModal.value = false
     selectedNft.value = null
-    await loadUserNfts()
-  }
-}
-
-const confirmUnlist = async () => {
-  if (!selectedNft.value || !walletStore.publicKey) return
-
-  const success = await unlistNft(selectedNft.value.mint, walletStore.publicKey)
-  if (success) {
-    showListModal.value = false
-    selectedNft.value = null
-    await loadUserNfts()
+    await loadMyNfts()
   }
 }
 
 // Watch for wallet connection changes
 watch(() => walletStore.connected, (connected) => {
   if (connected) {
-    loadUserNfts()
+    loadMyNfts()
   } else {
-    nftStore.setUserNfts([])
+    myNfts.value = []
   }
 })
 
 onMounted(() => {
   if (walletStore.connected) {
-    loadUserNfts()
+    loadMyNfts()
   }
 })
 
-// Set page meta
 definePageMeta({
   layout: 'default',
 })
 </script>
-
-<style scoped>
-.tab {
-  @apply px-4 py-3 text-gray-400 hover:text-white transition-colors relative;
-}
-
-.tab-active {
-  @apply text-white font-medium;
-}
-
-.tab-active::after {
-  content: '';
-  @apply absolute bottom-0 left-0 w-full h-0.5 bg-gradient-to-r from-kwami-purple to-kwami-blue;
-}
-</style>
-

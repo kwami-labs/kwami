@@ -16,8 +16,22 @@ use anchor_spl::{
 
 declare_id!("11111111111111111111111111111111"); // Will be updated after deployment
 
-/// Maximum total KWAMIs that can ever be minted (1 trillion and 1 (counting #0))
-const MAX_TOTAL_KWAMIS: u64 = 1_000_000_000_000;
+/// Maximum total KWAMIs by 2100 - One for every human on Earth (10 billion)
+/// Based on UN World Population Prospects 2022 - Medium Variant: ~10.4B by 2100
+/// See: https://population.un.org/wpp/
+const MAX_TOTAL_KWAMIS: u64 = 10_000_000_000;
+
+/// Annual supply increment - 133.33 Million per generation (75 generations over 75 years)
+const ANNUAL_SUPPLY_INCREMENT: u64 = 133_333_333;
+
+/// Launch timestamp: January 1, 2026 00:00:00 UTC (Generation #0)
+const LAUNCH_TIMESTAMP: i64 = 1735689600;
+
+/// Seconds in a year (365.25 days accounting for leap years)
+const SECONDS_PER_YEAR: i64 = 31_557_600;
+
+/// Maximum generation number (Gen #0 to Gen #74 = 75 generations)
+const MAX_GENERATION: i64 = 74;
 
 /// Maximum DNA entries stored in a single account (account size limit)
 const MAX_DNA_PER_ACCOUNT: usize = 1000;
@@ -28,6 +42,28 @@ const DNA_HASH_SIZE: usize = 32;
 #[program]
 pub mod kwami_nft {
     use super::*;
+
+    /// Calculate the current generation number based on timestamp
+    /// Returns generation number (0-74) and max supply for that generation
+    fn get_current_generation_info(current_timestamp: i64) -> (i64, u64) {
+        // If before launch, return Gen #0 with first generation supply
+        if current_timestamp < LAUNCH_TIMESTAMP {
+            return (0, ANNUAL_SUPPLY_INCREMENT);
+        }
+
+        // Calculate years since launch
+        let seconds_since_launch = current_timestamp - LAUNCH_TIMESTAMP;
+        let years_since_launch = seconds_since_launch / SECONDS_PER_YEAR;
+        
+        // Cap at Gen #74 (2100)
+        let generation = years_since_launch.min(MAX_GENERATION);
+        
+        // Calculate max supply for this generation
+        // Formula: (generation + 1) × 133,333,333
+        let max_supply = (generation as u64 + 1) * ANNUAL_SUPPLY_INCREMENT;
+        
+        (generation, max_supply)
+    }
 
     /// Initialize the Kwami NFT program and DNA registry
     pub fn initialize(ctx: Context<Initialize>, collection_bump: u8) -> Result<()> {
@@ -60,7 +96,17 @@ pub mod kwami_nft {
         let dna_registry = &mut ctx.accounts.dna_registry;
         let collection_authority = &mut ctx.accounts.collection_authority;
 
-        // Check if we've reached the 1 trillion KWAMI limit
+        // Get current timestamp and calculate generation info
+        let current_timestamp = Clock::get()?.unix_timestamp;
+        let (current_generation, current_max_supply) = get_current_generation_info(current_timestamp);
+
+        // Check if we've reached the current generation's supply limit
+        require!(
+            collection_authority.total_minted < current_max_supply,
+            ErrorCode::GenerationSupplyReached
+        );
+
+        // Also check absolute maximum (10 billion by 2100)
         require!(
             collection_authority.total_minted < MAX_TOTAL_KWAMIS,
             ErrorCode::MaxSupplyReached
@@ -142,10 +188,12 @@ pub mod kwami_nft {
         collection_authority.total_minted += 1;
 
         msg!("Minted Kwami NFT");
+        msg!("Generation: #{}", current_generation);
         msg!("DNA Hash: {:?}", dna_hash);
         msg!("Mint: {}", ctx.accounts.mint.key());
         msg!("Owner: {}", ctx.accounts.owner.key());
-        msg!("Total Minted: {}", collection_authority.total_minted);
+        msg!("Total Minted: {}/{}", collection_authority.total_minted, current_max_supply);
+        msg!("Global Progress: {}/{} (Final by 2100)", collection_authority.total_minted, MAX_TOTAL_KWAMIS);
 
         Ok(())
     }
@@ -449,8 +497,11 @@ impl KwamiNft {
 
 #[error_code]
 pub enum ErrorCode {
-    #[msg("Maximum supply of 1 trillion KWAMIs has been reached. No more can be minted.")]
+    #[msg("Maximum supply of 10 billion KWAMIs has been reached (2100). No more can be minted.")]
     MaxSupplyReached,
+
+    #[msg("Current generation's supply limit reached. Wait for next generation (January 1st).")]
+    GenerationSupplyReached,
 
     #[msg("This DNA already exists. Each Kwami must have unique DNA.")]
     DuplicateDNA,

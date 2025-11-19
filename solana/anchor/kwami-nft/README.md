@@ -2,18 +2,44 @@
 
 Solana NFT implementation with DNA-based uniqueness validation using Anchor Framework and Metaplex.
 
+## 🌍 Vision: One KWAMI for Every Human on Earth
+
+By January 1, 2100, there will be **10 billion unique KWAMI NFTs** - one for every person on planet Earth, based on UN population projections.
+
 ## 📋 Specifications
 
 - **Symbol:** KWAMI
 - **Standard:** Metaplex NFT
 - **Decimals:** 0 (Non-fungible)
+- **Max Supply:** 10,000,000,000 (10 Billion by 2100)
+- **Launch:** January 1, 2026 (Generation #0)
+- **Annual Increment:** 133,333,333 NFTs per generation
 - **Storage:** Arweave for metadata and assets
 - **Features:**
   - Unique DNA validation (SHA-256 hash)
   - On-chain DNA registry
+  - Generation-based supply caps
   - Burn-and-remint for DNA changes
   - Metadata updates for mind/soul
   - Metaplex standard integration
+
+## 📊 Supply Schedule
+
+### **Generational Release Model**
+
+Each year on January 1st, a new generation unlocks with 133.33 Million additional supply:
+
+| Year | Generation | Max Supply | Milestone |
+|------|------------|------------|-----------|
+| 2026 | Gen #0 | 133.33M | 🚀 Launch |
+| 2027 | Gen #1 | 266.67M | |
+| 2033 | Gen #7 | 1.07B | First Billion |
+| 2050 | Gen #24 | 3.33B | Mid-Century |
+| 2063 | Gen #37 | 5.07B | Halfway |
+| 2075 | Gen #49 | 6.67B | Two-Thirds |
+| 2100 | Gen #74 | 10.00B | 🌍 Complete |
+
+**See [KWAMI_SUPPLY_SCHEDULE.md](../../KWAMI_SUPPLY_SCHEDULE.md) for complete details and UN references.**
 
 ## 🧬 DNA System
 

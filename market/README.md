@@ -32,7 +32,7 @@ A fully functional Metaplex NFT marketplace for KWAMI NFTs built with Nuxt 4 and
 ### Installation
 
 ```bash
-# Clone the repository
+# Navigate to market directory
 cd market
 
 # Install dependencies
@@ -44,7 +44,29 @@ npm install
 cp .env.example .env
 
 # Update .env with your configuration
+# Edit .env and add your Solana program IDs
 ```
+
+### Environment Setup
+
+Create a `.env` file with the following variables:
+
+```env
+# Solana Network
+NUXT_PUBLIC_SOLANA_NETWORK=devnet
+NUXT_PUBLIC_SOLANA_RPC_URL=https://api.devnet.solana.com
+
+# KWAMI NFT Program (from solana/anchor/kwami-nft deployment)
+NUXT_PUBLIC_KWAMI_NFT_PROGRAM_ID=your_program_id_here
+NUXT_PUBLIC_KWAMI_COLLECTION_MINT=your_collection_mint_here
+NUXT_PUBLIC_KWAMI_COLLECTION_AUTHORITY=your_authority_pda_here
+NUXT_PUBLIC_KWAMI_DNA_REGISTRY=your_dna_registry_pda_here
+```
+
+**Getting Your Program IDs:**
+1. Deploy the Anchor program: `cd ../solana/anchor/kwami-nft && anchor deploy`
+2. Run the collection initialization script: `cd ../solana/scripts && ./initialize-collection.sh`
+3. Copy the output addresses to your `.env` file
 
 ### Environment Configuration
 
