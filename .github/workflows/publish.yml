@@ -47,6 +47,9 @@ jobs:
     needs: check-version
     if: needs.check-version.outputs.should_publish == 'true'
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      id-token: write  # Required for npm provenance
     steps:
       - name: 🔍 Checkout code
         uses: actions/checkout@v4
@@ -106,10 +109,8 @@ jobs:
             require('fs').writeFileSync('./package.json', JSON.stringify(pkg, null, 2));
           "
 
-      - name: 🚀 Publish to npm
-        run: npm publish --access public
-        env:
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+      - name: 🚀 Publish to npm with provenance
+        run: npm publish --access public --provenance
 
       - name: 🏷️ Create git tag
         run: |
