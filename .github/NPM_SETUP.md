@@ -2,45 +2,34 @@
 
 This guide is for maintainers who need to set up or troubleshoot automated npm publishing.
 
-## 🔐 Setting up NPM_TOKEN
+## 🔐 Trusted Publisher Setup (✅ CONFIGURED)
 
-The GitHub Actions workflow requires an `NPM_TOKEN` secret to publish packages to npm.
+**Good news!** This repository is configured to use **npm Trusted Publishers** (Provenance), which is the most secure publishing method. No tokens needed!
 
-### Step 1: Generate an npm Access Token
+### What is a Trusted Publisher?
 
-1. **Log in to npm:**
-   ```bash
-   npm login
-   ```
-   Or visit: https://www.npmjs.com/login
+- Uses OpenID Connect (OIDC) to verify GitHub Actions can publish
+- No secrets stored in GitHub (more secure than tokens)
+- Provides cryptographic proof of package origin
+- Recommended by npm for all new projects
 
-2. **Navigate to Access Tokens:**
-   - Go to: https://www.npmjs.com/settings/YOUR_USERNAME/tokens
-   - Or: Click your profile → Access Tokens
+### Current Configuration
 
-3. **Generate New Token:**
-   - Click "Generate New Token"
-   - Select **"Automation"** token type (recommended for CI/CD)
-   - Give it a descriptive name: "GitHub Actions - kwami"
-   - Click "Generate Token"
+The kwami package is configured as a Trusted Publisher:
+- **npm Package:** https://www.npmjs.com/package/kwami
+- **GitHub Repo:** https://github.com/alexcolls/kwami
+- **Workflow:** `.github/workflows/publish.yml`
+- **Method:** Publishes with `--provenance` flag
 
-4. **Copy the token immediately:**
-   - ⚠️ You won't be able to see it again!
-   - It will look like: `npm_xxxxxxxxxxxxxxxxxxxxxxxxxxxx`
+### How It Works
 
-### Step 2: Add Token to GitHub Secrets
+1. Merge to `main` with version bump
+2. GitHub Actions workflow runs
+3. GitHub issues OIDC token to the workflow
+4. npm verifies the token matches trusted publisher config
+5. Package publishes successfully with provenance attestation
 
-1. **Navigate to Repository Settings:**
-   - Go to: https://github.com/alexcolls/kwami/settings/secrets/actions
-   - Or: Settings → Secrets and variables → Actions
-
-2. **Create New Repository Secret:**
-   - Click "New repository secret"
-   - Name: `NPM_TOKEN`
-   - Value: Paste the token from Step 1
-   - Click "Add secret"
-
-### Step 3: Verify Setup
+### Verify Setup
 
 1. **Test the workflow:**
    ```bash
@@ -65,14 +54,19 @@ The GitHub Actions workflow requires an `NPM_TOKEN` secret to publish packages t
 
 ## 🔧 Troubleshooting
 
-### Workflow Fails: "401 Unauthorized"
+### Workflow Fails: "401 Unauthorized" or "403 Forbidden"
 
-**Problem:** Invalid or expired npm token
+**Problem:** Trusted publisher configuration mismatch
 
 **Solution:**
-1. Generate a new npm token (see Step 1 above)
-2. Update the `NPM_TOKEN` secret in GitHub
-3. Re-run the failed workflow
+1. Go to: https://www.npmjs.com/package/kwami/access
+2. Click "Publishing access" → "Trusted publishers"
+3. Verify the configuration:
+   - Repository: `alexcolls/kwami`
+   - Workflow: `publish.yml` (or `.github/workflows/publish.yml`)
+   - Environment: (leave blank)
+4. If incorrect, delete and re-add the trusted publisher
+5. Re-run the failed workflow
 
 ### Workflow Skips Publishing
 
@@ -123,11 +117,11 @@ Before merging a release PR to `main`:
 
 ## 🔒 Security Best Practices
 
-1. **Use Automation tokens:** Never use Classic tokens for CI/CD
-2. **Limit scope:** Only give necessary permissions
-3. **Rotate regularly:** Generate new tokens every 6-12 months
-4. **Monitor usage:** Check npm token activity regularly
-5. **Revoke if compromised:** Immediately revoke and generate new token
+1. **Trusted Publishers (Current):** Most secure - no secrets to manage
+2. **Monitor Publishes:** Check npm package activity regularly
+3. **Branch Protection:** Keep `main` branch protected (requires PR reviews)
+4. **Review Workflows:** Audit workflow changes carefully
+5. **Provenance:** Always publish with `--provenance` flag (already configured)
 
 ## 📊 Monitoring Published Packages
 
@@ -161,13 +155,28 @@ npm run build
 # 3. Login to npm (if not already)
 npm login
 
-# 4. Publish
-npm publish --access public
+# 4. Publish (with provenance if possible)
+npm publish --access public --provenance
+
+# Note: Manual publishes won't have full provenance attestation
+# Automation is strongly preferred for security
 
 # 5. Create tag manually
 git tag -a v1.2.3 -m "🚀 Release v1.2.3"
 git push --tags
 ```
+
+## 🔄 Alternative: Token-Based Publishing (Not Recommended)
+
+If you need to switch to token-based publishing:
+
+1. Remove trusted publisher from npm package settings
+2. Generate Granular Access Token from npm
+3. Add as `NPM_TOKEN` secret in GitHub
+4. Update workflow to use `NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}`
+5. Remove `--provenance` flag from publish command
+
+**Note:** This is less secure than Trusted Publishers and not recommended.
 
 ## 📞 Support
 
