@@ -1,27 +1,34 @@
 import { defineStore } from 'pinia'
 
 export const useSocketStore = defineStore('socket', () => {
-  // Temporary mock for socket functionality
-  // TODO: Re-implement with proper WebSocket setup
-  const isConnected = ref(false)
-  const sessionId = ref<string | null>(null)
-  const connectedUsers = ref(0)
-  const lastActivity = ref<any>(null)
+  const walletStore = useWalletStore()
+  const socket = useSocket()
 
-  const connect = () => {
-    console.log('[Socket] Mock connection (disabled)')
-  }
+  // Re-export socket state
+  const isConnected = socket.isConnected
+  const sessionId = socket.sessionId
+  const connectedUsers = socket.connectedUsers
+  const lastActivity = socket.lastActivity
+  const reconnecting = socket.reconnecting
 
-  const disconnect = () => {
-    console.log('[Socket] Mock disconnection (disabled)')
-  }
+  // Watch wallet connection and update socket
+  watch(() => walletStore.connected, (connected) => {
+    if (connected && walletStore.address) {
+      socket.updateUser({ walletAddress: walletStore.address })
+    }
+  })
 
+  // Helper methods for minting notifications
   const notifyMintStart = () => {
-    console.log('[Socket] Mock mint start (disabled)')
+    if (walletStore.connected && walletStore.address) {
+      socket.emitMintStart(walletStore.address)
+    }
   }
 
-  const notifyMintSuccess = (mint: string) => {
-    console.log('[Socket] Mock mint success (disabled)', mint)
+  const notifyMintSuccess = (mint: string, name: string = 'KWAMI') => {
+    if (walletStore.connected && walletStore.address) {
+      socket.emitMintSuccess(walletStore.address, mint, name)
+    }
   }
 
   return {
@@ -29,8 +36,9 @@ export const useSocketStore = defineStore('socket', () => {
     sessionId,
     connectedUsers,
     lastActivity,
-    connect,
-    disconnect,
+    reconnecting,
+    connect: socket.connect,
+    disconnect: socket.disconnect,
     notifyMintStart,
     notifyMintSuccess,
   }

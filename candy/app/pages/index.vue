@@ -8,6 +8,7 @@
             <h1 class="text-2xl font-bold bg-gradient-to-r from-primary-400 to-green-400 bg-clip-text text-transparent">
               KWAMI.io
             </h1>
+            <UsersOnline />
           </div>
           
           <WalletConnect />
