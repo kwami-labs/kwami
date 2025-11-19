@@ -2,7 +2,7 @@
 
 An **independent, reusable** 3D Interactive AI Companion Library for creating engaging AI companions with visual (blob), audio, and AI capabilities.
 
-> **Version 1.3.0** - [See what's new](#whats-new-in-v130)
+> **Version 1.4.1** - [See what's new](#whats-new-in-v141)
 
 [![npm version](https://img.shields.io/npm/v/kwami.svg)](https://www.npmjs.com/package/kwami)
 [![License](https://img.shields.io/badge/license-Dual%20License-blue.svg)](./LICENSE)
@@ -25,6 +25,7 @@ Kwami is built around three core components:
 - ✅ **Interactive Touch Effects** - Liquid-like ripples on click
 - ✅ **Animation States** - Idle, listening, thinking, speaking
 - ✅ **AI Voice Integration** - ElevenLabs & OpenAI TTS support
+- ✅ **ElevenLabs Agents** - Full agent management with Tools & Knowledge Base APIs
 - ✅ **Emotional Personalities** - Rich personality system with emotional traits
 - ✅ **Background System** - Gradients, images, videos with glass effects
 - ✅ **TypeScript First** - Fully typed for excellent DX
@@ -174,6 +175,19 @@ await kwami.mind.speak("Hello world!");
 // Voice fine-tuning
 kwami.mind.setStability(0.5);
 kwami.mind.setSimilarityBoost(0.75);
+
+// Advanced: Create agents with Tools & Knowledge Base
+import { AgentConfigBuilder } from 'kwami';
+
+const config = new AgentConfigBuilder()
+  .withName('Support Agent')
+  .withVoice('voice_id')
+  .withLLM('gpt-4o')
+  .withTools([{ name: 'create_ticket', url: 'https://api.example.com/tickets' }])
+  .withKnowledgeBase([{ knowledge_base_id: 'kb_123' }])
+  .build();
+
+const agent = await kwami.mind.createAgent(config);
 ```
 
 ### Soul - Personality
@@ -243,31 +257,82 @@ await kwami.mind.startConversation({
 });
 ```
 
-## What's New in v1.3.0
+## What's New in v1.4.1
 
-### 🧠 Mind Provider Architecture
+### 🧠 Complete ElevenLabs Conversational AI Agents Integration
+
+**Professional-grade agent management with Tools and Knowledge Base:**
+
+```typescript
+import { AgentConfigBuilder } from 'kwami';
+
+// Create an advanced agent with tools and knowledge
+const config = new AgentConfigBuilder()
+  .withName('Support Agent')
+  .withVoice('voice_id')
+  .withLLM('gpt-4o')
+  .withPrompt('You are a helpful support agent')
+  .withTools([{
+    name: 'create_ticket',
+    description: 'Create support ticket',
+    url: 'https://api.example.com/tickets'
+  }])
+  .withKnowledgeBase([{ knowledge_base_id: 'kb_123' }])
+  .withMaxDuration(1800)
+  .build();
+
+const agent = await kwami.mind.createAgent(config);
+```
+
+**Key Features:**
+- ✨ **AgentConfigBuilder** - Fluent API for agent configuration with validation
+- 🔧 **Tools API** - Create custom tools with webhooks and parameters
+- 📚 **Knowledge Base API** - RAG support with document management (URL, text, file)
+- 🌊 **Multi-Agent Workflows** - Orchestrate complex conversations with conditional routing
+- 🎯 **Complete Type Coverage** - Full TypeScript types for all ElevenLabs APIs
+- ✅ **Validation System** - Built-in configuration validation with detailed errors
+- 📖 **Comprehensive Examples** - Complete documentation and test suite
+
+**APIs Implemented:**
+- Agent CRUD operations (create, read, update, delete, duplicate, list)
+- Tools management (create tools, manage webhooks, parameter schemas)
+- Knowledge Base (create KBs, add documents, RAG indexing, semantic search)
+- Workflow system (multi-agent orchestration, conditional routing, node types)
+- Conversation management (list, get details, download audio, send feedback)
+
+See [Mind Examples](./src/core/mind/examples/README.md) for comprehensive usage guides.
+
+---
+
+## What's New in v1.4.0
+
+### 🧬 KWAMI NFT System - Solana Blockchain Integration
+
+- Unique DNA-based NFTs with 1 trillion limit
+- Solana blockchain integration with Metaplex standard
+- Candy machine for minting KWAMI NFTs
+- DNA registry with on-chain validation
+- Real-time WebSocket updates (Socket.IO 4.8.1)
+
+---
+
+## Previous Releases
+
+### v1.3.0 – Mind Provider Architecture
 
 - Multi-vendor AI provider support (ElevenLabs, OpenAI)
 - Hot-swappable providers at runtime
 - Unified provider interface for extensibility
+- Enhanced background system with Three.js gradient overlays
+- 10-dimensional emotional personality system
+- Complete documentation
 
-### 🌈 Enhanced Background System
+### v1.3.1-1.3.4 – Patches
 
-- Three.js gradient overlays
-- Multi-layer background management
-- Glass mode with gradient planes
-
-### 🎭 Emotional Personality System
-
-- 10-dimensional emotional spectrum (-100 to +100)
-- Rich emotional trait system
-- Personality blending and adaptation
-
-### 📚 Complete Documentation
-
-- Comprehensive guides for all components
-- Architecture documentation
-- Advanced development guides
+- 🎭 **1.3.1** – Expanded Soul personality templates to 20+ presets
+- 🧠 **1.3.2** – Introduced Kwami Skills System (JSON/YAML-driven behaviors)
+- 🎨 **1.3.3** – Mind UI polish with provider logos and refined tabs
+- 🧪 **1.3.4** – Full Vitest suite (238 tests), hardened KwamiAudio and Soul defaults
 
 See [CHANGELOG](./CHANGELOG.md) for complete history.
 
@@ -365,4 +430,4 @@ Built with:
 
 **Made with ❤️ by the Quami team**
 
-Current version: **1.3.0**
+Current version: **1.4.1**

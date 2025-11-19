@@ -716,3 +716,7 @@ export interface ConversationSignedUrlResponse {
   signed_url: string;
   conversation_id?: string;
 }
+
+// ==================== ElevenLabs Agents - Complete API Types ====================
+// Export comprehensive types for ElevenLabs Conversational AI Agents
+export * from './elevenlabs-agents';

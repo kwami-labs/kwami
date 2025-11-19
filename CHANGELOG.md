@@ -118,11 +118,233 @@ Migrating from v0.x to v1.x wasn't a refactor—it was a **ground-up architectur
 
 --- Latest version:
 
+## [1.4.1] - 2025-11-19
+
+### 🧠 Mind - Complete ElevenLabs Conversational AI Agents Integration
+
+This release completes the full integration of ElevenLabs Conversational AI Agents API, bringing professional-grade agent management, tools, and knowledge base capabilities to Kwami.
+
+#### 🎯 Complete Type System
+
+- ✨ **Full API Type Coverage**: Comprehensive TypeScript types for all ElevenLabs Agents API endpoints
+  - `ASRConversationalConfig` - Speech recognition settings (quality, provider, keywords, audio formats)
+  - `TurnConfig` - Turn management (timeouts, eagerness, soft timeout)
+  - `TTSConversationalConfig` - Voice synthesis (models, supported voices, pronunciation dictionaries)
+  - `ConversationConfig` - Conversation settings (text-only mode, max duration, client events)
+  - `VADConfig` - Voice activity detection configuration
+  - `PromptConfig` - LLM settings (prompt, model, temperature, max tokens, tools, knowledge base)
+  - `AgentWorkflow` - Multi-agent workflow system (nodes, edges, conditions)
+  - `PlatformSettings` - Widget, telephony, and integration settings
+  - `LanguagePresets` - Multi-language configuration presets
+
+#### 🏗️ AgentConfigBuilder - Fluent API
+
+- 🎨 **Fluent Configuration Builder**: Elegant, type-safe agent configuration
+  - `.withName()`, `.withPrompt()`, `.withLLM()`, `.withVoice()` - Basic setup
+  - `.withASR()`, `.withTurnConfig()`, `.withClientEvents()` - Advanced features
+  - `.withTools()`, `.withKnowledgeBase()` - Tool and knowledge integration
+  - `.withWorkflow()`, `.withPlatformSettings()`, `.withSecrets()` - Complex configurations
+  - `.build()` - Final validation and configuration generation
+- ✅ **Built-in Validation**: Automatic validation on build with descriptive error messages
+- 🔧 **Helper Functions**: `createBasicAgentConfig()` for quick agent creation
+
+#### 🔍 Validation System
+
+- ✨ **Comprehensive Validation**: Validate agent configurations before creation
+  - `validateAgentConfig()` - Complete config validation
+  - `validateTTSConfig()` - Voice synthesis settings (0-1 ranges, latency levels)
+  - `validateASRConfig()` - Speech recognition settings (quality, provider, formats)
+  - `validateTurnConfig()` - Turn management (non-negative timeouts, eagerness values)
+  - `validatePromptConfig()` - LLM settings (temperature 0-1, positive max tokens)
+  - `validateTools()` - Tool definitions (required fields, parameter types)
+  - `validateWorkflow()` - Workflow structure (node references, required fields)
+- 📋 **Detailed Error Reporting**: `formatValidationErrors()` for human-readable output
+- 🎯 **Quick Check**: `isValidAgentConfig()` for boolean validation
+
+#### 🔧 Tools API
+
+- ✨ **Full Tools Management**: Create and manage tools that agents can call
+  - `createTool()` - Create tools with webhooks, parameters, and schemas
+  - `getTool()`, `listTools()` - Query tool information
+  - `updateTool()`, `deleteTool()` - Modify and remove tools
+  - `getDependentAgents()` - Find which agents use a tool
+- 🎨 **Parameter System**: Rich parameter definitions
+  - String, number, boolean, object, array types
+  - Required/optional flags
+  - Enum values for restricted choices
+  - Nested parameters for complex data structures
+- 🔗 **Webhook Integration**: HTTP method support, custom headers, body schemas
+- 🚀 **Helper Functions**: `createSimpleTool()`, `createToolParameter()` for quick setup
+
+#### 📚 Knowledge Base API
+
+- ✨ **Knowledge Base Management**: Full RAG (Retrieval Augmented Generation) support
+  - `createKnowledgeBase()`, `getKnowledgeBase()`, `listKnowledgeBases()` - KB management
+  - `updateKnowledgeBase()`, `deleteKnowledgeBase()` - Modify and remove KBs
+  - `getKnowledgeBaseSize()` - Get storage usage
+  - `getDependentAgents()` - Find which agents use a KB
+- 📄 **Document Management**: Multiple document sources
+  - `createDocumentFromURL()` - Import from web pages, PDFs
+  - `createDocumentFromText()` - Add raw text content
+  - `createDocumentFromFile()` - Upload documents (PDF, Word, etc.)
+  - `listDocuments()`, `getDocument()`, `deleteDocument()` - Document operations
+  - `getDocumentContent()`, `getDocumentChunk()` - Content retrieval
+- 🔍 **RAG Index**: Semantic search capabilities
+  - `computeRAGIndex()` - Build vector embeddings for documents
+  - `getRAGIndex()` - Check indexing status
+  - `getRAGIndexOverview()` - Summary of all knowledge base indexes
+  - `deleteRAGIndex()` - Remove index
+
+#### 🌊 Workflow System
+
+- ✨ **Multi-Agent Workflows**: Orchestrate complex conversations
+  - `StartNode`, `EndNode` - Entry and exit points
+  - `OverrideAgentNode` - Inline agent configuration
+  - `StandaloneAgentNode` - Reference existing agents
+  - `ToolNode` - Execute tool calls
+  - `PhoneNumberNode` - Telephony integration
+- 🔗 **Edge System**: Conditional routing between nodes
+  - Source/target node references
+  - Optional conditions for dynamic routing
+  - Edge ordering for predictable flow
+- 🎨 **Visual Workflow**: Position data for workflow visualization
+
+#### 🔌 Provider Integration
+
+- ✨ **ElevenLabsProvider Enhanced**: Tools and Knowledge Base instances
+  - `provider.tools` - ToolsAPI instance (automatically initialized)
+  - `provider.knowledgeBase` - KnowledgeBaseAPI instance (automatically initialized)
+  - Automatic API key propagation
+  - Clean initialization and disposal
+- 🎯 **Mind API Access**: Convenient accessors
+  - `mind.getToolsAPI()` - Access tools API
+  - `mind.getKnowledgeBaseAPI()` - Access knowledge base API
+
+#### 📖 Documentation & Examples
+
+- 📚 **Comprehensive Examples**: `src/core/mind/examples/README.md`
+  - Basic agent creation
+  - Advanced configuration (TTS, ASR, Turn management)
+  - Tools integration with webhooks
+  - Knowledge base with RAG
+  - Multi-agent workflows
+  - Agent lifecycle management
+  - Conversation management
+  - Complete customer support agent example
+- 🧪 **Test Suite**: `test-agent-apis.ts`
+  - Automated testing for all API endpoints
+  - Agent CRUD operations
+  - Tools API operations
+  - Knowledge Base API operations
+  - RAG index testing
+  - Cleanup and resource management
+- 🎯 **Type Exports**: All types available through main export
+
+#### 🔄 Breaking Changes
+
+- None! This is a pure addition to the existing API surface.
+
+#### 📦 New Dependencies
+
+- None! Uses existing ElevenLabs client (`@elevenlabs/elevenlabs-js`)
+
+#### 🚀 Migration Guide
+
+No migration needed. New features are opt-in:
+
+```typescript
+import { AgentConfigBuilder, createBasicAgentConfig } from 'kwami';
+
+// Old way still works
+const agent = await kwami.mind.createAgent({
+  conversation_config: { /* ... */ }
+});
+
+// New fluent API (recommended)
+const config = new AgentConfigBuilder()
+  .withName('My Agent')
+  .withVoice('voice_id')
+  .withPrompt('You are helpful')
+  .build();
+const agent = await kwami.mind.createAgent(config);
+```
+
+#### 🎓 Usage Examples
+
+**Create Agent with Tools:**
+```typescript
+const config = new AgentConfigBuilder()
+  .withName('Support Agent')
+  .withVoice('voice_id')
+  .withTools([{
+    name: 'create_ticket',
+    description: 'Create support ticket',
+    url: 'https://api.example.com/tickets',
+    parameters: [{
+      name: 'issue',
+      type: 'string',
+      description: 'Issue description',
+      required: true
+    }]
+  }])
+  .build();
+```
+
+**Create Agent with Knowledge Base:**
+```typescript
+const kbAPI = kwami.mind.getKnowledgeBaseAPI();
+const kb = await kbAPI.createKnowledgeBase({
+  name: 'Product Docs',
+  description: 'User manuals'
+});
+
+await kbAPI.createDocumentFromURL(kb.knowledge_base_id, {
+  url: 'https://docs.example.com/manual.pdf'
+});
+
+await kbAPI.computeRAGIndex(kb.knowledge_base_id);
+
+const config = new AgentConfigBuilder()
+  .withName('Doc Agent')
+  .withVoice('voice_id')
+  .withKnowledgeBase([{ knowledge_base_id: kb.knowledge_base_id }])
+  .build();
+```
+
+**Multi-Agent Workflow:**
+```typescript
+const workflow = {
+  nodes: {
+    start: { id: 'start', type: 'start', position: {x: 0, y: 0} },
+    agent1: { id: 'agent1', type: 'override_agent', position: {x: 100, y: 0} },
+    specialist: { id: 'specialist', type: 'standalone_agent', 
+                 agent_id: 'specialist_123', position: {x: 200, y: 0} },
+    end: { id: 'end', type: 'end', position: {x: 300, y: 0} }
+  },
+  edges: {
+    e1: { source: 'start', target: 'agent1' },
+    e2: { source: 'agent1', target: 'specialist', condition: 'escalate' },
+    e3: { source: 'specialist', target: 'end' }
+  }
+};
+
+const config = new AgentConfigBuilder()
+  .withWorkflow(workflow)
+  .build();
+```
+
+---
+
 ## [1.4.0] - 2025-11-15
 
 ### 🚀 Kwami.io - Solana NFT Candy Machine
 
 This version marks a major evolution in the Kwami ecosystem with the introduction of blockchain-based NFTs and the separation of concerns across three platforms:
+
+#### 🧩 Core library (src/*)
+
+- 🧱 **Stable APIs**: No breaking changes to the `@kwami/core` Mind/Body/Soul APIs.
+- 🤝 **Full compatibility**: Core library remains fully compatible with the 1.3.x series; this release focuses on the external `kwami.io` Solana NFT ecosystem and tooling rather than the internal Kwami runtime.
 
 #### 🧬 KWAMI NFT System
 
@@ -289,6 +511,13 @@ This version marks a major evolution in the Kwami ecosystem with the introductio
   - `calm-meditation.json` → `calm-meditation.yaml`
   - `energetic-mode.json` → `energetic-mode.yaml`
   - `focus-session.json` → `focus-session.yaml`
+
+### 🧪 Core Library Testing & Reliability (src/*)
+
+- 🧪 **Full test coverage push**: Added a comprehensive Vitest suite for the core Mind/Body/Soul system, `KwamiAudio`, and the `SpeechSynthesisRecorder` utility (238 tests passing).
+- 🧰 **Realistic test environment**: Improved test infrastructure with WebGL/Web Audio and browser API mocks so `src/core` can be exercised reliably in headless CI.
+- 🎧 **KwamiAudio hardening**: Extended `KwamiAudio` with helper methods (file/track accessors, playback rate & loop controls, stream analysis hooks) and stricter resource disposal to avoid leaks.
+- 💖 **Safer defaults**: Fixed Soul default configuration merging and recorder edge cases to make initialization, error handling, and “no data” scenarios more robust.
 
 ---
 
