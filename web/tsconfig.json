@@ -21,5 +21,6 @@
     "noUnusedParameters": false,
     "noFallthroughCasesInSwitch": true
   },
-  "include": ["src"]
+  "include": ["src"],
+  "exclude": ["node_modules", "../node_modules", "../src", "../playground", "dist"]
 }
