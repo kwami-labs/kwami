@@ -1,4 +1,5 @@
-name: 📦 Publish to npm
+
+ame: 📦 Publish to npm
 
 on:
   push:
