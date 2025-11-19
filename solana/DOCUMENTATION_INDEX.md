@@ -32,7 +32,24 @@
 
 ---
 
-### 2. **Comprehensive Technical Overview**
+### 2. **Token Economics & Payment Model** 💰 ESSENTIAL
+**File:** [`KWAMI_TOKEN_ECONOMICS.md`](./KWAMI_TOKEN_ECONOMICS.md)
+
+**Contains:**
+- Complete dual-token economy (QWAMI + KWAMI NFT)
+- QWAMI minting/burning with SOL/USDC
+- KWAMI NFT payment rules (QWAMI only)
+- Burn refund mechanism (50% return)
+- Master treasury accounting (transparent PDAs)
+- Revenue distribution (80% dividends / 20% ops)
+- Pricing strategy and incentives
+- Economic flows and scenarios
+
+**When to read:** To understand payment flows, treasury, and tokenomics
+
+---
+
+### 3. **Comprehensive Technical Overview**
 **File:** [`COMPREHENSIVE_OVERVIEW.md`](./COMPREHENSIVE_OVERVIEW.md)
 
 **Contains:**

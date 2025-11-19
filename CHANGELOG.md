@@ -118,6 +118,59 @@ Migrating from v0.x to v1.x wasn't a refactor—it was a **ground-up architectur
 
 --- Latest version:
 
+## [1.4.2] - 2025-11-19
+
+### ♻️ Project Structure & Documentation
+
+This release focuses on improving the project structure and adding comprehensive documentation for the Kwami ecosystem.
+
+#### 🎯 Playground Assets Reorganization
+
+- **Assets moved to playground**: Relocated `/assets` folder to `/playground/assets` for better isolation
+  - Images (27 background images, 3 loader GIFs, 2 logo images)
+  - Audio files (sound effects and index)
+  - Video files (3 background videos + links.json)
+- **Updated references**: All playground configuration files updated to use new asset paths
+  - `playground/vite.config.js` - Updated `publicDir` configuration
+  - `playground/main.js` - Updated `import.meta.glob()` patterns
+  - `playground/media-loading-manager.js` - Updated asset imports
+- **Package.json fixes**: Corrected playground scripts to use `vite.config.js` instead of `.ts`
+
+#### 📚 DAO Documentation
+
+- **QUICKSTART.md**: Quick setup guide for the Kwami DAO
+- **README.md**: Comprehensive DAO overview and features
+- **STATUS.md**: Current implementation status and roadmap
+- **New Pages**: Added proposal management and voting interface pages
+
+#### 🏪 Marketplace Documentation
+
+- **CHECKLIST.md**: Pre-launch checklist and testing guide
+- **DEPLOYMENT.md**: Step-by-step deployment instructions
+- **FEATURES.md**: Complete feature documentation
+- **MARKETPLACE_INTEGRATION.md**: Integration guide for developers
+- **MARKETPLACE_SUMMARY.md**: High-level marketplace overview
+- **SETUP_GUIDE.md**: Development setup instructions
+- **START_HERE.md**: Quick navigation guide for marketplace documentation
+
+#### ⛓️ Solana Documentation
+
+- **COMPREHENSIVE_OVERVIEW.md**: Complete Solana integration documentation
+- **DOCUMENTATION_INDEX.md**: Navigation guide for all Solana docs
+- **KWAMI_SUPPLY_SCHEDULE.md**: Token supply and distribution schedule
+
+#### 🌐 Web App Improvements
+
+- **IMPROVEMENT_PLAN.md**: Roadmap for web application enhancements
+
+#### 🎨 Component Updates
+
+- Marketplace UI component refinements
+- DAO interface components
+- Enhanced NFT display and interaction components
+
+---
+
 ## [1.4.1] - 2025-11-19
 
 ### 🧠 Mind - Complete ElevenLabs Conversational AI Agents Integration

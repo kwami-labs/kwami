@@ -143,6 +143,29 @@ Features:
 
 See [Playground README](./playground/README.md) for details.
 
+## 🌐 KWAMI Ecosystem
+
+### 📦 Core Library (`/`)
+The main Kwami library - reusable 3D interactive AI companion with Mind-Body-Soul architecture.
+
+### 🎮 Playground (`/playground`)
+Interactive demo with full configuration UI for testing all Kwami features.
+
+### 🎨 Candy Machine (`/candy`)
+Mint your own KWAMI NFTs on Solana with unique DNA-based validation.
+
+### 🏛️ DAO (`/dao`)
+Decentralized governance platform for KWAMI NFT holders to participate in community decisions.
+
+### 🛒 Marketplace (`/market`)
+Buy, sell, and trade KWAMI NFTs on the Solana blockchain.
+
+### ⛓️ Solana Programs (`/solana`)
+Smart contracts for QWAMI token and KWAMI NFT system.
+
+### 📚 Documentation (`/docs`)
+Complete documentation for all components and APIs.
+
 ## 🎯 Core Concepts
 
 ### Body - Visual Representation
@@ -313,6 +336,31 @@ See [Mind Examples](./src/core/mind/examples/README.md) for comprehensive usage 
 - Candy machine for minting KWAMI NFTs
 - DNA registry with on-chain validation
 - Real-time WebSocket updates (Socket.IO 4.8.1)
+
+### 🏛️ KWAMI DAO - Decentralized Governance
+
+**NEW:** Governance platform for KWAMI NFT holders built with Nuxt 4 and Solana.
+
+```bash
+cd dao
+npm install
+npm run dev
+```
+
+**Features:**
+- 🔌 Multi-wallet support (Phantom, Solflare, Backpack, etc.)
+- ✅ Automatic KWAMI NFT holder verification
+- 💰 QWAMI token balance tracking for governance
+- 📝 Create and vote on proposals
+- 🗳️ Token-weighted voting system
+- 📊 Real-time voting statistics
+
+**DAO Membership:**
+- Own at least 1 KWAMI NFT
+- Hold 100+ QWAMI tokens to participate in governance
+- One QWAMI = One vote
+
+See [dao/README.md](./dao/README.md) for complete documentation.
 
 ---
 

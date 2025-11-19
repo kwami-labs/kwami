@@ -217,12 +217,13 @@ bun test solana
 
 ## 📚 Documentation
 
+- **[KWAMI_SUPPLY_SCHEDULE.md](./KWAMI_SUPPLY_SCHEDULE.md)** ⭐ - 10B supply schedule (2026-2100)
+- **[KWAMI_TOKEN_ECONOMICS.md](./KWAMI_TOKEN_ECONOMICS.md)** 💰 - Complete economic model
+- **[COMPREHENSIVE_OVERVIEW.md](./COMPREHENSIVE_OVERVIEW.md)** - Full technical overview
+- **[DOCUMENTATION_INDEX.md](./DOCUMENTATION_INDEX.md)** - Complete doc navigation
 - **[SETUP.md](./SETUP.md)** - Development environment setup
 - **[anchor/README.md](./anchor/README.md)** - Anchor programs guide
 - **[metaplex/README.md](./metaplex/README.md)** - Metaplex configuration
-- **[../docs/DNA_SYSTEM.md](../docs/DNA_SYSTEM.md)** - DNA system documentation
-- **[../docs/QWAMI_TOKEN.md](../docs/QWAMI_TOKEN.md)** - Token economics
-- **[../docs/KWAMI_NFT_MINTING.md](../docs/KWAMI_NFT_MINTING.md)** - NFT minting guide
 
 ## 🔒 Security
 

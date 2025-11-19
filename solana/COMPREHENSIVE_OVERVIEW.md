@@ -413,10 +413,20 @@ Energy Consumption:
 
 ### Kwami NFT Economics
 
-**Minting Cost:** TBD (paid in QWAMI)  
+**Minting Payment:** QWAMI tokens ONLY (including all transaction fees)  
+**Minting Cost:** Generational pricing (Gen #0: ~10,000 QWAMI, later: lower)  
+**Burn Refund:** 50% QWAMI refund on NFT burn  
 **Metadata Update:** Minimal (~0.01 SOL for Arweave)  
-**Burn-Remint:** Full minting cost + fees  
+**Burn-Remint:** Full minting cost + fees - 50% refund  
 **Royalties:** 5% on secondary sales
+
+**QWAMI Token Minting/Burning:**
+- **Mint QWAMI:** Pay with SOL or USDC → Receive QWAMI
+- **Burn QWAMI:** Burn QWAMI → Receive SOL or USDC
+- **Exchange Rate:** Dynamic, oracle-based ($0.01 USD base)
+- **Reserves:** 110% backing in transparent treasury
+
+**📖 Complete Economic Model:** See [KWAMI_TOKEN_ECONOMICS.md](./KWAMI_TOKEN_ECONOMICS.md)
 
 ---
 
