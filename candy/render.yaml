@@ -1,0 +1,16 @@
+services:
+  - type: web
+    name: kwami-candy-machine
+    env: node
+    plan: free
+    rootDir: candy
+    buildCommand: npm install && npm run build
+    startCommand: node .output/server/index.mjs
+    envVars:
+      - key: NODE_VERSION
+        value: 25.2.1
+      - key: NUXT_PUBLIC_SOLANA_NETWORK
+        value: devnet
+      - key: NUXT_PUBLIC_SOLANA_RPC_URL
+        value: https://api.devnet.solana.com
+
