@@ -5,7 +5,7 @@ services:
     plan: free
     rootDir: candy
     buildCommand: npm install && npm run build
-    startCommand: node .output/server/index.mjs
+    startCommand: cd candy && node .output/server/index.mjs
     envVars:
       - key: NODE_VERSION
         value: 25.2.1

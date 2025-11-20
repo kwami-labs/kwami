@@ -24,8 +24,15 @@ npm install && npm run build
 
 #### Start Command
 ```bash
+cd candy && node .output/server/index.mjs
+```
+
+**Important:** If you set `Root Directory: candy` in Render UI, use:
+```bash
 node .output/server/index.mjs
 ```
+
+But if building from repo root, the start command must include `cd candy &&`.
 
 #### Environment Variables
 
@@ -73,10 +80,10 @@ Ensure all required environment variables are set in Render dashboard under "Env
 
 2. **Configure Service**
    - Name: `kwami-candy-machine`
-   - Root Directory: `candy`
+   - Root Directory: `candy` (or leave empty and use full path in start command)
    - Environment: `Node`
-   - Build Command: `npm install && npm run build`
-   - Start Command: `node .output/server/index.mjs`
+   - Build Command: `npm install && npm run build` (or `npm run build:candy` if root is empty)
+   - Start Command: `cd candy && node .output/server/index.mjs` (or just `node .output/server/index.mjs` if root is `candy`)
 
 3. **Set Environment Variables**
    - Add all required environment variables listed above
