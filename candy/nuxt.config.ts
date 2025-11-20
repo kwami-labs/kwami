@@ -47,7 +47,6 @@ export default defineNuxtConfig({
   modules: [
     '@nuxt/ui',
     '@pinia/nuxt',
-    '@vueuse/nuxt',
   ],
 
   // Vite configuration for Web3 compatibility
