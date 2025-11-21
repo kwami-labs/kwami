@@ -304,8 +304,14 @@ fn get_current_generation_info(timestamp: i64) -> (i64, u64) {
 ### **I want to understand the vision**
 → Start with [`KWAMI_SUPPLY_SCHEDULE.md`](./KWAMI_SUPPLY_SCHEDULE.md)
 
+### **I want to implement the programs**
+→ Follow [`IMPLEMENTATION_ROADMAP.md`](./IMPLEMENTATION_ROADMAP.md)
+
 ### **I want to deploy the programs**
 → Follow [`SETUP.md`](./SETUP.md) then [`anchor/kwami-nft/README.md`](./anchor/kwami-nft/README.md)
+
+### **I want to check project status**
+→ See [`PROJECT_STATUS.md`](./PROJECT_STATUS.md)
 
 ### **I want to integrate the frontend**
 → Read [`COMPREHENSIVE_OVERVIEW.md`](./COMPREHENSIVE_OVERVIEW.md) Integration section

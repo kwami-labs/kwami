@@ -1,0 +1,45 @@
+services:
+  - type: web
+    name: kwami-dao
+    runtime: node
+    plan: starter
+    region: oregon
+    buildCommand: npm run build:dao
+    startCommand: cd dao && node .output/server/index.mjs
+    envVars:
+      - key: NODE_VERSION
+        value: 22.16.0
+      - key: NUXT_PUBLIC_SOLANA_NETWORK
+        value: devnet
+      - key: NUXT_PUBLIC_SOLANA_RPC_URL
+        value: https://api.devnet.solana.com
+      - key: NUXT_PUBLIC_KWAMI_NFT_PROGRAM_ID
+        sync: false
+      - key: NUXT_PUBLIC_QWAMI_TOKEN_MINT
+        sync: false
+      - key: NUXT_PUBLIC_KWAMI_COLLECTION_ADDRESS
+        sync: false
+
+  - type: web
+    name: kwami-marketplace
+    runtime: node
+    plan: starter
+    region: oregon
+    buildCommand: npm run build:market
+    startCommand: cd market && node .output/server/index.mjs
+    envVars:
+      - key: NODE_VERSION
+        value: 22.16.0
+      - key: NUXT_PUBLIC_SOLANA_NETWORK
+        value: devnet
+      - key: NUXT_PUBLIC_SOLANA_RPC_URL
+        value: https://api.devnet.solana.com
+      - key: NUXT_PUBLIC_KWAMI_NFT_PROGRAM_ID
+        value: 11111111111111111111111111111111
+      - key: NUXT_PUBLIC_KWAMI_COLLECTION_MINT
+        sync: false
+      - key: NUXT_PUBLIC_KWAMI_COLLECTION_AUTHORITY
+        sync: false
+      - key: NUXT_PUBLIC_KWAMI_DNA_REGISTRY
+        sync: false
+
