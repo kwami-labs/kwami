@@ -7,6 +7,60 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [1.5.0] - 2025-11-19
+
+### 🏛️ Added - KWAMI DAO (Governance Platform)
+
+**NEW: Complete decentralized governance platform for KWAMI NFT holders**
+
+#### Features
+- Multi-Wallet Integration (7+ Solana wallets via solana-wallets-vue v0.7.1)
+- KWAMI NFT holder verification with Metaplex
+- QWAMI token-weighted voting system
+- Create and vote on proposals (For/Against/Abstain)
+- Beautiful responsive UI with Nuxt 4 and Nuxt UI
+- Real-time voting statistics and proposal tracking
+
+#### Tech Stack
+- Nuxt 4 with Vue 3 Composition API
+- Pinia stores (wallet, nft, qwami, governance)
+- solana-wallets-vue for multi-wallet support
+- @solana/web3.js and @metaplex-foundation/js
+- Full TypeScript with strict mode
+
+#### Deployment Ready
+- Render.com configuration with render.yaml
+- Build tested: ✔ Client 16.3s, Server 336ms
+- Health check endpoint at /api/health
+- Node.js polyfills for Web3 libraries
+- Production-optimized Vite config
+
+#### Documentation
+- Complete README (350+ lines)
+- Quick start guide (5-minute setup)
+- Render deployment instructions
+- Testing checklist
+- Project summary and deployment guide
+
+#### Scripts
+- `npm run dao` - Development server
+- `npm run build:dao` - Production build
+- `npm run preview:dao` - Preview build
+
+### 📚 Documentation
+- Added comprehensive DAO documentation suite
+- Created PROJECT_SUMMARY.md with complete ecosystem overview
+- Added FINAL_DEPLOYMENT_GUIDE.md for production deployment
+- Updated main README with DAO section and ecosystem structure
+
+### 🔧 Fixed
+- Updated solana-wallets-vue from ^0.6.2 to ^0.7.1
+- Added crypto-browserify, stream-browserify, util polyfills
+- Fixed Vite configuration for Web3 compatibility
+- Resolved build issues for Render.com deployment
+
+---
+
 ## 🧬 Project Evolution: From Sequential Pipeline to Real-Time Streaming
 
 ### The Journey of Kwami

@@ -7,7 +7,7 @@ export default defineNuxtConfig({
   experimental: {
     appManifest: false,
   },
-  
+
   // Disable SSR for Web3 compatibility
   ssr: false,
 
@@ -18,9 +18,9 @@ export default defineNuxtConfig({
       meta: [
         { charset: 'utf-8' },
         { name: 'viewport', content: 'width=device-width, initial-scale=1' },
-        { 
-          name: 'description', 
-          content: 'KWAMI DAO governance platform. Connect with your KWAMI NFT to participate in governance using QWAMI tokens.' 
+        {
+          name: 'description',
+          content: 'KWAMI DAO governance platform. Connect with your KWAMI NFT to participate in governance using QWAMI tokens.'
         },
         { property: 'og:title', content: 'KWAMI DAO - Governance Platform' },
         { property: 'og:description', content: 'Decentralized governance for KWAMI NFT holders' },
@@ -43,6 +43,23 @@ export default defineNuxtConfig({
     }
   },
 
+  // Nitro preset for Render.com
+  nitro: {
+    preset: 'node-server',
+    esbuild: {
+      options: {
+        target: 'esnext',
+      },
+    },
+    externals: {
+      inline: [
+        'whatwg-url',
+        'tr46',
+        'webidl-conversions',
+      ],
+    },
+  },
+
   // Modules
   modules: [
     '@nuxt/ui',
@@ -58,10 +75,26 @@ export default defineNuxtConfig({
     resolve: {
       alias: {
         buffer: 'buffer',
+        stream: 'stream-browserify',
+        crypto: 'crypto-browserify',
+        util: 'util',
       },
     },
     optimizeDeps: {
-      include: ['@solana/web3.js', '@coral-xyz/anchor', 'buffer'],
+      include: [
+        'buffer',
+        'stream-browserify',
+        'util',
+      ],
+      exclude: [
+        '@solana/web3.js',
+        '@coral-xyz/anchor',
+        '@metaplex-foundation/js',
+        '@irys/query',
+        'whatwg-url',
+        'tr46',
+        'webidl-conversions',
+      ],
       esbuildOptions: {
         target: 'esnext',
         define: {
@@ -71,17 +104,16 @@ export default defineNuxtConfig({
     },
     build: {
       target: 'esnext',
-    },
-  },
-
-  // Nitro configuration
-  nitro: {
-    esbuild: {
-      options: {
-        target: 'esnext',
+      commonjsOptions: {
+        include: [/node_modules/],
+        transformMixedEsModules: true,
+      },
+      rollupOptions: {
+        external: ['stream', 'crypto', 'fs', 'path'],
       },
     },
   },
+
 
   // TypeScript configuration
   typescript: {
