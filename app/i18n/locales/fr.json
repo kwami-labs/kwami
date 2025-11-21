@@ -1,0 +1,10 @@
+{
+  "error": {
+    "404": {
+      "title": "Page introuvable",
+      "description": "La page que vous cherchez n’existe pas ou a été déplacée.",
+      "description2": "Vérifiez l’URL ou retournez à l’accueil.",
+      "btn": "Aller à l’accueil"
+    }
+  }
+}

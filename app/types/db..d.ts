@@ -1,0 +1,1 @@
+type table = 'kwami.body_blob'
