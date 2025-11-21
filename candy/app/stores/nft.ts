@@ -1,5 +1,7 @@
 import { defineStore } from 'pinia'
 import type { PublicKey } from '@solana/web3.js'
+import { uploadImageToArweave, uploadMetadataToArweave, configToAttributes } from '~/utils/arweaveUpload'
+import { checkDnaExists as checkDnaOnChain, mintKwamiNft, fetchOwnedKwamis, getTotalMintedCount, burnKwamiNft } from '~/utils/solanaHelpers'
 
 export interface KwamiNFT {
   mint: string
@@ -25,18 +27,21 @@ export const useNFTStore = defineStore('nft', () => {
   // Current KWAMI being created
   const currentDna = ref<string | null>(null)
   const currentMetadata = ref<any>(null)
+  const currentBlobConfig = ref<any>(null)
   
   // Fetch user's owned KWAMIs
   const fetchOwnedNfts = async () => {
-    if (!walletStore.connected) return
+    if (!walletStore.connected || !walletStore.wallet) return
     
     try {
       loading.value = true
-      // TODO: Implement fetching NFTs from blockchain
-      // This would use Metaplex SDK to fetch all NFTs owned by the wallet
-      // that belong to the KWAMI collection
+      error.value = null
       
-      ownedNfts.value = []
+      // Fetch NFTs from blockchain
+      const nfts = await fetchOwnedKwamis(walletStore.wallet.publicKey!)
+      ownedNfts.value = nfts
+      
+      console.log(`[NFT Store] Fetched ${nfts.length} owned KWAMIs`)
     } catch (err: any) {
       console.error('Error fetching owned NFTs:', err)
       error.value = err.message
@@ -48,10 +53,10 @@ export const useNFTStore = defineStore('nft', () => {
   // Fetch global statistics
   const fetchStats = async () => {
     try {
-      // TODO: Implement fetching total minted count from blockchain
-      // This would read the collection_authority account
+      const count = await getTotalMintedCount()
+      totalMinted.value = count
       
-      totalMinted.value = 0
+      console.log(`[NFT Store] Total minted: ${count}`)
     } catch (err: any) {
       console.error('Error fetching stats:', err)
     }
@@ -80,10 +85,12 @@ export const useNFTStore = defineStore('nft', () => {
   const checkDnaExists = async (dna: string): Promise<boolean> => {
     try {
       mintingStatus.value = 'checking'
-      // TODO: Implement checking DNA registry on-chain
-      // This would call the check_dna_exists instruction
       
-      return false
+      // Check DNA on blockchain
+      const exists = await checkDnaOnChain(dna)
+      
+      console.log(`[NFT Store] DNA exists: ${exists}`)
+      return exists
     } catch (err: any) {
       console.error('Error checking DNA:', err)
       throw err
@@ -92,7 +99,7 @@ export const useNFTStore = defineStore('nft', () => {
   
   // Mint a new KWAMI NFT
   const mintKwami = async (config: any, metadata: { name: string; description: string }) => {
-    if (!walletStore.connected) {
+    if (!walletStore.connected || !walletStore.wallet) {
       throw new Error('Wallet not connected')
     }
     
@@ -108,31 +115,57 @@ export const useNFTStore = defineStore('nft', () => {
         throw new Error('This KWAMI DNA already exists! Try modifying the configuration.')
       }
       
-      // Upload assets to Arweave
+      // Upload image to Arweave
       mintingStatus.value = 'uploading'
-      // TODO: Implement asset upload
-      const imageUri = 'https://arweave.net/...'
+      const imageResult = await uploadImageToArweave(
+        config,
+        walletStore.wallet.publicKey!.toBase58()
+      )
+      
+      console.log('[NFT Store] Image uploaded:', imageResult.uri)
+      
+      // Convert configuration to attributes
+      const attributes = configToAttributes(config)
       
       // Prepare metadata
       const metadataJson = {
         name: metadata.name,
         symbol: 'KWAMI',
         description: metadata.description,
-        image: imageUri,
-        attributes: [], // TODO: Convert config to attributes
+        image: imageResult.uri,
+        attributes,
         properties: {
-          files: [{ uri: imageUri, type: 'image/png' }],
+          files: [{ uri: imageResult.uri, type: 'image/png' }],
           category: 'image',
+          creators: [
+            {
+              address: walletStore.wallet.publicKey!.toBase58(),
+              share: 100,
+            },
+          ],
         },
+        dna,
       }
       
       // Upload metadata to Arweave
-      const metadataUri = 'https://arweave.net/...'
+      const metadataResult = await uploadMetadataToArweave(
+        metadataJson,
+        walletStore.wallet.publicKey!.toBase58()
+      )
+      
+      console.log('[NFT Store] Metadata uploaded:', metadataResult.uri)
       currentMetadata.value = metadataJson
       
       // Mint NFT on-chain
       mintingStatus.value = 'minting'
-      // TODO: Implement minting instruction call
+      const mintAddress = await mintKwamiNft(
+        walletStore.wallet,
+        dna,
+        metadataResult.uri,
+        metadata.name
+      )
+      
+      console.log('[NFT Store] KWAMI minted:', mintAddress)
       
       mintingStatus.value = 'success'
       
@@ -173,7 +206,7 @@ export const useNFTStore = defineStore('nft', () => {
   
   // Burn KWAMI (to change DNA)
   const burnKwami = async (mint: string) => {
-    if (!walletStore.connected) {
+    if (!walletStore.connected || !walletStore.wallet) {
       throw new Error('Wallet not connected')
     }
     
@@ -181,7 +214,10 @@ export const useNFTStore = defineStore('nft', () => {
       loading.value = true
       error.value = null
       
-      // TODO: Implement burn instruction call
+      // Burn NFT on-chain
+      await burnKwamiNft(walletStore.wallet, mint)
+      
+      console.log('[NFT Store] KWAMI burned:', mint)
       
       await fetchOwnedNfts()
       await fetchStats()
@@ -192,6 +228,11 @@ export const useNFTStore = defineStore('nft', () => {
     } finally {
       loading.value = false
     }
+  }
+  
+  // Update blob configuration
+  const setBlobConfig = (config: any) => {
+    currentBlobConfig.value = config
   }
   
   // Reset minting status
@@ -210,6 +251,7 @@ export const useNFTStore = defineStore('nft', () => {
     error,
     currentDna,
     currentMetadata,
+    currentBlobConfig,
     fetchOwnedNfts,
     fetchStats,
     calculateDNA,
@@ -218,6 +260,7 @@ export const useNFTStore = defineStore('nft', () => {
     updateMetadata,
     burnKwami,
     resetMintingStatus,
+    setBlobConfig,
   }
 })
 

@@ -160,9 +160,10 @@ const generateDna = async () => {
   const { calculateKwamiDNA } = await import('~/utils/calculateKwamiDNA')
   dna.value = calculateKwamiDNA(blobConfig)
   
-  // Update NFT store with current DNA
+  // Update NFT store with current DNA and configuration
   const nftStore = useNFTStore()
   nftStore.currentDna = dna.value
+  nftStore.setBlobConfig({ ...blobConfig })
 }
 
 const randomize = async () => {

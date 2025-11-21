@@ -122,9 +122,15 @@ const handleMint = async () => {
   if (!isFormValid.value) return
   
   try {
-    const config = {
-      // TODO: Get actual blob configuration
-      body: {}
+    // Get blob configuration from NFT store
+    const config = nftStore.currentBlobConfig || {
+      // Fallback to default configuration
+      body: {
+        resolution: 128,
+        colors: { x: 0.8, y: 0.2, z: 0.9 },
+        spikes: { x: 0.3, y: 0.3, z: 0.3 },
+        rotation: { x: 0.01, y: 0.01, z: 0.01 },
+      }
     }
     
     await nftStore.mintKwami(config, {
