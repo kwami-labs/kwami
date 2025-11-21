@@ -7,10 +7,10 @@ High-level architecture overview for Kwami v1.3.0. For detailed component archit
 Kwami follows a **Mind-Body-Soul** architecture pattern:
 
 ```
-┌─────────────────────────────────────────────────────────┐
-│                         KWAMI                           │
-│                  (Main Orchestrator)                    │
-│                                                         │
+┌────────────────────────────────────────────────────────┐
+│                         KWAMI                          │
+│                  (Main Orchestrator)                   │
+│                                                        │
 │  ┌──────────────┐  ┌──────────────┐  ┌──────────────┐  │
 │  │    BODY      │  │    MIND      │  │    SOUL      │  │
 │  │  (Visual)    │  │  (AI/Voice)  │  │ (Personality)│  │
