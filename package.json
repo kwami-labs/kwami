@@ -24,10 +24,12 @@
     "web": "vite --config web/vite.config.ts --port 3331",
     "build:web": "vite build --config web/vite.config.ts",
     "preview:web": "vite preview --config web/vite.config.ts",
-    "pg": "npm run playground",
     "playground": "vite --config pg/vite.config.js --port 3332",
     "build:playground": "vite build --config pg/vite.config.js",
     "preview:playground": "vite preview --config pg/vite.config.js",
+    "pg": "npm run playground",
+    "build:pg": "npm run build:playground",
+    "preview:pg": "npm run preview:playground",
     "app": "npm run dev -w app",
     "build:app": "npm run build -w app",
     "preview:app": "npm run preview -w app",
@@ -40,7 +42,9 @@
     "market": "npm run dev -w market",
     "build:market": "npm run build -w market",
     "preview:market": "npm run preview -w market",
-    "publish:kwami": "npm publish -w kwami"
+    "publish:kwami": "npm publish -w kwami",
+    "version:kwami": "npm view kwami",
+    "sync-version": "node scripts/sync-version.js"
   },
   "devDependencies": {
     "@types/node": "^24.10.1",
