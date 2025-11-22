@@ -5,6 +5,7 @@ import './loading.css';
 import './mobile.css';
 import './social.css';
 import './theme.css';
+import './onboarding.css';
 import { Kwami } from 'kwami';
 import { t, changeLanguage, getCurrentLanguage, updatePageTranslations, createLanguageSwitcher } from './i18n';
 import { WelcomeLayer } from './components/WelcomeLayer';
@@ -17,6 +18,8 @@ import { initLoadingStates, showBlobLoading, hideBlobLoading, lazyLoadMedia } fr
 import { initMobileUX } from './mobile';
 import { initSocialFeatures } from './social';
 import { initTheme, initPerformanceOptimizer } from './theme';
+import { initOnboarding, initQuickActions } from './onboarding';
+import { initMiniMap } from './minimap';
 
 // Video files from public/video/ directory
 // Add more video files here as you add them to web/public/video/
@@ -1302,6 +1305,21 @@ document.addEventListener('DOMContentLoaded', () => {
   const socialFeatures = initSocialFeatures();
   const themeManager = initTheme();
   const perfOptimizer = initPerformanceOptimizer();
+  
+  // Initialize Phase 4 features
+  const onboardingTour = initOnboarding();
+  const quickActions = initQuickActions();
+  const miniMap = initMiniMap();
+  
+  // Make available globally for command palette
+  (window as any).socialFeatures = socialFeatures;
+  (window as any).themeManager = themeManager;
+  (window as any).onboardingTour = onboardingTour;
+  
+  // Auto-start tour for first-time users
+  setTimeout(() => {
+    onboardingTour.start();
+  }, 2000);
   
   // Initialize welcome layer
   new WelcomeLayer();
