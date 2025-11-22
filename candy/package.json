@@ -12,10 +12,16 @@
     "postinstall": "nuxt prepare",
     "lint": "eslint .",
     "lint:fix": "eslint . --fix",
-    "typecheck": "nuxt typecheck"
+    "typecheck": "nuxt typecheck",
+    "anchor:build": "./scripts/build-anchor.sh",
+    "anchor:test": "./scripts/test-anchor.sh",
+    "anchor:deploy": "./scripts/deploy-anchor.sh devnet",
+    "anchor:deploy:mainnet": "./scripts/deploy-anchor.sh mainnet-beta"
   },
   "dependencies": {
+    "@bundlr-network/client": "^0.11.17",
     "@coral-xyz/anchor": "^0.29.0",
+    "@irys/sdk": "^0.2.8",
     "@metaplex-foundation/js": "^0.20.1",
     "@metaplex-foundation/mpl-token-metadata": "^3.2.1",
     "@nuxt/hints": "1.0.0-alpha.1",
@@ -27,6 +33,7 @@
     "@solana/wallet-adapter-base": "^0.9.23",
     "@solana/wallet-adapter-wallets": "^0.19.32",
     "@solana/web3.js": "^1.95.0",
+    "arweave": "^1.15.1",
     "bs58": "^5.0.0",
     "buffer": "^6.0.3",
     "crypto-js": "^4.2.0",

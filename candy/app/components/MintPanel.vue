@@ -106,6 +106,10 @@
 </template>
 
 <script setup lang="ts">
+const props = defineProps<{
+  blobPreviewRef?: any
+}>()
+
 const wallet = useWalletStore()
 const nftStore = useNFTStore()
 
@@ -122,21 +126,43 @@ const handleMint = async () => {
   if (!isFormValid.value) return
   
   try {
-    // Get blob configuration from NFT store
-    const config = nftStore.currentBlobConfig || {
+    // Get blob configuration and capture image
+    let config: any
+    let imageBuffer: Buffer | null = null
+    
+    if (props.blobPreviewRef) {
+      // Get configuration from BlobPreview component
+      config = props.blobPreviewRef.getConfig()
+      
+      // Capture image from canvas
+      imageBuffer = await props.blobPreviewRef.captureImage()
+      
+      if (!imageBuffer) {
+        console.warn('[MintPanel] Failed to capture image, continuing with mock')
+      }
+    } else {
       // Fallback to default configuration
-      body: {
+      console.warn('[MintPanel] BlobPreview ref not available, using default config')
+      config = {
         resolution: 128,
         colors: { x: 0.8, y: 0.2, z: 0.9 },
         spikes: { x: 0.3, y: 0.3, z: 0.3 },
         rotation: { x: 0.01, y: 0.01, z: 0.01 },
+        baseScale: 1.5,
+        shininess: 50,
+        opacity: 1.0,
       }
     }
     
+    // Store config and image buffer
+    nftStore.setBlobConfig(config)
+    nftStore.setImageBuffer(imageBuffer)
+    
+    // Mint KWAMI
     await nftStore.mintKwami(config, {
       name: form.name.trim(),
       description: form.description.trim(),
-    })
+    }, imageBuffer)
   } catch (error: any) {
     console.error('Minting failed:', error)
   }

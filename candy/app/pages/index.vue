@@ -54,7 +54,7 @@
               <template #header>
                 <h3 class="text-2xl font-bold">Preview Your KWAMI</h3>
               </template>
-              <BlobPreview />
+              <BlobPreview ref="blobPreviewRef" />
             </UCard>
 
             <!-- Mint Panel -->
@@ -62,7 +62,7 @@
               <template #header>
                 <h3 class="text-2xl font-bold">Create & Mint</h3>
               </template>
-              <MintPanel />
+              <MintPanel :blob-preview-ref="blobPreviewRef" />
             </UCard>
           </div>
         </div>
@@ -80,7 +80,7 @@
       <UContainer>
         <div class="text-center text-gray-500">
           <p>© 2025 Kwami.io - Powered by Solana Blockchain</p>
-          <p class="text-sm mt-2">Part of the Quami Ecosystem</p>
+          <p class="text-sm mt-2">Part of the KWAMI Ecosystem</p>
         </div>
       </UContainer>
     </footer>
@@ -90,6 +90,7 @@
 <script setup lang="ts">
 const wallet = useWalletStore()
 const nftStore = useNFTStore()
+const blobPreviewRef = ref<any>(null)
 
 // Get minting statistics
 const mintedCount = ref(0)
