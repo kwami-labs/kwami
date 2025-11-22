@@ -6,7 +6,7 @@ import {
   getRandomBoolean,
   randomNumber,
   genDNA,
-} from '../../utils/randoms';
+} from '../../src/utils/randoms';
 
 describe('Random Utilities', () => {
   beforeEach(() => {

@@ -1,4 +1,4 @@
-import type { Scene, PerspectiveCamera, WebGLRenderer } from '../../node_modules/@types/three';
+import type { Scene, PerspectiveCamera, WebGLRenderer } from 'three';
 import type { KwamiAudio } from '../core/body/Audio';
 
 /**

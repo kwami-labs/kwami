@@ -18,7 +18,7 @@ declare module '*.glsl' {
 
 // Declare module for Three.js OrbitControls
 declare module 'three/addons/controls/OrbitControls' {
-  import { Camera, EventDispatcher, MOUSE, TOUCH, Vector3 } from '../../node_modules/@types/three';
+  import { Camera, EventDispatcher, MOUSE, TOUCH, Vector3 } from 'three';
 
   export class OrbitControls extends EventDispatcher {
     constructor(object: Camera, domElement?: HTMLElement);

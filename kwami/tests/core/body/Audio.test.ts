@@ -1,6 +1,6 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
-import { KwamiAudio } from '../../../core/body/Audio';
-import type { AudioConfig } from '../../../types';
+import { KwamiAudio } from '../../../src/core/body/Audio';
+import type { AudioConfig } from '../../../src/types';
 
 describe('KwamiAudio', () => {
   beforeEach(() => {

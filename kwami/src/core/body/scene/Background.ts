@@ -11,7 +11,7 @@ import {
   WebGLRenderTarget,
   Color,
   Vector2,
-} from '../../../../node_modules/@types/three';
+} from 'three';
 
 export interface BackgroundConfig {
   type: 'solid' | 'gradient' | 'image' | 'transparent';

@@ -7,7 +7,7 @@ import {
   PCFSoftShadowMap,
   Color,
   CanvasTexture,
-} from '../../../../node_modules/@types/three';
+} from 'three';
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
 import type { SceneConfig } from '../../../types';
 
