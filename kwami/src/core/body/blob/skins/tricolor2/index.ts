@@ -1,4 +1,4 @@
-import { ShaderMaterial, Color, Vector3 } from 'three';
+import { ShaderMaterial, Color, Vector3 } from '../../../../../../node_modules/@types/three';
 import vertexShader from './vertex.glsl?raw';
 import fragmentShader from './fragment.glsl?raw';
 import type { TricolorSkinConfig } from '../../../../../types/index';

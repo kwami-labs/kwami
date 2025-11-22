@@ -2,7 +2,7 @@
 
 An **independent, reusable** 3D Interactive AI Companion Library for creating engaging AI companions with visual (blob), audio, and AI capabilities.
 
-> **Version 1.4.1** - [See what's new](#whats-new-in-v141)
+> **Version 1.5.2** - [See what's new](#whats-new)
 
 [![npm version](https://img.shields.io/npm/v/kwami.svg)](https://www.npmjs.com/package/kwami)
 [![License](https://img.shields.io/badge/license-Dual%20License-blue.svg)](./LICENSE)
@@ -294,9 +294,26 @@ await kwami.mind.startConversation({
 });
 ```
 
-## What's New in v1.4.1
+## What's New
 
-### 🧠 Complete ElevenLabs Conversational AI Agents Integration
+### v1.5.2 - Project Structure Finalization
+
+- **Configuration Management**: Moved config files to appropriate modules
+- **Web Enhancements**: Added onboarding flow and minimap navigation
+- **Solana Infrastructure**: Comprehensive deployment scripts and documentation
+- **Documentation**: Reorganized GitHub and module-specific docs
+
+### v1.5.1 - Kwami App & Ecosystem Updates
+
+- **NEW: Kwami App**: Production-ready Nuxt 4 web application
+- **Documentation Overhaul**: Restructured into numbered sections
+- **Module Updates**: Candy, Solana, Web, DAO, Marketplace enhancements
+- **Playground**: Reorganized to `pg/` directory
+- **Core Library**: Moved to `kwami/` directory
+
+### v1.4.1 - ElevenLabs Agents
+
+**Complete ElevenLabs Conversational AI Agents Integration**
 
 **Professional-grade agent management with Tools and Knowledge Base:**
 
@@ -492,4 +509,4 @@ Built with:
 
 **Made with ❤️ by the KWAMI team**
 
-Current version: **1.4.1**
+Current version: **1.5.2**

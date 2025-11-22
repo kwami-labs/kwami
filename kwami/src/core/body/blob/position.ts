@@ -1,4 +1,4 @@
-import type { Mesh, PerspectiveCamera } from 'three';
+import type { Mesh, PerspectiveCamera } from '../../../../node_modules/@types/three';
 
 /**
  * BlobPosition - Manages normalized position coordinates for the blob
@@ -105,7 +105,7 @@ export class BlobPosition {
     // Calculate distance from camera to the blob's z position (or default if not set)
     // Use the camera's lookAt point (0,0,0) as reference
     const distance = Math.abs(this.camera.position.z);
-    
+
     // Get camera's field of view and calculate visible height at that distance
     const fov = this.camera.fov * (Math.PI / 180); // Convert to radians
     const visibleHeight = 2 * Math.tan(fov / 2) * distance;

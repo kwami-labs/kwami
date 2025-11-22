@@ -10,7 +10,7 @@ import {
   KeepStencilOp,
   ReplaceStencilOp,
   type ShaderMaterial,
-} from 'three';
+} from '../../../../node_modules/@types/three';
 import { GLTFExporter } from 'three/addons/exporters/GLTFExporter.js';
 import { createBlobGeometry } from './geometry';
 import { animateBlob } from './animation';
@@ -62,29 +62,29 @@ export class Blob {
     duration: number;
   }> = [];
   private clickEnabled = false;
-  
+
   // Touch configuration
   public touchStrength = 1.0;
   public touchDuration = 1100;
   public maxTouchPoints = 5;
-  
+
   // Conversation callback
   public onConversationToggle?: () => Promise<void>;
-  
+
   // Custom double-click callback (overrides default behavior)
   public onDoubleClick?: () => void | Promise<void>;
-  
+
   // Listening mode (inverts spikes)
   public isListening = false;
   private listeningTransition = 0; // 0 to 1
-  
+
   // Thinking mode (random chaotic animation)
   public isThinking = false;
   private thinkingTimeout: number | null = null;
   private thinkingStartTime: number = 0;
   private thinkingTransition = 0; // 0 to 1
   public thinkingDuration = 10000; // milliseconds
-  
+
   // State transition speed (how fast to blend between states)
   public transitionSpeed = 0.05; // 5% per frame (~1 second at 60fps)
 
@@ -93,7 +93,7 @@ export class Blob {
   public amplitude = { x: 0.8, y: 0.8, z: 0.8 }; // Frequency amplitude (depth of noise)
   public time = { x: 1, y: 1, z: 1 };
   public rotation = { x: 0, y: 0, z: 0 };
-  
+
   // Audio effect parameters (configurable from playground)
   public audioEffects = {
     bassSpike: 0.65,
@@ -116,7 +116,7 @@ export class Blob {
   public dna = '';
   private backgroundTexture: Texture | null = null;
   private glassModeEnabled = false;
-  
+
   // Position management system
   public position: BlobPosition;
 
@@ -181,20 +181,20 @@ export class Blob {
     if (options.rotation) {
       this.rotation = options.rotation;
     }
-    
+
     // Note: Colors are already baked into materials during initializeSkins()
     // No need to call setColors here
-    
+
     // Apply shininess from options
     if (options.shininess !== undefined) {
       this.setShininess(options.shininess);
     }
-    
+
     // Apply wireframe from options
     if (options.wireframe !== undefined) {
       this.setWireframe(options.wireframe);
     }
-    
+
     // Apply initial position if provided in config
     // Note: position config comes from the parent BlobConfig, not BlobOptions
     // This will be handled by the Body class after blob creation
@@ -328,23 +328,23 @@ export class Blob {
       } else {
         this.listeningTransition = Math.max(0, this.listeningTransition - this.transitionSpeed);
       }
-      
+
       // Thinking transition
       if (this.isThinking) {
         this.thinkingTransition = Math.min(1, this.thinkingTransition + this.transitionSpeed);
       } else {
         this.thinkingTransition = Math.max(0, this.thinkingTransition - this.transitionSpeed);
       }
-      
+
       const analyser = this.options.audio.getAnalyser();
       if (analyser) {
         const frequencyData = this.options.audio.getFrequencyData() as Uint8Array<ArrayBuffer>;
-        
+
         // Calculate thinking progress if in thinking mode
-        const thinkingProgress = this.isThinking 
+        const thinkingProgress = this.isThinking
           ? (Date.now() - this.thinkingStartTime) / this.thinkingDuration // 0 to 1 over duration
           : 0;
-        
+
         const audioDriven = animateBlob(
           this.mesh,
           frequencyData,
@@ -423,7 +423,7 @@ export class Blob {
       const currentMaterial = this.mesh.material as ShaderMaterial;
       const currentShininess = currentMaterial.uniforms?.shininess?.value || 50;
       const currentWireframe = currentMaterial.wireframe;
-      
+
       this.currentSkin = normalizedSkin;
       this.mesh.material = material;
       this.applyBackgroundTextureToMaterial(material);
@@ -432,17 +432,17 @@ export class Blob {
         (material as ShaderMaterial).uniforms.opacity.value = this.opacity;
       }
       this.updateMaterialOpacity(this.opacity);
-      
+
       // Apply current colors to the new material
       this.setColor('x', this.colors.x);
       this.setColor('y', this.colors.y);
       this.setColor('z', this.colors.z);
-      
+
       // Apply current shininess to the new material
       if (material.uniforms.shininess) {
         material.uniforms.shininess.value = currentShininess;
       }
-      
+
       // Apply current wireframe state to the new material
       material.wireframe = currentWireframe;
 
@@ -535,12 +535,12 @@ export class Blob {
   setColor(axis: 'x' | 'y' | 'z', color: string): void {
     this.colors[axis] = color;
     const uniformMap = { x: '_color1', y: '_color2', z: '_color3' };
-    
+
     // Update all skins that use colors
     const tricolorMaterial = this.skins.get('tricolor') as ShaderMaterial;
     const tricolor2Material = this.skins.get('tricolor2') as ShaderMaterial;
     const zebraMaterial = this.skins.get('zebra') as ShaderMaterial;
-    
+
     if (tricolorMaterial && tricolorMaterial.uniforms[uniformMap[axis]]) {
       tricolorMaterial.uniforms[uniformMap[axis]].value = new Color(color);
     }
@@ -550,7 +550,7 @@ export class Blob {
     if (zebraMaterial && zebraMaterial.uniforms[uniformMap[axis]]) {
       zebraMaterial.uniforms[uniformMap[axis]].value = new Color(color);
     }
-    
+
     // Update light colors if lights are active
     this.updateLightColors();
   }
@@ -653,7 +653,7 @@ export class Blob {
    */
   setLightIntensity(intensity: number): void {
     this.lightIntensity = intensity;
-    
+
     if (intensity > 0) {
       // Create lights if they don't exist
       if (!this.lights) {
@@ -685,17 +685,17 @@ export class Blob {
     const lightX = new PointLight(new Color(this.colors.x).getHex(), this.lightIntensity, 10);
     const lightY = new PointLight(new Color(this.colors.y).getHex(), this.lightIntensity, 10);
     const lightZ = new PointLight(new Color(this.colors.z).getHex(), this.lightIntensity, 10);
-    
+
     // Position lights around the blob
     lightX.position.set(3, 0, 0);
     lightY.position.set(0, 3, 0);
     lightZ.position.set(0, 0, 3);
-    
+
     // Add lights to the scene
     this.options.scene.add(lightX);
     this.options.scene.add(lightY);
     this.options.scene.add(lightZ);
-    
+
     this.lights = { x: lightX, y: lightY, z: lightZ };
   }
 
@@ -835,7 +835,7 @@ export class Blob {
     const canvas = this.options.renderer.domElement;
     const raycaster = new Raycaster();
     const mouse = new Vector2();
-    
+
     // Mouse drag rotation variables
     let isDragging = false;
     let previousMousePosition = { x: 0, y: 0 };
@@ -851,18 +851,18 @@ export class Blob {
 
       // Check for intersections
       const intersects = raycaster.intersectObject(this.mesh);
-      
+
       if (intersects.length > 0) {
         const intersect = intersects[0];
         if (intersect.point) {
           // Convert world position to local position
           const localPoint = this.mesh.worldToLocal(intersect.point.clone());
-          
+
           // Limit to maximum active touch points to prevent over-stacking
           if (this.touchPoints.length >= this.maxTouchPoints) {
             this.touchPoints.shift(); // Remove oldest touch point
           }
-          
+
           // Add touch point with smooth decay
           this.touchPoints.push({
             position: localPoint,
@@ -877,7 +877,7 @@ export class Blob {
     // Handle double-click for conversation mode
     const handleDoubleClick = async (event: MouseEvent) => {
       event.preventDefault();
-      
+
       // Calculate mouse position
       const rect = canvas.getBoundingClientRect();
       mouse.x = ((event.clientX - rect.left) / rect.width) * 2 - 1;
@@ -888,7 +888,7 @@ export class Blob {
 
       // Check for intersections
       const intersects = raycaster.intersectObject(this.mesh);
-      
+
       if (intersects.length > 0) {
         // Priority 1: Custom double-click callback (user-defined behavior)
         if (this.onDoubleClick) {
@@ -917,34 +917,34 @@ export class Blob {
         y: event.clientY
       };
     };
-    
+
     const handleMouseMove = (event: MouseEvent) => {
       if (!isDragging) return;
-      
+
       const deltaX = event.clientX - previousMousePosition.x;
       const deltaY = event.clientY - previousMousePosition.y;
-      
+
       // Rotate the blob mesh directly
       this.mesh.rotation.y += deltaX * 0.01;
       this.mesh.rotation.x += deltaY * 0.01;
-      
+
       previousMousePosition = {
         x: event.clientX,
         y: event.clientY
       };
     };
-    
+
     const handleMouseUp = () => {
       isDragging = false;
     };
-    
+
     canvas.addEventListener('click', handleClick);
     canvas.addEventListener('dblclick', handleDoubleClick);
     canvas.addEventListener('mousedown', handleMouseDown);
     canvas.addEventListener('mousemove', handleMouseMove);
     canvas.addEventListener('mouseup', handleMouseUp);
     canvas.addEventListener('mouseleave', handleMouseUp);
-    
+
     // Store the handlers for cleanup
     (this as any)._clickHandler = handleClick;
     (this as any)._dblClickHandler = handleDoubleClick;
@@ -966,38 +966,38 @@ export class Blob {
     const mouseDownHandler = (this as any)._mouseDownHandler;
     const mouseMoveHandler = (this as any)._mouseMoveHandler;
     const mouseUpHandler = (this as any)._mouseUpHandler;
-    
+
     if (clickHandler) {
       canvas.removeEventListener('click', clickHandler);
       delete (this as any)._clickHandler;
     }
-    
+
     if (dblClickHandler) {
       canvas.removeEventListener('dblclick', dblClickHandler);
       delete (this as any)._dblClickHandler;
     }
-    
+
     if (mouseDownHandler) {
       canvas.removeEventListener('mousedown', mouseDownHandler);
       delete (this as any)._mouseDownHandler;
     }
-    
+
     if (mouseMoveHandler) {
       canvas.removeEventListener('mousemove', mouseMoveHandler);
       delete (this as any)._mouseMoveHandler;
     }
-    
+
     if (mouseUpHandler) {
       canvas.removeEventListener('mouseup', mouseUpHandler);
       canvas.removeEventListener('mouseleave', mouseUpHandler);
       delete (this as any)._mouseUpHandler;
     }
-    
+
     // Stop listening if active
     if (this.isListening) {
       this.stopListening();
     }
-    
+
     // Clear any active touch points
     this.touchPoints = [];
   }
@@ -1033,11 +1033,11 @@ export class Blob {
     if (this.thinkingTimeout !== null) {
       clearTimeout(this.thinkingTimeout);
     }
-    
+
     this.isThinking = true;
     this.thinkingStartTime = Date.now();
     console.log(`🤔 Started thinking mode (${this.thinkingDuration / 1000}s)`);
-    
+
     // Auto-stop after duration
     this.thinkingTimeout = window.setTimeout(() => {
       this.stopThinking();
@@ -1052,7 +1052,7 @@ export class Blob {
       clearTimeout(this.thinkingTimeout);
       this.thinkingTimeout = null;
     }
-    
+
     this.isThinking = false;
     console.log('💭 Stopped thinking mode');
   }
@@ -1073,7 +1073,7 @@ export class Blob {
       this.backgroundTexture.dispose();
       this.backgroundTexture = null;
     }
-    
+
     // Remove lights from scene
     if (this.lights) {
       this.options.scene.remove(this.lights.x);
