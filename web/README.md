@@ -74,5 +74,5 @@ Each section triggers unique blob shapes:
 
 ---
 
-**Version:** 1.5.6  
+**Version:** 1.5.7  
 **Status:** Production Ready

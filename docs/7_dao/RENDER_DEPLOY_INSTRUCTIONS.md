@@ -77,7 +77,7 @@ Expected output:
 ==> Using Node.js version 1.5.6
 ==> Running build command 'npm run build:dao'...
 
-> kwami@1.4.2 build:dao
+> kwami@1.5.7 build:dao
 > cd dao && npm install && npm run build
 
 added 1752 packages

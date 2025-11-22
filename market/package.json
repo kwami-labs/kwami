@@ -1,5 +1,6 @@
 {
   "name": "kwami-marketplace",
+  "version": "1.5.7",
   "type": "module",
   "private": true,
   "scripts": {

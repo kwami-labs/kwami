@@ -4,6 +4,94 @@ All notable changes to the KWAMI ecosystem will be documented in this file.
 
 For detailed core library changes, see [kwami/CHANGELOG.md](./kwami/CHANGELOG.md).
 
+## [1.5.7] - 2025-11-22
+
+### 🔧 Version Management
+
+#### Enhanced
+- **sync-version script**: Major improvements for complete ecosystem synchronization
+  - Now scans all `.md`, `.ts`, `.js` files recursively
+  - Automatically syncs all workspace `package.json` files to match root version
+  - Replaces old versions (1.4.0-1.5.6) with current version across entire codebase
+  - Added version field to market/package.json where missing
+  - Fixed ECOSYSTEM.md version references
+  - All ecosystem apps now maintain synchronized versioning
+  - Better reporting with file-by-file status updates
+
+#### Changed
+- **Documentation**: Updated all CHANGELOG entries for versions 1.5.3-1.5.6
+- **Paths**: Fixed core library paths in documentation (src/core → kwami/src/core)
+- **Consistency**: Updated PROJECT_SUMMARY.md and ECOSYSTEM.md paths
+- **Monorepo**: Ensured consistency after monorepo restructure
+
+## [1.5.6] - 2025-11-22
+
+### 🚀 Publishing & CI/CD
+
+#### Changed
+- **GitHub Actions**: Fixed npm publish with OIDC Trusted Publishers
+  - Removed NODE_AUTH_TOKEN (now using OIDC authentication)
+  - More secure authentication method
+  - Automated npm publishing from GitHub Actions
+
+### 🔧 Version Management
+
+#### Added
+- **Enhanced sync-version script**: Comprehensive version synchronization
+  - Updates ALL version references across project
+  - Syncs package.json, README.md, docs, and source code
+  - Updated 21 files automatically
+  - Ensures version consistency across monorepo
+
+#### Changed
+- **AGPL-3.0 License**: Now included in npm package
+- **Documentation**: Updated all version references to 1.5.6
+- **Paths**: Fixed core library paths (src/core → kwami/src/core)
+
+## [1.5.5] - 2025-11-22
+
+### 📄 License Change
+
+#### Changed
+- **License**: Changed from Apache 2.0 to AGPL-3.0 + Commercial dual license
+  - AGPL-3.0 for personal, educational, and open-source projects (free)
+  - Commercial license required for proprietary/closed-source use
+  - Provides stronger copyleft protection
+  - Follows successful model used by MongoDB, GitLab, Sentry
+  - LICENSE file now included in npm package
+  - Updated package.json license field
+
+### 🔧 Version Management
+
+#### Added
+- **sync-version script**: Automated version synchronization across project
+  - Updates version in Kwami.ts, WelcomeLayer.ts, README.md
+  - Fixes: src/core/Kwami.ts → kwami/src/core/Kwami.ts path
+  - Added npm script: `npm run sync-version`
+
+## [1.5.4] - 2025-11-22
+
+### 🔧 Publishing Fixes
+
+#### Changed
+- **npm publish**: Fixed to use `cd` command instead of `-w` flag
+  - More reliable publishing process
+  - Ensures correct working directory
+
+### 📝 Documentation
+
+#### Changed
+- Updated documentation paths for kwami/ folder structure
+- Version bump for npm publish
+
+## [1.5.3] - 2025-11-22
+
+### 🔖 Version Bump
+
+#### Changed
+- Version bump to trigger npm publish workflow
+- CI/CD improvements
+
 ## [1.5.2] - 2025-11-22
 
 ### ⚙️ Project Structure Finalization
