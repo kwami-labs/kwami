@@ -7,6 +7,25 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [1.5.5] - 2025-11-22
+
+### Changed
+- **License**: Updated to AGPL-3.0 + Commercial dual license model
+  - Free for personal, educational, and open-source projects under AGPL-3.0
+  - Commercial license required for proprietary/closed-source use
+  - Provides better protection while keeping software free for non-commercial use
+- **Package Metadata**: Updated license field in package.json to reflect dual licensing
+
+### Added
+- LICENSE file now included in npm package distribution
+
+## [1.5.4] - 2025-11-22
+
+### Fixed
+- **Tests**: Fixed all 238 test imports for monorepo structure
+- **Dependencies**: Corrected Three.js import paths throughout codebase
+- **Documentation**: Updated all docs to reflect new `kwami/` folder structure
+
 ## [1.5.2] - 2025-11-22
 
 ### Changed
