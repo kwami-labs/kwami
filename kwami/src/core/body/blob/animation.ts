@@ -1,5 +1,5 @@
 import { createNoise3D } from 'simplex-noise';
-import { type Mesh, Vector3 } from '../../../../node_modules/@types/three';
+import { type Mesh, Vector3 } from 'three';
 
 const noise3D = createNoise3D();
 

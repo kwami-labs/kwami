@@ -1,6 +1,6 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
-import { KwamiSoul } from '../../../core/soul/Soul';
-import type { SoulConfig } from '../../../types';
+import { KwamiSoul } from '../../../src/core/soul/Soul';
+import type { SoulConfig } from '../../../src/types';
 
 describe('KwamiSoul', () => {
   beforeEach(() => {

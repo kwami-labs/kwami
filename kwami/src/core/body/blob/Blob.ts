@@ -10,7 +10,7 @@ import {
   KeepStencilOp,
   ReplaceStencilOp,
   type ShaderMaterial,
-} from '../../../../node_modules/@types/three';
+} from 'three';
 import { GLTFExporter } from 'three/addons/exporters/GLTFExporter.js';
 import { createBlobGeometry } from './geometry';
 import { animateBlob } from './animation';

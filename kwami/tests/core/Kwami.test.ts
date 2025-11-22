@@ -1,10 +1,10 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
-import { Kwami } from '../../core/Kwami';
+import { Kwami } from '../../src/core/Kwami';
 import { createMockCanvas } from '../utils/test-helpers';
-import type { KwamiConfig } from '../../types';
+import type { KwamiConfig } from '../../src/types';
 
 // Mock all core modules
-vi.mock('../../core/body/Body', () => ({
+vi.mock('../../src/core/body/Body', () => ({
   KwamiBody: vi.fn(function() {
     return {
       audio: {
@@ -31,7 +31,7 @@ vi.mock('../../core/body/Body', () => ({
   }),
 }));
 
-vi.mock('../../core/mind/Mind', () => ({
+vi.mock('../../src/core/mind/Mind', () => ({
   KwamiMind: vi.fn(function() {
     return {
       initialize: vi.fn(() => Promise.resolve()),
@@ -46,7 +46,7 @@ vi.mock('../../core/mind/Mind', () => ({
   }),
 }));
 
-vi.mock('../../core/soul/Soul', () => ({
+vi.mock('../../src/core/soul/Soul', () => ({
   KwamiSoul: vi.fn(function() {
     return {
       getSystemPrompt: vi.fn(() => 'Test system prompt'),
@@ -56,7 +56,7 @@ vi.mock('../../core/soul/Soul', () => ({
   }),
 }));
 
-vi.mock('../../core/mind/skills/SkillManager', () => ({
+vi.mock('../../src/core/mind/skills/SkillManager', () => ({
   SkillManager: vi.fn(function() {
     return {
       register: vi.fn(),

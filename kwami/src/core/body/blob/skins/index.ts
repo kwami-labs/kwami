@@ -1,4 +1,4 @@
-import type { ShaderMaterial } from '../../../../../node_modules/@types/three';
+import type { ShaderMaterial } from 'three';
 import { createTricolorSkin } from './tricolor';
 import { createTricolor2Skin } from './tricolor2';
 import { createZebraSkin } from './zebra';

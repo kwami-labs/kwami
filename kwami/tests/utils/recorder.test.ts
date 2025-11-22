@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import SpeechSynthesisRecorder from '../../utils/recorder';
+import SpeechSynthesisRecorder from '../../src/utils/recorder';
 
 describe('SpeechSynthesisRecorder', () => {
   beforeEach(() => {

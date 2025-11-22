@@ -1,4 +1,4 @@
-import type { Mesh, PerspectiveCamera } from '../../../../node_modules/@types/three';
+import type { Mesh, PerspectiveCamera } from 'three';
 
 /**
  * BlobPosition - Manages normalized position coordinates for the blob

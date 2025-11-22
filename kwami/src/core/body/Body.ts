@@ -2,7 +2,7 @@ import type {
   WebGLRenderer,
   PerspectiveCamera,
   Scene as ThreeScene,
-} from '../../../node_modules/@types/three';
+} from 'three';
 import {
   Color,
   CanvasTexture,
@@ -18,7 +18,7 @@ import {
   NotEqualStencilFunc,
   KeepStencilOp,
   LinearFilter,
-} from '../../../node_modules/@types/three';
+} from 'three';
 import { KwamiAudio } from './Audio';
 import { Blob } from './blob/Blob.js';
 import { Scene } from './scene/Scene.js';

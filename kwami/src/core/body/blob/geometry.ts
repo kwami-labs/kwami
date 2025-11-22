@@ -1,4 +1,4 @@
-import { SphereGeometry } from '../../../../node_modules/@types/three';
+import { SphereGeometry } from 'three';
 
 /**
  * Create a sphere geometry for the blob

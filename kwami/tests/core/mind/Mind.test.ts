@@ -1,10 +1,10 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
-import { KwamiMind } from '../../../core/mind/Mind';
+import { KwamiMind } from '../../../src/core/mind/Mind';
 import { createMockAudioElement, createMockElevenLabsProvider } from '../../utils/test-helpers';
-import type { MindConfig, VoiceSettings } from '../../../types';
+import type { MindConfig, VoiceSettings } from '../../../src/types';
 
 // Mock the factory
-vi.mock('../../../core/mind/providers/factory', () => ({
+vi.mock('../../../src/core/mind/providers/factory', () => ({
   createMindProvider: vi.fn(() => createMockElevenLabsProvider()),
 }));
 
@@ -24,6 +24,7 @@ const createMockKwamiAudio = () => ({
 
 describe('KwamiMind', () => {
   let mockAudio: ReturnType<typeof createMockKwamiAudio>;
+  const testConfig: MindConfig = { apiKey: 'test-api-key' };
 
   beforeEach(() => {
     vi.clearAllMocks();
@@ -36,7 +37,7 @@ describe('KwamiMind', () => {
 
   describe('Constructor', () => {
     it('should create instance with audio and default config', () => {
-      const mind = new KwamiMind(mockAudio as any);
+      const mind = new KwamiMind(mockAudio as any, testConfig);
       expect(mind).toBeInstanceOf(KwamiMind);
       expect(mind.config).toBeDefined();
     });
@@ -54,21 +55,21 @@ describe('KwamiMind', () => {
     });
 
     it('should initialize provider', () => {
-      const mind = new KwamiMind(mockAudio as any);
+      const mind = new KwamiMind(mockAudio as any, testConfig);
       expect(mind).toHaveProperty('config');
     });
   });
 
   describe('initialize', () => {
     it('should initialize provider', async () => {
-      const mind = new KwamiMind(mockAudio as any);
+      const mind = new KwamiMind(mockAudio as any, testConfig);
       await mind.initialize();
       
       expect((mind as any).provider.initialize).toHaveBeenCalled();
     });
 
     it('should handle initialization errors', async () => {
-      const mind = new KwamiMind(mockAudio as any);
+      const mind = new KwamiMind(mockAudio as any, testConfig);
       (mind as any).provider.initialize = vi.fn(() => Promise.reject(new Error('Init failed')));
       
       await expect(mind.initialize()).rejects.toThrow('Init failed');
@@ -77,7 +78,7 @@ describe('KwamiMind', () => {
 
   describe('isReady', () => {
     it('should return provider ready state', () => {
-      const mind = new KwamiMind(mockAudio as any);
+      const mind = new KwamiMind(mockAudio as any, testConfig);
       const result = mind.isReady();
       
       expect(typeof result).toBe('boolean');
@@ -87,7 +88,7 @@ describe('KwamiMind', () => {
 
   describe('speak', () => {
     it('should call provider speak with text', async () => {
-      const mind = new KwamiMind(mockAudio as any);
+      const mind = new KwamiMind(mockAudio as any, testConfig);
       await mind.speak('Hello world');
       
       expect((mind as any).provider.speak).toHaveBeenCalledWith(
@@ -97,7 +98,7 @@ describe('KwamiMind', () => {
     });
 
     it('should support system prompt', async () => {
-      const mind = new KwamiMind(mockAudio as any);
+      const mind = new KwamiMind(mockAudio as any, testConfig);
       await mind.speak('Hello', 'You are helpful');
       
       expect((mind as any).provider.speak).toHaveBeenCalledWith(
@@ -107,7 +108,7 @@ describe('KwamiMind', () => {
     });
 
     it('should apply pronunciations', async () => {
-      const mind = new KwamiMind(mockAudio as any);
+      const mind = new KwamiMind(mockAudio as any, testConfig);
       mind.addPronunciation('API', 'A-P-I');
       
       await mind.speak('The API works');
@@ -121,7 +122,7 @@ describe('KwamiMind', () => {
 
   describe('Conversation Management', () => {
     it('should start conversation', async () => {
-      const mind = new KwamiMind(mockAudio as any);
+      const mind = new KwamiMind(mockAudio as any, testConfig);
       const callbacks = {
         onAgentResponse: vi.fn(),
         onUserTranscript: vi.fn(),
@@ -136,14 +137,14 @@ describe('KwamiMind', () => {
     });
 
     it('should stop conversation', async () => {
-      const mind = new KwamiMind(mockAudio as any);
+      const mind = new KwamiMind(mockAudio as any, testConfig);
       await mind.stopConversation();
       
       expect((mind as any).provider.stopConversation).toHaveBeenCalled();
     });
 
     it('should check if conversation is active', () => {
-      const mind = new KwamiMind(mockAudio as any);
+      const mind = new KwamiMind(mockAudio as any, testConfig);
       const result = mind.isConversationActive();
       
       expect(typeof result).toBe('boolean');
@@ -151,7 +152,7 @@ describe('KwamiMind', () => {
     });
 
     it('should send conversation message', () => {
-      const mind = new KwamiMind(mockAudio as any);
+      const mind = new KwamiMind(mockAudio as any, testConfig);
       mind.sendConversationMessage('Hello');
       
       expect((mind as any).provider.sendConversationMessage).toHaveBeenCalledWith('Hello');
@@ -160,7 +161,7 @@ describe('KwamiMind', () => {
 
   describe('Listening', () => {
     it('should start listening', async () => {
-      const mind = new KwamiMind(mockAudio as any);
+      const mind = new KwamiMind(mockAudio as any, testConfig);
       const stream = await mind.listen();
       
       expect(stream).toBeInstanceOf(MediaStream);
@@ -168,7 +169,7 @@ describe('KwamiMind', () => {
     });
 
     it('should stop listening', () => {
-      const mind = new KwamiMind(mockAudio as any);
+      const mind = new KwamiMind(mockAudio as any, testConfig);
       mind.stopListening();
       
       expect((mind as any).provider.stopListening).toHaveBeenCalled();
@@ -177,7 +178,7 @@ describe('KwamiMind', () => {
 
   describe('Voice Management', () => {
     it('should get available voices', async () => {
-      const mind = new KwamiMind(mockAudio as any);
+      const mind = new KwamiMind(mockAudio as any, testConfig);
       const voices = await mind.getAvailableVoices();
       
       expect(Array.isArray(voices)).toBe(true);
@@ -185,7 +186,7 @@ describe('KwamiMind', () => {
     });
 
     it('should set voice settings', () => {
-      const mind = new KwamiMind(mockAudio as any);
+      const mind = new KwamiMind(mockAudio as any, testConfig);
       const settings: VoiceSettings = {
         stability: 0.5,
         similarity_boost: 0.75,
@@ -197,21 +198,21 @@ describe('KwamiMind', () => {
     });
 
     it('should set voice ID', () => {
-      const mind = new KwamiMind(mockAudio as any);
+      const mind = new KwamiMind(mockAudio as any, testConfig);
       mind.setVoiceId('new-voice-id');
       
       expect(mind.config.voice?.voiceId).toBe('new-voice-id');
     });
 
     it('should set model', () => {
-      const mind = new KwamiMind(mockAudio as any);
+      const mind = new KwamiMind(mockAudio as any, testConfig);
       mind.setModel('eleven_turbo_v2');
       
       expect(mind.config.voice?.model).toBe('eleven_turbo_v2');
     });
 
     it('should preview voice', async () => {
-      const mind = new KwamiMind(mockAudio as any);
+      const mind = new KwamiMind(mockAudio as any, testConfig);
       await mind.previewVoice('Custom preview text');
       
       expect((mind as any).provider.speak).toHaveBeenCalledWith(
@@ -221,7 +222,7 @@ describe('KwamiMind', () => {
     });
 
     it('should use default preview text', async () => {
-      const mind = new KwamiMind(mockAudio as any);
+      const mind = new KwamiMind(mockAudio as any, testConfig);
       await mind.previewVoice();
       
       expect((mind as any).provider.speak).toHaveBeenCalledWith(
@@ -233,7 +234,7 @@ describe('KwamiMind', () => {
 
   describe('Speech Generation', () => {
     it('should generate speech blob', async () => {
-      const mind = new KwamiMind(mockAudio as any);
+      const mind = new KwamiMind(mockAudio as any, testConfig);
       const blob = await mind.generateSpeechBlob('Test text');
       
       expect(blob).toBeInstanceOf(Blob);
@@ -241,7 +242,7 @@ describe('KwamiMind', () => {
     });
 
     it('should apply pronunciations to generated speech', async () => {
-      const mind = new KwamiMind(mockAudio as any);
+      const mind = new KwamiMind(mockAudio as any, testConfig);
       mind.addPronunciation('test', 'tee-est');
       
       await mind.generateSpeechBlob('This is a test');
@@ -254,7 +255,7 @@ describe('KwamiMind', () => {
 
   describe('Microphone Testing', () => {
     it('should test microphone', async () => {
-      const mind = new KwamiMind(mockAudio as any);
+      const mind = new KwamiMind(mockAudio as any, testConfig);
       const result = await mind.testMicrophone();
       
       expect(typeof result).toBe('boolean');
@@ -277,7 +278,7 @@ describe('KwamiMind', () => {
     });
 
     it('should set language', () => {
-      const mind = new KwamiMind(mockAudio as any);
+      const mind = new KwamiMind(mockAudio as any, testConfig);
       mind.setLanguage('es');
       
       expect(mind.config.language).toBe('es');
@@ -289,7 +290,7 @@ describe('KwamiMind', () => {
     });
 
     it('should update config', () => {
-      const mind = new KwamiMind(mockAudio as any);
+      const mind = new KwamiMind(mockAudio as any, testConfig);
       mind.updateConfig({
         language: 'de',
         voice: { voiceId: 'new-voice' },
@@ -300,7 +301,7 @@ describe('KwamiMind', () => {
     });
 
     it('should export config with pronunciations', () => {
-      const mind = new KwamiMind(mockAudio as any);
+      const mind = new KwamiMind(mockAudio as any, testConfig);
       mind.addPronunciation('test', 'pronunciation');
       
       const exported = mind.exportConfig();
@@ -309,7 +310,7 @@ describe('KwamiMind', () => {
     });
 
     it('should import config', () => {
-      const mind = new KwamiMind(mockAudio as any);
+      const mind = new KwamiMind(mockAudio as any, testConfig);
       const config: MindConfig = {
         language: 'ja',
         voice: { voiceId: 'imported-voice' },
@@ -324,14 +325,14 @@ describe('KwamiMind', () => {
 
   describe('Pronunciation Dictionary', () => {
     it('should add pronunciation', () => {
-      const mind = new KwamiMind(mockAudio as any);
+      const mind = new KwamiMind(mockAudio as any, testConfig);
       mind.addPronunciation('SQL', 'sequel');
       
       expect(mind.getPronunciation('SQL')).toBe('sequel');
     });
 
     it('should be case-insensitive', () => {
-      const mind = new KwamiMind(mockAudio as any);
+      const mind = new KwamiMind(mockAudio as any, testConfig);
       mind.addPronunciation('API', 'A-P-I');
       
       expect(mind.getPronunciation('api')).toBe('A-P-I');
@@ -340,7 +341,7 @@ describe('KwamiMind', () => {
     });
 
     it('should remove pronunciation', () => {
-      const mind = new KwamiMind(mockAudio as any);
+      const mind = new KwamiMind(mockAudio as any, testConfig);
       mind.addPronunciation('test', 'pronunciation');
       mind.removePronunciation('test');
       
@@ -348,7 +349,7 @@ describe('KwamiMind', () => {
     });
 
     it('should clear all pronunciations', () => {
-      const mind = new KwamiMind(mockAudio as any);
+      const mind = new KwamiMind(mockAudio as any, testConfig);
       mind.addPronunciation('a', 'alpha');
       mind.addPronunciation('b', 'beta');
       mind.clearPronunciations();
@@ -358,7 +359,7 @@ describe('KwamiMind', () => {
     });
 
     it('should get all pronunciations', () => {
-      const mind = new KwamiMind(mockAudio as any);
+      const mind = new KwamiMind(mockAudio as any, testConfig);
       mind.addPronunciation('a', 'alpha');
       mind.addPronunciation('b', 'beta');
       
@@ -369,7 +370,7 @@ describe('KwamiMind', () => {
     });
 
     it('should set pronunciation config', () => {
-      const mind = new KwamiMind(mockAudio as any);
+      const mind = new KwamiMind(mockAudio as any, testConfig);
       mind.setPronunciationConfig({
         dictionary: {
           test: 'pronunciation',
@@ -384,7 +385,7 @@ describe('KwamiMind', () => {
 
   describe('Advanced TTS Options', () => {
     it('should set advanced TTS options', () => {
-      const mind = new KwamiMind(mockAudio as any);
+      const mind = new KwamiMind(mockAudio as any, testConfig);
       mind.setAdvancedTTSOptions({
         outputFormat: 'mp3_44100_128',
         optimizeStreamingLatency: true,
@@ -404,21 +405,21 @@ describe('KwamiMind', () => {
     });
 
     it('should set output format', () => {
-      const mind = new KwamiMind(mockAudio as any);
+      const mind = new KwamiMind(mockAudio as any, testConfig);
       mind.setOutputFormat('mp3_44100_192');
       
       expect(mind.config.advancedTTS?.outputFormat).toBe('mp3_44100_192');
     });
 
     it('should set optimize streaming latency', () => {
-      const mind = new KwamiMind(mockAudio as any);
+      const mind = new KwamiMind(mockAudio as any, testConfig);
       mind.setOptimizeStreamingLatency(true);
       
       expect(mind.config.advancedTTS?.optimizeStreamingLatency).toBe(true);
     });
 
     it('should set next text timeout', () => {
-      const mind = new KwamiMind(mockAudio as any);
+      const mind = new KwamiMind(mockAudio as any, testConfig);
       mind.setNextTextTimeout(500);
       
       expect(mind.config.advancedTTS?.nextTextTimeout).toBe(500);
@@ -427,7 +428,7 @@ describe('KwamiMind', () => {
 
   describe('Conversational Settings', () => {
     it('should set conversational settings', () => {
-      const mind = new KwamiMind(mockAudio as any);
+      const mind = new KwamiMind(mockAudio as any, testConfig);
       mind.setConversationalSettings({
         agentId: 'test-agent',
         maxDuration: 300,
@@ -447,7 +448,7 @@ describe('KwamiMind', () => {
     });
 
     it('should set agent ID', () => {
-      const mind = new KwamiMind(mockAudio as any);
+      const mind = new KwamiMind(mockAudio as any, testConfig);
       mind.setAgentId('new-agent-id');
       
       expect(mind.config.conversational?.agentId).toBe('new-agent-id');
@@ -456,7 +457,7 @@ describe('KwamiMind', () => {
 
   describe('STT Configuration', () => {
     it('should set STT config', () => {
-      const mind = new KwamiMind(mockAudio as any);
+      const mind = new KwamiMind(mockAudio as any, testConfig);
       mind.setSTTConfig({
         model: 'large',
         language: 'en',
@@ -476,21 +477,21 @@ describe('KwamiMind', () => {
     });
 
     it('should set STT model', () => {
-      const mind = new KwamiMind(mockAudio as any);
+      const mind = new KwamiMind(mockAudio as any, testConfig);
       mind.setSTTModel('large');
       
       expect(mind.config.stt?.model).toBe('large');
     });
 
     it('should set automatic punctuation', () => {
-      const mind = new KwamiMind(mockAudio as any);
+      const mind = new KwamiMind(mockAudio as any, testConfig);
       mind.setAutomaticPunctuation(true);
       
       expect(mind.config.stt?.automaticPunctuation).toBe(true);
     });
 
     it('should set speaker diarization', () => {
-      const mind = new KwamiMind(mockAudio as any);
+      const mind = new KwamiMind(mockAudio as any, testConfig);
       mind.setSpeakerDiarization(true);
       
       expect(mind.config.stt?.speakerDiarization).toBe(true);
@@ -499,14 +500,14 @@ describe('KwamiMind', () => {
 
   describe('Voice Presets', () => {
     it('should apply natural preset', () => {
-      const mind = new KwamiMind(mockAudio as any);
+      const mind = new KwamiMind(mockAudio as any, testConfig);
       mind.applyVoicePreset('natural');
       
       expect(mind.config.voice?.settings?.stability).toBe(0.5);
     });
 
     it('should apply expressive preset', () => {
-      const mind = new KwamiMind(mockAudio as any);
+      const mind = new KwamiMind(mockAudio as any, testConfig);
       mind.applyVoicePreset('expressive');
       
       expect(mind.config.voice?.settings?.stability).toBe(0.3);
@@ -514,14 +515,14 @@ describe('KwamiMind', () => {
     });
 
     it('should apply stable preset', () => {
-      const mind = new KwamiMind(mockAudio as any);
+      const mind = new KwamiMind(mockAudio as any, testConfig);
       mind.applyVoicePreset('stable');
       
       expect(mind.config.voice?.settings?.stability).toBe(0.8);
     });
 
     it('should apply clear preset', () => {
-      const mind = new KwamiMind(mockAudio as any);
+      const mind = new KwamiMind(mockAudio as any, testConfig);
       mind.applyVoicePreset('clear');
       
       expect(mind.config.voice?.settings?.stability).toBe(0.6);
@@ -530,7 +531,7 @@ describe('KwamiMind', () => {
 
   describe('dispose', () => {
     it('should dispose provider and cleanup', () => {
-      const mind = new KwamiMind(mockAudio as any);
+      const mind = new KwamiMind(mockAudio as any, testConfig);
       mind.addPronunciation('test', 'value');
       
       mind.dispose();
@@ -542,7 +543,7 @@ describe('KwamiMind', () => {
 
   describe('Agent Management', () => {
     it('should create agent', async () => {
-      const mind = new KwamiMind(mockAudio as any);
+      const mind = new KwamiMind(mockAudio as any, testConfig);
       const result = await mind.createAgent({ conversation_config: {} });
       
       expect(result.agent_id).toBeDefined();
@@ -550,14 +551,14 @@ describe('KwamiMind', () => {
     });
 
     it('should get agent', async () => {
-      const mind = new KwamiMind(mockAudio as any);
+      const mind = new KwamiMind(mockAudio as any, testConfig);
       const result = await mind.getAgent('test-agent');
       
       expect(result.agent_id).toBe('test-agent');
     });
 
     it('should list agents', async () => {
-      const mind = new KwamiMind(mockAudio as any);
+      const mind = new KwamiMind(mockAudio as any, testConfig);
       const result = await mind.listAgents();
       
       expect(result.agents).toBeDefined();
@@ -565,19 +566,19 @@ describe('KwamiMind', () => {
     });
 
     it('should update agent', async () => {
-      const mind = new KwamiMind(mockAudio as any);
+      const mind = new KwamiMind(mockAudio as any, testConfig);
       const result = await mind.updateAgent('test-agent', {});
       
       expect(result.agent_id).toBeDefined();
     });
 
     it('should delete agent', async () => {
-      const mind = new KwamiMind(mockAudio as any);
+      const mind = new KwamiMind(mockAudio as any, testConfig);
       await expect(mind.deleteAgent('test-agent')).resolves.toBeUndefined();
     });
 
     it('should duplicate agent', async () => {
-      const mind = new KwamiMind(mockAudio as any);
+      const mind = new KwamiMind(mockAudio as any, testConfig);
       const result = await mind.duplicateAgent('test-agent', { new_name: 'Copy' });
       
       expect(result.agent_id).toBeDefined();
@@ -586,7 +587,7 @@ describe('KwamiMind', () => {
 
   describe('Conversation Analytics', () => {
     it('should list conversations', async () => {
-      const mind = new KwamiMind(mockAudio as any);
+      const mind = new KwamiMind(mockAudio as any, { apiKey: 'test-key' });
       const result = await mind.listConversations();
       
       expect(result.conversations).toBeDefined();
@@ -594,14 +595,14 @@ describe('KwamiMind', () => {
     });
 
     it('should get conversation', async () => {
-      const mind = new KwamiMind(mockAudio as any);
+      const mind = new KwamiMind(mockAudio as any, { apiKey: 'test-key' });
       const result = await mind.getConversation('conv-id');
       
       expect(result.conversation_id).toBe('test-conv');
     });
 
     it('should delete conversation', async () => {
-      const mind = new KwamiMind(mockAudio as any);
+      const mind = new KwamiMind(mockAudio as any, { apiKey: 'test-key' });
       await expect(mind.deleteConversation('conv-id')).resolves.toBeUndefined();
     });
   });
