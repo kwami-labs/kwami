@@ -33,6 +33,21 @@ deno.lock
 !.env.sample
 !.env.example
 
-# Playground build artifacts
+# Build artifacts
+kwami/dist
 playground/dist
+candy/dist
+market/dist
+dao/dist
+web/dist
+docs/dist
+
+# GLB files
 *.glb
+*.gltf
+*.glb.zip
+*.glb.tar.gz
+*.glb.tar.bz2
+*.glb.tar.xz
+*.glb.tar.lzma
+*.glb.tar.lz

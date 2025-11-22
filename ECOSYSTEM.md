@@ -281,7 +281,7 @@ kwami/
 - ✅ `candy/QUICKSTART.md` - Quick setup
 - ✅ `market/README.md` - Marketplace guide
 - ✅ `market/DEPLOYMENT.md` - Deploy guide
-- ✅ `playground/README.md` - Playground guide
+- ✅ `pg/README.md` - Playground guide
 - ✅ `web/README.md` - Web app guide
 
 ### Technical Documentation

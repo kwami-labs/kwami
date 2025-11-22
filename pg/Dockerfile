@@ -20,7 +20,7 @@ RUN npm run build:playground
 FROM nginx:1.27-alpine AS runner
 WORKDIR /usr/share/nginx/html
 
-COPY --from=builder /app/playground/dist ./
+COPY --from=builder /app/pg/dist ./
 
 EXPOSE 80
 CMD ["nginx", "-g", "daemon off;"]
