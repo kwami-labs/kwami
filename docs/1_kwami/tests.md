@@ -24,8 +24,7 @@ npm run test:coverage:ui
 ## 📁 Test Structure
 
 ```
-src/tests/
-├── setup.ts                      # Global test setup and mocks
+kwami/tests/
 ├── utils/
 │   ├── test-helpers.ts          # Shared test utilities
 │   ├── randoms.test.ts          # Tests for random utilities
@@ -38,7 +37,6 @@ src/tests/
 │   │   └── Mind.test.ts         # AI mind & providers tests
 │   └── body/
 │       └── Audio.test.ts        # Audio management tests
-└── README.md                     # This file
 ```
 
 ## 🧪 Test Coverage
@@ -110,7 +108,7 @@ After running `npm run test:coverage`, you'll find:
 
 ```typescript
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { YourModule } from '../src/your-module';
+import { YourModule } from '../../src/your-module';
 
 describe('YourModule', () => {
   beforeEach(() => {
@@ -127,7 +125,7 @@ describe('YourModule', () => {
 ### Using Test Helpers
 
 ```typescript
-import { createMockCanvas, createMockElevenLabsProvider } from './utils/test-helpers';
+import { createMockCanvas, createMockElevenLabsProvider } from '../utils/test-helpers';
 
 const canvas = createMockCanvas();
 const provider = createMockElevenLabsProvider();
@@ -137,7 +135,7 @@ const provider = createMockElevenLabsProvider();
 
 ```typescript
 // Mock a module
-vi.mock('../src/module', () => ({
+vi.mock('../../src/module', () => ({
   ClassName: vi.fn(() => ({
     method: vi.fn(),
   })),

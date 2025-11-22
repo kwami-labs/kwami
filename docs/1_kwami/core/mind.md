@@ -1017,7 +1017,7 @@ For comprehensive examples covering all features, see:
   - Knowledge Base with RAG
   - Multi-agent workflows
   - Complete customer support agent example
-- **[Test Suite](../../kwami/src/core/mind/examples/test-agent-apis.ts)** - Automated API testing
+- **[Test Suite](../../../kwami/src/core/mind/examples/test-agent-apis.ts)** - Automated API testing
 
 ## See Also
 
