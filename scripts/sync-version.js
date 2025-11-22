@@ -20,8 +20,8 @@ const __dirname = dirname(__filename);
 
 const rootDir = resolve(__dirname, '..');
 
-// Old versions to replace (1.4.0, 1.4.1, 1.4.2, 1.5.0, 1.5.1, 1.5.2, 1.5.3, 1.5.4)
-const OLD_VERSIONS = ['1.4.0', '1.4.1', '1.4.2', '1.5.0', '1.5.1', '1.5.2', '1.5.3', '1.5.4'];
+// Old versions to replace (1.4.0, 1.4.1, 1.4.2, 1.5.0-1.5.6)
+const OLD_VERSIONS = ['1.4.0', '1.4.1', '1.4.2', '1.5.0', '1.5.1', '1.5.2', '1.5.3', '1.5.4', '1.5.5', '1.5.6'];
 
 /**
  * Recursively get all files with specific extensions
@@ -137,16 +137,16 @@ try {
           writeFileSync(packageJsonPath, JSON.stringify(packageJson, null, 2) + '\n', 'utf8');
           updatedFiles.push(`${workspace}/package.json`);
           console.log(`   ✓ ${workspace}/package.json (${oldVersion} → ${version})`);
-          updatedCount++;
-        } else {
+      updatedCount++;
+    } else {
           // Already up to date
           console.log(`   ✓ ${workspace}/package.json (already ${version})`);
-          skippedCount++;
-        }
+      skippedCount++;
+    }
       } catch (err) {
         console.log(`   ⚠️  Could not update ${workspace}/package.json: ${err.message}`);
-        skippedCount++;
-      }
+    skippedCount++;
+  }
     } else {
       console.log(`   ⏭️  ${workspace}/package.json (not found)`);
       skippedCount++;

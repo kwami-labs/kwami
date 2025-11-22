@@ -4,20 +4,25 @@ All notable changes to the KWAMI ecosystem will be documented in this file.
 
 For detailed core library changes, see [kwami/CHANGELOG.md](./kwami/CHANGELOG.md).
 
-## [Unreleased]
+## [1.5.7] - 2025-11-22
 
 ### 🔧 Version Management
-- Enhanced sync-version script to scan all `.md`, `.ts`, `.js` files recursively
-- Now syncs all workspace `package.json` files to match root version automatically
-- Replaces old versions (1.4.0-1.5.4) with current version across entire codebase
-- Added version field to market/package.json
-- Fixed ECOSYSTEM.md version references
-- All ecosystem apps now maintain synchronized versioning
 
-### 📝 Documentation
-- Fixed core library paths in documentation (src/core → kwami/src/core)
-- Updated PROJECT_SUMMARY.md and ECOSYSTEM.md paths
-- Ensured consistency after monorepo restructure
+#### Enhanced
+- **sync-version script**: Major improvements for complete ecosystem synchronization
+  - Now scans all `.md`, `.ts`, `.js` files recursively
+  - Automatically syncs all workspace `package.json` files to match root version
+  - Replaces old versions (1.4.0-1.5.6) with current version across entire codebase
+  - Added version field to market/package.json where missing
+  - Fixed ECOSYSTEM.md version references
+  - All ecosystem apps now maintain synchronized versioning
+  - Better reporting with file-by-file status updates
+
+#### Changed
+- **Documentation**: Updated all CHANGELOG entries for versions 1.5.3-1.5.6
+- **Paths**: Fixed core library paths in documentation (src/core → kwami/src/core)
+- **Consistency**: Updated PROJECT_SUMMARY.md and ECOSYSTEM.md paths
+- **Monorepo**: Ensured consistency after monorepo restructure
 
 ## [1.5.6] - 2025-11-22
 

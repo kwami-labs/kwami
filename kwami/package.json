@@ -1,6 +1,6 @@
 {
   "name": "kwami",
-  "version": "1.5.5",
+  "version": "1.5.7",
   "description": "A 3D Interactive AI Companion Library - Create engaging AI companions with visual (blob), audio, and AI capabilities",
   "type": "module",
   "main": "index.ts",
@@ -84,4 +84,3 @@
     "!src/assets"
   ]
 }
-
