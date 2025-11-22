@@ -4,7 +4,7 @@
 
 **KWAMI** is a comprehensive ecosystem for creating, minting, trading, and governing 3D Interactive AI Companions on the Solana blockchain.
 
-**Version:** 1.5.7  
+**Version:** 1.5.8  
 **Status:** Production Ready  
 **Last Updated:** 2025-11-22
 
@@ -15,7 +15,7 @@
 ```
 kwami/
 ├── 📦 Core Library (/kwami)      - 3D Interactive AI Companion Library (npm package)
-├── 🎮 Playground (/playground)   - Interactive demo with full UI
+├── 🎮 Playground (/pg)           - Interactive demo with full UI
 ├── 🔮 Kwami App (/app)           - Full-featured Nuxt 4 web application
 ├── 🎨 Candy Machine (/candy)     - NFT minting platform
 ├── 🏛️ DAO (/dao)                 - Governance platform
@@ -31,7 +31,7 @@ kwami/
 
 ### ✅ Core Library (kwami)
 **Status:** Production Ready  
-**Version:** 1.5.7  
+**Version:** 1.5.8  
 **Published:** npm (kwami)
 
 **Features:**
@@ -46,6 +46,9 @@ kwami/
 - `npm run build` - Build library
 - `npm test` - Run tests
 - `npm publish` - Publish to npm
+
+**🐳 Docker:**
+- Available in `kwami/docker/` (Node, Bun, Deno variants)
 
 ---
 
@@ -94,7 +97,7 @@ kwami/
 **Tech Stack:**
 - Nuxt 4.1.2
 - Vue 3 Composition API
-- Kwami library v1.4.1
+- Kwami library v1.5.7
 - @nuxt/ui v4.0.0
 - Three.js v0.180.0
 - Tailwind CSS
@@ -281,7 +284,7 @@ kwami/
 - ✅ `candy/QUICKSTART.md` - Quick setup
 - ✅ `market/README.md` - Marketplace guide
 - ✅ `market/DEPLOYMENT.md` - Deploy guide
-- ✅ `playground/README.md` - Playground guide
+- ✅ `pg/README.md` - Playground guide
 - ✅ `web/README.md` - Web app guide
 
 ### Technical Documentation
@@ -571,7 +574,49 @@ See [LICENSE](./LICENSE) for details.
 ---
 
 **Project Status:** ✅ Complete & Production Ready  
-**Version:** 1.5.7  
-**Date:** 2025-11-19  
+**Version:** 1.5.8  
+**Date:** 2025-11-22  
 **Total Development Time:** Comprehensive full-stack ecosystem
+
+---
+
+## 🐳 Docker Deployment (NEW in 1.5.8)
+
+All 6 ecosystem projects now include comprehensive Docker support:
+
+### Multi-Runtime Support
+Each project includes 3 Dockerfile variants in a `docker/` directory:
+- **Dockerfile** - Node.js 20 Alpine (default, production-ready)
+- **Dockerfile.bun** - Bun runtime (fast builds, great performance)
+- **Dockerfile.deno** - Deno runtime (secure, TypeScript-first)
+
+### Quick Start
+
+```bash
+# Build any project with your preferred runtime
+cd {project}   # app, dao, web, market, candy, or pg
+
+# Node.js (default)
+docker build -f docker/Dockerfile -t kwami-{project} .
+docker run -p 3000:3000 kwami-{project}
+
+# Bun (faster)
+docker build -f docker/Dockerfile.bun -t kwami-{project}:bun .
+docker run -p 3000:3000 kwami-{project}:bun
+
+# Deno (secure)
+docker build -f docker/Dockerfile.deno -t kwami-{project}:deno .
+docker run -p 3000:3000 kwami-{project}:deno
+```
+
+### Benefits
+- 🚀 Choose optimal runtime for your needs
+- 📦 Minimal Alpine Linux images
+- 🔒 Multi-stage builds for security
+- ⚡ Cached layers for fast rebuilds
+- 🌐 Production-ready configurations
+- 🎯 Consistent across all projects
+
+### Full Documentation
+👉 **[Complete Docker Deployment Guide](./docs/DOCKER_DEPLOYMENT.md)**
 

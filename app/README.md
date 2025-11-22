@@ -4,6 +4,8 @@ Kwami App is a Nuxt 4 web application that brings the Kwami 3D AI experience to 
 
 ## 🚀 Quick Start
 
+### Development
+
 ```bash
 cd app
 npm install
@@ -11,6 +13,24 @@ npm run dev
 ```
 
 The development server will start on `http://localhost:5555`
+
+### 🐳 Docker Deployment
+
+```bash
+# Node.js (default)
+docker build -f docker/Dockerfile -t kwami-app .
+docker run -p 3000:3000 kwami-app
+
+# Bun (faster builds)
+docker build -f docker/Dockerfile.bun -t kwami-app:bun .
+docker run -p 3000:3000 kwami-app:bun
+
+# Deno (secure runtime)
+docker build -f docker/Dockerfile.deno -t kwami-app:deno .
+docker run -p 3000:3000 kwami-app:deno
+```
+
+👉 See [Docker Deployment Guide](../docs/DOCKER_DEPLOYMENT.md) for complete instructions
 
 ## 📚 Documentation
 

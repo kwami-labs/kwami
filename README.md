@@ -2,7 +2,7 @@
 
 An **independent, reusable** 3D Interactive AI Companion Library for creating engaging AI companions with visual (blob), audio, and AI capabilities.
 
-> **Version 1.5.7** - [See what's new](#whats-new)
+> **Version 1.5.8** - [See what's new](#whats-new)
 
 [![npm version](https://img.shields.io/npm/v/kwami.svg)](https://www.npmjs.com/package/kwami)
 [![License](https://img.shields.io/badge/license-AGPL--3.0%20%7C%20Commercial-blue.svg)](./LICENSE)
@@ -45,6 +45,23 @@ deno add npm:kwami
 ```
 
 > All dependencies included: `three`, `simplex-noise`, `@elevenlabs/elevenlabs-js`
+
+### 🐳 Docker Deployment
+
+All ecosystem projects now include Docker support with 3 runtime options:
+
+```bash
+# Node.js (default)
+docker build -f docker/Dockerfile -t kwami-app .
+
+# Bun (fast builds)
+docker build -f docker/Dockerfile.bun -t kwami-app:bun .
+
+# Deno (secure runtime)
+docker build -f docker/Dockerfile.deno -t kwami-app:deno .
+```
+
+👉 **[Complete Docker Deployment Guide](./docs/DOCKER_DEPLOYMENT.md)**
 
 ## 🚀 Quick Start
 
@@ -512,4 +529,4 @@ Built with:
 
 **Made with ❤️ by the KWAMI team**
 
-Current version: **1.5.6**
+Current version: **1.5.7**

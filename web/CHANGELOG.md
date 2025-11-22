@@ -2,6 +2,20 @@
 
 All notable changes to the KWAMI website will be documented in this file.
 
+## [1.5.8] - 2025-11-22
+
+### 🐳 Docker Support
+
+#### Added
+- **docker/** directory with 3 Dockerfile variants:
+  - `Dockerfile` - Vite build + nginx 1.27 Alpine (default)
+  - `Dockerfile.bun` - Bun build + nginx serving
+  - `Dockerfile.deno` - Deno build + nginx serving
+- Multi-stage builds (build → nginx serve)
+- Static file optimization for production
+- Support for custom nginx configurations
+- Production-ready deployment on port 80
+
 ## [1.4.1] - Current
 
 ### Added

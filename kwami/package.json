@@ -3,8 +3,9 @@
   "version": "1.5.7",
   "description": "A 3D Interactive AI Companion Library - Create engaging AI companions with visual (blob), audio, and AI capabilities",
   "type": "module",
-  "main": "index.ts",
-  "types": "src/types/index.ts",
+  "main": "./dist/index.js",
+  "module": "./dist/index.js",
+  "types": "./dist/index.d.ts",
   "keywords": [
     "3d",
     "threejs",
@@ -58,29 +59,29 @@
   },
   "exports": {
     ".": {
-      "import": "./index.ts",
-      "types": "./src/types/index.ts"
+      "import": "./dist/index.js",
+      "types": "./dist/index.d.ts"
     },
     "./core": {
-      "import": "./src/core/Kwami.ts",
-      "types": "./src/types/index.ts"
+      "import": "./dist/src/core/Kwami.js",
+      "types": "./dist/src/core/Kwami.d.ts"
     },
     "./blob": {
-      "import": "./src/blob/Blob.ts"
+      "import": "./dist/src/core/body/blob/Blob.js",
+      "types": "./dist/src/core/body/blob/Blob.d.ts"
     },
     "./utils": {
-      "import": "./src/utils/randoms.ts"
+      "import": "./dist/src/utils/randoms.js",
+      "types": "./dist/src/utils/randoms.d.ts"
     },
     "./types": {
-      "types": "./src/types/index.ts"
+      "types": "./dist/src/types/index.d.ts"
     }
   },
   "files": [
-    "src",
-    "index.ts",
+    "dist",
     "README.md",
     "CHANGELOG.md",
-    "LICENSE",
-    "!src/assets"
+    "LICENSE"
   ]
 }

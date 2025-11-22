@@ -22,10 +22,13 @@ ARCHITECTURE.md
 
 # Examples and demos
 playground/
+pg/
 web/
 candy/
 market/
 solana/
+dao/
+scripts/
 
 # Assets not needed in package
 assets/img/

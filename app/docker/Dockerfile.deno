@@ -1,0 +1,43 @@
+# syntax=docker/dockerfile:1
+
+##
+## Build Nuxt app with Deno
+##
+FROM denoland/deno:alpine-2.1.4 AS builder
+WORKDIR /app
+
+# Install Node.js for Nuxt build process
+RUN apk add --no-cache nodejs npm python3 make g++ cairo-dev jpeg-dev pango-dev giflib-dev
+
+# Copy package files
+COPY package.json package-lock.json ./
+RUN npm ci
+
+# Copy source code
+COPY . .
+
+# Build the application
+RUN npm run build
+
+##
+## Production runtime with Deno
+##
+FROM denoland/deno:alpine-2.1.4 AS runner
+WORKDIR /app
+
+# Install runtime dependencies
+RUN apk add --no-cache nodejs cairo jpeg pango giflib
+
+# Copy built application
+COPY --from=builder /app/.output /app/.output
+COPY --from=builder /app/package.json /app/package.json
+
+ENV NODE_ENV=production
+ENV HOST=0.0.0.0
+ENV PORT=3000
+
+EXPOSE 3000
+
+# Use Node.js to run Nuxt server (Deno doesn't fully support Nuxt yet)
+CMD ["node", ".output/server/index.mjs"]
+

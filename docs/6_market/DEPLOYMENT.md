@@ -12,6 +12,67 @@ This guide covers deploying the KWAMI Marketplace to various platforms.
 - [ ] Domain name registered (optional)
 - [ ] SSL certificate (handled by platform)
 
+## 🐳 Docker Deployment
+
+The marketplace includes Docker support for containerized deployment.
+
+### Available Dockerfiles
+
+- `market/docker/Dockerfile` - Standard Node.js deployment
+- `market/docker/Dockerfile.bun` - Bun runtime deployment (faster)
+- `market/docker/Dockerfile.deno` - Deno runtime deployment
+
+### Build Docker Image
+
+```bash
+# Using Node.js (default)
+docker build -t kwami-market -f market/docker/Dockerfile market/
+
+# Using Bun (recommended for faster builds)
+docker build -t kwami-market -f market/docker/Dockerfile.bun market/
+
+# Using Deno
+docker build -t kwami-market -f market/docker/Dockerfile.deno market/
+```
+
+### Run Docker Container
+
+```bash
+docker run -p 3000:3000 \
+  -e NUXT_PUBLIC_SOLANA_NETWORK=devnet \
+  -e NUXT_PUBLIC_SOLANA_RPC_URL=https://api.devnet.solana.com \
+  -e NUXT_PUBLIC_KWAMI_COLLECTION_ID=your_collection_id \
+  kwami-market
+```
+
+### Docker Compose
+
+Create a `docker-compose.yml` file:
+
+```yaml
+version: '3.8'
+
+services:
+  market:
+    build:
+      context: ./market
+      dockerfile: docker/Dockerfile.bun
+    ports:
+      - "3000:3000"
+    environment:
+      - NUXT_PUBLIC_SOLANA_NETWORK=devnet
+      - NUXT_PUBLIC_SOLANA_RPC_URL=https://api.devnet.solana.com
+      - NUXT_PUBLIC_KWAMI_COLLECTION_ID=${KWAMI_COLLECTION_ID}
+    restart: unless-stopped
+```
+
+Run with:
+```bash
+docker-compose up -d
+```
+
+---
+
 ## 🌐 Deployment Options
 
 ### 1. Vercel (Recommended)

@@ -1,4 +1,6 @@
 // https://nuxt.com/docs/api/configuration/nuxt-config
+import { fileURLToPath } from 'node:url'
+
 export default defineNuxtConfig({
   compatibilityDate: '2024-11-21',
   devtools: { enabled: true },
@@ -44,6 +46,7 @@ export default defineNuxtConfig({
       alias: {
         'bn.js': 'bn.js',
         'buffer': 'buffer',
+        kwami: fileURLToPath(new URL('../kwami/index.ts', import.meta.url)),
       }
     },
     define: {

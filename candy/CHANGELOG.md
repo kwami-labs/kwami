@@ -2,6 +2,21 @@
 
 All notable changes to the KWAMI Candy Machine will be documented in this file.
 
+## [1.5.8] - 2025-11-22
+
+### 🐳 Docker Support
+
+#### Added
+- **docker/** directory with 3 Dockerfile variants:
+  - `Dockerfile` - Node.js 20 Alpine (default, production-ready)
+  - `Dockerfile.bun` - Bun runtime (v1.0+ Alpine)
+  - `Dockerfile.deno` - Deno runtime (v2.1.4 Alpine)
+- Multi-stage builds for optimized production images
+- Native module support for build dependencies
+- Runtime compatibility layers for Bun/Deno
+- Production-ready deployment on port 3000
+- Optimized for blockchain integration and NFT minting
+
 ## [1.5.0] - 2025-11-22
 
 ### Added

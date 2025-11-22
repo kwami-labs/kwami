@@ -4,6 +4,47 @@ All notable changes to the KWAMI ecosystem will be documented in this file.
 
 For detailed core library changes, see [kwami/CHANGELOG.md](./kwami/CHANGELOG.md).
 
+## [1.5.8] - 2025-11-22
+
+### 🐳 Docker Infrastructure
+
+#### Added
+- **Multi-Runtime Docker Support**: Comprehensive Docker infrastructure for entire ecosystem
+  - Created `docker/` directory in all 6 projects (app, dao, web, market, candy, pg)
+  - **Dockerfile** - Default Node.js 20 Alpine builds (production-ready)
+  - **Dockerfile.bun** - Bun runtime builds (v1.0+ Alpine)
+  - **Dockerfile.deno** - Deno runtime builds (v2.1.4 Alpine)
+  - Total: 18 optimized Dockerfiles across ecosystem
+
+#### Enhanced
+- **Nuxt Applications** (app, dao, market, candy):
+  - Multi-stage builds with optimized production images
+  - Native module support (python3, make, g++)
+  - Special handling for sharp image processing library
+  - Runtime compatibility layers for Bun/Deno
+  - Builds to `.output/server/index.mjs`
+  - Production port: 3000
+
+- **Vite Applications** (web, pg):
+  - Static builds with nginx 1.27 Alpine serving
+  - Optimized for high-performance delivery
+  - Support for custom nginx configurations
+  - Builds to `dist/` directory
+  - Production port: 80
+
+#### Fixed
+- **Playground Dockerfile**: Corrected build output path
+  - Changed: `/app/playground/dist` → `/app/pg/dist`
+  - Aligns with monorepo structure after playground → pg rename
+
+#### Benefits
+- 🚀 Choose optimal runtime for your deployment (Node/Bun/Deno)
+- 📦 Minimal Alpine Linux images for smaller footprints
+- 🔒 Multi-stage builds for secure production deployments
+- ⚡ Faster builds with cached dependency layers
+- 🌐 Production-ready nginx configuration for static sites
+- 🎯 Consistent deployment across all ecosystem projects
+
 ## [1.5.7] - 2025-11-22
 
 ### 🔧 Version Management

@@ -462,7 +462,7 @@ export function createMindProvider(
 export type MindProviderType = 'elevenlabs' | 'openai' | 'anthropic' | 'yourprovider';
 ```
 
-4. **Update UI** in `playground/index.html`
+4. **Update UI** in `pg/index.html`
 
 ```html
 <button class="provider-tab" data-provider="yourprovider" onclick="switchProvider('yourprovider')">

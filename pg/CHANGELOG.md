@@ -2,6 +2,24 @@
 
 All notable changes to the KWAMI Playground will be documented in this file.
 
+## [1.5.8] - 2025-11-22
+
+### 🐳 Docker Support
+
+#### Added
+- **docker/** directory with 3 Dockerfile variants:
+  - `Dockerfile` - Vite build + nginx 1.27 Alpine (default)
+  - `Dockerfile.bun` - Bun build + nginx serving
+  - `Dockerfile.deno` - Deno build + nginx serving
+- Multi-stage builds (build → nginx serve)
+- Static file optimization for production
+- Support for custom nginx configurations
+- Production-ready deployment on port 80
+
+#### Fixed
+- Root `Dockerfile` build path: `/app/playground/dist` → `/app/pg/dist`
+- Aligns with monorepo structure after playground → pg rename
+
 ## [Unreleased]
 
 ### Added

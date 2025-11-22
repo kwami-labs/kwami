@@ -1,6 +1,6 @@
 # Kwami.io - KWAMI NFT Candy Machine
 
-**Version 1.5.6** - Production-Ready Solana NFT Minting Platform 🎉
+**Version 1.5.8** - Production-Ready Solana NFT Minting Platform 🎉
 
 ## 🌟 Overview
 
@@ -68,8 +68,27 @@ bun run anchor:deploy    # Deploy to devnet
 
 See [DEPLOYMENT_GUIDE](../docs/5_candy/DEPLOYMENT_GUIDE.md) for complete instructions.
 
+### 🐳 Docker Deployment (NEW in 1.5.8)
+
+```bash
+# Node.js (default)
+docker build -f docker/Dockerfile -t kwami-candy .
+docker run -p 3000:3000 -e SOLANA_NETWORK=devnet kwami-candy
+
+# Bun (recommended for candy machine)
+docker build -f docker/Dockerfile.bun -t kwami-candy:bun .
+docker run -p 3000:3000 kwami-candy:bun
+
+# Deno
+docker build -f docker/Dockerfile.deno -t kwami-candy:deno .
+docker run -p 3000:3000 kwami-candy:deno
+```
+
+👉 See [Docker Deployment Guide](../docs/DOCKER_DEPLOYMENT.md) for complete instructions
+
 ---
 
-**Current Version**: 1.5.0 🎉  
+**Current Version**: 1.5.8 🎉  
 **Network**: Solana Devnet/Mainnet Ready  
-**Status**: Production Ready
+**Status**: Production Ready  
+**Docker**: ✅ Multi-runtime support (Node/Bun/Deno)

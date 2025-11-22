@@ -12,6 +12,59 @@ npm run build
 
 This creates an optimized production build in the `dist/` directory.
 
+## 🐳 Docker Deployment
+
+The website includes Docker support for containerized deployment.
+
+### Available Dockerfiles
+
+- `web/docker/Dockerfile` - Standard Node.js deployment
+- `web/docker/Dockerfile.bun` - Bun runtime deployment (faster)
+- `web/docker/Dockerfile.deno` - Deno runtime deployment
+
+### Build Docker Image
+
+```bash
+# Using Node.js (default)
+docker build -t kwami-web -f web/docker/Dockerfile web/
+
+# Using Bun (recommended for faster builds)
+docker build -t kwami-web -f web/docker/Dockerfile.bun web/
+
+# Using Deno
+docker build -t kwami-web -f web/docker/Dockerfile.deno web/
+```
+
+### Run Docker Container
+
+```bash
+docker run -p 3000:3000 kwami-web
+```
+
+### Docker Compose
+
+Create a `docker-compose.yml` file:
+
+```yaml
+version: '3.8'
+
+services:
+  web:
+    build:
+      context: ./web
+      dockerfile: docker/Dockerfile.bun
+    ports:
+      - "3000:3000"
+    restart: unless-stopped
+```
+
+Run with:
+```bash
+docker-compose up -d
+```
+
+---
+
 ## Deployment Options
 
 ### 1. Vercel (Recommended)

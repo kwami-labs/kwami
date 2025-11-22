@@ -9,7 +9,7 @@ Interactive playground for testing the KWAMI AI companion library locally.
 npm run playground
 ```
 
-This will start a local dev server at `http://localhost:3000`
+This will start a local dev server at `http://localhost:3332`
 
 ## 📚 Documentation
 
