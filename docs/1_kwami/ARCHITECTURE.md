@@ -242,7 +242,7 @@ MindProvider Interface
 ### Adding New Features
 
 1. **Custom Skins**
-   - Create shader materials in `src/core/body/blob/skins/`
+   - Create shader materials in `kwami/src/core/body/blob/skins/`
    - Register in skin factory
 
 2. **New Providers**
@@ -250,7 +250,7 @@ MindProvider Interface
    - Register in provider factory
 
 3. **Custom Personalities**
-   - Create YAML files in `src/core/soul/personalities/`
+   - Create YAML files in `kwami/src/core/soul/personalities/`
    - Define emotional traits
 
 **See:** [Advanced Topics](./docs/advanced/overview.md)

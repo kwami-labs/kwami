@@ -14,7 +14,7 @@
 
 ```
 kwami/
-├── 📦 Core Library (/)           - 3D Interactive AI Companion Library
+├── 📦 Core Library (/kwami)      - 3D Interactive AI Companion Library (npm package)
 ├── 🎮 Playground (/playground)   - Interactive demo with full UI
 ├── 🔮 Kwami App (/app)           - Full-featured Nuxt 4 web application [NEW]
 ├── 🎨 Candy Machine (/candy)     - NFT minting platform

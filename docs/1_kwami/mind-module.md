@@ -9,7 +9,7 @@ The **Kwami Mind** is the cognitive layer that enables conversational AI capabil
 ### Core Components
 
 ```
-src/core/mind/
+kwami/src/core/mind/
 ├── Mind.ts                     # Main orchestrator class
 └── providers/
     ├── types.ts                # Provider interface definitions
@@ -414,7 +414,7 @@ await provider.initialize();
 
 To add a new provider:
 
-1. **Create provider class** in `src/core/mind/providers/yourprovider/YourProvider.ts`
+1. **Create provider class** in `kwami/kwami/src/core/mind/providers/yourprovider/YourProvider.ts`
 
 ```typescript
 import type { MindProvider, MindProviderDependencies } from '../types';
