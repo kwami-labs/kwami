@@ -1,6 +1,6 @@
 {
   "name": "kwami-app",
-  "version": "0.1.0",
+  "version": "1.5.5",
   "type": "module",
   "private": true,
   "scripts": {

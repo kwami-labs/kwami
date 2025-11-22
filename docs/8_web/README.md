@@ -14,7 +14,7 @@ Welcome to the KWAMI website documentation. This is the main public-facing websi
 - [Implementation Summary](./IMPLEMENTATION_SUMMARY.md) - Overall implementation
 
 ### Upgrades & Improvements
-- [Upgrade v1.4.1](./UPGRADE_v1.4.1.md) - Version 1.4.1 upgrade notes
+- [Upgrade v1.4.1](./UPGRADE_v1.4.1.md) - Version 1.5.5 upgrade notes
 - [Improvement Plan](./IMPROVEMENT_PLAN.md) - Future improvements
 
 ### Testing

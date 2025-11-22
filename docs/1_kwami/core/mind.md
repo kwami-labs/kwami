@@ -1028,4 +1028,4 @@ For comprehensive examples covering all features, see:
 
 ---
 
-**Version 1.4.1+** - The Mind component now provides complete agent management, tools, knowledge base, and workflow capabilities alongside flexible provider support for voice AI interactions.
+**Version 1.5.5+** - The Mind component now provides complete agent management, tools, knowledge base, and workflow capabilities alongside flexible provider support for voice AI interactions.
