@@ -6,6 +6,12 @@ export default defineConfig({
   // Base public path - use './' for relative paths in production
   base: './',
   
+  resolve: {
+    alias: {
+      'kwami': resolve(__dirname, '../kwami/index.ts')
+    }
+  },
+  
   build: {
     outDir: 'dist',
     assetsDir: 'assets',

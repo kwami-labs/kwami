@@ -3,8 +3,9 @@
   "version": "1.5.7",
   "description": "A 3D Interactive AI Companion Library - Create engaging AI companions with visual (blob), audio, and AI capabilities",
   "type": "module",
-  "main": "index.ts",
-  "types": "src/types/index.ts",
+  "main": "./index.ts",
+  "module": "./index.ts",
+  "types": "./src/types/index.ts",
   "keywords": [
     "3d",
     "threejs",
@@ -66,7 +67,7 @@
       "types": "./src/types/index.ts"
     },
     "./blob": {
-      "import": "./src/blob/Blob.ts"
+      "import": "./src/core/body/blob/Blob.ts"
     },
     "./utils": {
       "import": "./src/utils/randoms.ts"
@@ -76,11 +77,9 @@
     }
   },
   "files": [
-    "src",
-    "index.ts",
+    "dist",
     "README.md",
     "CHANGELOG.md",
-    "LICENSE",
-    "!src/assets"
+    "LICENSE"
   ]
 }

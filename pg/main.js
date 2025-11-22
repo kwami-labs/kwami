@@ -1,4 +1,4 @@
-import { Kwami } from '../index.ts';
+import { Kwami } from 'kwami';
 import { createMediaLoaderUI } from './media-loader-ui.js';
 import mediaLoadingManager from './media-loading-manager.js';
 

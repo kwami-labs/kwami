@@ -11,7 +11,7 @@ import {
   ReplaceStencilOp,
   type ShaderMaterial,
 } from 'three';
-import { GLTFExporter } from 'three/addons/exporters/GLTFExporter.js';
+import { GLTFExporter } from 'three/examples/jsm/exporters/GLTFExporter.js';
 import { createBlobGeometry } from './geometry';
 import { animateBlob } from './animation';
 import { createSkin } from './skins';
@@ -809,7 +809,7 @@ export class Blob {
 
     exporter.parse(
       this.options.scene,
-      (result) => {
+      (result: ArrayBuffer | { [key: string]: any }) => {
         const blobData = new globalThis.Blob([result as ArrayBuffer], {
           type: 'model/gltf-binary',
         });
@@ -818,7 +818,7 @@ export class Blob {
         link.download = 'kwami-blob.glb';
         link.click();
       },
-      (error) => {
+      (error: unknown) => {
         console.error('Failed to export GLTF:', error);
       },
       { binary: true },

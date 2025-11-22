@@ -5,7 +5,7 @@
  * Integrates with the MediaLoader core utility
  */
 
-import { MediaLoader } from '../src/core/utils/MediaLoader.js';
+import { MediaLoader } from 'kwami';
 
 /**
  * Create a media loader UI component
