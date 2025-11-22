@@ -151,6 +151,9 @@ The main Kwami library - reusable 3D interactive AI companion with Mind-Body-Sou
 ### 🎮 Playground (`/playground`)
 Interactive demo with full configuration UI for testing all Kwami features.
 
+### 🔮 Kwami App (`/app`)
+Full-featured Nuxt 4 web application providing a complete Kwami experience. Built with glassmorphic UI, multi-language support (en, fr, es), Supabase authentication, and ElevenLabs voice integration. A production-ready implementation of the Kwami 3D AI companion.
+
 ### 🎨 Candy Machine (`/candy`)
 Mint your own KWAMI NFTs on Solana with unique DNA-based validation.
 

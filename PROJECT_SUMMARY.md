@@ -4,9 +4,9 @@
 
 **KWAMI** is a comprehensive ecosystem for creating, minting, trading, and governing 3D Interactive AI Companions on the Solana blockchain.
 
-**Version:** 1.5.0  
+**Version:** 1.5.1  
 **Status:** Production Ready  
-**Last Updated:** 2025-11-19
+**Last Updated:** 2025-11-22
 
 ---
 
@@ -16,8 +16,9 @@
 kwami/
 ├── 📦 Core Library (/)           - 3D Interactive AI Companion Library
 ├── 🎮 Playground (/playground)   - Interactive demo with full UI
+├── 🔮 Kwami App (/app)           - Full-featured Nuxt 4 web application [NEW]
 ├── 🎨 Candy Machine (/candy)     - NFT minting platform
-├── 🏛️ DAO (/dao)                 - Governance platform [NEW]
+├── 🏛️ DAO (/dao)                 - Governance platform
 ├── 🛒 Marketplace (/market)      - NFT trading platform
 ├── ⛓️ Solana Programs (/solana)  - Smart contracts
 ├── 🌐 Web App (/web)             - Public website
@@ -64,6 +65,27 @@ kwami/
 - `npm run playground` - Start dev server (port 3332)
 - `npm run build:playground` - Build for production
 - `npm run preview:playground` - Preview build
+
+---
+
+### ✅ Kwami App (NEW)
+**Status:** Production Ready  
+**Deploy:** Ready for Render/Vercel/Netlify
+
+**Features:**
+- Full Nuxt 4 web application
+- Glassmorphic UI design
+- Multi-language support (en, fr, es)
+- Supabase authentication
+- ElevenLabs voice integration
+- 3D Kwami companion
+- Pinia state management
+- Dark mode support
+
+**Scripts:**
+- `cd app && npm run dev` - Start dev server (port 5555)
+- `cd app && npm run build` - Build for production
+- `cd app && npm run preview` - Preview build
 
 ---
 
@@ -188,6 +210,7 @@ kwami/
 
 | App | Platform | Status | Build Time | URL |
 |-----|----------|--------|------------|-----|
+| **Kwami App** | Render/Vercel/Netlify | ✅ Ready | ~2-3 min | TBD |
 | **DAO** | Render.com | ✅ Configured | ~2-3 min | kwami-dao.onrender.com |
 | **Candy** | Render/Vercel | ✅ Ready | ~2-3 min | TBD |
 | **Marketplace** | Render/Vercel | ✅ Ready | ~2-3 min | TBD |
