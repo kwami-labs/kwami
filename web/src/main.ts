@@ -1,10 +1,25 @@
 import './style.css';
 import './components/welcome-layer.css';
+import './accessibility.css';
+import './loading.css';
+import './mobile.css';
+import './social.css';
+import './theme.css';
+import './onboarding.css';
 import { Kwami } from 'kwami';
 import { t, changeLanguage, getCurrentLanguage, updatePageTranslations, createLanguageSwitcher } from './i18n';
 import { WelcomeLayer } from './components/WelcomeLayer';
 import mediaLinks from './media-links.json';
 import i18next from './i18n';
+import { initAnalytics, trackSectionView, trackButtonClick, trackMediaInteraction, trackBlobInteraction, trackLanguageChange, trackTabSwitch, trackSidebarNavigation, trackTiming } from './analytics';
+import { initErrorHandler } from './error-handler';
+import { initKeyboardNavigation } from './keyboard-navigation';
+import { initLoadingStates, showBlobLoading, hideBlobLoading, lazyLoadMedia } from './loading';
+import { initMobileUX } from './mobile';
+import { initSocialFeatures } from './social';
+import { initTheme, initPerformanceOptimizer } from './theme';
+import { initOnboarding, initQuickActions } from './onboarding';
+import { initMiniMap } from './minimap';
 
 // Video files from public/video/ directory
 // Add more video files here as you add them to web/public/video/
@@ -1278,6 +1293,34 @@ function initLanguageSwitcher() {
 
 // Initialize
 document.addEventListener('DOMContentLoaded', () => {
+  // Initialize analytics and error handling
+  const startTime = performance.now();
+  initAnalytics();
+  initErrorHandler();
+  const keyboardNav = initKeyboardNavigation();
+  initLoadingStates();
+  const mobileUX = initMobileUX();
+  
+  // Initialize Phase 3 features
+  const socialFeatures = initSocialFeatures();
+  const themeManager = initTheme();
+  const perfOptimizer = initPerformanceOptimizer();
+  
+  // Initialize Phase 4 features
+  const onboardingTour = initOnboarding();
+  const quickActions = initQuickActions();
+  const miniMap = initMiniMap();
+  
+  // Make available globally for command palette
+  (window as any).socialFeatures = socialFeatures;
+  (window as any).themeManager = themeManager;
+  (window as any).onboardingTour = onboardingTour;
+  
+  // Auto-start tour for first-time users
+  setTimeout(() => {
+    onboardingTour.start();
+  }, 2000);
+  
   // Initialize welcome layer
   new WelcomeLayer();
   
@@ -1289,6 +1332,21 @@ document.addEventListener('DOMContentLoaded', () => {
   
   // Update initial translations
   updatePageTranslations();
+  
+  // Track page load time
+  const loadTime = performance.now() - startTime;
+  trackTiming('page', 'dom_loaded', Math.round(loadTime));
+  
+  // Register service worker for PWA support
+  if ('serviceWorker' in navigator) {
+    window.addEventListener('load', () => {
+      navigator.serviceWorker.register('/sw.js').then((registration) => {
+        console.log('✅ Service Worker registered:', registration.scope);
+      }).catch((error) => {
+        console.error('❌ Service Worker registration failed:', error);
+      });
+    });
+  }
   
   // Make scrollManager accessible globally for music functions
   (window as any).scrollManager = scrollManager;

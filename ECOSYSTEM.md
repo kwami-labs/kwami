@@ -4,9 +4,9 @@
 
 **KWAMI** is a comprehensive ecosystem for creating, minting, trading, and governing 3D Interactive AI Companions on the Solana blockchain.
 
-**Version:** 1.5.0  
+**Version:** 1.5.1  
 **Status:** Production Ready  
-**Last Updated:** 2025-11-19
+**Last Updated:** 2025-11-22
 
 ---
 
@@ -16,9 +16,10 @@
 kwami/
 ├── 📦 Core Library (/)           - 3D Interactive AI Companion Library
 ├── 🎮 Playground (/playground)   - Interactive demo with full UI
+├── 🔮 Kwami App (/app)           - Full-featured Nuxt 4 web application
 ├── 🎨 Candy Machine (/candy)     - NFT minting platform
-├── 🏛️ DAO (/dao)                 - Governance platform [NEW]
-├── 🛒 Marketplace (/market)      - NFT trading platform
+├── 🏛️ DAO (/dao)                 - Governance platform
+├── 🛍️ Marketplace (/market)      - NFT trading platform
 ├── ⛓️ Solana Programs (/solana)  - Smart contracts
 ├── 🌐 Web App (/web)             - Public website
 └── 📚 Documentation (/docs)      - Complete documentation
@@ -67,22 +68,72 @@ kwami/
 
 ---
 
-### ✅ Candy Machine
-**Status:** Complete  
-**Deploy:** Render/Vercel ready
+### ✅ Kwami App (NEW)
+**Status:** Production Ready  
+**Deploy:** Ready for Render/Vercel/Netlify
 
 **Features:**
-- Mint unique KWAMI NFTs
-- DNA-based validation
-- Real-time preview
-- WebSocket updates
-- Solana integration
-- Metaplex standard
+- Full Nuxt 4 web application
+- Glassmorphic UI design
+- Multi-language support (en, fr, es)
+- Supabase authentication
+- ElevenLabs voice integration
+- 3D Kwami companion
+- Pinia state management
+- Dark mode support
+- 67+ UI components
 
 **Scripts:**
-- `npm run candy` - Start dev server
-- `npm run build:candy` - Build for production
-- `npm run preview:candy` - Preview build
+- `cd app && npm run dev` - Start dev server (port 5555)
+- `cd app && npm run build` - Build for production
+- `cd app && npm run preview` - Preview build
+
+**Pages:**
+- `/` - Main app with 3D Kwami companion
+
+**Tech Stack:**
+- Nuxt 4.1.2
+- Vue 3 Composition API
+- Kwami library v1.4.1
+- @nuxt/ui v4.0.0
+- Three.js v0.180.0
+- Tailwind CSS
+
+**Deployment:**
+- Build Command: `cd app && npm install && npm run build`
+- Start Command: `cd app && node .output/server/index.mjs`
+- Environment: Requires .env configuration
+
+---
+
+### ✅ Candy Machine (v1.5.0)
+**Status:** 🎉 Production Ready  
+**Deploy:** Ready for Solana Devnet/Mainnet
+
+**Features:**
+- Mint unique KWAMI NFTs with real blockchain integration
+- DNA-based validation with on-chain uniqueness checking
+- Real-time 3D preview with Three.js
+- Canvas image capture for NFT images
+- Real Arweave integration via Irys SDK
+- Real Solana/Anchor program integration
+- WebSocket updates with Socket.IO
+- Generation-based supply limits (10B by 2100)
+- Automated deployment scripts
+- Metaplex NFT standard
+- Complete documentation
+
+**Scripts:**
+- `cd candy && bun run dev` - Start dev server (port 3000)
+- `bun run anchor:build` - Build Anchor programs
+- `bun run anchor:test` - Test Anchor programs
+- `bun run anchor:deploy` - Deploy to devnet
+- `bun run build` - Build frontend for production
+
+**Documentation:**
+- `candy/DEPLOYMENT_GUIDE.md` - Complete deployment walkthrough
+- `candy/ENV_SETUP.md` - Environment configuration
+- `candy/IMPLEMENTATION_COMPLETE.md` - Technical details
 
 ---
 
@@ -188,6 +239,7 @@ kwami/
 
 | App | Platform | Status | Build Time | URL |
 |-----|----------|--------|------------|-----|
+| **Kwami App** | Render/Vercel/Netlify | ✅ Ready | ~2-3 min | TBD |
 | **DAO** | Render.com | ✅ Configured | ~2-3 min | kwami-dao.onrender.com |
 | **Candy** | Render/Vercel | ✅ Ready | ~2-3 min | TBD |
 | **Marketplace** | Render/Vercel | ✅ Ready | ~2-3 min | TBD |
@@ -222,6 +274,9 @@ kwami/
 - ✅ `dao/INSTALLATION_COMPLETE.md` - Setup summary
 
 ### Other App Documentation
+- ✅ `app/README.md` - Kwami App guide
+- ✅ `app/SETUP.md` - Quick setup instructions
+- ✅ `app/CONTRIBUTING.md` - Contribution guide
 - ✅ `candy/README.md` - Candy machine guide
 - ✅ `candy/QUICKSTART.md` - Quick setup
 - ✅ `market/README.md` - Marketplace guide
@@ -511,7 +566,7 @@ See [LICENSE](./LICENSE) for details.
 - Nuxt - Framework
 - TypeScript - Language
 
-**Made with ❤️ by the Quami team**
+**Made with ❤️ by the KWAMI team**
 
 ---
 

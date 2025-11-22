@@ -6,9 +6,9 @@ on:
     branches:
       - main
     paths:
-      - 'package.json'
-      - 'src/**'
-      - 'index.ts'
+      - 'kwami/package.json'
+      - 'kwami/src/**'
+      - 'kwami/index.ts'
       - '.github/workflows/publish.yml'
 
 jobs:
@@ -26,10 +26,10 @@ jobs:
       - name: 🔍 Check if version changed
         id: check
         run: |
-          CURRENT_VERSION=$(node -p "require('./package.json').version")
-          git checkout HEAD~1 -- package.json 2>/dev/null || echo "First commit"
-          PREVIOUS_VERSION=$(node -p "require('./package.json').version" 2>/dev/null || echo "0.0.0")
-          git checkout HEAD -- package.json
+          CURRENT_VERSION=$(node -p "require('./kwami/package.json').version")
+          git checkout HEAD~1 -- kwami/package.json 2>/dev/null || echo "First commit"
+          PREVIOUS_VERSION=$(node -p "require('./kwami/package.json').version" 2>/dev/null || echo "0.0.0")
+          git checkout HEAD -- kwami/package.json
           
           echo "Current version: $CURRENT_VERSION"
           echo "Previous version: $PREVIOUS_VERSION"
@@ -62,18 +62,20 @@ jobs:
           registry-url: 'https://registry.npmjs.org'
 
       - name: 📦 Install dependencies
-        run: npm ci
+        run: |
+          npm ci
+          cd kwami && npm ci
 
       - name: 🧪 Run tests
-        run: npm test
+        run: cd kwami && npm test
         continue-on-error: false
 
       - name: 🔨 Build package
-        run: npm run build
+        run: cd kwami && npm run build
 
       - name: 🔍 Verify build artifacts
         run: |
-          if [ ! -d "dist" ]; then
+          if [ ! -d "kwami/dist" ]; then
             echo "❌ Error: dist directory not found after build"
             exit 1
           fi
@@ -81,6 +83,7 @@ jobs:
 
       - name: 📝 Prepare for publish
         run: |
+          cd kwami
           # Update main entry point to dist for npm package
           node -e "
             const pkg = require('./package.json');
@@ -111,7 +114,9 @@ jobs:
           "
 
       - name: 🚀 Publish to npm with provenance
-        run: npm publish --access public --provenance
+        run: cd kwami && npm publish --access public --provenance
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
 
       - name: 🏷️ Create git tag
         run: |

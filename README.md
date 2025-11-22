@@ -91,34 +91,34 @@ kwami.body.blob.setRandomBlob();
 
 ### Getting Started
 
-- **[Quick Start Guide](./docs/getting-started/quickstart.md)** - Get running in 5 minutes
-- **[Installation Guide](./docs/getting-started/installation.md)** - Detailed setup for all environments
-- **[Core Concepts](./docs/getting-started/concepts.md)** - Understand the architecture
+- **[Quick Start Guide](./docs/1_kwami/getting-started/quickstart.md)** - Get running in 5 minutes
+- **[Installation Guide](./docs/1_kwami/getting-started/installation.md)** - Detailed setup for all environments
+- **[Core Concepts](./docs/1_kwami/getting-started/concepts.md)** - Understand the architecture
 
 ### Core Components
 
-- **[Body](./docs/core/body.md)** - Visual 3D blob and scene management
-- **[Mind](./docs/core/mind.md)** - AI capabilities and provider system
-- **[Soul](./docs/core/soul.md)** - Personality and emotional intelligence
+- **[Body](./docs/1_kwami/core/body.md)** - Visual 3D blob and scene management
+- **[Mind](./docs/1_kwami/core/mind.md)** - AI capabilities and provider system
+- **[Soul](./docs/1_kwami/core/soul.md)** - Personality and emotional intelligence
 
 ### Guides
 
-- **[Configuration](./docs/guides/configuration.md)** - Complete configuration reference
-- **[Animations](./docs/guides/animations.md)** - Animation states and effects
+- **[Configuration](./docs/1_kwami/guides/configuration.md)** - Complete configuration reference
+- **[Animations](./docs/1_kwami/guides/animations.md)** - Animation states and effects
 
 ### Architecture
 
-- **[Mind Architecture](./docs/architecture/mind-architecture.md)** - Provider system internals
-- **[Body Architecture](./docs/architecture/body-architecture.md)** - Rendering pipeline
-- **[Soul Architecture](./docs/architecture/soul-architecture.md)** - Personality system
+- **[Mind Architecture](./docs/1_kwami/architecture/mind-arch.md)** - Provider system internals
+- **[Body Architecture](./docs/1_kwami/architecture/body-arch.md)** - Rendering pipeline
+- **[Soul Architecture](./docs/1_kwami/architecture/soul-arch.md)** - Personality system
 
 ### Advanced
 
-- **[Advanced Topics](./docs/advanced/overview.md)** - Performance, custom development, testing
+- **[Advanced Topics](./docs/1_kwami/advanced/overview.md)** - Performance, custom development, testing
 
 ### API Reference
 
-- **[Kwami API](./docs/api/kwami.md)** - Complete API documentation
+- **[Kwami API](./docs/1_kwami/api/kwami.md)** - Complete API documentation
 - **[Full Documentation Index](./docs/README.md)** - Browse all documentation
 
 ## 🎮 Interactive Playground
@@ -141,30 +141,44 @@ Features:
 - 🎛️ **Audio Effects** - Fine-tune frequency response
 - 📥 **GLB Export** - Download blob as 3D model
 
-See [Playground README](./playground/README.md) for details.
+See [Playground README](./pg/README.md) for details.
 
 ## 🌐 KWAMI Ecosystem
 
 ### 📦 Core Library (`/`)
 The main Kwami library - reusable 3D interactive AI companion with Mind-Body-Soul architecture.
+- Documentation: [docs/1_kwami/](./docs/1_kwami/)
 
-### 🎮 Playground (`/playground`)
+### 🎮 Playground (`/pg`)
 Interactive demo with full configuration UI for testing all Kwami features.
+- Documentation: [docs/2_pg/](./docs/2_pg/)
+
+### 🔮 Kwami App (`/app`)
+Full-featured Nuxt 4 web application providing a complete Kwami experience. Built with glassmorphic UI, multi-language support (en, fr, es), Supabase authentication, and ElevenLabs voice integration. A production-ready implementation of the Kwami 3D AI companion.
+- Documentation: [docs/3_app/](./docs/3_app/)
+
+### ⛓️ Solana Programs (`/solana`)
+Smart contracts for QWAMI token and KWAMI NFT system with 10B supply by 2100.
+- Documentation: [docs/4_solana/](./docs/4_solana/)
 
 ### 🎨 Candy Machine (`/candy`)
 Mint your own KWAMI NFTs on Solana with unique DNA-based validation.
-
-### 🏛️ DAO (`/dao`)
-Decentralized governance platform for KWAMI NFT holders to participate in community decisions.
+- Documentation: [docs/5_candy/](./docs/5_candy/)
 
 ### 🛒 Marketplace (`/market`)
 Buy, sell, and trade KWAMI NFTs on the Solana blockchain.
+- Documentation: [docs/6_market/](./docs/6_market/)
 
-### ⛓️ Solana Programs (`/solana`)
-Smart contracts for QWAMI token and KWAMI NFT system.
+### 🏛️ DAO (`/dao`)
+Decentralized governance platform for KWAMI NFT holders to participate in community decisions.
+- Documentation: [docs/7_dao/](./docs/7_dao/)
+
+### 🌐 Website (`/web`)
+Public-facing website showcasing the KWAMI ecosystem.
+- Documentation: [docs/8_web/](./docs/8_web/)
 
 ### 📚 Documentation (`/docs`)
-Complete documentation for all components and APIs.
+Complete documentation for all components and APIs organized by project.
 
 ## 🎯 Core Concepts
 
@@ -360,7 +374,7 @@ npm run dev
 - Hold 100+ QWAMI tokens to participate in governance
 - One QWAMI = One vote
 
-See [dao/README.md](./dao/README.md) for complete documentation.
+See [dao/README.md](./dao/README.md) and [docs/7_dao/](./docs/7_dao/) for complete documentation.
 
 ---
 
@@ -407,7 +421,7 @@ Audio → Web Audio API → FFT → Blob Vertices → Render
 User → Mind Provider → Soul Context → LLM → TTS → Animation
 ```
 
-See [Architecture Overview](./ARCHITECTURE.md) for diagrams and details.
+See [Architecture Overview](./docs/1_kwami/ARCHITECTURE.md) for diagrams and details.
 
 ## 🚀 Deployment
 
@@ -476,6 +490,6 @@ Built with:
 
 ---
 
-**Made with ❤️ by the Quami team**
+**Made with ❤️ by the KWAMI team**
 
 Current version: **1.4.1**

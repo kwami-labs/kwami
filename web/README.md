@@ -1,24 +1,52 @@
-# Kwami Website
+# KWAMI Website
 
-A beautiful single-page scrolling website showcasing the Kwami project - an interactive 3D AI companion.
+A beautiful single-page scrolling website showcasing the KWAMI project - an interactive 3D AI companion.
 
-## Features
+## 🎨 Features
 
-- 🎨 **Progressive Color Transitions**: Colors smoothly change as you scroll through different sections
-- 👻 **Animated Kwami Blob**: The blob morphs into different shapes for each section
-- 📱 **Fully Responsive**: Works beautifully on desktop, tablet, and mobile devices
-- ✨ **Smooth Animations**: Engaging text and visual animations throughout
-- 🎲 **Interactive**: Click the Kwami blob to randomize colors!
+- Progressive color transitions as you scroll
+- Animated KWAMI blob morphing through shapes
+- Fully responsive (desktop, tablet, mobile)
+- Smooth animations throughout
+- Interactive - click the blob to randomize!
+- PWA support
 
-## Development
+## 🚀 Quick Start
 
 ```bash
-# Install dependencies
+cd web
 npm install
-
-# Start development server
 npm run dev
+```
 
+The website will be available at `http://localhost:5173`
+
+## 📚 Documentation
+
+For complete documentation, see [docs/8_web/README.md](../docs/8_web/README.md)
+
+### Key Documents
+- [Quick Start Phase 1](../docs/8_web/QUICK_START_PHASE1.md) - Quick start guide
+- [Deployment](../docs/8_web/DEPLOYMENT.md) - Deployment instructions
+- [Phase 1 Complete](../docs/8_web/PHASE1_COMPLETE.md) - Phase 1 features
+- [Phase 2 Complete](../docs/8_web/PHASE2_COMPLETE.md) - Phase 2 features
+- [Test Report](../docs/8_web/TEST_REPORT.md) - Testing results
+
+## 🔗 Related
+
+- [Changelog](./CHANGELOG.md) - Version history and changes
+- [Main README](../README.md) - KWAMI project overview
+
+## 🏗️ Tech Stack
+
+- Vite + TypeScript
+- Three.js for 3D rendering
+- Vanilla JavaScript + CSS
+- PWA capabilities
+
+## 📦 Build
+
+```bash
 # Build for production
 npm run build
 
@@ -26,61 +54,25 @@ npm run build
 npm run preview
 ```
 
-## Project Structure
-
-```
-web/
-├── index.html          # Main HTML structure
-├── src/
-│   ├── main.ts        # TypeScript logic for scroll animations
-│   └── style.css      # All styling and animations
-└── README.md
-```
-
-## Features Explained
+## ✨ Highlights
 
 ### Split Screen Layout
+- Left: Scrollable content
+- Right: Fixed animated blob
 
-- **Left Half**: Scrollable text content explaining different aspects of Kwami (Mind, Body, Soul, etc.)
-- **Right Half**: Fixed position with an animated blob that changes shape and color
-
-### Section-Based Animations
-
-Each section triggers different blob shapes:
-1. **Meet Kwami** - Circular blob
-2. **Mind** - Star-like pattern
-3. **Body** - Squiggly organic shape
-4. **Soul** - Pulsing animation
-5. **Customization** - Spiral pattern
-6. **Get Started** - Heart-like shape
+### Section Animations
+Each section triggers unique blob shapes:
+- Meet KWAMI - Circular
+- Mind - Star pattern
+- Body - Organic shape
+- Soul - Pulsing
+- Customization - Spiral
+- Get Started - Heart shape
 
 ### Color System
+6 rotating color palettes with progressive random variations
 
-The website uses 6 color palettes that rotate through sections:
-- Purple gradient (default)
-- Red-pink
-- Teal-green
-- Orange-yellow
-- Purple-pink
-- Blue gradient
+---
 
-Additionally, colors have progressive random variations as you scroll for a more dynamic experience.
-
-## Technologies
-
-- **Vite** - Fast build tool and dev server
-- **TypeScript** - Type-safe JavaScript
-- **SVG** - Scalable vector graphics for the blob
-- **CSS Animations** - Smooth transitions and effects
-
-## Easter Eggs
-
-- Click on the Kwami blob to randomize all colors instantly
-- The blob continuously "breathes" with subtle scale animations
-- Color variations are applied progressively with random intervals
-
-## License
-
-Part of the Kwami project - see main repository for license details.
-
-
+**Version:** 1.4.1  
+**Status:** Production Ready

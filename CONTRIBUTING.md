@@ -1,564 +1,231 @@
-# 🤝 Contributing to Kwami
+# Contributing to KWAMI
 
-Thank you for your interest in contributing to Kwami! We welcome contributions from everyone. This document provides guidelines and instructions for contributing to the project.
+Thank you for your interest in contributing to the KWAMI ecosystem! 🎉
 
-## 📋 Table of Contents
+## 📦 Monorepo Structure
 
-- [Code of Conduct](#-code-of-conduct)
-- [Getting Started](#-getting-started)
-- [Development Setup](#-development-setup)
-- [Contribution Types](#-contribution-types)
-- [Making Changes](#-making-changes)
-- [Commit Guidelines](#-commit-guidelines)
-- [Pull Request Process](#-pull-request-process)
-- [Coding Standards](#-coding-standards)
-- [Testing](#-testing)
-- [Documentation](#-documentation)
-- [Questions & Support](#-questions--support)
+KWAMI is organized as a monorepo with multiple projects:
 
-## 👥 Code of Conduct
-
-We are committed to providing a welcoming and inspiring community for all. Please:
-
-- Be respectful and inclusive
-- Welcome people of all backgrounds and experience levels
-- Provide constructive feedback
-- Focus on what is best for the community
-- Show empathy towards other community members
-- Report any inappropriate behavior to the maintainers
+- **`kwami/`** - Core library (published to npm)
+- **`pg/`** - Interactive playground
+- **`app/`** - Nuxt application
+- **`solana/`** - Solana blockchain programs
+- **`candy/`** - NFT candy machine
+- **`market/`** - NFT marketplace
+- **`dao/`** - Decentralized governance
+- **`web/`** - Public website
+- **`docs/`** - All documentation
 
 ## 🚀 Getting Started
 
 ### Prerequisites
 
-- **Node.js** (v18+) or **Bun** (recommended)
-- **Git** for version control
-- Basic understanding of TypeScript and Three.js
-- Familiarity with WebGL concepts
+- Node.js 18+ or Bun
+- Git
 
-### Fork & Clone
+### Installation
 
-1. **Fork the repository** on GitHub
-2. **Clone your fork** locally:
-   ```bash
-   git clone https://github.com/YOUR_USERNAME/kwami.git
-   cd kwami
-   ```
-3. **Add upstream** for sync:
-   ```bash
-   git remote add upstream https://github.com/alexcolls/kwami.git
-   ```
-
-## 🛠️ Development Setup
-
-### Install Dependencies
-
-Using **Bun** (recommended):
 ```bash
-bun install
+# Clone the repository
+git clone https://github.com/alexcolls/kwami.git
+cd kwami
+
+# Install all workspace dependencies
+npm install --legacy-peer-deps
 ```
 
-Or using **npm**:
+## 🔧 Development Workflow
+
+### Working on the Core Library
+
 ```bash
-npm install
-```
-
-### Run Playground
-
-Start the interactive playground:
-```bash
-npm run playground
-# or
-bun playground
-```
-
-This starts a Vite dev server at `http://localhost:3000`
-
-### Build TypeScript
-
-Compile TypeScript to JavaScript:
-```bash
+# Build the core library
 npm run build
-# or
-bun build
-```
 
-### Watch Mode
+# Run tests
+npm test
 
-Watch for TypeScript changes:
-```bash
+# Watch mode for development
 npm run dev
-# or
-bun dev
 ```
 
-## 📝 Contribution Types
+### Working on Projects
 
-### 🐛 Bug Reports
+```bash
+# Run playground
+npm run pg
 
-Found a bug? Help us fix it!
+# Run web app
+npm run app
 
-1. **Check existing issues** - Avoid duplicates
-2. **Create a new issue** with:
-   - Clear title describing the bug
-   - Step-by-step reproduction steps
-   - Expected vs actual behavior
-   - Environment details (OS, Node/Bun version, browser)
-   - Code snippet or live example if possible
+# Run website
+npm run web
 
-### 🎨 Features & Enhancements
+# Run candy machine
+npm run candy
 
-Have a great idea? We'd love to hear it!
+# Run marketplace
+npm run market
 
-1. **Open a discussion** first (before starting major work)
-2. **Describe the feature**:
-   - What problem does it solve?
-   - How should it work?
-   - Will it break existing functionality?
-3. **Wait for feedback** from maintainers
-4. **Implement once approved**
-
-### 📚 Documentation
-
-Documentation improvements are always welcome!
-
-- Fix typos and grammar issues
-- Clarify confusing sections
-- Add examples and use cases
-- Improve API documentation
-- Add troubleshooting guides
-
-### ♻️ Code Quality
-
-Help improve the codebase:
-
-- Fix linting issues
-- Add type safety improvements
-- Refactor for readability
-- Remove technical debt
-- Improve performance
+# Run DAO
+npm run dao
+```
 
 ## 📝 Making Changes
 
-## 🌿 Branch Strategy
-
-### Production & Development Branches
-
-We use a professional git workflow with protected branches:
-
-- 🔒 **main** - Production branch (deployed to kwami.io)
-  - Protected - requires PR review
-  - Only receives releases from `dev`
-  - Tagged with version numbers (v2.0.0, v2.1.0, etc.)
-
-- 🔧 **dev** - Development/integration branch
-  - Main branch for feature development
-  - **All feature PRs target this branch, NOT main**
-  - Testing and review happens here
-  - Merged to `main` for releases
-
-### Create a Branch
-
-Always create feature branches from `dev`:
+### 1. Create a Branch
 
 ```bash
-# First, ensure you're on dev
-git checkout dev
-git pull origin dev
-
-# Then create your feature branch
 git checkout -b feature/your-feature-name
-
-# Or use these naming patterns:
-git checkout -b feature/blob-skin-improvements      # New features
-git checkout -b fix/scale-slider-not-working       # Bug fixes
-git checkout -b docs/add-custom-shader-guide       # Documentation
-git checkout -b refactor/animation-system          # Refactoring
-git checkout -b perf/optimize-audio-processing     # Performance
-```
-
-### Keep Your Branch Updated
-
-Before making a pull request:
-
-```bash
-git fetch origin
-git rebase origin/dev
 # or
-git merge origin/dev
+git checkout -b fix/your-fix-name
 ```
 
-**Important**: Rebase on `dev`, not `main`!
+### 2. Make Your Changes
 
-## 💾 Commit Guidelines
+- Follow the existing code style
+- Add tests for new features
+- Update documentation as needed
+- Keep commits focused and descriptive
 
-We follow semantic commit messages:
-
-### Commit Format
-
-```
-<type>(<scope>) <subject>
-
-<body>
-
-<footer>
-```
-
-### Types
-
-- `✨ feat` - New feature
-- `🐛 fix` - Bug fix
-- `📚 docs` - Documentation
-- `🎨 style` - Formatting changes
-- `♻️ refactor` - Code restructuring
-- `⚡ perf` - Performance improvement
-- `✅ test` - Test changes
-- `🔧 chore` - Build/dependency changes
-- `🔌 ci` - CI configuration
-
-### Examples
+### 3. Test Your Changes
 
 ```bash
-✨ feat(blob): add support for custom geometry deformation
-🐛 fix(animation): prevent geometry collapse on rapid clicks
-📚 docs(playground): add background gradient control guide
-♻️ refactor(audio): simplify frequency analysis logic
-⚡ perf(renderer): optimize material disposal
+# Test the core library
+cd kwami && npm test
+
+# Test specific projects as needed
+npm run test -w <project-name>
 ```
 
-### Commit Guidelines
+### 4. Commit Your Changes
 
-- ✅ Write in imperative mood ("add feature", not "added feature")
-- ✅ Keep first line under 50 characters
-- ✅ Reference issues when relevant: "Closes #123"
-- ✅ Explain *why* not just *what*
-- ❌ Don't mix multiple unrelated changes
-- ❌ Don't commit debug code or console.log statements
-
-## 🔄 Pull Request Process
-
-### Branch Target
-
-**🚨 All PRs should target the `dev` branch, NOT `main`**
-
-- `dev` is the integration branch for features
-- `main` is production (deployed to kwami.io)
-- Only maintainers merge `dev` → `main` for releases
-
-### Before Submitting
-
-1. **Ensure you're on dev**
-   ```bash
-   git fetch origin
-   git rebase origin/dev  # Update your branch
-   ```
-
-2. **Test your changes**
-   ```bash
-   npm run build
-   npm run playground  # Test manually
-   ```
-
-2. **Update documentation**
-   - Update README.md if adding features
-   - Update CHANGELOG.md with your changes
-   - Add/update JSDoc comments
-   - **Version updates** (for maintainers only):
-     - Only update `package.json` version field
-     - Run `npm run sync-version` (or happens automatically on `npm run build`)
-     - Kwami.ts and playground version display update automatically
-
-4. **Check code quality**
-   ```bash
-   npm run lint  # If available
-   ```
-
-### Creating a PR
-
-1. **Push to your fork**
-   ```bash
-   git push origin feature/your-feature
-   ```
-
-2. **Open a PR on GitHub**
-   - Use a clear title describing what changed
-   - Reference related issues: "Closes #123"
-   - Describe your changes in the description
-   - Include before/after if visual changes
-   - Link to playground or example if applicable
-   - **⚠️ IMPORTANT: Set target branch to `dev`, NOT `main`**
-
-### PR Description Template
-
-```markdown
-## Description
-Brief explanation of what this PR does
-
-## Related Issues
-Closes #123
-Related to #456
-
-## Changes
-- ✨ Added feature X
-- 🐛 Fixed bug Y
-- 📚 Updated documentation
-
-## Testing
-- ✅ Tested in playground
-- ✅ Verified on Chrome/Firefox
-- ✅ No console errors
-
-## Screenshots (if applicable)
-[Add before/after images]
-
-## Checklist
-- [ ] Branched from `dev`
-- [ ] PR targets `dev` (not `main`)
-- [ ] Code follows style guidelines
-- [ ] Documentation updated
-- [ ] CHANGELOG.md updated
-- [ ] No breaking changes introduced
-- [ ] Tested locally
-- [ ] Rebased/merged with latest `dev`
-```
-
-### Review Process
-
-- Maintainers will review your PR on `dev`
-- We may request changes or clarifications
-- Address feedback in additional commits
-- Once approved, your PR will be merged to `dev`! 🎉
-- Later, `dev` will be merged to `main` for release
-
-### Release Process (Automated)
-
-When it's time for a release:
-
-1. **Prepare the release on `dev`:**
-   - Update version in `package.json` (following semver)
-   - Update CHANGELOG.md with release notes
-   - Commit changes: `git commit -m "🚀 Bump version to v2.1.0"`
-
-2. **Create release PR:**
-   - Open PR from `dev` → `main` with title: "🚀 Release v2.1.0"
-   - Get PR reviewed and approved by maintainers
-
-3. **Merge to `main` (triggers automation):**
-   - Once merged, GitHub Actions automatically:
-     - ✅ Runs tests
-     - 📦 Builds the package
-     - 🚀 Publishes to npm (if version changed)
-     - 🏷️ Creates a git tag (v2.1.0)
-   - View workflow progress at: Actions → 📦 Publish to npm
-
-4. **Deploy website:**
-   - Website (kwami.io) deploys automatically from `main`
-
-5. **Sync back to `dev`:**
-   - Merge `main` back to `dev` to keep branches in sync
-   - Push to keep development branch up to date
-
-### Manual Publishing (for maintainers)
-
-If you need to publish manually:
+Use descriptive commit messages with emojis at the beginning:
 
 ```bash
-# Ensure you're on main with latest changes
-git checkout main
-git pull
-
-# Bump version and publish
-npm version patch|minor|major  # Bumps version and creates tag
-npm publish --access public
-
-# Push changes and tags
-git push && git push --tags
+git commit -m "✨ Add new feature"
+git commit -m "🐛 Fix bug in component"
+git commit -m "📚 Update documentation"
+git commit -m "♻️ Refactor code"
+git commit -m "🎨 Improve styling"
 ```
 
-**Note:** Automated publishing is preferred. Manual publishing should only be used for hotfixes or if automation fails.
+Common emoji prefixes:
+- ✨ New feature
+- 🐛 Bug fix
+- 📚 Documentation
+- ♻️ Refactoring
+- 🎨 Styling/UI
+- 🚀 Performance
+- 🧪 Tests
+- 🔧 Configuration
+- 🔒 Security
 
-## 🎯 Coding Standards
+### 5. Push and Create Pull Request
+
+```bash
+git push origin feature/your-feature-name
+```
+
+Then create a Pull Request on GitHub.
+
+## 📋 Code Style
 
 ### TypeScript
 
-- ✅ Use strict type checking
-- ✅ Avoid `any` types
-- ✅ Use descriptive names
-- ✅ Add JSDoc comments for public APIs
+- Use TypeScript for all new code
+- Follow existing patterns in the codebase
+- Add proper type definitions
+- Avoid `any` types when possible
 
-```typescript
-/**
- * Set the blob's spike intensity for noise deformation
- * @param x - X-axis spike intensity (0-20)
- * @param y - Y-axis spike intensity (0-20)
- * @param z - Z-axis spike intensity (0-20)
- */
-public setSpikes(x: number, y: number, z: number): void {
-  this.spikes = { x, y, z };
-}
-```
+### Formatting
 
-### File Organization
+The project uses standard formatting. Please ensure your code is properly formatted before committing.
 
-```
-src/
-├── core/          # Core classes (Kwami, Body, Mind, Soul)
-├── blob/          # Blob implementation
-│   ├── geometry.ts    # Geometry creation
-│   ├── animation.ts   # Animation logic
-│   ├── config.ts      # Default configuration
-│   └── skins/         # Shader materials
-├── scene/         # THREE.js scene setup
-├── types/         # TypeScript type definitions
-└── utils/         # Utility functions
-```
+### Documentation
 
-### Naming Conventions
-
-- **Classes**: PascalCase (`KwamiBody`, `BlobGeometry`)
-- **Functions**: camelCase (`setSpikes()`, `enableInteraction()`)
-- **Constants**: UPPER_SNAKE_CASE (`DEFAULT_RESOLUTION`)
-- **Private members**: Prefix with `_` or use `private` keyword
-- **Types**: PascalCase (`BlobConfig`, `AudioEffects`)
-
-### Code Style
-
-- Use semicolons
-- 2-space indentation
-- Line length: aim for <100 characters
-- Use `const` by default, `let` when needed
-- Avoid `var`
-- Use template literals for strings with interpolation
+- Update README files when adding features
+- Add JSDoc comments for public APIs
+- Update the relevant docs/ folder for your project
 
 ## 🧪 Testing
 
-### Manual Testing
+### Core Library Tests
 
-1. **Run playground**
-   ```bash
-   npm run playground
-   ```
+```bash
+cd kwami
+npm test
+```
 
-2. **Test in browser**
-   - Check all UI controls work
-   - Verify animations are smooth
-   - Test on different screen sizes
-   - Check console for errors
+### Writing Tests
 
-3. **Test specific scenarios**
-   - Audio reactivity with different files
-   - State transitions between modes
-   - Background gradient changes
-   - Scale control with animation
-
-### Before Committing
-
-- ✅ No console errors or warnings
-- ✅ All controls functional
-- ✅ Animations smooth (60 FPS)
-- ✅ Memory usage reasonable
-- ✅ Works on different browsers
+- Use Vitest for unit tests
+- Place tests in `tests/` directory
+- Follow the existing test patterns
+- Aim for good coverage of new features
 
 ## 📚 Documentation
 
-### Adding Documentation
+### Project Documentation
 
-1. **Inline comments** for complex logic
-   ```typescript
-   // Calculate noise frequencies based on spike intensity
-   const baseFreqX = Math.max(0.025, spikeX);
-   ```
+Each project has its own documentation in `docs/<n>_<project>/`:
 
-2. **JSDoc comments** for public APIs
-   ```typescript
-   /**
-    * Start listening mode with microphone audio input
-    * @throws Error if microphone access denied
-    */
-   public async startListening(): Promise<void> { }
-   ```
+- `docs/1_kwami/` - Core library
+- `docs/2_pg/` - Playground
+- `docs/3_app/` - App
+- `docs/4_solana/` - Solana
+- `docs/5_candy/` - Candy machine
+- `docs/6_market/` - Marketplace
+- `docs/7_dao/` - DAO
+- `docs/8_web/` - Website
 
-3. **Markdown files** for guides
-   - Place in `/docs` folder
-   - Use clear headings
-   - Include examples
-   - Add troubleshooting sections
+When making changes, update the relevant documentation.
 
-### Updating CHANGELOG
+## 🔄 Versioning
 
-Always update `CHANGELOG.md`:
+### Core Library (`kwami/`)
 
-```markdown
-### ✨ Added
+- Follows [Semantic Versioning](https://semver.org/)
+- Version changes trigger npm publishing via GitHub Actions
+- Update `kwami/CHANGELOG.md` for releases
 
-- 🎨 New feature description
-- 🎤 Another feature
+### Other Projects
 
-### 🐛 Bug Fixes
+- Each project maintains its own version
+- Update project-specific CHANGELOGs
 
-- Fixed issue with scale control
-- Improved animation performance
+## 📦 Publishing (Maintainers Only)
 
-### 📚 Documentation
+### Core Library
 
-- Added custom shader guide
-- Updated playground README
-```
+Publishing is automated via GitHub Actions:
 
-## ❓ Questions & Support
+1. Update version in `kwami/package.json`
+2. Update `kwami/CHANGELOG.md`
+3. Commit and push to `main`
+4. GitHub Actions will automatically publish to npm
 
-### Getting Help
+See [.github/workflows/publish.yml](./.github/workflows/publish.yml) for details.
 
-- 📖 Check existing [documentation](/docs)
-- 🔍 Search [existing issues](https://github.com/alexcolls/kwami/issues)
-- 💬 Ask in discussions
-- 📧 Contact maintainers
+## 🤝 Code Review Process
 
-### Resources
+1. All changes require a Pull Request
+2. At least one approval from a maintainer
+3. All tests must pass
+4. Documentation must be updated
+5. Code must follow project style
 
-- [README.md](./README.md) - Project overview
-- [ARCHITECTURE.md](./ARCHITECTURE.md) - Project structure
-- [Playground README](./playground/README.md) - UI guide
-- [TypeScript Docs](https://www.typescriptlang.org/docs/)
-- [Three.js Docs](https://threejs.org/docs/)
+## ❓ Questions?
 
-## 🎓 Learning Resources
+- Open a [GitHub Discussion](https://github.com/alexcolls/kwami/discussions)
+- Check existing [Issues](https://github.com/alexcolls/kwami/issues)
+- Read the [Documentation](./docs/README.md)
 
-### Understanding Kwami
+## 📄 License
 
-1. **Read ARCHITECTURE.md** - Understand the structure
-2. **Explore the playground** - See features in action
-3. **Check examples** in README.md
-4. **Study the codebase** - Start with core classes
-
-### Relevant Technologies
-
-- [Three.js](https://threejs.org/) - 3D graphics
-- [WebGL](https://www.khronos.org/webgl/) - GPU acceleration
-- [Web Audio API](https://developer.mozilla.org/en-US/docs/Web/API/Web_Audio_API) - Audio processing
-- [TypeScript](https://www.typescriptlang.org/) - Type-safe JavaScript
-- [Simplex Noise](https://github.com/jwagner/simplex-noise.js/) - Smooth random patterns
-
-## 🎉 Recognition
-
-Contributors are recognized in:
-
-- ✨ [GitHub Contributors](https://github.com/alexcolls/kwami/graphs/contributors)
-- 📝 CHANGELOG.md entries
-- 🏆 Project README (for major contributions)
-
-## ⚖️ License
-
-By contributing, you agree that your contributions will be licensed under the same license as the project (Dual License - Apache 2.0 for personal use, commercial license required for business use).
-
-## 🙏 Thank You!
-
-Thank you for contributing to Kwami! Your help makes this project better for everyone. We appreciate your time, effort, and passion for open source! 🚀
+By contributing, you agree that your contributions will be licensed under the project's license terms. See [LICENSE](./LICENSE) for details.
 
 ---
 
-**Questions?** Open an issue or discussion on GitHub!
+**Thank you for contributing to KWAMI!** ❤️
 
-**Found a security vulnerability?** Please email instead of using issues.
-
-Happy coding! 💻✨

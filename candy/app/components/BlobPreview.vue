@@ -44,6 +44,7 @@
 
 <script setup lang="ts">
 import * as THREE from 'three'
+import { captureAndPrepareForUpload } from '~/utils/canvasCapture'
 
 const canvasContainer = ref<HTMLDivElement>()
 const canvas = ref<HTMLCanvasElement>()
@@ -72,6 +73,37 @@ const blobConfig = reactive({
   opacity: 1.0,
   frequency: { x: 1.0, y: 1.0, z: 1.0 },
   amplitude: { x: 0.8, y: 0.8, z: 0.8 },
+})
+
+// Expose methods for parent component
+const captureImage = async (): Promise<Buffer | null> => {
+  if (!canvas.value) {
+    console.error('[BlobPreview] Canvas not available for capture')
+    return null
+  }
+  
+  try {
+    return await captureAndPrepareForUpload(canvas.value)
+  } catch (error) {
+    console.error('[BlobPreview] Error capturing canvas:', error)
+    return null
+  }
+}
+
+const getConfig = () => {
+  return { ...blobConfig }
+}
+
+const getDna = () => {
+  return dna.value
+}
+
+// Expose functions to parent
+defineExpose({
+  captureImage,
+  getConfig,
+  getDna,
+  blobConfig
 })
 
 const initThreeJS = async () => {

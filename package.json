@@ -1,101 +1,52 @@
 {
-  "name": "kwami",
+  "name": "kwami-monorepo",
   "version": "1.4.2",
-  "description": "A 3D Interactive AI Companion Library - Create engaging AI companions with visual (blob), audio, and AI capabilities",
+  "description": "KWAMI Ecosystem - Monorepo containing the core library and all related projects",
+  "private": true,
   "type": "module",
-  "main": "index.ts",
-  "types": "src/types/index.ts",
-  "keywords": [
-    "3d",
-    "threejs",
-    "ai",
-    "companion",
-    "audio",
-    "visualization",
-    "blob",
-    "interactive",
-    "webgl",
-    "typescript"
+  "workspaces": [
+    "kwami",
+    "pg",
+    "app",
+    "candy",
+    "market",
+    "dao",
+    "web"
   ],
-  "author": "Alex Colls",
-  "license": "MIT",
-  "repository": {
-    "type": "git",
-    "url": "https://github.com/alexcolls/kwami"
-  },
   "scripts": {
-    "test": "vitest run",
-    "test:watch": "vitest",
-    "test:ui": "vitest --ui",
-    "test:coverage": "vitest run --coverage",
-    "test:coverage:ui": "vitest --coverage --ui",
-    "sync-version": "node scripts/sync-version.js",
-    "prebuild": "npm run sync-version",
-    "build": "tsc",
-    "dev": "tsc --watch",
-    "prepublishOnly": "npm run build && npm test",
-    "postpublish": "echo '✅ Successfully published kwami to npm!'",
+    "test": "npm run test -w kwami",
+    "test:watch": "npm run test:watch -w kwami",
+    "test:ui": "npm run test:ui -w kwami",
+    "test:coverage": "npm run test:coverage -w kwami",
+    "build": "npm run build -w kwami",
+    "dev": "npm run dev -w kwami",
     "web": "vite --config web/vite.config.ts --port 3331",
     "build:web": "vite build --config web/vite.config.ts",
     "preview:web": "vite preview --config web/vite.config.ts",
-    "playground": "vite --config playground/vite.config.js --port 3332",
-    "build:playground": "vite build --config playground/vite.config.js",
-    "preview:playground": "vite preview --config playground/vite.config.js",
-    "candy": "cd candy && npm run dev",
-    "build:candy": "cd candy && npm install && npm run build",
-    "preview:candy": "cd candy && npm run preview",
-    "dao": "cd dao && npm run dev",
-    "build:dao": "cd dao && npm install && npm run build",
-    "preview:dao": "cd dao && npm run preview",
-    "market": "cd market && npm run dev",
-    "build:market": "cd market && npm install && npm run build",
-    "preview:market": "cd market && npm run preview"
-  },
-  "dependencies": {
-    "@distube/ytdl-core": "^4.14.4",
-    "@elevenlabs/elevenlabs-js": "^2.20.1",
-    "js-yaml": "^4.1.1",
-    "simplex-noise": "^4.0.1",
-    "three": ">=0.150.0"
+    "pg": "npm run playground",
+    "playground": "vite --config pg/vite.config.js --port 3332",
+    "build:playground": "vite build --config pg/vite.config.js",
+    "preview:playground": "vite preview --config pg/vite.config.js",
+    "app": "npm run dev -w app",
+    "build:app": "npm run build -w app",
+    "preview:app": "npm run preview -w app",
+    "candy": "npm run dev -w candy",
+    "build:candy": "npm run build -w candy",
+    "preview:candy": "npm run preview -w candy",
+    "dao": "npm run dev -w dao",
+    "build:dao": "npm run build -w dao",
+    "preview:dao": "npm run preview -w dao",
+    "market": "npm run dev -w market",
+    "build:market": "npm run build -w market",
+    "preview:market": "npm run preview -w market",
+    "publish:kwami": "npm publish -w kwami"
   },
   "devDependencies": {
-    "@types/js-yaml": "^4.0.9",
     "@types/node": "^24.10.1",
-    "@types/three": "^0.160.0",
-    "@vitest/coverage-v8": "^4.0.9",
-    "@vitest/ui": "^4.0.9",
-    "happy-dom": "^20.0.10",
     "typescript": "^5.3.0",
-    "vite": "^7.1.12",
-    "vitest": "^4.0.9"
+    "vite": "^7.1.12"
   },
-  "peerDependencies": {
-    "three": ">=0.150.0"
-  },
-  "exports": {
-    ".": {
-      "import": "./index.ts",
-      "types": "./src/types/index.ts"
-    },
-    "./core": {
-      "import": "./src/core/Kwami.ts",
-      "types": "./src/types/index.ts"
-    },
-    "./blob": {
-      "import": "./src/blob/Blob.ts"
-    },
-    "./utils": {
-      "import": "./src/utils/randoms.ts"
-    },
-    "./types": {
-      "types": "./src/types/index.ts"
-    }
-  },
-  "files": [
-    "src",
-    "index.ts",
-    "README.md",
-    "CHANGELOG.md",
-    "!src/assets"
-  ]
+  "engines": {
+    "node": ">=18.0.0"
+  }
 }

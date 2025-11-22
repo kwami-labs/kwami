@@ -1,0 +1,3 @@
+<template>
+  <UButton />
+</template>

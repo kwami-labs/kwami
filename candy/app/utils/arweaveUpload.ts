@@ -1,7 +1,9 @@
 /**
  * Arweave Upload Utility
- * Uploads assets and metadata to Arweave for permanent storage
+ * Uploads assets and metadata to Arweave for permanent storage using Irys (formerly Bundlr)
  */
+
+import type { PublicKey } from '@solana/web3.js'
 
 export interface UploadResult {
   uri: string
@@ -9,66 +11,156 @@ export interface UploadResult {
 }
 
 /**
- * Upload image to Arweave
- * For now, this is a placeholder - in production you would:
- * 1. Generate a blob image from the 3D configuration
- * 2. Use Bundlr/Irys or Arweave SDK to upload
- * 3. Return the permanent Arweave URI
+ * Get Irys instance for uploads
+ * Uses lazy loading to avoid SSR issues
  */
-export async function uploadImageToArweave(
-  blobConfig: any,
-  walletPublicKey: string
-): Promise<UploadResult> {
+async function getIrysInstance(wallet: any) {
+  if (process.server) {
+    throw new Error('Irys can only be used on client side')
+  }
+
   try {
-    // TODO: Implement actual Arweave upload
-    // For development, we'll use a placeholder
-    // In production, you would:
-    // 1. Render the 3D blob to canvas
-    // 2. Convert canvas to blob
-    // 3. Upload to Arweave using Bundlr/Irys
-    
-    console.log('[Arweave] Uploading image...', { blobConfig, walletPublicKey })
-    
-    // Simulate upload delay
-    await new Promise(resolve => setTimeout(resolve, 1000))
-    
-    // Return placeholder URI
-    // In production, this would be the actual Arweave transaction ID
-    const mockTxId = `mock_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`
-    
-    return {
-      uri: `https://arweave.net/${mockTxId}`,
-      txId: mockTxId
-    }
+    // Dynamic import to avoid SSR issues
+    const { default: Irys } = await import('@irys/sdk')
+    const { Connection } = await import('@solana/web3.js')
+
+    const config = useRuntimeConfig()
+    const network = config.public.solanaNetwork || 'devnet'
+    const rpcUrl = config.public.solanaRpcUrl || 'https://api.devnet.solana.com'
+
+    // Create Irys instance
+    const irys = new Irys({
+      network: network === 'mainnet-beta' ? 'mainnet' : 'devnet',
+      token: 'solana',
+      key: wallet,
+      config: {
+        providerUrl: rpcUrl,
+      },
+    })
+
+    return irys
   } catch (error) {
-    console.error('[Arweave] Error uploading image:', error)
-    throw new Error('Failed to upload image to Arweave')
+    console.error('[Irys] Error initializing:', error)
+    throw new Error('Failed to initialize Irys client')
   }
 }
 
 /**
- * Upload metadata JSON to Arweave
+ * Upload image buffer to Arweave via Irys
+ */
+export async function uploadImageToArweave(
+  imageBuffer: Buffer | Uint8Array,
+  wallet: any,
+  contentType: string = 'image/png'
+): Promise<UploadResult> {
+  try {
+    console.log('[Arweave] Uploading image...', { size: imageBuffer.length, contentType })
+
+    // For development/testing with mock wallet, return placeholder
+    if (!wallet || typeof wallet === 'string') {
+      console.warn('[Arweave] Using mock upload (no wallet provided)')
+      await new Promise(resolve => setTimeout(resolve, 1000))
+      const mockTxId = `mock_img_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`
+      return {
+        uri: `https://arweave.net/${mockTxId}`,
+        txId: mockTxId
+      }
+    }
+
+    // Real upload with Irys
+    const irys = await getIrysInstance(wallet)
+
+    // Fund if needed (check balance first)
+    const price = await irys.getPrice(imageBuffer.length)
+    const balance = await irys.getLoadedBalance()
+    
+    if (balance.lt(price)) {
+      console.log('[Irys] Funding account...', { needed: price.toString(), current: balance.toString() })
+      await irys.fund(price.multipliedBy(1.1)) // Fund 110% to cover fees
+    }
+
+    // Upload image
+    const receipt = await irys.upload(imageBuffer, {
+      tags: [
+        { name: 'Content-Type', value: contentType },
+        { name: 'App-Name', value: 'kwami.io' },
+        { name: 'App-Version', value: '1.4.0' },
+        { name: 'Type', value: 'image' },
+      ],
+    })
+
+    const uri = `https://arweave.net/${receipt.id}`
+    
+    console.log('[Arweave] Image uploaded successfully', { txId: receipt.id, uri })
+
+    return {
+      uri,
+      txId: receipt.id
+    }
+  } catch (error: any) {
+    console.error('[Arweave] Error uploading image:', error)
+    throw new Error(`Failed to upload image to Arweave: ${error.message}`)
+  }
+}
+
+/**
+ * Upload metadata JSON to Arweave via Irys
  */
 export async function uploadMetadataToArweave(
   metadata: any,
-  walletPublicKey: string
+  wallet: any
 ): Promise<UploadResult> {
   try {
-    console.log('[Arweave] Uploading metadata...', { metadata, walletPublicKey })
-    
-    // Simulate upload delay
-    await new Promise(resolve => setTimeout(resolve, 1000))
-    
-    // Return placeholder URI
-    const mockTxId = `mock_meta_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`
-    
-    return {
-      uri: `https://arweave.net/${mockTxId}`,
-      txId: mockTxId
+    console.log('[Arweave] Uploading metadata...', { name: metadata.name })
+
+    // For development/testing with mock wallet, return placeholder
+    if (!wallet || typeof wallet === 'string') {
+      console.warn('[Arweave] Using mock upload (no wallet provided)')
+      await new Promise(resolve => setTimeout(resolve, 1000))
+      const mockTxId = `mock_meta_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`
+      return {
+        uri: `https://arweave.net/${mockTxId}`,
+        txId: mockTxId
+      }
     }
-  } catch (error) {
+
+    // Convert metadata to JSON buffer
+    const metadataJson = JSON.stringify(metadata, null, 2)
+    const metadataBuffer = Buffer.from(metadataJson, 'utf-8')
+
+    // Real upload with Irys
+    const irys = await getIrysInstance(wallet)
+
+    // Fund if needed
+    const price = await irys.getPrice(metadataBuffer.length)
+    const balance = await irys.getLoadedBalance()
+    
+    if (balance.lt(price)) {
+      console.log('[Irys] Funding account for metadata...', { needed: price.toString() })
+      await irys.fund(price.multipliedBy(1.1))
+    }
+
+    // Upload metadata
+    const receipt = await irys.upload(metadataBuffer, {
+      tags: [
+        { name: 'Content-Type', value: 'application/json' },
+        { name: 'App-Name', value: 'kwami.io' },
+        { name: 'App-Version', value: '1.4.0' },
+        { name: 'Type', value: 'metadata' },
+      ],
+    })
+
+    const uri = `https://arweave.net/${receipt.id}`
+    
+    console.log('[Arweave] Metadata uploaded successfully', { txId: receipt.id, uri })
+
+    return {
+      uri,
+      txId: receipt.id
+    }
+  } catch (error: any) {
     console.error('[Arweave] Error uploading metadata:', error)
-    throw new Error('Failed to upload metadata to Arweave')
+    throw new Error(`Failed to upload metadata to Arweave: ${error.message}`)
   }
 }
 

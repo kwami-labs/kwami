@@ -15,7 +15,7 @@ export const useSocketStore = defineStore('socket', () => {
   watch(() => walletStore.connected, (connected) => {
     if (connected && walletStore.address) {
       socket.updateUser({ walletAddress: walletStore.address })
-    }
+  }
   })
 
   // Helper methods for minting notifications

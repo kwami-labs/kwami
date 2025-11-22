@@ -1,0 +1,10 @@
+{
+  "error": {
+    "404": {
+      "title": "Page not found",
+      "description": "The page you are looking for doesn’t exist or has been moved.",
+      "description2": "Check the URL or go back to the homepage.",
+      "btn": "Go home"
+    }
+  }
+}
