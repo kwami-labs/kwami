@@ -1011,13 +1011,13 @@ See [Mind Architecture](../architecture/mind-arch.md#voice-provider-landscape) f
 
 For comprehensive examples covering all features, see:
 
-- **[Mind Examples](../../src/core/mind/examples/README.md)** - Complete usage examples
+- **[Mind Examples](../mind-examples.md)** - Complete usage examples
   - Basic and advanced agent creation
   - Tools API with webhooks
   - Knowledge Base with RAG
   - Multi-agent workflows
   - Complete customer support agent example
-- **[Test Suite](../../src/core/mind/examples/test-agent-apis.ts)** - Automated API testing
+- **[Test Suite](../../kwami/src/core/mind/examples/test-agent-apis.ts)** - Automated API testing
 
 ## See Also
 

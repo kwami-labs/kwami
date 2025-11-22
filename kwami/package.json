@@ -1,0 +1,86 @@
+{
+  "name": "kwami",
+  "version": "1.4.2",
+  "description": "A 3D Interactive AI Companion Library - Create engaging AI companions with visual (blob), audio, and AI capabilities",
+  "type": "module",
+  "main": "index.ts",
+  "types": "src/types/index.ts",
+  "keywords": [
+    "3d",
+    "threejs",
+    "ai",
+    "companion",
+    "audio",
+    "visualization",
+    "blob",
+    "interactive",
+    "webgl",
+    "typescript"
+  ],
+  "author": "Alex Colls",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/alexcolls/kwami",
+    "directory": "kwami"
+  },
+  "scripts": {
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "test:ui": "vitest --ui",
+    "test:coverage": "vitest run --coverage",
+    "test:coverage:ui": "vitest --coverage --ui",
+    "build": "tsc",
+    "dev": "tsc --watch",
+    "prepublishOnly": "npm run build && npm test",
+    "postpublish": "echo '✅ Successfully published kwami to npm!'"
+  },
+  "dependencies": {
+    "@distube/ytdl-core": "^4.14.4",
+    "@elevenlabs/elevenlabs-js": "^2.20.1",
+    "js-yaml": "^4.1.1",
+    "simplex-noise": "^4.0.1",
+    "three": ">=0.150.0"
+  },
+  "devDependencies": {
+    "@types/js-yaml": "^4.0.9",
+    "@types/node": "^24.10.1",
+    "@types/three": "^0.160.0",
+    "@vitest/coverage-v8": "^4.0.9",
+    "@vitest/ui": "^4.0.9",
+    "happy-dom": "^20.0.10",
+    "typescript": "^5.3.0",
+    "vite": "^7.1.12",
+    "vitest": "^4.0.9"
+  },
+  "peerDependencies": {
+    "three": ">=0.150.0"
+  },
+  "exports": {
+    ".": {
+      "import": "./index.ts",
+      "types": "./src/types/index.ts"
+    },
+    "./core": {
+      "import": "./src/core/Kwami.ts",
+      "types": "./src/types/index.ts"
+    },
+    "./blob": {
+      "import": "./src/blob/Blob.ts"
+    },
+    "./utils": {
+      "import": "./src/utils/randoms.ts"
+    },
+    "./types": {
+      "types": "./src/types/index.ts"
+    }
+  },
+  "files": [
+    "src",
+    "index.ts",
+    "README.md",
+    "CHANGELOG.md",
+    "!src/assets"
+  ]
+}
+
