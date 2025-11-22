@@ -94,7 +94,7 @@ kwami/
 **Tech Stack:**
 - Nuxt 4.1.2
 - Vue 3 Composition API
-- Kwami library v1.4.1
+- Kwami library v1.5.7
 - @nuxt/ui v4.0.0
 - Three.js v0.180.0
 - Tailwind CSS

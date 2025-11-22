@@ -26,6 +26,67 @@ Complete guide for deploying the KWAMI Candy Machine to Solana blockchain.
    cargo install --git https://github.com/coral-xyz/anchor --tag v0.29.0 anchor-cli
    ```
 
+## 🐳 Docker Deployment
+
+The candy machine includes Docker support for containerized deployment.
+
+### Available Dockerfiles
+
+- `candy/docker/Dockerfile` - Standard Node.js deployment
+- `candy/docker/Dockerfile.bun` - Bun runtime deployment (faster)
+- `candy/docker/Dockerfile.deno` - Deno runtime deployment
+
+### Build Docker Image
+
+```bash
+# Using Node.js (default)
+docker build -t kwami-candy -f candy/docker/Dockerfile candy/
+
+# Using Bun (recommended for faster builds)
+docker build -t kwami-candy -f candy/docker/Dockerfile.bun candy/
+
+# Using Deno
+docker build -t kwami-candy -f candy/docker/Dockerfile.deno candy/
+```
+
+### Run Docker Container
+
+```bash
+docker run -p 3000:3000 \
+  -e NUXT_PUBLIC_SOLANA_NETWORK=devnet \
+  -e NUXT_PUBLIC_SOLANA_RPC_URL=https://api.devnet.solana.com \
+  -e NUXT_PUBLIC_KWAMI_NFT_PROGRAM_ID=your_program_id \
+  -e NUXT_PUBLIC_QWAMI_TOKEN_PROGRAM_ID=your_token_program \
+  kwami-candy
+```
+
+### Docker Compose
+
+Create a `docker-compose.yml` file:
+
+```yaml
+version: '3.8'
+
+services:
+  candy:
+    build:
+      context: ./candy
+      dockerfile: docker/Dockerfile.bun
+    ports:
+      - "3000:3000"
+    environment:
+      - NUXT_PUBLIC_SOLANA_NETWORK=devnet
+      - NUXT_PUBLIC_SOLANA_RPC_URL=https://api.devnet.solana.com
+      - NUXT_PUBLIC_KWAMI_NFT_PROGRAM_ID=${KWAMI_NFT_PROGRAM_ID}
+      - NUXT_PUBLIC_QWAMI_TOKEN_PROGRAM_ID=${QWAMI_TOKEN_PROGRAM_ID}
+    restart: unless-stopped
+```
+
+Run with:
+```bash
+docker-compose up -d
+```
+
 ### Verify Installation
 
 ```bash

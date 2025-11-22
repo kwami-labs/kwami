@@ -4,6 +4,16 @@ This is a structured overview of all KWAMI documentation.
 
 ## Table of Contents
 
+### 🐳 Docker Deployment
+
+- **[Docker Deployment Guide](./DOCKER_DEPLOYMENT.md)** - Complete guide for deploying all projects with Docker
+  - Multi-runtime support (Node.js, Bun, Deno)
+  - Production deployment examples
+  - Cloud platform integration
+  - Docker Compose configurations
+
+---
+
 ### 1. KWAMI Core Library (`1_kwami/`)
 
 #### Getting Started
@@ -159,11 +169,12 @@ This is a structured overview of all KWAMI documentation.
 ## Quick Reference
 
 ### Most Important Documents
-1. [KWAMI Architecture](./1_kwami/ARCHITECTURE.md)
-2. [Token Economics](./4_solana/KWAMI_TOKEN_ECONOMICS.md)
-3. [Supply Schedule](./4_solana/KWAMI_SUPPLY_SCHEDULE.md)
-4. [API Reference](./1_kwami/api/kwami.md)
-5. [Getting Started](./1_kwami/getting-started/quickstart.md)
+1. [Docker Deployment Guide](./DOCKER_DEPLOYMENT.md) 🆕
+2. [KWAMI Architecture](./1_kwami/ARCHITECTURE.md)
+3. [Token Economics](./4_solana/KWAMI_TOKEN_ECONOMICS.md)
+4. [Supply Schedule](./4_solana/KWAMI_SUPPLY_SCHEDULE.md)
+5. [API Reference](./1_kwami/api/kwami.md)
+6. [Getting Started](./1_kwami/getting-started/quickstart.md)
 
 ### For Each Project
 - **Core**: Start with [Architecture](./1_kwami/ARCHITECTURE.md)
@@ -174,6 +185,17 @@ This is a structured overview of all KWAMI documentation.
 - **Market**: Start with [Start Here](./6_market/START_HERE.md)
 - **DAO**: Read [Quick Start](./7_dao/QUICKSTART.md)
 - **Web**: See [Phase 1](./8_web/PHASE1_COMPLETE.md)
+
+---
+
+## Recent Updates (v1.5.8)
+
+### 🐳 Docker Infrastructure
+- Complete Docker support for all 6 ecosystem projects
+- 3 runtime variants per project: Node.js, Bun, Deno
+- 18 production-ready Dockerfiles
+- Multi-stage builds for optimized images
+- See [Docker Deployment Guide](./DOCKER_DEPLOYMENT.md)
 
 ---
 
