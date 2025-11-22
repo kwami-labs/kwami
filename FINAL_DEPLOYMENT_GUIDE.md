@@ -435,7 +435,7 @@ Your complete KWAMI ecosystem is ready to go live!
 
 ---
 
-**Made with ❤️ by the Quami team**
+**Made with ❤️ by the KWAMI team**
 
 *Ready to revolutionize AI companions on Solana!*
 

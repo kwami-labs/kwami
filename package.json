@@ -38,6 +38,7 @@
     "web": "vite --config web/vite.config.ts --port 3331",
     "build:web": "vite build --config web/vite.config.ts",
     "preview:web": "vite preview --config web/vite.config.ts",
+    "pg": "npm run playground",
     "playground": "vite --config playground/vite.config.js --port 3332",
     "build:playground": "vite build --config playground/vite.config.js",
     "preview:playground": "vite preview --config playground/vite.config.js",

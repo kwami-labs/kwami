@@ -566,7 +566,7 @@ See [LICENSE](./LICENSE) for details.
 - Nuxt - Framework
 - TypeScript - Language
 
-**Made with ❤️ by the Quami team**
+**Made with ❤️ by the KWAMI team**
 
 ---
 
