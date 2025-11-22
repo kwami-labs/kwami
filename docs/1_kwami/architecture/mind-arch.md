@@ -64,7 +64,7 @@ Unimplemented features log informative errors rather than crashing, allowing gra
 ## Directory Structure (v1.4.1)
 
 ```
-src/core/mind/
+kwami/src/core/mind/
 ├─ Mind.ts                      # Main orchestrator class
 ├─ AgentConfigBuilder.ts        # Fluent API for agent configuration
 ├─ validation.ts                # Configuration validation utilities
@@ -429,8 +429,8 @@ export interface MindConversationCallbacks {
 #### 1. Create Provider Directory
 
 ```bash
-mkdir -p src/core/mind/providers/vapi
-touch src/core/mind/providers/vapi/VapiProvider.ts
+mkdir -p kwami/src/core/mind/providers/vapi
+touch kwami/src/core/mind/providers/vapi/VapiProvider.ts
 ```
 
 #### 2. Implement MindProvider Interface
@@ -1071,9 +1071,9 @@ await runTests(); // Returns { passed, failed, skipped, total, success }
 - **ElevenLabs Documentation**: [elevenlabs.io/docs](https://elevenlabs.io/docs)
 - **ElevenLabs Agents API**: [elevenlabs.io/docs/api-reference/agents](https://elevenlabs.io/docs/api-reference/agents)
 - **OpenAI Realtime API**: [platform.openai.com/docs/guides/realtime](https://platform.openai.com/docs/guides/realtime)
-- **Provider SDK Examples**: See `src/core/mind/providers/*/` for reference implementations
-- **Complete Examples**: See `src/core/mind/examples/README.md` for comprehensive usage
-- **Test Suite**: See `src/core/mind/examples/test-agent-apis.ts` for API testing
+- **Provider SDK Examples**: See `kwami/src/core/mind/providers/*/` for reference implementations
+- **Complete Examples**: See `kwami/src/core/mind/examples/README.md` for comprehensive usage
+- **Test Suite**: See `kwami/src/core/mind/examples/test-agent-apis.ts` for API testing
 
 ---
 

@@ -7,7 +7,7 @@ The body subsystem is responsible for rendering Kwami’s visual presence, manag
 - `Blob` encapsulates the animated shader mesh that represents Kwami’s organism.
 - `KwamiAudio` handles Web Audio decoding/streaming, analyser setup, and microphone/stream piping for animation data.
 
-All three modules live under `src/core/body` and are designed to be orchestrated exclusively through `KwamiBody`.
+All three modules live under `kwami/src/core/body` and are designed to be orchestrated exclusively through `KwamiBody`.
 
 ### System Diagram
 

@@ -342,7 +342,7 @@ interface MindProvider {
 ### Creating a Custom Provider
 
 ```typescript
-// src/core/mind/providers/custom/CustomProvider.ts
+// kwami/src/core/mind/providers/custom/CustomProvider.ts
 
 import type { MindProvider, ConversationCallbacks } from '../types';
 
@@ -386,7 +386,7 @@ export class CustomProvider implements MindProvider {
 ### Registering Custom Provider
 
 ```typescript
-// src/core/mind/providers/factory.ts
+// kwami/src/core/mind/providers/factory.ts
 
 import { CustomProvider } from './custom/CustomProvider';
 

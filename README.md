@@ -2,7 +2,7 @@
 
 An **independent, reusable** 3D Interactive AI Companion Library for creating engaging AI companions with visual (blob), audio, and AI capabilities.
 
-> **Version 1.5.5** - [See what's new](#whats-new)
+> **Version 1.5.6** - [See what's new](#whats-new)
 
 [![npm version](https://img.shields.io/npm/v/kwami.svg)](https://www.npmjs.com/package/kwami)
 [![License](https://img.shields.io/badge/license-AGPL--3.0%20%7C%20Commercial-blue.svg)](./LICENSE)
@@ -145,9 +145,11 @@ See [Playground README](./pg/README.md) for details.
 
 ## 🌐 KWAMI Ecosystem
 
-### 📦 Core Library (`/`)
-The main Kwami library - reusable 3D interactive AI companion with Mind-Body-Soul architecture.
-- Documentation: [docs/1_kwami/](./docs/1_kwami/)
+### 📦 Core Library (`/kwami`)
+The core npm package (`kwami`) - a standalone, reusable 3D interactive AI companion library featuring a Mind-Body-Soul architecture. Published to npm for easy integration into any JavaScript/TypeScript project. This is the heart of the KWAMI ecosystem, providing the foundational 3D blob visualization, AI voice capabilities, and personality system that powers all other projects.
+- **npm Package:** [@kwami](https://www.npmjs.com/package/kwami)
+- **Source Code:** [kwami/](./kwami/)
+- **Documentation:** [docs/1_kwami/](./docs/1_kwami/)
 
 ### 🎮 Playground (`/pg`)
 Interactive demo with full configuration UI for testing all Kwami features.
@@ -510,4 +512,4 @@ Built with:
 
 **Made with ❤️ by the KWAMI team**
 
-Current version: **1.5.2**
+Current version: **1.5.6**

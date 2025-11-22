@@ -7,6 +7,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [1.5.6] - 2025-11-22
+
+### Fixed
+- **Publishing**: Fixed OIDC Trusted Publishers authentication
+  - Removed conflicting NODE_AUTH_TOKEN env variable
+  - Now uses OpenID Connect for secure npm authentication
+  - More secure than long-lived tokens
+- **Version Sync**: Comprehensive sync-version script now updates ALL files
+  - Recursively updates all package.json files
+  - Updates all README.md files across projects
+  - Updates all docs/**/*.md documentation files
+  - Updates source code version references
+  - Fixed kwami/README.md license badge
+
 ## [1.5.5] - 2025-11-22
 
 ### Changed

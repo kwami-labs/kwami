@@ -64,7 +64,7 @@
 - **Nitro preset**: `node-server` with WebSocket support
 
 ## 9. ✅ **Comprehensive Documentation**
-- **CHANGELOG.md** - Version 1.4.0 complete entry
+- **CHANGELOG.md** - Version 1.5.6 complete entry
 - **README.md** - Full project documentation
 - **server/README.md** - WebSocket implementation guide
 - **WEBSOCKET_IMPLEMENTATION.md** - Real-time features
@@ -277,7 +277,7 @@ const shortDna = getShortDNA(dna)
 | File | Description |
 |------|-------------|
 | **README.md** | Main project documentation |
-| **CHANGELOG.md** | Version 1.4.0 complete changelog |
+| **CHANGELOG.md** | Version 1.5.6 complete changelog |
 | **server/README.md** | WebSocket implementation guide |
 | **WEBSOCKET_IMPLEMENTATION.md** | Real-time features documentation |
 | **SETUP_COMPLETE.md** | Setup completion checklist |

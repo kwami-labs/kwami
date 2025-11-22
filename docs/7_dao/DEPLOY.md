@@ -88,7 +88,7 @@ This starts the production Nuxt server.
 ```
 ==> Cloning from https://github.com/alexcolls/kwami
 ==> Checking out commit in branch main
-==> Using Node.js version 22.16.0
+==> Using Node.js version 1.5.6
 ==> Running build command 'npm run build:dao'...
 
 > kwami@1.5.5 build:dao
@@ -285,7 +285,7 @@ export default defineEventHandler(() => {
   return {
     status: 'ok',
     timestamp: new Date().toISOString(),
-    version: '0.1.0'
+    version: '1.5.6'
   }
 })
 ```

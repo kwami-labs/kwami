@@ -8,7 +8,7 @@ The Soul subsystem embodies Kwami's personality, behavioral characteristics, and
 - **`personalities/`** - YAML-based personality definitions with emotional trait profiles
 - **Emotional Traits System** - 10-dimensional emotional spectrum (-100 to +100 range) for nuanced personality expression
 
-All components live under `src/core/soul` and are designed to be orchestrated through the main `KwamiSoul` class.
+All components live under `kwami/src/core/soul` and are designed to be orchestrated through the main `KwamiSoul` class.
 
 ### System Diagram
 
@@ -394,7 +394,7 @@ emotionalTraits:
 
 ### Basic Custom Personality
 
-Create a new `.yaml` file in `src/core/soul/personalities/`:
+Create a new `.yaml` file in `kwami/src/core/soul/personalities/`:
 
 ```yaml
 name: "Mentor"
