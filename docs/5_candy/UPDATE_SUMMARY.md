@@ -157,7 +157,7 @@ Features:
 Updated `/candy/README.md`:
 
 ```markdown
-**Version 1.5.5** - Production-Ready Solana NFT Minting Platform 🎉
+**Version 1.5.6** - Production-Ready Solana NFT Minting Platform 🎉
 
 ✨ New in v1.5.0: Complete blockchain integration with real 
 Arweave uploads, real Solana/Anchor transactions, canvas capture,

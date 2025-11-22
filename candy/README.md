@@ -1,6 +1,6 @@
 # Kwami.io - KWAMI NFT Candy Machine
 
-**Version 1.5.5** - Production-Ready Solana NFT Minting Platform 🎉
+**Version 1.5.6** - Production-Ready Solana NFT Minting Platform 🎉
 
 ## 🌟 Overview
 

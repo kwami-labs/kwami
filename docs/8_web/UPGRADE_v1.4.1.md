@@ -217,7 +217,7 @@ npm run build:check
 
 ### If runtime errors occur:
 1. Check browser console for errors
-2. Verify `node_modules/kwami/package.json` shows version 1.5.5
+2. Verify `node_modules/kwami/package.json` shows version 1.5.6
 3. Clear browser cache and reload
 4. Restart dev server
 
