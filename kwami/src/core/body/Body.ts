@@ -2,7 +2,7 @@ import type {
   WebGLRenderer,
   PerspectiveCamera,
   Scene as ThreeScene,
-} from 'three';
+} from '../../../node_modules/@types/three';
 import {
   Color,
   CanvasTexture,
@@ -18,7 +18,7 @@ import {
   NotEqualStencilFunc,
   KeepStencilOp,
   LinearFilter,
-} from 'three';
+} from '../../../node_modules/@types/three';
 import { KwamiAudio } from './Audio';
 import { Blob } from './blob/Blob.js';
 import { Scene } from './scene/Scene.js';
@@ -291,7 +291,7 @@ export class KwamiBody {
     // Update canvas dimensions
     this.canvas.width = width;
     this.canvas.height = height;
-    
+
     // Update renderer size
     const pixelRatio = typeof window !== 'undefined' ? window.devicePixelRatio || 1 : 1;
     this.renderer.setPixelRatio(pixelRatio);
@@ -304,12 +304,12 @@ export class KwamiBody {
     // Update camera aspect ratio
     this.camera.aspect = width / height;
     this.camera.updateProjectionMatrix();
-    
+
     // Preserve blob scale relative to viewport
     // The blob should maintain its visual size regardless of aspect ratio changes
     const currentScale = this.blob.getScale();
     this.blob.setScale(currentScale);
-    
+
     // Update background plane transforms after resize
     this.updateBackgroundPlaneTransform();
   }
@@ -356,10 +356,10 @@ export class KwamiBody {
   randomizeBlob(): void {
     const currentSkin = this.blob.currentSkin;
     const currentScale = this.blob.getScale();
-    
+
     // Randomize the blob
     this.blob.setRandomBlob();
-    
+
     // Restore scale and skin
     this.blob.setScale(currentScale);
     this.blob.setSkin(currentSkin);
@@ -643,11 +643,11 @@ export class KwamiBody {
     const angle = Math.floor(Math.random() * 361);
     const stop1 = Math.floor(Math.random() * 51);
     const stop2 = 50 + Math.floor(Math.random() * 51);
-    
+
     // Randomly choose between linear, radial, or random (3 spheres)
     const styles = ['linear', 'radial', 'random'];
     const style = styles[Math.floor(Math.random() * styles.length)];
-    
+
     if (style === 'random') {
       // Create 3 color spheres placed randomly in the background
       this.setBackgroundSpheres(colors);
@@ -669,39 +669,39 @@ export class KwamiBody {
     canvas.width = 512;
     canvas.height = 512;
     const ctx = canvas.getContext('2d')!;
-    
+
     // Fill with a base color (first color with low opacity)
     ctx.fillStyle = colors[0];
     ctx.globalAlpha = 0.3;
     ctx.fillRect(0, 0, 512, 512);
     ctx.globalAlpha = 1.0;
-    
+
     // Create 3 radial gradients at random positions
     for (let i = 0; i < 3; i++) {
       const color = colors[i % colors.length];
       const x = Math.random() * 512;
       const y = Math.random() * 512;
       const radius = 150 + Math.random() * 200; // Random size between 150-350
-      
+
       const gradient = ctx.createRadialGradient(x, y, 0, x, y, radius);
       gradient.addColorStop(0, color);
       gradient.addColorStop(0.5, color + '80'); // Semi-transparent
       gradient.addColorStop(1, color + '00'); // Fully transparent
-      
+
       ctx.fillStyle = gradient;
       ctx.fillRect(0, 0, 512, 512);
     }
-    
+
     const texture = new CanvasTexture(canvas);
     texture.needsUpdate = true;
-    
+
     this.backgroundState = {
       type: 'gradient',
       colors,
       direction: 'vertical',
       opacity: 1,
     };
-    
+
     // Apply the custom texture directly to the scene
     if (this.blobImageMode === 'none') {
       this.scene.background = texture;
@@ -875,7 +875,7 @@ export class KwamiBody {
 
     const hasMedia = mediaState !== null;
     const gradientOverlayActive = hasMedia && state.type !== 'transparent';
-    
+
     // IMPORTANT: Only use planes for media or glass/overlay effects
     // Gradients should ALWAYS use scene.background for proper viewport coverage
     const needsMediaPlane = hasMedia;
@@ -915,7 +915,7 @@ export class KwamiBody {
       this.scene.background = null;
     } else {
       this.disposeBackgroundPlane();
-      
+
       // ALWAYS apply gradient/solid color directly to scene background (except when media is active)
       if (!hasMedia) {
         this.applyStateToSceneBackground(state);
@@ -1140,8 +1140,8 @@ export class KwamiBody {
       config.type === 'gradient'
         ? config.gradient
         : config.gradient && config.gradient.colors?.length
-        ? config.gradient
-        : undefined;
+          ? config.gradient
+          : undefined;
 
     if (gradientConfig) {
       const opacity = gradientConfig.opacity ?? config.opacity ?? 1;
@@ -1265,7 +1265,7 @@ export class KwamiBody {
     this.camera.getWorldDirection(cameraDirection);
 
     const fovRadians = (this.camera.fov * Math.PI) / 180;
-    
+
     // Add transition class during resize
     if (this.resizeTransitionActive) {
       if (this.backgroundPlane) {
@@ -1381,12 +1381,12 @@ export class KwamiBody {
     canvas.width = 512;
     canvas.height = 512;
     const ctx = canvas.getContext('2d')!;
-    
+
     // Set global alpha for opacity
     ctx.globalAlpha = opacity;
-    
+
     let gradient: CanvasGradient;
-    
+
     if (direction === 'radial') {
       gradient = ctx.createRadialGradient(256, 256, 0, 256, 256, 512);
     } else if (typeof angle === 'number' && Number.isFinite(angle)) {
@@ -1399,15 +1399,15 @@ export class KwamiBody {
       // vertical (default)
       gradient = ctx.createLinearGradient(0, 0, 0, 512);
     }
-    
+
     const normalizedStops = this.getStopsForGradient(colors.length, stops);
     normalizedStops.forEach((stop, index) => {
       gradient.addColorStop(Math.max(0, Math.min(1, stop)), colors[index]);
     });
-    
+
     ctx.fillStyle = gradient;
     ctx.fillRect(0, 0, 512, 512);
-    
+
     return new CanvasTexture(canvas);
   }
 
@@ -1471,12 +1471,12 @@ export class KwamiBody {
     canvas.width = 512;
     canvas.height = 512;
     const ctx = canvas.getContext('2d')!;
-    
+
     // Set global alpha for opacity
     ctx.globalAlpha = opacity;
     ctx.fillStyle = color;
     ctx.fillRect(0, 0, 512, 512);
-    
+
     return new CanvasTexture(canvas);
   }
 
@@ -1535,10 +1535,10 @@ export class KwamiBody {
         material.needsUpdate = true;
 
         this.updateBackgroundPlaneTransform();
-        
+
         // Re-apply background state to clear scene.background now that texture is loaded
         this.applyBackgroundState();
-        
+
         // Call onLoad callback if provided
         if (this.backgroundMediaState?.onLoad) {
           this.backgroundMediaState.onLoad();
@@ -1555,7 +1555,7 @@ export class KwamiBody {
           this.backgroundMediaAspect = null;
           material.map = null;
           material.needsUpdate = true;
-          
+
           // Call onError callback if provided
           if (this.backgroundMediaState?.onError) {
             this.backgroundMediaState.onError(error instanceof Error ? error : new Error(String(error)));
@@ -1581,7 +1581,7 @@ export class KwamiBody {
       material.needsUpdate = true;
       this.backgroundMediaAspect = this.backgroundMediaAspect ?? this.getVideoAspect(this.backgroundVideoElement);
       this.updateBackgroundPlaneTransform();
-      
+
       // Video already loaded, call onLoad callback immediately
       if (this.backgroundMediaState?.onLoad) {
         setTimeout(() => this.backgroundMediaState?.onLoad?.(), 0);
@@ -1654,12 +1654,12 @@ export class KwamiBody {
       this.updateBackgroundPlaneTransform();
 
       if (mediaState.videoAutoplay ?? true) {
-        video.play().catch(() => {});
+        video.play().catch(() => { });
       }
-      
+
       // Re-apply background state to clear scene.background now that video is loaded
       this.applyBackgroundState();
-      
+
       // Call onLoad callback if provided
       if (this.backgroundMediaState?.onLoad) {
         this.backgroundMediaState.onLoad();
@@ -1672,7 +1672,7 @@ export class KwamiBody {
         this.disposeVideoBackground();
         material.map = null;
         material.needsUpdate = true;
-        
+
         // Call onError callback if provided
         if (this.backgroundMediaState?.onError) {
           this.backgroundMediaState.onError(new Error('Failed to load video'));
@@ -1686,7 +1686,7 @@ export class KwamiBody {
     video.load();
 
     if (video.autoplay) {
-      video.play().catch(() => {});
+      video.play().catch(() => { });
     }
   }
 
@@ -1696,7 +1696,7 @@ export class KwamiBody {
     video.playbackRate = mediaState.videoPlaybackRate ?? 1;
 
     if (mediaState.videoAutoplay ?? true) {
-      video.play().catch(() => {});
+      video.play().catch(() => { });
     }
   }
 
@@ -1840,7 +1840,7 @@ export class KwamiBody {
       tex.generateMipmaps = false;
       this.blobSurfaceVideoTexture = tex;
       this.updateBlobBackgroundTextureForMode();
-      if (video.autoplay) video.play().catch(() => {});
+      if (video.autoplay) video.play().catch(() => { });
     };
 
     const handleError = (e: Event) => {
@@ -1853,7 +1853,7 @@ export class KwamiBody {
     video.addEventListener('loadedmetadata', handleLoaded, { once: true });
     video.addEventListener('error', handleError, { once: true });
     video.load();
-    if (video.autoplay) video.play().catch(() => {});
+    if (video.autoplay) video.play().catch(() => { });
   }
 
   /**
@@ -1880,7 +1880,7 @@ export class KwamiBody {
       this.blobSurfaceVideoTexture = null;
     }
     if (this.blobSurfaceVideoElement) {
-      try { this.blobSurfaceVideoElement.pause(); } catch {}
+      try { this.blobSurfaceVideoElement.pause(); } catch { }
       this.blobSurfaceVideoElement.removeAttribute('src');
       this.blobSurfaceVideoElement.load();
       this.blobSurfaceVideoElement = null;
@@ -1892,7 +1892,7 @@ export class KwamiBody {
     video.loop = options.loop ?? true;
     video.muted = options.muted ?? true;
     video.playbackRate = options.playbackRate ?? 1;
-    if (options.autoplay ?? true) video.play().catch(() => {});
+    if (options.autoplay ?? true) video.play().catch(() => { });
   }
 
   /**

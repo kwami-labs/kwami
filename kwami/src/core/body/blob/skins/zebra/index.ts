@@ -1,4 +1,4 @@
-import { ShaderMaterial, Color, Vector3 } from 'three';
+import { ShaderMaterial, Color, Vector3 } from '../../../../../../node_modules/@types/three';
 import vertexShader from './vertex.glsl?raw';
 import fragmentShader from './fragment.glsl?raw';
 import type { ZebraSkinConfig, TricolorSkinConfig } from '../../../../../types/index';
@@ -9,7 +9,7 @@ import type { ZebraSkinConfig, TricolorSkinConfig } from '../../../../../types/i
  */
 export function createZebraSkin(config: ZebraSkinConfig | TricolorSkinConfig): ShaderMaterial {
   // If it's a TricolorSkinConfig, use its colors; otherwise use default colors
-  const colors = 'color1' in config 
+  const colors = 'color1' in config
     ? { color1: config.color1, color2: config.color2, color3: config.color3 }
     : { color1: '#ff0066', color2: '#00ff66', color3: '#6600ff' };
 

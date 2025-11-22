@@ -1,4 +1,4 @@
-import type { Scene, PerspectiveCamera, WebGLRenderer } from 'three';
+import type { Scene, PerspectiveCamera, WebGLRenderer } from '../../node_modules/@types/three';
 import type { KwamiAudio } from '../core/body/Audio';
 
 /**
@@ -110,7 +110,7 @@ export interface VoiceSettings {
 /**
  * TTS Output Format Options
  */
-export type TTSOutputFormat = 
+export type TTSOutputFormat =
   | 'mp3_44100_128'  // MP3 - 44.1kHz, 128kbps (Recommended)
   | 'mp3_44100_64'   // MP3 - 44.1kHz, 64kbps (Smaller size)
   | 'mp3_44100_192'  // MP3 - 44.1kHz, 192kbps (High quality)
@@ -205,29 +205,29 @@ export interface MindConfig {
   apiKey?: string; // ElevenLabs API key (or from env)
   provider?: MindProviderType;
   openai?: OpenAIProviderConfig;
-  
+
   // Voice configuration
   voice?: {
     voiceId?: string; // Specific voice ID from ElevenLabs
     model?: string; // e.g., 'eleven_multilingual_v2', 'eleven_turbo_v2', 'eleven_turbo_v2_5'
     settings?: VoiceSettings; // Fine-tuning parameters
   };
-  
+
   // Language and behavior
   language?: string; // Primary language (e.g., 'en', 'es', 'fr')
-  
+
   // Advanced TTS options
   advancedTTS?: AdvancedTTSOptions;
-  
+
   // Conversational AI
   conversational?: ConversationalAISettings;
-  
+
   // Speech-to-Text
   stt?: STTConfig;
-  
+
   // Pronunciation
   pronunciation?: PronunciationConfig;
-  
+
   // Legacy/additional AI configuration
   llm?: {
     model: string;

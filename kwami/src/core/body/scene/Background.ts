@@ -11,7 +11,7 @@ import {
   WebGLRenderTarget,
   Color,
   Vector2,
-} from 'three';
+} from '../../../../node_modules/@types/three';
 
 export interface BackgroundConfig {
   type: 'solid' | 'gradient' | 'image' | 'transparent';
@@ -121,7 +121,7 @@ export class BackgroundManager {
     this.scene.background = null;
     const texture = this.createGradientTexture(colors, direction as any, opacity);
     this.backgroundTexture = texture;
-    
+
     if (this.currentConfig.blobTransparencyEnabled) {
       // In blob transparency mode, create a plane
       this.createBackgroundPlane(texture, opacity);

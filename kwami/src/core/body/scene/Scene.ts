@@ -7,7 +7,7 @@ import {
   PCFSoftShadowMap,
   Color,
   CanvasTexture,
-} from 'three';
+} from '../../../../node_modules/@types/three';
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
 import type { SceneConfig } from '../../../types';
 
@@ -154,19 +154,19 @@ function createControls(
  */
 function applySceneBackground(scene: ThreeScene, config?: SceneConfig) {
   const bgConfig = config?.background;
-  
+
   if (!bgConfig || bgConfig.type === 'transparent') {
     // Transparent background (default)
     scene.background = null;
     return;
   }
-  
+
   if (bgConfig.type === 'solid' && bgConfig.color) {
     // Solid color background
     scene.background = new Color(bgConfig.color);
     return;
   }
-  
+
   if (bgConfig.type === 'gradient' && bgConfig.gradient) {
     // Gradient background using canvas texture
     const gradientTexture = createGradientTexture(
@@ -195,11 +195,11 @@ function createGradientTexture(
   canvas.width = 512;
   canvas.height = 512;
   const ctx = canvas.getContext('2d')!;
-  
+
   ctx.globalAlpha = opacity;
-  
+
   let gradient: CanvasGradient;
-  
+
   if (direction === 'radial') {
     gradient = ctx.createRadialGradient(256, 256, 0, 256, 256, 512);
   } else if (typeof angle === 'number' && Number.isFinite(angle)) {
@@ -212,15 +212,15 @@ function createGradientTexture(
     // vertical (default)
     gradient = ctx.createLinearGradient(0, 0, 0, 512);
   }
-  
+
   const normalizedStops = getStopsForGradient(colors.length, stops);
   normalizedStops.forEach((stop, index) => {
     gradient.addColorStop(Math.max(0, Math.min(1, stop)), colors[index]);
   });
-  
+
   ctx.fillStyle = gradient;
   ctx.fillRect(0, 0, 512, 512);
-  
+
   return new CanvasTexture(canvas);
 }
 

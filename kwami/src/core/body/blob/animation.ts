@@ -1,5 +1,5 @@
 import { createNoise3D } from 'simplex-noise';
-import { type Mesh, Vector3 } from 'three';
+import { type Mesh, Vector3 } from '../../../../node_modules/@types/three';
 
 const noise3D = createNoise3D();
 
@@ -92,20 +92,20 @@ export function animateBlob(
     responseSpeed?: number;
     transientBoost?: number;
   } = {
-    bassSpike: 0.55,
-    midSpike: 0.45,
-    highSpike: 0.35,
-    midTime: 0.15,
-    highTime: 0.25,
-    ultraTime: 0.1,
-    enabled: true,
-    timeEnabled: false,
-    reactivity: 1.8,
-    sensitivity: 0.08,
-    breathing: 0.035,
-    responseSpeed: 0.65,
-    transientBoost: 0.4,
-  },
+      bassSpike: 0.55,
+      midSpike: 0.45,
+      highSpike: 0.35,
+      midTime: 0.15,
+      highTime: 0.25,
+      ultraTime: 0.1,
+      enabled: true,
+      timeEnabled: false,
+      reactivity: 1.8,
+      sensitivity: 0.08,
+      breathing: 0.035,
+      responseSpeed: 0.65,
+      transientBoost: 0.4,
+    },
 ): boolean {
   const positions = mesh.geometry.attributes.position;
   if (!positions) return false;
@@ -158,23 +158,23 @@ export function animateBlob(
   const audioLevel = Math.max(0, fastLevel - baseSensitivity * 0.2);
   const activationThreshold = baseSensitivity * 0.75;
   const audioActive = audioLevel > activationThreshold;
-  
+
   // Time calculation - smooth animation
   const reduction = 0.00003;
   const perf = performance.now() * reduction;
 
   // Normal animation time contribution is disabled while audio drives the motion
   const timeFactor = audioActive ? 0.35 + responseSpeed * 0.25 : 1;
-  
+
   // Optionally modulate time with audio (can create chaotic effects if too strong)
   const audioTimeMod = (audioEffects.enabled && audioEffects.timeEnabled)
     ? 1 + (
-        fastBands.mid * audioEffects.midTime
-        + fastBands.high * audioEffects.highTime
-        + bands.ultra * audioEffects.ultraTime
-      )
+      fastBands.mid * audioEffects.midTime
+      + fastBands.high * audioEffects.highTime
+      + bands.ultra * audioEffects.ultraTime
+    )
     : 1;
-  
+
   const tX = perf * timeX * audioTimeMod * timeFactor;
   const tY = perf * timeY * audioTimeMod * timeFactor;
   const tZ = perf * timeZ * audioTimeMod * timeFactor;
@@ -192,7 +192,7 @@ export function animateBlob(
   // Apply frequency-reactive noise to each vertex
   for (let i = 0; i < positions.count; i++) {
     vertex.fromBufferAttribute(positions, i);
-    
+
     // Get the spherical direction from vertex position
     const direction = vertex.clone().normalize();
 
@@ -205,7 +205,7 @@ export function animateBlob(
 
     // Audio enhances the natural noise amplitude instead of adding separate effects
     // This creates a more organic, liquid response to sound
-    
+
     // Calculate audio-reactive amplitude multiplier (smooth and natural)
     const weightedAudioEnergy
       = fastBands.low * audioEffects.bassSpike * 0.55
@@ -256,7 +256,7 @@ export function animateBlob(
       : 0.16;
 
     // Apply per-axis amplitude modulation based on vertex direction
-    const amplitudeMultiplier = 
+    const amplitudeMultiplier =
       Math.abs(direction.x) * amplitudeX +
       Math.abs(direction.y) * amplitudeY +
       Math.abs(direction.z) * amplitudeZ;
@@ -266,12 +266,12 @@ export function animateBlob(
     // High-frequency detail shimmer driven by treble content
     const detailNoise = audioEffects.enabled
       ? noise3D(
-          direction.x * baseFreqX * 2.2 + tX * 2.4,
-          direction.y * baseFreqY * 2.2 + tY * 2.4,
-          direction.z * baseFreqZ * 2.2 + tZ * 2.4,
-        ) * fastBands.high * audioEffects.highSpike * (0.35 + transientBoost * 0.15)
+        direction.x * baseFreqX * 2.2 + tX * 2.4,
+        direction.y * baseFreqY * 2.2 + tY * 2.4,
+        direction.z * baseFreqZ * 2.2 + tZ * 2.4,
+      ) * fastBands.high * audioEffects.highSpike * (0.35 + transientBoost * 0.15)
       : 0;
-    
+
     // Calculate displacement for each state separately
     const energyMultiplier = 1 + weightedAudioEnergy * (0.85 + transientBoost * 0.15);
     const detailStrength = audioEffects.enabled
@@ -281,11 +281,11 @@ export function animateBlob(
     // Normal/Speaking mode displacement (outward spikes, enhanced by audio)
     const speakingDisplacement = amplitude * finalNoise * energyMultiplier
       + detailNoise * detailStrength;
-    
+
     // Listening mode displacement (inward spikes, enhanced by audio)
     const listeningDisplacement = -amplitude * finalNoise * (0.9 + weightedAudioEnergy * 0.55)
       + detailNoise * (0.3 + weightedAudioEnergy * 0.35);
-    
+
     // Thinking mode displacement (fluid, flowing movements)
     let thinkingDisplacement = 0;
     if (thinkingBlend > 0.01) {
@@ -295,33 +295,33 @@ export function animateBlob(
         direction.y * 2 + tY * 3.5 + Math.cos(thinkingProgress * Math.PI * 2.5) * 1.5,
         direction.z * 2 + tZ * 3.5 + Math.sin(thinkingProgress * Math.PI * 3) * 1.5,
       );
-      
+
       const thinkNoise2 = noise3D(
         direction.x * 1 + tX * 2.5 - thinkingProgress * 3,
         direction.y * 1 + tY * 2.5 + thinkingProgress * 2.5,
         direction.z * 1 + tZ * 2.5 - thinkingProgress * 3.5,
       );
-      
+
       const thinkNoise3 = noise3D(
         direction.x * 0.5 + tX * 1.5,
         direction.y * 0.5 + tY * 1.5,
         direction.z * 0.5 + tZ * 1.5,
       );
-      
+
       // Smooth flowing pulse effect
       const pulse = Math.sin(thinkingProgress * Math.PI * 5) * 0.3 + 0.7;
-      
+
       // Gradually reduce intensity as we approach the end
       const fadeOut = 1 - Math.pow(thinkingProgress, 2);
-      
+
       // Combine for fluid thinking animation
       const thinkingNoise = (thinkNoise1 * 0.4 + thinkNoise2 * 0.35 + thinkNoise3 * 0.25) * pulse;
       thinkingDisplacement = thinkingNoise * 0.35 * fadeOut * amplitudeMultiplier;
     }
-    
+
     // Blend between states smoothly
     let audioDisplacement;
-    
+
     if (thinkingBlend > 0.01) {
       // Thinking takes priority - blend from normal/listening to thinking
       const normalDisplacement = speakingDisplacement * (1 - listeningBlend) + listeningDisplacement * listeningBlend;
@@ -330,7 +330,7 @@ export function animateBlob(
       // Blend between speaking and listening
       audioDisplacement = speakingDisplacement * (1 - listeningBlend) + listeningDisplacement * listeningBlend;
     }
-    
+
     // Start with base displacement of 1.0 (normalized sphere)
     let displacement = 1 + audioDisplacement;
 
@@ -377,7 +377,7 @@ export function animateBlob(
         displacement += touchDisplacement;
       }
     }
-    
+
     // Final safety clamp and viscous smoothing
     const minDisplacement = 0.7;
     const maxDisplacement = 1.22;
@@ -387,8 +387,8 @@ export function animateBlob(
     const smoothingStrength = Math.min(
       audioActive ? 0.92 : 0.65,
       (audioActive ? 0.4 : 0.28)
-        + fastBands.mid * (0.28 + transientBoost * 0.08)
-        + fastBands.low * (0.18 + transientBoost * 0.05)
+      + fastBands.mid * (0.28 + transientBoost * 0.08)
+      + fastBands.low * (0.18 + transientBoost * 0.05)
     );
     const smoothedDisplacement = previous + (targetDisplacement - previous) * smoothingStrength;
     previousDisplacements[i] = smoothedDisplacement;
