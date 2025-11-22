@@ -2,24 +2,71 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
-    <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>👻</text></svg>" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title data-i18n="page.title">kwami.io</title>
+    
+    <!-- Primary Meta Tags -->
+    <title data-i18n="page.title">Kwami - Interactive 3D AI Companion | Build Engaging AI Experiences</title>
+    <meta name="title" content="Kwami - Interactive 3D AI Companion | Build Engaging AI Experiences">
+    <meta name="description" content="Create engaging AI companions with voice, music, and 3D visuals perfectly in sync. Build interactive experiences with Kwami's Mind, Body, and Soul architecture. Free & open source.">
+    <meta name="keywords" content="AI companion, 3D AI, interactive AI, voice AI, ElevenLabs, Three.js, WebGL, AI visualization, conversational AI, AI agent, open source AI">
+    <meta name="author" content="Kwami">
+    <meta name="robots" content="index, follow">
+    <link rel="canonical" href="https://kwami.io">
+    
+    <!-- Open Graph / Facebook -->
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://kwami.io">
+    <meta property="og:title" content="Kwami - Interactive 3D AI Companion">
+    <meta property="og:description" content="Create engaging AI companions with voice, music, and 3D visuals perfectly in sync. Mind, Body, and Soul architecture for interactive AI experiences.">
+    <meta property="og:image" content="https://kwami.io/og-image.png">
+    <meta property="og:image:width" content="1200">
+    <meta property="og:image:height" content="630">
+    <meta property="og:site_name" content="Kwami">
+    <meta property="og:locale" content="en_US">
+    
+    <!-- Twitter Card -->
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:url" content="https://kwami.io">
+    <meta name="twitter:title" content="Kwami - Interactive 3D AI Companion">
+    <meta name="twitter:description" content="Create engaging AI companions with voice, music, and 3D visuals. Mind, Body, and Soul architecture. Free & open source.">
+    <meta name="twitter:image" content="https://kwami.io/twitter-card.png">
+    <meta name="twitter:creator" content="@kwami_io">
+    
+    <!-- Additional Meta Tags -->
+    <meta name="theme-color" content="#6366f1">
+    <meta name="color-scheme" content="dark light">
+    <meta name="format-detection" content="telephone=no">
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>👻</text></svg>" />
+    <link rel="apple-touch-icon" href="/apple-touch-icon.png">
+    
+    <!-- PWA Manifest -->
+    <link rel="manifest" href="/manifest.json">
+    
+    <!-- Preconnect to improve performance -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="dns-prefetch" href="https://api.github.com">
+    <link rel="preconnect" href="https://www.googletagmanager.com">
+    
+    <!-- Google Analytics -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-XXXXXXXXXX"></script>
   </head>
   <body>
+    <!-- Skip to main content for screen readers -->
+    <a href="#main-content" class="skip-link">Skip to main content</a>
+    
     <!-- Sidebar Navigation -->
-    <nav id="sidebar-nav" class="sidebar-navigation">
-      <div class="sphere-container" id="sphere-container">
+    <nav id="sidebar-nav" class="sidebar-navigation" role="navigation" aria-label="Section navigation">
+      <div class="sphere-container" id="sphere-container" role="menu" aria-label="Navigate to sections">
         <!-- Spheres will be dynamically generated via TypeScript -->
       </div>
     </nav>
 
     <!-- Custom cursor gradient light -->
-    <div id="cursor-light"></div>
+    <div id="cursor-light" aria-hidden="true"></div>
 
-    <div id="app">
+    <div id="app" role="application" aria-label="Kwami interactive experience">
       <!-- Left half: Animated text content -->
-      <div class="content-left">
+      <main id="main-content" class="content-left" role="main" aria-label="Main content">
         <div class="text-section" data-section="0">
           <div class="section-number animate-text"><span class="section-hash">#</span>00</div>
           <h1 class="animate-text"><span class="emoji">👋</span> <span class="gradient-text" data-i18n="pages.00.title">Meet Kwami</span></h1>
@@ -223,35 +270,35 @@
             <button type="button" class="action-button" data-action-key="create-session" data-i18n="pages.21.button">🚀 Start a Session</button>
           </div>
         </div>
-      </div>
+      </main>
 
       <!-- Right half: Real Kwami Blob -->
-      <div class="content-right">
+      <aside class="content-right" role="complementary" aria-label="Interactive Kwami visualization">
         <!-- Header with emoji buttons -->
-        <div class="right-header">
-          <a href="https://candy.kwami.io" target="_blank" class="header-btn" data-i18n-title="header_links.candy">
-            <span class="candy-emoji">🍬</span>
+        <div class="right-header" role="banner">
+          <a href="https://candy.kwami.io" target="_blank" class="header-btn" data-i18n-title="header_links.candy" aria-label="Candy Machine - Mint NFTs">
+            <span class="candy-emoji" aria-hidden="true">🍬</span>
           </a>
-          <a href="https://pg.kwami.io" target="_blank" class="header-btn" data-i18n-title="header_links.playground">
-            🎮
+          <a href="https://pg.kwami.io" target="_blank" class="header-btn" data-i18n-title="header_links.playground" aria-label="Playground - Try Kwami">
+            <span aria-hidden="true">🎮</span>
           </a>
-          <a href="https://github.com/alexcolls/kwami" target="_blank" class="header-btn" data-i18n-title="header_links.github">
-            ⭐
+          <a href="https://github.com/alexcolls/kwami" target="_blank" class="header-btn" data-i18n-title="header_links.github" aria-label="GitHub - Star the repo">
+            <span aria-hidden="true">⭐</span>
           </a>
         </div>
         
         <!-- Bottom Tabs for Voice/Music/Video -->
-        <div class="bottom-tabs">
-          <button class="tab-btn active" data-tab="voice">
-            <span>🎤</span>
+        <div class="bottom-tabs" role="tablist" aria-label="Media mode selector">
+          <button class="tab-btn active" data-tab="voice" role="tab" aria-selected="true" aria-controls="voice-panel" id="voice-tab">
+            <span aria-hidden="true">🎤</span>
             <span data-i18n="tabs.voice">Voice</span>
           </button>
-          <button class="tab-btn" data-tab="music">
-            <span>🎵</span>
+          <button class="tab-btn" data-tab="music" role="tab" aria-selected="false" aria-controls="music-panel" id="music-tab">
+            <span aria-hidden="true">🎵</span>
             <span data-i18n="tabs.music">Music</span>
           </button>
-          <button class="tab-btn" data-tab="video">
-            <span>🎬</span>
+          <button class="tab-btn" data-tab="video" role="tab" aria-selected="false" aria-controls="video-panel" id="video-tab">
+            <span aria-hidden="true">🎬</span>
             <span data-i18n="tabs.video">Video</span>
           </button>
         </div>

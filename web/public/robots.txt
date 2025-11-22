@@ -1,0 +1,26 @@
+# robots.txt for kwami.io
+
+# Allow all search engines
+User-agent: *
+Allow: /
+
+# Disallow admin/private paths (if any in future)
+Disallow: /api/
+Disallow: /*.json$
+
+# Sitemap location
+Sitemap: https://kwami.io/sitemap.xml
+
+# Crawl-delay for polite bots
+Crawl-delay: 1
+
+# Specific bot rules
+User-agent: Googlebot
+Allow: /
+
+User-agent: Bingbot
+Allow: /
+
+User-agent: Slurp
+Allow: /
+

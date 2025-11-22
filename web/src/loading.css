@@ -1,0 +1,590 @@
+/**
+ * Loading States & Skeleton Screens
+ * 
+ * Provides skeleton loaders, progress indicators, and smooth loading transitions
+ */
+
+/* ========================================
+   Skeleton Animations
+   ======================================== */
+
+@keyframes skeleton-loading {
+  0% {
+    background-position: -200% 0;
+  }
+  100% {
+    background-position: 200% 0;
+  }
+}
+
+@keyframes pulse {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.5;
+  }
+}
+
+@keyframes shimmer {
+  0% {
+    transform: translateX(-100%);
+  }
+  100% {
+    transform: translateX(100%);
+  }
+}
+
+/* ========================================
+   Skeleton Base Styles
+   ======================================== */
+
+.skeleton {
+  background: linear-gradient(
+    90deg,
+    rgba(255, 255, 255, 0.05) 25%,
+    rgba(255, 255, 255, 0.15) 50%,
+    rgba(255, 255, 255, 0.05) 75%
+  );
+  background-size: 200% 100%;
+  animation: skeleton-loading 1.5s ease-in-out infinite;
+  border-radius: 4px;
+}
+
+.skeleton-text {
+  height: 1em;
+  margin-bottom: 0.5em;
+  border-radius: 4px;
+}
+
+.skeleton-title {
+  height: 2em;
+  width: 60%;
+  margin-bottom: 1em;
+}
+
+.skeleton-button {
+  height: 44px;
+  width: 150px;
+  border-radius: 8px;
+}
+
+.skeleton-image {
+  width: 100%;
+  padding-bottom: 56.25%; /* 16:9 aspect ratio */
+  position: relative;
+  overflow: hidden;
+}
+
+.skeleton-circle {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+}
+
+.skeleton-blob {
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+}
+
+/* ========================================
+   Loading States
+   ======================================== */
+
+.loading-container {
+  position: relative;
+  min-height: 200px;
+}
+
+.loading-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(10, 10, 10, 0.8);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 100;
+  backdrop-filter: blur(4px);
+}
+
+.loading-hidden {
+  display: none;
+}
+
+/* ========================================
+   Spinner Styles
+   ======================================== */
+
+.loading-spinner {
+  width: 48px;
+  height: 48px;
+  border: 4px solid rgba(99, 102, 241, 0.2);
+  border-top-color: #6366f1;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.loading-spinner-small {
+  width: 24px;
+  height: 24px;
+  border-width: 3px;
+}
+
+.loading-spinner-large {
+  width: 64px;
+  height: 64px;
+  border-width: 5px;
+}
+
+/* ========================================
+   Dots Loader
+   ======================================== */
+
+.loading-dots {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  justify-content: center;
+}
+
+.loading-dot {
+  width: 12px;
+  height: 12px;
+  background: #6366f1;
+  border-radius: 50%;
+  animation: dot-bounce 1.4s infinite ease-in-out both;
+}
+
+.loading-dot:nth-child(1) {
+  animation-delay: -0.32s;
+}
+
+.loading-dot:nth-child(2) {
+  animation-delay: -0.16s;
+}
+
+@keyframes dot-bounce {
+  0%, 80%, 100% {
+    transform: scale(0);
+    opacity: 0.5;
+  }
+  40% {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+/* ========================================
+   Progress Bar
+   ======================================== */
+
+.progress-container {
+  width: 100%;
+  height: 4px;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 2px;
+  overflow: hidden;
+  position: relative;
+}
+
+.progress-bar {
+  height: 100%;
+  background: linear-gradient(90deg, #6366f1, #8b5cf6);
+  border-radius: 2px;
+  transition: width 0.3s ease;
+  position: relative;
+  overflow: hidden;
+}
+
+.progress-bar::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgba(255, 255, 255, 0.3),
+    transparent
+  );
+  animation: shimmer 2s infinite;
+}
+
+.progress-indeterminate {
+  width: 30%;
+  animation: progress-indeterminate 1.5s ease-in-out infinite;
+}
+
+@keyframes progress-indeterminate {
+  0% {
+    transform: translateX(-100%);
+  }
+  100% {
+    transform: translateX(400%);
+  }
+}
+
+/* ========================================
+   Loading Text
+   ======================================== */
+
+.loading-text {
+  margin-top: 16px;
+  color: rgba(255, 255, 255, 0.7);
+  font-size: 14px;
+  text-align: center;
+  animation: pulse 2s ease-in-out infinite;
+}
+
+.loading-text::after {
+  content: '...';
+  display: inline-block;
+  width: 20px;
+  text-align: left;
+  animation: loading-ellipsis 1.5s infinite;
+}
+
+@keyframes loading-ellipsis {
+  0% {
+    content: '.';
+  }
+  33% {
+    content: '..';
+  }
+  66% {
+    content: '...';
+  }
+}
+
+/* ========================================
+   Lazy Load Image Placeholder
+   ======================================== */
+
+.lazy-image {
+  position: relative;
+  overflow: hidden;
+  background: rgba(255, 255, 255, 0.05);
+}
+
+.lazy-image::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(
+    90deg,
+    rgba(255, 255, 255, 0.05) 25%,
+    rgba(255, 255, 255, 0.15) 50%,
+    rgba(255, 255, 255, 0.05) 75%
+  );
+  background-size: 200% 100%;
+  animation: skeleton-loading 1.5s ease-in-out infinite;
+}
+
+.lazy-image img {
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+
+.lazy-image.loaded::before {
+  display: none;
+}
+
+.lazy-image.loaded img {
+  opacity: 1;
+}
+
+/* ========================================
+   Media Loading States
+   ======================================== */
+
+.media-loading {
+  position: relative;
+}
+
+.media-loading::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 48px;
+  height: 48px;
+  margin: -24px 0 0 -24px;
+  border: 4px solid rgba(99, 102, 241, 0.2);
+  border-top-color: #6366f1;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+
+.media-loaded::after {
+  display: none;
+}
+
+/* ========================================
+   Blob Loading State
+   ======================================== */
+
+.blob-loading {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.blob-loading-spinner {
+  width: 80px;
+  height: 80px;
+  border: 6px solid rgba(99, 102, 241, 0.2);
+  border-top-color: #6366f1;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+
+.blob-loading-text {
+  position: absolute;
+  bottom: 20%;
+  left: 50%;
+  transform: translateX(-50%);
+  color: rgba(255, 255, 255, 0.7);
+  font-size: 16px;
+  animation: pulse 2s ease-in-out infinite;
+}
+
+/* ========================================
+   Content Fade In
+   ======================================== */
+
+.fade-in {
+  animation: fade-in 0.5s ease-out;
+}
+
+@keyframes fade-in {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.fade-in-fast {
+  animation: fade-in 0.3s ease-out;
+}
+
+.fade-in-slow {
+  animation: fade-in 1s ease-out;
+}
+
+/* ========================================
+   Stagger Animation
+   ======================================== */
+
+.stagger-children > * {
+  opacity: 0;
+  animation: fade-in 0.5s ease-out forwards;
+}
+
+.stagger-children > *:nth-child(1) { animation-delay: 0.1s; }
+.stagger-children > *:nth-child(2) { animation-delay: 0.2s; }
+.stagger-children > *:nth-child(3) { animation-delay: 0.3s; }
+.stagger-children > *:nth-child(4) { animation-delay: 0.4s; }
+.stagger-children > *:nth-child(5) { animation-delay: 0.5s; }
+
+/* ========================================
+   Button Loading State
+   ======================================== */
+
+.button-loading {
+  position: relative;
+  color: transparent !important;
+  pointer-events: none;
+}
+
+.button-loading::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 20px;
+  height: 20px;
+  margin: -10px 0 0 -10px;
+  border: 3px solid rgba(255, 255, 255, 0.3);
+  border-top-color: white;
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+}
+
+/* ========================================
+   Skeleton Section (Full Page)
+   ======================================== */
+
+.skeleton-section {
+  padding: 40px 20px;
+  max-width: 800px;
+}
+
+.skeleton-section-header {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  margin-bottom: 24px;
+}
+
+.skeleton-section-content {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.skeleton-section-content .skeleton-text {
+  width: 100%;
+}
+
+.skeleton-section-content .skeleton-text:nth-child(3n) {
+  width: 85%;
+}
+
+.skeleton-section-content .skeleton-text:nth-child(5n) {
+  width: 70%;
+}
+
+/* ========================================
+   Shimmer Effect Alternative
+   ======================================== */
+
+.shimmer {
+  position: relative;
+  overflow: hidden;
+}
+
+.shimmer::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  transform: translateX(-100%);
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgba(255, 255, 255, 0.1),
+    transparent
+  );
+  animation: shimmer 2s infinite;
+}
+
+/* ========================================
+   Loading State for Specific Components
+   ======================================== */
+
+/* Canvas loading */
+canvas.loading {
+  opacity: 0.5;
+  filter: blur(10px);
+  transition: opacity 0.5s ease, filter 0.5s ease;
+}
+
+canvas.loaded {
+  opacity: 1;
+  filter: blur(0);
+}
+
+/* Section loading */
+.text-section.loading {
+  opacity: 0.3;
+  pointer-events: none;
+}
+
+.text-section.loaded {
+  opacity: 1;
+  animation: fade-in 0.5s ease-out;
+}
+
+/* Tab loading */
+.tab-btn.loading {
+  opacity: 0.5;
+  cursor: wait;
+}
+
+/* ========================================
+   Mobile Optimizations
+   ======================================== */
+
+@media (max-width: 768px) {
+  .loading-spinner {
+    width: 40px;
+    height: 40px;
+  }
+
+  .blob-loading-spinner {
+    width: 60px;
+    height: 60px;
+  }
+
+  .skeleton-section {
+    padding: 20px 16px;
+  }
+}
+
+/* ========================================
+   Reduced Motion
+   ======================================== */
+
+@media (prefers-reduced-motion: reduce) {
+  .skeleton,
+  .loading-spinner,
+  .loading-dot,
+  .progress-bar::after,
+  .button-loading::after {
+    animation: none;
+  }
+
+  .loading-text::after {
+    animation: none;
+    content: '...';
+  }
+
+  .fade-in {
+    animation: none;
+    opacity: 1;
+    transform: none;
+  }
+}
+
+/* ========================================
+   High Contrast Mode
+   ======================================== */
+
+@media (prefers-contrast: high) {
+  .skeleton {
+    background: rgba(255, 255, 255, 0.2);
+  }
+
+  .loading-spinner {
+    border-width: 5px;
+  }
+
+  .progress-bar {
+    background: white;
+  }
+}
+

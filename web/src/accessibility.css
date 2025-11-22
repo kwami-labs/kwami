@@ -1,0 +1,506 @@
+/**
+ * Accessibility Styles
+ * 
+ * Provides keyboard navigation, focus indicators, skip links,
+ * and screen reader support for the Kwami website.
+ */
+
+/* ========================================
+   Skip Links
+   ======================================== */
+
+.skip-link {
+  position: absolute;
+  top: -100px;
+  left: 0;
+  z-index: 100000;
+  padding: 16px 24px;
+  background: #6366f1;
+  color: white;
+  font-size: 16px;
+  font-weight: 600;
+  text-decoration: none;
+  border-radius: 0 0 8px 0;
+  transition: top 0.3s ease;
+}
+
+.skip-link:focus {
+  top: 0;
+  outline: 3px solid white;
+  outline-offset: 2px;
+}
+
+/* ========================================
+   Focus Indicators
+   ======================================== */
+
+/* Enhanced focus styles for all interactive elements */
+a:focus,
+button:focus,
+input:focus,
+select:focus,
+textarea:focus,
+[tabindex]:focus {
+  outline: 3px solid #6366f1;
+  outline-offset: 3px;
+  transition: outline 0.2s ease;
+}
+
+/* Special focus for dark backgrounds */
+.content-left a:focus,
+.content-left button:focus {
+  outline-color: #a5b4fc;
+  box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.3);
+}
+
+/* Focus for sidebar navigation spheres */
+.sphere:focus {
+  outline: 3px solid #6366f1;
+  outline-offset: 5px;
+  transform: scale(1.3);
+  box-shadow: 0 0 20px rgba(99, 102, 241, 0.6);
+}
+
+/* Focus for tabs */
+.tab-btn:focus {
+  outline: 3px solid #6366f1;
+  outline-offset: 2px;
+  background: rgba(99, 102, 241, 0.2);
+}
+
+.tab-btn.active:focus {
+  outline-color: white;
+  background: rgba(255, 255, 255, 0.2);
+}
+
+/* Focus for action buttons */
+.action-button:focus {
+  outline: 3px solid #a5b4fc;
+  outline-offset: 3px;
+  transform: translateY(-2px);
+  box-shadow: 0 8px 16px rgba(0, 0, 0, 0.3);
+}
+
+/* Focus ring animation */
+@keyframes focusPulse {
+  0%, 100% {
+    box-shadow: 0 0 0 0 rgba(99, 102, 241, 0.7);
+  }
+  50% {
+    box-shadow: 0 0 0 8px rgba(99, 102, 241, 0);
+  }
+}
+
+*:focus-visible {
+  animation: focusPulse 2s infinite;
+}
+
+/* ========================================
+   Keyboard Navigation Helpers
+   ======================================== */
+
+/* Show keyboard user a visual indicator */
+body.keyboard-navigation *:focus {
+  outline: 3px solid #6366f1 !important;
+  outline-offset: 3px !important;
+}
+
+/* Hide focus outline for mouse users */
+body:not(.keyboard-navigation) *:focus:not(:focus-visible) {
+  outline: none;
+}
+
+/* Keyboard navigation hint (shows on first tab) */
+.keyboard-hint {
+  position: fixed;
+  bottom: 20px;
+  right: 20px;
+  z-index: 1000;
+  padding: 12px 20px;
+  background: rgba(99, 102, 241, 0.95);
+  color: white;
+  border-radius: 8px;
+  font-size: 14px;
+  opacity: 0;
+  transform: translateY(20px);
+  pointer-events: none;
+  transition: opacity 0.3s ease, transform 0.3s ease;
+}
+
+.keyboard-hint.show {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.keyboard-hint::before {
+  content: '⌨️ ';
+  margin-right: 8px;
+}
+
+/* ========================================
+   Screen Reader Only Content
+   ======================================== */
+
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border-width: 0;
+}
+
+.sr-only-focusable:focus {
+  position: static;
+  width: auto;
+  height: auto;
+  padding: inherit;
+  margin: inherit;
+  overflow: visible;
+  clip: auto;
+  white-space: normal;
+}
+
+/* ========================================
+   High Contrast Mode Support
+   ======================================== */
+
+@media (prefers-contrast: high) {
+  .skip-link,
+  .action-button,
+  .tab-btn {
+    border: 2px solid currentColor;
+  }
+
+  *:focus {
+    outline-width: 4px;
+    outline-offset: 4px;
+  }
+
+  .sphere {
+    border: 2px solid white;
+  }
+}
+
+/* ========================================
+   Reduced Motion Support
+   ======================================== */
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+
+  .skip-link,
+  .action-button,
+  .tab-btn,
+  .sphere {
+    transition: none;
+  }
+
+  /* Keep essential animations but slow them way down */
+  .animate-text {
+    animation: none;
+    opacity: 1 !important;
+    transform: none !important;
+  }
+}
+
+/* ========================================
+   Focus Trap for Modals/Dialogs
+   ======================================== */
+
+.focus-trap {
+  position: relative;
+}
+
+.focus-trap::before,
+.focus-trap::after {
+  content: '';
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  opacity: 0;
+  pointer-events: none;
+}
+
+/* ========================================
+   Touch Target Size (Mobile Accessibility)
+   ======================================== */
+
+@media (max-width: 768px) {
+  /* Ensure minimum 44x44px touch targets */
+  button,
+  a,
+  .tab-btn,
+  .action-button,
+  .sphere {
+    min-width: 44px;
+    min-height: 44px;
+    padding: 12px;
+  }
+
+  /* Larger tap areas for small elements */
+  .sphere::after {
+    content: '';
+    position: absolute;
+    inset: -10px;
+  }
+}
+
+/* ========================================
+   Language Switcher Accessibility
+   ======================================== */
+
+#language-switcher:focus-within {
+  outline: 3px solid #6366f1;
+  outline-offset: 3px;
+  border-radius: 8px;
+}
+
+#language-switcher select:focus {
+  outline: 3px solid #a5b4fc;
+  outline-offset: 2px;
+}
+
+/* ========================================
+   Section Navigation (ARIA Live Regions)
+   ======================================== */
+
+.section-announcer {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border-width: 0;
+}
+
+/* ========================================
+   Error Notifications Accessibility
+   ======================================== */
+
+.error-notification[role="alert"] {
+  /* Already visible, just ensure focus */
+}
+
+.error-notification .error-close:focus {
+  outline: 3px solid white;
+  outline-offset: 2px;
+}
+
+/* ========================================
+   Loading States Accessibility
+   ======================================== */
+
+.loading-spinner[role="status"] {
+  /* Ensure screen readers announce loading state */
+}
+
+/* ========================================
+   Video/Canvas Accessibility
+   ======================================== */
+
+canvas[role="img"] {
+  /* Canvas used for visuals should have role="img" */
+}
+
+video:focus {
+  outline: 3px solid #6366f1;
+  outline-offset: 3px;
+}
+
+/* ========================================
+   Custom Scrollbar (Keyboard Accessible)
+   ======================================== */
+
+.content-left:focus-within {
+  /* Highlight when keyboard navigating within */
+  box-shadow: inset 4px 0 0 #6366f1;
+}
+
+/* ========================================
+   Print Styles (Accessibility)
+   ======================================== */
+
+@media print {
+  .skip-link,
+  .keyboard-hint,
+  #cursor-light,
+  .sidebar-navigation {
+    display: none;
+  }
+
+  a::after {
+    content: " (" attr(href) ")";
+    font-size: 0.8em;
+    color: #666;
+  }
+
+  .content-left,
+  .content-right {
+    width: 100% !important;
+    position: static !important;
+  }
+}
+
+/* ========================================
+   Dark Mode Accessibility
+   ======================================== */
+
+@media (prefers-color-scheme: light) {
+  .skip-link {
+    background: #1e1b4b;
+    color: white;
+  }
+
+  *:focus {
+    outline-color: #4338ca;
+  }
+}
+
+/* ========================================
+   Focus Management Classes
+   ======================================== */
+
+.no-focus-outline {
+  outline: none !important;
+}
+
+.focus-visible-only:focus:not(:focus-visible) {
+  outline: none;
+}
+
+.focus-visible-only:focus-visible {
+  outline: 3px solid #6366f1;
+  outline-offset: 3px;
+}
+
+/* ========================================
+   Tooltip Accessibility
+   ======================================== */
+
+[data-tooltip] {
+  position: relative;
+}
+
+[data-tooltip]:hover::after,
+[data-tooltip]:focus::after {
+  content: attr(data-tooltip);
+  position: absolute;
+  bottom: 100%;
+  left: 50%;
+  transform: translateX(-50%);
+  padding: 8px 12px;
+  background: rgba(0, 0, 0, 0.9);
+  color: white;
+  font-size: 14px;
+  white-space: nowrap;
+  border-radius: 4px;
+  pointer-events: none;
+  z-index: 1000;
+  margin-bottom: 8px;
+}
+
+/* ========================================
+   Live Region for Dynamic Content
+   ======================================== */
+
+[aria-live="polite"],
+[aria-live="assertive"] {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border-width: 0;
+}
+
+/* ========================================
+   Keyboard Shortcuts Overlay
+   ======================================== */
+
+.keyboard-shortcuts {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  z-index: 10000;
+  padding: 32px;
+  background: rgba(10, 10, 10, 0.95);
+  border: 2px solid #6366f1;
+  border-radius: 16px;
+  color: white;
+  max-width: 500px;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.3s ease;
+}
+
+.keyboard-shortcuts.show {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.keyboard-shortcuts h2 {
+  margin-top: 0;
+  color: #a5b4fc;
+}
+
+.keyboard-shortcuts kbd {
+  display: inline-block;
+  padding: 4px 8px;
+  background: #1e1b4b;
+  border: 1px solid #6366f1;
+  border-radius: 4px;
+  font-family: monospace;
+  font-size: 14px;
+  margin: 0 4px;
+}
+
+.keyboard-shortcuts ul {
+  list-style: none;
+  padding: 0;
+}
+
+.keyboard-shortcuts li {
+  padding: 8px 0;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.keyboard-shortcuts .close-btn {
+  margin-top: 16px;
+  width: 100%;
+  padding: 12px;
+  background: #6366f1;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 16px;
+}
+
+.keyboard-shortcuts .close-btn:hover {
+  background: #4f46e5;
+}
+
+.keyboard-shortcuts .close-btn:focus {
+  outline: 3px solid white;
+  outline-offset: 2px;
+}
+
