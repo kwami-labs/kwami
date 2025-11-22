@@ -1,0 +1,1537 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Kwami Playground</title>
+  <link rel="stylesheet" href="styles.css">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>👻</text></svg>">
+</head>
+<body>
+  <div id="app">
+    <!-- Mobile Sidebar Close Button (fixed, visible only when sidebar is open) -->
+    <button class="sidebar-close-btn" onclick="toggleMenus()" title="Close sidebar">✕</button>
+
+    <!-- Left Sidebar -->
+    <div id="left-sidebar">
+      <!-- Mobile Sidebar Tabs (visible on mobile only) -->
+      <div class="mobile-sidebar-tabs">
+        <button class="mobile-sidebar-tab active" data-section="mind" onclick="switchMobileSidebarTab('mind')">
+          🧠 Mind
+        </button>
+        <button class="mobile-sidebar-tab" data-section="body" onclick="switchMobileSidebarTab('body')">
+          🧬 Body
+        </button>
+        <button class="mobile-sidebar-tab" data-section="soul" onclick="switchMobileSidebarTab('soul')">
+          ✨ Soul
+        </button>
+      </div>
+      
+      <button class="swap-button" id="left-swap-btn" onclick="swapLeftSidebar()">
+        <span id="left-swap-text">Soul</span>
+      </button>
+      <div id="left-content"></div>
+    </div>
+
+    <!-- Canvas Container -->
+    <div id="canvas-container">
+      <!-- Menu Toggle Button -->
+      <button id="menu-toggle-btn" class="menu-toggle-btn" onclick="toggleMenus()" title="Toggle Sidebars">
+        <span id="menu-toggle-icon">👻</span>
+      </button>
+      
+      <!-- Color Picker Button -->
+      <button id="color-picker-btn" class="color-picker-btn" type="button" title="Choose App Color">
+        <span id="color-picker-icon">🎨</span>
+      </button>
+      
+      <!-- Color Picker Dropdown -->
+      <div id="color-picker-dropdown" class="color-picker-dropdown hidden">
+        <div class="color-picker-header">
+          <h3 class="color-picker-title">🖌️ Pick you fav color</h3>
+        </div>
+        <div class="color-picker-controls">
+          <input type="color" id="app-color-input" class="color-picker-input" value="#667eea">
+          <button id="random-color-btn" class="random-color-btn" type="button" title="Random Color">🎲</button>
+          <label class="glass-effect-toggle">
+            <input type="checkbox" id="glass-effect-checkbox">
+            <span class="glass-effect-label">🪟 Glass</span>
+          </label>
+        </div>
+        <div class="color-picker-presets">
+        
+        <!-- White & Black -->
+        <!-- <div class="color-picker-palette-row">
+          <button class="color-preset" data-color="#ffffff" title="White"></button>
+          <button class="color-preset" data-color="#000000" title="Black"></button>
+        </div> -->
+        
+        <!-- Slate -->
+        <div class="color-picker-palette-row">
+          <button class="color-preset" data-color="#f8fafc" title="Slate 50"></button>
+          <button class="color-preset" data-color="#f1f5f9" title="Slate 100"></button>
+          <button class="color-preset" data-color="#e2e8f0" title="Slate 200"></button>
+          <button class="color-preset" data-color="#cbd5e1" title="Slate 300"></button>
+          <button class="color-preset" data-color="#94a3b8" title="Slate 400"></button>
+          <button class="color-preset" data-color="#64748b" title="Slate 500"></button>
+          <button class="color-preset" data-color="#475569" title="Slate 600"></button>
+          <button class="color-preset" data-color="#334155" title="Slate 700"></button>
+          <button class="color-preset" data-color="#1e293b" title="Slate 800"></button>
+          <button class="color-preset" data-color="#0f172a" title="Slate 900"></button>
+        </div>
+        
+        <!-- Gray -->
+        <div class="color-picker-palette-row">
+          <button class="color-preset" data-color="#f9fafb" title="Gray 50"></button>
+          <button class="color-preset" data-color="#f3f4f6" title="Gray 100"></button>
+          <button class="color-preset" data-color="#e5e7eb" title="Gray 200"></button>
+          <button class="color-preset" data-color="#d1d5db" title="Gray 300"></button>
+          <button class="color-preset" data-color="#9ca3af" title="Gray 400"></button>
+          <button class="color-preset" data-color="#6b7280" title="Gray 500"></button>
+          <button class="color-preset" data-color="#4b5563" title="Gray 600"></button>
+          <button class="color-preset" data-color="#374151" title="Gray 700"></button>
+          <button class="color-preset" data-color="#1f2937" title="Gray 800"></button>
+          <button class="color-preset" data-color="#111827" title="Gray 900"></button>
+        </div>
+        
+        <!-- Zinc -->
+        <div class="color-picker-palette-row">
+          <button class="color-preset" data-color="#fafafa" title="Zinc 50"></button>
+          <button class="color-preset" data-color="#f4f4f5" title="Zinc 100"></button>
+          <button class="color-preset" data-color="#e4e4e7" title="Zinc 200"></button>
+          <button class="color-preset" data-color="#d4d4d8" title="Zinc 300"></button>
+          <button class="color-preset" data-color="#a1a1aa" title="Zinc 400"></button>
+          <button class="color-preset" data-color="#71717a" title="Zinc 500"></button>
+          <button class="color-preset" data-color="#52525b" title="Zinc 600"></button>
+          <button class="color-preset" data-color="#3f3f46" title="Zinc 700"></button>
+          <button class="color-preset" data-color="#27272a" title="Zinc 800"></button>
+          <button class="color-preset" data-color="#18181b" title="Zinc 900"></button>
+        </div>
+        
+        <!-- Neutral -->
+        <div class="color-picker-palette-row">
+          <button class="color-preset" data-color="#fafafa" title="Neutral 50"></button>
+          <button class="color-preset" data-color="#f5f5f5" title="Neutral 100"></button>
+          <button class="color-preset" data-color="#e5e5e5" title="Neutral 200"></button>
+          <button class="color-preset" data-color="#d4d4d4" title="Neutral 300"></button>
+          <button class="color-preset" data-color="#a3a3a3" title="Neutral 400"></button>
+          <button class="color-preset" data-color="#737373" title="Neutral 500"></button>
+          <button class="color-preset" data-color="#525252" title="Neutral 600"></button>
+          <button class="color-preset" data-color="#404040" title="Neutral 700"></button>
+          <button class="color-preset" data-color="#262626" title="Neutral 800"></button>
+          <button class="color-preset" data-color="#171717" title="Neutral 900"></button>
+        </div>
+        
+        <!-- Stone -->
+        <div class="color-picker-palette-row">
+          <button class="color-preset" data-color="#fafaf9" title="Stone 50"></button>
+          <button class="color-preset" data-color="#f5f5f4" title="Stone 100"></button>
+          <button class="color-preset" data-color="#e7e5e4" title="Stone 200"></button>
+          <button class="color-preset" data-color="#d6d3d1" title="Stone 300"></button>
+          <button class="color-preset" data-color="#a8a29e" title="Stone 400"></button>
+          <button class="color-preset" data-color="#78716c" title="Stone 500"></button>
+          <button class="color-preset" data-color="#57534e" title="Stone 600"></button>
+          <button class="color-preset" data-color="#44403c" title="Stone 700"></button>
+          <button class="color-preset" data-color="#292524" title="Stone 800"></button>
+          <button class="color-preset" data-color="#1c1917" title="Stone 900"></button>
+        </div>
+        
+        <!-- Red -->
+        <div class="color-picker-palette-row">
+          <button class="color-preset" data-color="#fef2f2" title="Red 50"></button>
+          <button class="color-preset" data-color="#fee2e2" title="Red 100"></button>
+          <button class="color-preset" data-color="#fecaca" title="Red 200"></button>
+          <button class="color-preset" data-color="#fca5a5" title="Red 300"></button>
+          <button class="color-preset" data-color="#f87171" title="Red 400"></button>
+          <button class="color-preset" data-color="#ef4444" title="Red 500"></button>
+          <button class="color-preset" data-color="#dc2626" title="Red 600"></button>
+          <button class="color-preset" data-color="#b91c1c" title="Red 700"></button>
+          <button class="color-preset" data-color="#991b1b" title="Red 800"></button>
+          <button class="color-preset" data-color="#7f1d1d" title="Red 900"></button>
+        </div>
+        
+        <!-- Orange -->
+        <div class="color-picker-palette-row">
+          <button class="color-preset" data-color="#fff7ed" title="Orange 50"></button>
+          <button class="color-preset" data-color="#ffedd5" title="Orange 100"></button>
+          <button class="color-preset" data-color="#fed7aa" title="Orange 200"></button>
+          <button class="color-preset" data-color="#fdba74" title="Orange 300"></button>
+          <button class="color-preset" data-color="#fb923c" title="Orange 400"></button>
+          <button class="color-preset" data-color="#f97316" title="Orange 500"></button>
+          <button class="color-preset" data-color="#ea580c" title="Orange 600"></button>
+          <button class="color-preset" data-color="#c2410c" title="Orange 700"></button>
+          <button class="color-preset" data-color="#9a3412" title="Orange 800"></button>
+          <button class="color-preset" data-color="#7c2d12" title="Orange 900"></button>
+        </div>
+        
+        <!-- Amber -->
+        <div class="color-picker-palette-row">
+          <button class="color-preset" data-color="#fffbeb" title="Amber 50"></button>
+          <button class="color-preset" data-color="#fef3c7" title="Amber 100"></button>
+          <button class="color-preset" data-color="#fde68a" title="Amber 200"></button>
+          <button class="color-preset" data-color="#fcd34d" title="Amber 300"></button>
+          <button class="color-preset" data-color="#fbbf24" title="Amber 400"></button>
+          <button class="color-preset" data-color="#f59e0b" title="Amber 500"></button>
+          <button class="color-preset" data-color="#d97706" title="Amber 600"></button>
+          <button class="color-preset" data-color="#b45309" title="Amber 700"></button>
+          <button class="color-preset" data-color="#92400e" title="Amber 800"></button>
+          <button class="color-preset" data-color="#78350f" title="Amber 900"></button>
+        </div>
+        
+        <!-- Yellow -->
+        <div class="color-picker-palette-row">
+          <button class="color-preset" data-color="#fefce8" title="Yellow 50"></button>
+          <button class="color-preset" data-color="#fef9c3" title="Yellow 100"></button>
+          <button class="color-preset" data-color="#fef08a" title="Yellow 200"></button>
+          <button class="color-preset" data-color="#fde047" title="Yellow 300"></button>
+          <button class="color-preset" data-color="#facc15" title="Yellow 400"></button>
+          <button class="color-preset" data-color="#eab308" title="Yellow 500"></button>
+          <button class="color-preset" data-color="#ca8a04" title="Yellow 600"></button>
+          <button class="color-preset" data-color="#a16207" title="Yellow 700"></button>
+          <button class="color-preset" data-color="#854d0e" title="Yellow 800"></button>
+          <button class="color-preset" data-color="#713f12" title="Yellow 900"></button>
+        </div>
+        
+        <!-- Lime -->
+        <div class="color-picker-palette-row">
+          <button class="color-preset" data-color="#f7fee7" title="Lime 50"></button>
+          <button class="color-preset" data-color="#ecfccb" title="Lime 100"></button>
+          <button class="color-preset" data-color="#d9f99d" title="Lime 200"></button>
+          <button class="color-preset" data-color="#bef264" title="Lime 300"></button>
+          <button class="color-preset" data-color="#a3e635" title="Lime 400"></button>
+          <button class="color-preset" data-color="#84cc16" title="Lime 500"></button>
+          <button class="color-preset" data-color="#65a30d" title="Lime 600"></button>
+          <button class="color-preset" data-color="#4d7c0f" title="Lime 700"></button>
+          <button class="color-preset" data-color="#3f6212" title="Lime 800"></button>
+          <button class="color-preset" data-color="#365314" title="Lime 900"></button>
+        </div>
+        
+        <!-- Green -->
+        <div class="color-picker-palette-row">
+          <button class="color-preset" data-color="#f0fdf4" title="Green 50"></button>
+          <button class="color-preset" data-color="#dcfce7" title="Green 100"></button>
+          <button class="color-preset" data-color="#bbf7d0" title="Green 200"></button>
+          <button class="color-preset" data-color="#86efac" title="Green 300"></button>
+          <button class="color-preset" data-color="#4ade80" title="Green 400"></button>
+          <button class="color-preset" data-color="#22c55e" title="Green 500"></button>
+          <button class="color-preset" data-color="#16a34a" title="Green 600"></button>
+          <button class="color-preset" data-color="#15803d" title="Green 700"></button>
+          <button class="color-preset" data-color="#166534" title="Green 800"></button>
+          <button class="color-preset" data-color="#14532d" title="Green 900"></button>
+        </div>
+        
+        <!-- Emerald -->
+        <div class="color-picker-palette-row">
+          <button class="color-preset" data-color="#ecfdf5" title="Emerald 50"></button>
+          <button class="color-preset" data-color="#d1fae5" title="Emerald 100"></button>
+          <button class="color-preset" data-color="#a7f3d0" title="Emerald 200"></button>
+          <button class="color-preset" data-color="#6ee7b7" title="Emerald 300"></button>
+          <button class="color-preset" data-color="#34d399" title="Emerald 400"></button>
+          <button class="color-preset" data-color="#10b981" title="Emerald 500"></button>
+          <button class="color-preset" data-color="#059669" title="Emerald 600"></button>
+          <button class="color-preset" data-color="#047857" title="Emerald 700"></button>
+          <button class="color-preset" data-color="#065f46" title="Emerald 800"></button>
+          <button class="color-preset" data-color="#064e3b" title="Emerald 900"></button>
+        </div>
+        
+        <!-- Teal -->
+        <div class="color-picker-palette-row">
+          <button class="color-preset" data-color="#f0fdfa" title="Teal 50"></button>
+          <button class="color-preset" data-color="#ccfbf1" title="Teal 100"></button>
+          <button class="color-preset" data-color="#99f6e4" title="Teal 200"></button>
+          <button class="color-preset" data-color="#5eead4" title="Teal 300"></button>
+          <button class="color-preset" data-color="#2dd4bf" title="Teal 400"></button>
+          <button class="color-preset" data-color="#14b8a6" title="Teal 500"></button>
+          <button class="color-preset" data-color="#0d9488" title="Teal 600"></button>
+          <button class="color-preset" data-color="#0f766e" title="Teal 700"></button>
+          <button class="color-preset" data-color="#115e59" title="Teal 800"></button>
+          <button class="color-preset" data-color="#134e4a" title="Teal 900"></button>
+        </div>
+        
+        <!-- Cyan -->
+        <div class="color-picker-palette-row">
+          <button class="color-preset" data-color="#ecfeff" title="Cyan 50"></button>
+          <button class="color-preset" data-color="#cffafe" title="Cyan 100"></button>
+          <button class="color-preset" data-color="#a5f3fc" title="Cyan 200"></button>
+          <button class="color-preset" data-color="#67e8f9" title="Cyan 300"></button>
+          <button class="color-preset" data-color="#22d3ee" title="Cyan 400"></button>
+          <button class="color-preset" data-color="#06b6d4" title="Cyan 500"></button>
+          <button class="color-preset" data-color="#0891b2" title="Cyan 600"></button>
+          <button class="color-preset" data-color="#0e7490" title="Cyan 700"></button>
+          <button class="color-preset" data-color="#155e75" title="Cyan 800"></button>
+          <button class="color-preset" data-color="#164e63" title="Cyan 900"></button>
+        </div>
+        
+        <!-- Sky -->
+        <div class="color-picker-palette-row">
+          <button class="color-preset" data-color="#f0f9ff" title="Sky 50"></button>
+          <button class="color-preset" data-color="#e0f2fe" title="Sky 100"></button>
+          <button class="color-preset" data-color="#bae6fd" title="Sky 200"></button>
+          <button class="color-preset" data-color="#7dd3fc" title="Sky 300"></button>
+          <button class="color-preset" data-color="#38bdf8" title="Sky 400"></button>
+          <button class="color-preset" data-color="#0ea5e9" title="Sky 500"></button>
+          <button class="color-preset" data-color="#0284c7" title="Sky 600"></button>
+          <button class="color-preset" data-color="#0369a1" title="Sky 700"></button>
+          <button class="color-preset" data-color="#075985" title="Sky 800"></button>
+          <button class="color-preset" data-color="#0c4a6e" title="Sky 900"></button>
+        </div>
+        
+        <!-- Blue -->
+        <div class="color-picker-palette-row">
+          <button class="color-preset" data-color="#eff6ff" title="Blue 50"></button>
+          <button class="color-preset" data-color="#dbeafe" title="Blue 100"></button>
+          <button class="color-preset" data-color="#bfdbfe" title="Blue 200"></button>
+          <button class="color-preset" data-color="#93c5fd" title="Blue 300"></button>
+          <button class="color-preset" data-color="#60a5fa" title="Blue 400"></button>
+          <button class="color-preset" data-color="#3b82f6" title="Blue 500"></button>
+          <button class="color-preset" data-color="#2563eb" title="Blue 600"></button>
+          <button class="color-preset" data-color="#1d4ed8" title="Blue 700"></button>
+          <button class="color-preset" data-color="#1e40af" title="Blue 800"></button>
+          <button class="color-preset" data-color="#1e3a8a" title="Blue 900"></button>
+        </div>
+        
+        <!-- Indigo -->
+        <div class="color-picker-palette-row">
+          <button class="color-preset" data-color="#eef2ff" title="Indigo 50"></button>
+          <button class="color-preset" data-color="#e0e7ff" title="Indigo 100"></button>
+          <button class="color-preset" data-color="#c7d2fe" title="Indigo 200"></button>
+          <button class="color-preset" data-color="#a5b4fc" title="Indigo 300"></button>
+          <button class="color-preset" data-color="#818cf8" title="Indigo 400"></button>
+          <button class="color-preset" data-color="#6366f1" title="Indigo 500"></button>
+          <button class="color-preset" data-color="#4f46e5" title="Indigo 600"></button>
+          <button class="color-preset" data-color="#4338ca" title="Indigo 700"></button>
+          <button class="color-preset" data-color="#3730a3" title="Indigo 800"></button>
+          <button class="color-preset" data-color="#312e81" title="Indigo 900"></button>
+        </div>
+        
+        <!-- Violet -->
+        <div class="color-picker-palette-row">
+          <button class="color-preset" data-color="#f5f3ff" title="Violet 50"></button>
+          <button class="color-preset" data-color="#ede9fe" title="Violet 100"></button>
+          <button class="color-preset" data-color="#ddd6fe" title="Violet 200"></button>
+          <button class="color-preset" data-color="#c4b5fd" title="Violet 300"></button>
+          <button class="color-preset" data-color="#a78bfa" title="Violet 400"></button>
+          <button class="color-preset" data-color="#8b5cf6" title="Violet 500"></button>
+          <button class="color-preset" data-color="#7c3aed" title="Violet 600"></button>
+          <button class="color-preset" data-color="#6d28d9" title="Violet 700"></button>
+          <button class="color-preset" data-color="#5b21b6" title="Violet 800"></button>
+          <button class="color-preset" data-color="#4c1d95" title="Violet 900"></button>
+        </div>
+        
+        <!-- Purple -->
+        <div class="color-picker-palette-row">
+          <button class="color-preset" data-color="#faf5ff" title="Purple 50"></button>
+          <button class="color-preset" data-color="#f3e8ff" title="Purple 100"></button>
+          <button class="color-preset" data-color="#e9d5ff" title="Purple 200"></button>
+          <button class="color-preset" data-color="#d8b4fe" title="Purple 300"></button>
+          <button class="color-preset" data-color="#c084fc" title="Purple 400"></button>
+          <button class="color-preset" data-color="#a855f7" title="Purple 500"></button>
+          <button class="color-preset" data-color="#9333ea" title="Purple 600"></button>
+          <button class="color-preset" data-color="#7e22ce" title="Purple 700"></button>
+          <button class="color-preset" data-color="#6b21a8" title="Purple 800"></button>
+          <button class="color-preset" data-color="#581c87" title="Purple 900"></button>
+        </div>
+        
+        <!-- Fuchsia -->
+        <div class="color-picker-palette-row">
+          <button class="color-preset" data-color="#fdf4ff" title="Fuchsia 50"></button>
+          <button class="color-preset" data-color="#fae8ff" title="Fuchsia 100"></button>
+          <button class="color-preset" data-color="#f5d0fe" title="Fuchsia 200"></button>
+          <button class="color-preset" data-color="#f0abfc" title="Fuchsia 300"></button>
+          <button class="color-preset" data-color="#e879f9" title="Fuchsia 400"></button>
+          <button class="color-preset" data-color="#d946ef" title="Fuchsia 500"></button>
+          <button class="color-preset" data-color="#c026d3" title="Fuchsia 600"></button>
+          <button class="color-preset" data-color="#a21caf" title="Fuchsia 700"></button>
+          <button class="color-preset" data-color="#86198f" title="Fuchsia 800"></button>
+          <button class="color-preset" data-color="#701a75" title="Fuchsia 900"></button>
+        </div>
+        
+        <!-- Pink -->
+        <div class="color-picker-palette-row">
+          <button class="color-preset" data-color="#fdf2f8" title="Pink 50"></button>
+          <button class="color-preset" data-color="#fce7f3" title="Pink 100"></button>
+          <button class="color-preset" data-color="#fbcfe8" title="Pink 200"></button>
+          <button class="color-preset" data-color="#f9a8d4" title="Pink 300"></button>
+          <button class="color-preset" data-color="#f472b6" title="Pink 400"></button>
+          <button class="color-preset" data-color="#ec4899" title="Pink 500"></button>
+          <button class="color-preset" data-color="#db2777" title="Pink 600"></button>
+          <button class="color-preset" data-color="#be185d" title="Pink 700"></button>
+          <button class="color-preset" data-color="#9d174d" title="Pink 800"></button>
+          <button class="color-preset" data-color="#831843" title="Pink 900"></button>
+        </div>
+        
+        <!-- Rose -->
+        <div class="color-picker-palette-row">
+          <button class="color-preset" data-color="#fff1f2" title="Rose 50"></button>
+          <button class="color-preset" data-color="#ffe4e6" title="Rose 100"></button>
+          <button class="color-preset" data-color="#fecdd3" title="Rose 200"></button>
+          <button class="color-preset" data-color="#fda4af" title="Rose 300"></button>
+          <button class="color-preset" data-color="#fb7185" title="Rose 400"></button>
+          <button class="color-preset" data-color="#f43f5e" title="Rose 500"></button>
+          <button class="color-preset" data-color="#e11d48" title="Rose 600"></button>
+          <button class="color-preset" data-color="#be123c" title="Rose 700"></button>
+          <button class="color-preset" data-color="#9f1239" title="Rose 800"></button>
+          <button class="color-preset" data-color="#881337" title="Rose 900"></button>
+        </div>
+        </div><!-- End color-picker-presets -->
+      </div>
+      
+      <!-- Theme Toggle Button -->
+      <button id="theme-toggle-btn" class="theme-toggle-btn" type="button" title="Toggle Theme">
+        <span id="theme-toggle-icon">🌙</span>
+      </button>
+      
+      <!-- GitHub Star Button -->
+      <a id="github-star-btn" class="github-star-btn" href="https://github.com/alexcolls/kwami" target="_blank" title="Star on GitHub">
+        <svg height="16" width="16" viewBox="0 0 16 16" fill="currentColor">
+          <path d="M8 .25a.75.75 0 0 1 .673.418l1.882 3.815 4.21.612a.75.75 0 0 1 .416 1.279l-3.046 2.97.719 4.192a.751.751 0 0 1-1.088.791L8 12.347l-3.766 1.98a.75.75 0 0 1-1.088-.79l.72-4.194L.818 6.374a.75.75 0 0 1 .416-1.28l4.21-.611L7.327.668A.75.75 0 0 1 8 .25Z"></path>
+        </svg>
+        <span>Star</span>
+        <span id="star-count">...</span>
+      </a>
+      
+      <button id="audio-toggle-btn" class="audio-toggle-btn" type="button" aria-controls="audio-player" aria-expanded="false" aria-pressed="false" title="Show audio player">
+        <span class="audio-toggle-icon">🎧</span>
+      </button>
+
+      <!-- Audio Player -->
+      <div id="audio-player" class="hidden">
+        <button id="audio-close-btn" class="audio-close-btn" type="button" title="Close audio player">✕</button>
+        
+        <!-- Audio Controls Row -->
+        <div class="audio-controls-row">
+          <button id="prev-track-btn" class="player-btn" title="Previous Track">⏮️</button>
+          <button id="play-pause-btn" class="player-btn" title="Play/Pause">▶️</button>
+          <button id="next-track-btn" class="player-btn" title="Next Track">⏭️</button>
+          <button id="upload-audio-btn" class="player-btn" title="Load Audio">📂</button>
+        </div>
+        
+        <!-- Audio Info -->
+        <div id="audio-info">
+          <span id="audio-name">Loading playlist...</span>
+          <span id="audio-time">0:00 / 0:00</span>
+        </div>
+        
+        <!-- Volume Control -->
+        <div class="volume-control-row">
+          <span id="volume-icon">🔊</span>
+          <input type="range" id="volume-slider" min="0" max="100" value="80" title="Volume">
+        </div>
+        
+        <!-- Media Loader Modal (hidden by default) -->
+        <div id="audio-loader-modal" class="audio-loader-modal hidden">
+          <div class="audio-loader-modal-content">
+            <button class="audio-loader-close" onclick="closeAudioLoaderModal()">✕</button>
+            <h3 style="margin-top: 0; color: var(--text-primary);">Load Audio</h3>
+            <div id="audio-media-loader"></div>
+          </div>
+        </div>
+      </div>
+
+      <div id="background-media" data-active="none">
+        <video id="background-media-video" autoplay muted loop playsinline></video>
+      </div>
+      <div id="background-gradient"></div>
+      
+      <div id="canvas-overlay"></div>
+      <canvas id="kwami-canvas"></canvas>
+      
+      <!-- State Indicator (Below Blob) -->
+      <!-- <div id="state-indicator" class="state-indicator">
+        <span id="state-text">IDLE</span>
+      </div> -->
+
+      <!-- Messages Area (Below Blob) -->
+      <div id="messages-container">
+        <div id="status" class="message"></div>
+        <div id="error" class="message error-message"></div>
+      </div>
+
+      <!-- Version Display (dynamically populated) -->
+      <div id="version-display"></div>
+      </div>
+
+    <!-- Media Loading Overlay -->
+    <div id="media-loading-overlay">
+      <div class="media-loader-container-overlay">
+        <img id="media-loader-image" class="media-loader-image" src="" alt="Loading...">
+        <div class="media-loader-text">Loading media...</div>
+      </div>
+    </div>
+
+    <!-- Right Sidebar -->
+    <div id="right-sidebar">
+      <button class="swap-button" id="right-swap-btn" onclick="swapRightSidebar()">
+        <span id="right-swap-text">Soul</span>
+      </button>
+      <div id="right-content"></div>
+    </div>
+  </div>
+
+  <!-- Mind Section (AI Agent Configuration) -->
+  <template id="mind-template">
+    <div class="sidebar-content">
+      <h2>🧠 Mind</h2>
+      <p class="subtitle">Conversational AI Agents</p>
+
+      <!-- Provider Tabs -->
+      <div class="section">
+        <div class="provider-tabs" id="provider-tabs">
+          <button class="provider-tab active" data-provider="elevenlabs" onclick="switchProvider('elevenlabs')">
+            <span class="provider-icon">
+              <img src="/assets/img/logo/elevenlabs.webp" alt="ElevenLabs" class="provider-logo">
+            </span>
+            <span class="provider-name">ElevenLabs</span>
+          </button>
+          <button class="provider-tab" data-provider="openai" onclick="switchProvider('openai')" disabled title="Coming Soon">
+            <span class="provider-icon">
+              <img src="/assets/img/logo/openai.webp" alt="OpenAI" class="provider-logo">
+            </span>
+            <span class="provider-name">OpenAI</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- ElevenLabs Provider Content -->
+      <div id="provider-elevenlabs" class="provider-content active">
+        <!-- API Key (Required First) -->
+        <div class="section">
+          <div class="section-title">🔑 API Authentication</div>
+          <p style="color: #ffa500; font-size: 14px; margin: 10px 0; font-weight: 500;">
+            ⚠️ Enter your API key to unlock all agent features below
+          </p>
+          
+          <div class="input-group">
+            <label>ElevenLabs API Key (Required)</label>
+            <input type="password" id="api-key-agent" placeholder="Enter your ElevenLabs API Key">
+            <small style="display: block; color: #888; margin-top: 5px;">Get it from <a href="https://elevenlabs.io/app/agents/settings" target="_blank" rel="noopener noreferrer" style="color: #667eea; text-decoration: none;">elevenlabs.io/app/agents/settings</a></small>
+          </div>
+          
+          <button onclick="initializeAgentManager()" id="init-agent-manager-btn">🚀 Initialize Agent Manager</button>
+          <div id="agent-manager-status" style="margin-top: 10px; display: none;">
+            <small style="color: #4CAF50;">✅ Agent Manager Ready</small>
+          </div>
+        </div>
+
+      <!-- Agent Creation (Primary Feature) -->
+      <div class="section disabled-section" id="agent-creation-section">
+        <div class="section-title">✨ Create New Agent</div>
+        <p style="color: #888; font-size: 14px; margin-bottom: 15px;">
+          Create a conversational AI agent with custom personality and voice
+        </p>
+        
+        <div class="input-group">
+          <label>Agent Name</label>
+          <input type="text" id="agent-name" placeholder="My AI Agent">
+        </div>
+        
+        <div class="input-group">
+          <label>System Prompt (Agent's Personality)</label>
+          <textarea id="agent-prompt" placeholder="You are a helpful, friendly AI assistant..." style="min-height: 100px;"></textarea>
+          <small style="display: block; color: #888; margin-top: 2px;">
+            Define how the agent behaves and responds
+          </small>
+        </div>
+        
+        <div class="input-group">
+          <label>First Message (Greeting)</label>
+          <input type="text" id="agent-first-message" placeholder="Hello! How can I help you today?" value="Hello! How can I help you today?">
+        </div>
+        
+        <div class="input-group">
+          <label>Language Model (LLM)</label>
+          <select id="agent-llm-model">
+            <option value="gpt-4">GPT-4 (Recommended)</option>
+            <option value="gpt-4-turbo">GPT-4 Turbo (Faster)</option>
+            <option value="gpt-3.5-turbo">GPT-3.5 Turbo (Economical)</option>
+            <option value="claude-3-opus">Claude 3 Opus</option>
+            <option value="claude-3-sonnet">Claude 3 Sonnet</option>
+            <option value="claude-3-haiku">Claude 3 Haiku (Fast)</option>
+          </select>
+        </div>
+        
+        <div class="input-group">
+          <label>Temperature <span class="value-display" id="agent-temperature-value">0.7</span></label>
+          <input type="range" id="agent-temperature" min="0" max="1" step="0.1" value="0.7">
+          <small style="display: block; color: #888; margin-top: 2px;">
+            Lower = More focused | Higher = More creative
+          </small>
+        </div>
+        
+        <div class="input-group">
+          <label>Max Response Tokens</label>
+          <input type="number" id="agent-max-tokens" min="50" max="2000" value="500" placeholder="500">
+        </div>
+        
+        <!-- Voice Configuration for Agent -->
+        <div class="parameter-group">
+          <div class="parameter-group-title">🎙️ Voice Configuration</div>
+          
+          <div class="input-group">
+            <label>Voice Selection</label>
+            <select id="agent-voice-id">
+              <option value="pNInz6obpgDQGcFmaJgB">Adam (Deep, Professional)</option>
+              <option value="EXAVITQu4vr4xnSDxMaL">Bella (Soft, Female)</option>
+              <option value="ErXwobaYiN019PkySvjV">Antoni (Well-rounded, Male)</option>
+              <option value="MF3mGyEYCl7XYWbV9V6O">Elli (Emotional, Female)</option>
+              <option value="TxGEqnHWrfWFTfGW9XjX">Josh (Young, Male)</option>
+            </select>
+          </div>
+          
+          <div class="input-group">
+            <label>TTS Model</label>
+            <select id="agent-tts-model">
+              <option value="eleven_turbo_v2" selected>Eleven Turbo v2 (Recommended)</option>
+              <option value="eleven_turbo_v2_5">Eleven Turbo v2.5</option>
+              <option value="eleven_multilingual_v2">Eleven Multilingual v2</option>
+            </select>
+          </div>
+          
+          <div class="slider-control">
+            <label>Voice Stability <span class="value-display" id="agent-stability-value">0.5</span></label>
+            <input type="range" id="agent-stability" min="0" max="1" step="0.05" value="0.5">
+          </div>
+          
+          <div class="slider-control">
+            <label>Similarity Boost <span class="value-display" id="agent-similarity-value">0.75</span></label>
+            <input type="range" id="agent-similarity" min="0" max="1" step="0.05" value="0.75">
+          </div>
+        </div>
+        
+        <button onclick="createNewAgent()" id="create-agent-btn" disabled>✨ Create Agent</button>
+        <div id="agent-creation-status" style="margin-top: 10px; display: none;"></div>
+      </div>
+
+      <!-- My Agents List -->
+      <div class="section disabled-section" id="agents-list-section">
+        <div class="section-title">📋 My Agents</div>
+        <button class="button-secondary" onclick="refreshAgentsList()" id="refresh-agents-btn" disabled style="margin-bottom: 10px;">🔄 Refresh List</button>
+        
+        <div id="agents-list-container">
+          <div id="agents-list" class="agents-list">
+            <!-- Agents will be populated here -->
+          </div>
+          <div id="agents-list-empty" style="color: #888; padding: 20px; text-align: center; display: none;">
+            No agents found. Create your first agent above! 👆
+          </div>
+        </div>
+      </div>
+
+      <!-- Selected Agent Actions -->
+      <div class="section disabled-section" id="agent-actions-section">
+        <div class="section-title">🎯 Active Agent</div>
+        
+        <div id="selected-agent-info" style="padding: 15px; background: #1a1a1a; border-radius: 12px; margin-bottom: 15px;">
+          <div style="font-weight: bold; margin-bottom: 5px;">
+            <span id="selected-agent-name">No agent selected</span>
+          </div>
+          <div style="font-size: 12px; color: #888;">
+            <span id="selected-agent-id"></span>
+          </div>
+        </div>
+        
+        <button onclick="startConversationWithAgent()" id="start-agent-conversation-btn" disabled>
+          🎙️ Start Conversation
+        </button>
+        <button onclick="stopConversation()" id="stop-agent-conversation-btn" disabled style="display: none;">
+          ⏹️ Stop Conversation
+        </button>
+      </div>
+
+      <!-- Agent Testing -->
+      <div class="section disabled-section" id="agent-testing-section">
+        <div class="section-title">🧪 Test Agent</div>
+        <p style="color: #888; font-size: 14px; margin-bottom: 15px;">
+          Test your agent with simulated conversations before going live
+        </p>
+        
+        <div class="input-group">
+          <label>Test Message</label>
+          <textarea id="test-message" placeholder="What can you help me with?">Hello! Tell me about yourself.</textarea>
+        </div>
+        
+        <button onclick="testAgent()" id="test-agent-btn" disabled>🧪 Test Agent</button>
+        
+        <div id="test-results" style="margin-top: 15px; display: none;">
+          <div style="padding: 15px; background: #1a1a1a; border-radius: 12px;">
+            <div style="font-weight: bold; margin-bottom: 10px;">Test Results:</div>
+            <div id="test-agent-response" style="color: #4CAF50; margin-bottom: 10px;"></div>
+            <div id="test-agent-metadata" style="font-size: 12px; color: #888;"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Cost Calculator -->
+      <div class="section disabled-section" id="cost-calculator-section">
+        <div class="section-title">💰 Cost Calculator</div>
+        <p style="color: #888; font-size: 14px; margin-bottom: 15px;">
+          Estimate token usage and costs for your agent
+        </p>
+        
+        <div class="input-group">
+          <label>Expected Conversation Turns</label>
+          <input type="number" id="cost-calc-turns" min="1" max="1000" value="10" placeholder="10">
+          <small style="display: block; color: #888; margin-top: 2px;">
+            Number of back-and-forth exchanges
+          </small>
+        </div>
+        
+        <div class="input-group">
+          <label>Average Message Length (characters)</label>
+          <input type="number" id="cost-calc-length" min="10" max="500" value="50" placeholder="50">
+        </div>
+        
+        <button onclick="calculateAgentCost()" id="calculate-cost-btn" disabled>💰 Calculate Cost</button>
+        
+        <div id="cost-results" style="margin-top: 15px; display: none;">
+          <div style="padding: 15px; background: #1a1a1a; border-radius: 12px;">
+            <div style="font-weight: bold; margin-bottom: 10px;">Estimated Costs:</div>
+            <div style="color: #888; font-size: 14px;">
+              <div>Prompt Tokens: <span id="cost-prompt-tokens">-</span></div>
+              <div>Completion Tokens: <span id="cost-completion-tokens">-</span></div>
+              <div>Total Tokens: <span id="cost-total-tokens">-</span></div>
+              <div style="margin-top: 10px; font-size: 16px; color: #4CAF50;">
+                Cost per Conversation: <span id="cost-per-conversation">$-</span>
+              </div>
+              <div>Model: <span id="cost-model">-</span></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Agent Link -->
+      <div class="section disabled-section" id="agent-link-section">
+        <div class="section-title">🔗 Share Agent</div>
+        
+        <button onclick="getAgentShareLink()" id="get-link-btn" disabled>🔗 Get Shareable Link</button>
+        
+        <div id="agent-link-result" style="margin-top: 15px; display: none;">
+          <div style="padding: 15px; background: #1a1a1a; border-radius: 12px;">
+            <div style="font-weight: bold; margin-bottom: 10px;">Shareable Link:</div>
+            <div style="display: flex; gap: 10px; align-items: center;">
+              <input type="text" id="agent-link-url" readonly style="flex: 1; background: #0a0a0a; padding: 8px; border-radius: 6px; border: 1px solid #333;">
+              <button onclick="copyAgentLink()" class="button-secondary">📋 Copy</button>
+            </div>
+            <small style="display: block; color: #888; margin-top: 8px;">
+              Link Status: <span id="agent-link-status">-</span>
+            </small>
+          </div>
+        </div>
+      </div>
+
+      </div>
+
+      <!-- Placeholder for other providers (coming soon) -->
+      <div id="provider-openai" class="provider-content" style="display: none;">
+        <div class="section">
+          <div class="section-title">🧠 OpenAI Agents</div>
+          <p style="color: #888; font-size: 14px; padding: 40px 20px; text-align: center;">
+            OpenAI conversational agent integration coming soon!<br>
+            <small style="color: #666;">Stay tuned for GPT-4 powered voice agents.</small>
+          </p>
+        </div>
+      </div>
+
+      <!-- Skills Section -->
+      <div class="section" style="margin-top: 40px; border-top: 2px solid var(--border-section); padding-top: 30px;">
+        <div class="section-title">👩🏻‍💻 Skills</div>
+        <p class="subtitle">Program Kwami's Behavior</p>
+
+        <!-- Available Skills -->
+        <div class="section">
+          <div class="parameter-group">
+            <div class="parameter-group-title">Available Skills</div>
+            <p style="color: #888; font-size: 12px; margin-bottom: 10px;">
+              Pre-built behavior templates
+            </p>
+            
+            <div class="input-group">
+              <label>Select Skill</label>
+              <select id="skill-selector">
+                <option value="">-- Choose a skill --</option>
+                <option value="minimize-top-right">🔽 Minimize to Top Right</option>
+                <option value="rainbow-transition">🌈 Rainbow Transition</option>
+                <option value="energetic-mode">⚡ Energetic Mode</option>
+                <option value="calm-meditation">🧘 Calm Meditation</option>
+                <option value="focus-session">🎯 Focus Session</option>
+                <option value="party-mode">🎉 Party Mode</option>
+              </select>
+            </div>
+
+            <div id="skill-description" style="padding: 12px; background: var(--bg-section); border-radius: 8px; margin: 10px 0; display: none;">
+              <div style="font-size: 12px; color: var(--text-secondary); margin-bottom: 8px;">
+                <strong id="skill-description-name"></strong>
+              </div>
+              <div style="font-size: 11px; color: var(--text-tertiary);" id="skill-description-text"></div>
+              <div style="font-size: 10px; color: var(--text-tertiary); margin-top: 8px; padding-top: 8px; border-top: 1px solid var(--border-input);">
+                <div><strong>Actions:</strong> <span id="skill-description-actions">0</span></div>
+                <div><strong>Auto-reverse:</strong> <span id="skill-description-reverse">No</span></div>
+              </div>
+            </div>
+
+            <button onclick="executeSelectedSkill()" id="execute-skill-btn" disabled>
+              ▶️ Execute Skill
+            </button>
+
+            <div id="skill-execution-status" style="margin-top: 10px; display: none;">
+              <div style="padding: 10px; background: var(--bg-section); border-radius: 8px; border-left: 3px solid #4CAF50;">
+                <div style="font-size: 12px; color: #4CAF50; font-weight: 600;">
+                  <span id="skill-execution-message">Skill executed successfully</span>
+                </div>
+                <div style="font-size: 11px; color: var(--text-tertiary); margin-top: 4px;">
+                  Duration: <span id="skill-execution-duration">0ms</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Custom Skill Creator -->
+        <div class="section">
+          <div class="parameter-group">
+            <div class="parameter-group-title">Skills templates</div>
+            <p style="color: #888; font-size: 12px; margin-bottom: 10px;">
+              Some examples of Kwami's skills with configurable templates
+            </p>
+
+            <div class="button-row">
+              <button class="button-secondary" onclick="quickSkillMinimize()" title="Minimize Kwami">
+                🔽 Minimize
+              </button>
+              <button class="button-secondary" onclick="quickSkillCenter()" title="Center Kwami">
+                🎯 Center
+              </button>
+            </div>
+
+            <div class="button-row" style="margin-top: 8px;">
+              <button class="button-secondary" onclick="quickSkillEnergize()" title="Energetic mode">
+                ⚡ Energize
+              </button>
+              <button class="button-secondary" onclick="quickSkillCalm()" title="Calm mode">
+                🧘 Calm
+              </button>
+            </div>
+
+            <div class="button-row" style="margin-top: 8px;">
+              <button class="button-secondary" onclick="quickSkillParty()" title="Party mode">
+                🎉 Party
+              </button>
+              <button class="button-secondary" onclick="quickSkillReset()" title="Reset to default">
+                🔄 Reset
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Load Custom Skill -->
+        <div class="section">
+          <div class="parameter-group">
+            <div class="parameter-group-title">Load Custom Skill</div>
+            <p style="color: #888; font-size: 12px; margin-bottom: 10px;">
+              You can create your own skills by loading them from JSON or YAML files or URLs
+            </p>
+
+            <div class="input-group">
+              <label>Skill URL</label>
+              <input type="text" id="custom-skill-url" placeholder="https://example.com/skill.json">
+            </div>
+
+            <button class="button-secondary" onclick="loadCustomSkill()" id="load-skill-btn">
+              📥 Load Skill
+            </button>
+
+            <div style="margin-top: 10px;">
+              <small style="color: #888;">
+                Or upload: <input type="file" id="skill-file-input" accept=".json" style="display: none;" onchange="loadSkillFromFile(event)">
+                <button class="button-secondary" onclick="document.getElementById('skill-file-input').click()" style="width: auto; padding: 6px 12px; margin: 0; font-size: 12px;">
+                  📁 Choose File
+                </button>
+              </small>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </template>
+
+  <!-- Body Section (Visual Configuration) -->
+  <template id="body-template">
+    <div class="sidebar-content">
+      <h2>🧬 Body</h2>
+      <p class="subtitle">Visual Configuration</p>
+
+      <!-- Quick Variations -->
+      <div class="section">
+        <div class="section-title">⚡ Quick Variants</div>
+        <div class="parameter-group">
+          <div class="button-row">
+            <button class="button-secondary" onclick="randomizeBlob()" title="Randomize blob shape and colors">🎲 Random Blob</button>
+            <button class="button-secondary" onclick="randomizeBackground()" title="Generate random gradient colors">🎨 Random Bg Gradient</button>
+          </div>
+          <div class="button-row" style="margin-top: 8px;">
+            <button class="button-secondary" onclick="randomizeMediaSelection('image')" title="Select random background image">🖼️ Random Bg Image</button>
+            <button class="button-secondary" onclick="randomizeMediaSelection('video')" title="Select random background video">🎥 Random Bg Video</button>
+          </div>
+          <div class="button-row" style="margin-top: 8px;">
+            <button class="button-secondary" onclick="randomizeBackgroundWithGlass()" title="Random background with glass effect">🪟 Random Bg Glass</button>
+            <button class="button-secondary" onclick="randomize3DTexture()" title="Randomize blob surface texture">🧶 Random 3D Texture</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="section">
+        <div class="section-title">🌈 Background</div>
+        
+        <div class="parameter-group">
+          <div class="parameter-group-title">Canvas Gradient</div>
+
+          <div class="input-group">
+            <label>
+              <input type="checkbox" id="bg-gradient-enabled" checked>
+              Enable Gradient Background
+            </label>
+          </div>
+
+          <div id="gradient-controls-container">
+            <div class="slider-control">
+              <label>Opacity <span class="value-display" id="bg-opacity-value">1.0</span></label>
+              <input type="range" id="bg-opacity" min="0" max="1" step="0.01" value="1">
+            </div>
+
+            <div class="slider-control">
+              <label>Angle <span class="value-display" id="bg-gradient-angle-value">90</span>°</label>
+              <input type="range" id="bg-gradient-angle" min="0" max="360" step="1" value="90">
+            </div>
+
+            <div class="slider-control">
+              <label>Color Stop 1 <span class="value-display" id="bg-gradient-stop1-value">50</span>%</label>
+              <input type="range" id="bg-gradient-stop1" min="0" max="100" step="1" value="50">
+            </div>
+
+            <div class="slider-control">
+              <label>Color Stop 2 <span class="value-display" id="bg-gradient-stop2-value">100</span>%</label>
+              <input type="range" id="bg-gradient-stop2" min="0" max="100" step="1" value="100">
+            </div>
+
+            <div class="input-group">
+              <label>Gradient Layout</label>
+              <select id="bg-gradient-style">
+                <option value="linear">Linear</option>
+                <option value="radial">Radial</option>
+                <option value="random">Random</option>
+              </select>
+            </div>
+
+            <div class="parameter-group gradient-color-group">
+              <div class="parameter-group-title">
+                <span style="margin-top: -14px;">Gradient Colors</span>
+                <button class="randomize-colors-btn" onclick="randomizeGradientColors()" title="Randomize gradient colors">🎲</button>
+              </div>
+              <div class="color-control">
+                <label>Color 1</label>
+                <input type="color" id="bg-color-1" value="#667eea">
+              </div>
+              <div class="color-control">
+                <label>Color 2</label>
+                <input type="color" id="bg-color-2" value="#764ba2">
+              </div>
+              <div class="color-control">
+                <label>Color 3</label>
+                <input type="color" id="bg-color-3" value="#f093fb">
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="parameter-group">
+          <div class="parameter-group-title">Media Background</div>
+
+          <div class="input-group">
+            <label>Media Source</label>
+            <div class="media-tabs" id="bg-media-tabs">
+              <button type="button" class="media-tab active" data-media="none">🚫 None</button>
+              <button type="button" class="media-tab" data-media="image">Image</button>
+              <button type="button" class="media-tab" data-media="video">Video</button>
+            </div>
+          </div>
+
+          <div id="media-image-controls" class="media-controls" style="display: none;">
+            <!-- Media Loader UI Component will be injected here -->
+            <div id="bg-image-loader"></div>
+          </div>
+
+          <div id="media-video-controls" class="media-controls" style="display: none;">
+            <!-- Media Loader UI Component will be injected here -->
+            <div id="bg-video-loader"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Geometry & Motion -->
+      <div class="section">
+        <div class="section-title">🔮 Geometry & Motion</div>
+        
+        <div class="parameter-group">
+          <div class="parameter-group-title">Noise Frequency</div>
+          <p class="parameter-info">Control how much the blob stretches along each axis.</p>
+          <div class="slider-control">
+            <label>X <span class="value-display" id="spike-x-value">0.2</span></label>
+            <input type="range" id="spike-x" min="0" max="25" step="0.1" value="0.2">
+          </div>
+          <div class="slider-control">
+            <label>Y <span class="value-display" id="spike-y-value">0.2</span></label>
+            <input type="range" id="spike-y" min="0" max="25" step="0.1" value="0.2">
+          </div>
+          <div class="slider-control">
+            <label>Z <span class="value-display" id="spike-z-value">0.2</span></label>
+            <input type="range" id="spike-z" min="0" max="25" step="0.1" value="0.2">
+          </div>
+        </div>
+
+        <div class="parameter-group">
+          <div class="parameter-group-title">Frequency Amplitude</div>
+          <p class="parameter-info">Control the depth of noise frequency (spike intensity) along each axis.</p>
+          <div class="slider-control">
+            <label>X <span class="value-display" id="amplitude-x-value">0.8</span></label>
+            <input type="range" id="amplitude-x" min="0" max="5" step="0.1" value="0.8">
+          </div>
+          <div class="slider-control">
+            <label>Y <span class="value-display" id="amplitude-y-value">0.8</span></label>
+            <input type="range" id="amplitude-y" min="0" max="5" step="0.1" value="0.8">
+          </div>
+          <div class="slider-control">
+            <label>Z <span class="value-display" id="amplitude-z-value">0.8</span></label>
+            <input type="range" id="amplitude-z" min="0" max="5" step="0.1" value="0.8">
+          </div>
+        </div>
+
+        <div class="parameter-group">
+          <div class="parameter-group-title">Animation Speed</div>
+          <p class="parameter-info">Change how quickly the blob cycles through its movement.</p>
+          <div class="slider-control">
+            <label>X <span class="value-display" id="time-x-value">1.0</span></label>
+            <input type="range" id="time-x" min="0" max="25" step="0.1" value="5">
+          </div>
+          <div class="slider-control">
+            <label>Y <span class="value-display" id="time-y-value">1.0</span></label>
+            <input type="range" id="time-y" min="0" max="25" step="0.1" value="5">
+          </div>
+          <div class="slider-control">
+            <label>Z <span class="value-display" id="time-z-value">1.0</span></label>
+            <input type="range" id="time-z" min="0" max="25" step="0.1" value="5">
+          </div>
+        </div>
+
+        <div class="parameter-group">
+          <div class="parameter-group-title">Auto Rotation</div>
+          <div class="slider-control">
+            <label>X <span class="value-display" id="rotation-x-value">0.000</span></label>
+            <input type="range" id="rotation-x" min="0" max="0.01" step="0.001" value="0">
+          </div>
+          <div class="slider-control">
+            <label>Y <span class="value-display" id="rotation-y-value">0.000</span></label>
+            <input type="range" id="rotation-y" min="0" max="0.01" step="0.001" value="0">
+          </div>
+          <div class="slider-control">
+            <label>Z <span class="value-display" id="rotation-z-value">0.000</span></label>
+            <input type="range" id="rotation-z" min="0" max="0.01" step="0.001" value="0">
+          </div>
+        </div>
+      </div>
+
+      <!-- Skin & Surface -->
+      <div class="section">
+        <div class="section-title">🖌️ Skin & Surface</div>
+
+        <div class="parameter-group">
+          <div class="parameter-group-title">Skin Selection</div>
+          <div class="input-group">
+            <label>Skin Type</label>
+            <select id="skin-type">
+              <option value="tricolor">3Colors - Poles</option>
+              <option value="tricolor2">3Colors - Donut</option>
+              <option value="zebra">3Colors - Vintage</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="parameter-group">
+          <div class="parameter-group-title">
+            <span style="margin-top: -14px;">Skin Palette</span>
+            <button class="randomize-colors-btn" onclick="randomizePaletteColors()" title="Randomize palette colors">🎲</button>
+          </div>
+          <p class="parameter-info">These colors apply to every skin. Adjust them to re-tint the material.</p>
+          <div class="color-control">
+            <label>Primary</label>
+            <input type="color" id="color-x" value="#ff0066">
+          </div>
+          <div class="color-control">
+            <label>Secondary</label>
+            <input type="color" id="color-y" value="#00ff66">
+          </div>
+          <div class="color-control">
+            <label>Accent</label>
+            <input type="color" id="color-z" value="#6600ff">
+          </div>
+        </div>
+      </div>
+
+      <!-- Blob Texture (Independent from Background) -->
+      <div class="section">
+        <div class="section-title">🎨 Blob Texture</div>
+        <p class="parameter-info" style="margin-bottom: 15px;">Apply images or videos directly to the blob surface (independent from background)</p>
+
+        <div class="parameter-group">
+          <div class="parameter-group-title">Texture Source</div>
+
+          <div class="input-group">
+            <label>Media Type</label>
+            <div class="media-tabs" id="blob-media-tabs">
+              <button type="button" class="media-tab active" data-media="none">None</button>
+              <button type="button" class="media-tab" data-media="image">Image</button>
+              <button type="button" class="media-tab" data-media="video">Video</button>
+            </div>
+          </div>
+
+          <div id="blob-media-image-controls" class="media-controls" style="display: none;">
+            <!-- Media Loader UI Component will be injected here -->
+            <div id="blob-image-loader"></div>
+          </div>
+
+          <div id="blob-media-video-controls" class="media-controls" style="display: none;">
+            <!-- Media Loader UI Component will be injected here -->
+            <div id="blob-video-loader"></div>
+          </div>
+        </div>
+
+        <div class="parameter-group">
+          <div class="parameter-group-title">Texture Blending</div>
+          <div class="slider-control">
+            <label>Opacity <span class="value-display" id="blob-opacity-value">1.00</span></label>
+            <input type="range" id="blob-opacity" min="0" max="1" step="0.01" value="1">
+          </div>
+          <label class="slider-checkbox">
+            <input type="checkbox" id="blob-image-transparency">
+            Enable Glass Transparency
+          </label>
+          <small class="parameter-info">Blob becomes a window through the gradient; background image/video visible.</small>
+        </div>
+      </div>
+
+      <!-- Material Properties -->
+      <div class="section">
+        <div class="section-title">✨ Material Properties</div>
+
+        <div class="parameter-group">
+          <div class="parameter-group-title">Surface Quality</div>
+          <div class="slider-control">
+            <label>Shininess <span class="value-display" id="shininess-value">50</span></label>
+            <input type="range" id="shininess" min="1" max="200" step="1" value="50">
+          </div>
+          <div class="slider-control">
+            <label>Light Intensity <span class="value-display" id="light-intensity-value">0</span></label>
+            <input type="range" id="light-intensity" min="0" max="5" step="0.1" value="0">
+          </div>
+        </div>
+
+        <div class="parameter-group">
+          <div class="parameter-group-title">Mesh Detail</div>
+          <div class="slider-control">
+            <label>Resolution <span class="value-display" id="resolution-value">180</span></label>
+            <input type="range" id="resolution" min="120" max="220" step="1" value="180">
+            <small class="checkbox-hint">Higher = smoother surface, lower = faceted look</small>
+          </div>
+
+          <div>
+            <label>
+              <input type="checkbox" id="wireframe">
+              Wireframe Mode
+            </label>
+            <small class="parameter-info">Show the mesh structure</small>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- Scale & Camera -->
+      <div class="section">
+        <div class="section-title">📐 Scale & Camera</div>
+        <div class="parameter-group">
+          <div class="parameter-group-title">Global Scale</div>
+          <div class="slider-control">
+            <label>Scale <span class="value-display" id="scale-value">3.2</span></label>
+            <input type="range" id="scale" min="3" max="8" step="0.1" value="3.2">
+          </div>
+        </div>
+
+        <div class="parameter-group">
+          <div class="parameter-group-title">Camera Orbit</div>
+          <p class="parameter-info">Fine-tune the default camera orbit around the blob.</p>
+          <div class="slider-control">
+            <label>X <span class="value-display" id="camera-x-value">-0.9</span></label>
+            <input type="range" id="camera-x" min="-20" max="20" step="0.5" value="-0.9">
+          </div>
+          <div class="slider-control">
+            <label>Y <span class="value-display" id="camera-y-value">7.3</span></label>
+            <input type="range" id="camera-y" min="-20" max="20" step="0.5" value="7.3">
+          </div>
+          <div class="slider-control">
+            <label>Z <span class="value-display" id="camera-z-value">-1.8</span></label>
+            <input type="range" id="camera-z" min="-20" max="30" step="0.5" value="-1.8">
+          </div>
+        </div>
+      </div>
+
+      <!-- Audio Effects Configuration -->
+      <div class="section">
+        <div class="section-title">🎵 Audio Effects</div>
+        
+        <!-- Audio Effect Multipliers -->
+        <div class="parameter-group">
+          <div class="parameter-group-title">Frequency Modulation</div>
+          <p class="parameter-info">Boost how strongly each frequency band pushes the blob. <span style="display:block;color:#999;font-size:11px;">The blob remembers your settings per skin.</span></p>
+          <div class="slider-control">
+            <label>Bass Movement <span class="value-display" id="audio-bass-spike-value">0.65</span></label>
+            <input type="range" id="audio-bass-spike" min="0" max="1" step="0.05" value="0.65">
+          </div>
+          <div class="slider-control">
+            <label>Mid Flow <span class="value-display" id="audio-mid-spike-value">0.50</span></label>
+            <input type="range" id="audio-mid-spike" min="0" max="1" step="0.05" value="0.50">
+          </div>
+          <div class="slider-control">
+            <label>High Detail <span class="value-display" id="audio-high-spike-value">0.38</span></label>
+            <input type="range" id="audio-high-spike" min="0" max="1" step="0.05" value="0.38">
+          </div>
+          <div class="slider-control">
+            <label>Audio Reactivity <span class="value-display" id="audio-reactivity-value">1.90</span></label>
+            <input type="range" id="audio-reactivity" min="0.5" max="3" step="0.05" value="1.90">
+          </div>
+          <div class="slider-control">
+            <label>Sensitivity Threshold <span class="value-display" id="audio-sensitivity-value">0.08</span></label>
+            <input type="range" id="audio-sensitivity" min="0.01" max="0.3" step="0.005" value="0.08">
+          </div>
+          <div class="slider-control">
+            <label>Breathing (Idle) <span class="value-display" id="audio-breathing-value">0.04</span></label>
+            <input type="range" id="audio-breathing" min="0" max="0.1" step="0.005" value="0.04">
+          </div>
+        </div>
+
+        <!-- Time Modulation -->
+        <div class="parameter-group">
+          <div class="parameter-group-title">Time Modulation</div>
+          <p class="parameter-info">Control how audio affects animation speed</p>
+          <div class="input-group">
+            <label>
+              <input type="checkbox" id="audio-time-enabled">
+              Enable Time Modulation (Can be chaotic)
+            </label>
+          </div>
+          <div class="slider-control">
+            <label>Mid Speed <span class="value-display" id="audio-mid-time-value">0.10</span></label>
+            <input type="range" id="audio-mid-time" min="0" max="2" step="0.05" value="0.10">
+          </div>
+          <div class="slider-control">
+            <label>High Speed <span class="value-display" id="audio-high-time-value">0.18</span></label>
+            <input type="range" id="audio-high-time" min="0" max="2" step="0.05" value="0.18">
+          </div>
+          <div class="slider-control">
+            <label>Ultra Speed <span class="value-display" id="audio-ultra-time-value">0.08</span></label>
+            <input type="range" id="audio-ultra-time" min="0" max="2" step="0.05" value="0.08">
+          </div>
+        </div>
+
+        <!-- Audio Analyzer Settings -->
+        <div class="parameter-group">
+          <div class="parameter-group-title">Audio Analyzer</div>
+          <div class="slider-control">
+            <label>FFT Size <span class="value-display" id="fft-size-value">2048</span></label>
+            <select id="fft-size">
+              <option value="512">512 (Fast, Low Res)</option>
+              <option value="1024">1024 (Balanced)</option>
+              <option value="2048" selected>2048 (Default)</option>
+              <option value="4096">4096 (High Res)</option>
+            </select>
+          </div>
+          <div class="slider-control">
+            <label>Smoothing <span class="value-display" id="smoothing-value">0.35</span></label>
+            <input type="range" id="smoothing" min="0" max="1" step="0.05" value="0.35">
+          </div>
+        </div>
+
+        <!-- Audio Reactive Toggle -->
+        <div class="input-group">
+          <label>
+            <input type="checkbox" id="audio-reactive" checked>
+            Enable Audio Reactivity
+          </label>
+        </div>
+      </div>
+
+      <!-- Interaction Configuration -->
+      <div class="section">
+        <div class="section-title">👆 Interaction</div>
+        
+        <!-- Touch/Click Effects -->
+        <div class="parameter-group">
+          <div class="parameter-group-title">Touch/Click Effects</div>
+          <div class="input-group">
+            <label>
+              <input type="checkbox" id="click-interaction" checked>
+              Enable Click Interaction
+            </label>
+          </div>
+          <div class="slider-control">
+            <label>Touch Strength <span class="value-display" id="touch-strength-value">1.0</span></label>
+            <input type="range" id="touch-strength" min="0.1" max="2" step="0.1" value="1.0">
+          </div>
+          <div class="slider-control">
+            <label>Touch Duration <span class="value-display" id="touch-duration-value">1100</span>ms</label>
+            <input type="range" id="touch-duration" min="500" max="3000" step="100" value="1100">
+          </div>
+          <div class="slider-control">
+            <label>Max Touch Points <span class="value-display" id="max-touches-value">5</span></label>
+            <input type="range" id="max-touches" min="1" max="10" step="1" value="5">
+          </div>
+        </div>
+
+        <!-- State Transitions -->
+        <div class="parameter-group">
+          <div class="parameter-group-title">State Transitions</div>
+          <div class="slider-control">
+            <label>Transition Speed <span class="value-display" id="transition-speed-value">0.05</span></label>
+            <input type="range" id="transition-speed" min="0.01" max="0.2" step="0.01" value="0.05">
+          </div>
+          <div class="slider-control">
+            <label>Thinking Duration <span class="value-display" id="thinking-duration-value">10</span>s</label>
+            <input type="range" id="thinking-duration" min="3" max="30" step="1" value="10">
+          </div>
+        </div>
+      </div>
+
+      <!-- Actions -->
+      <div class="section">
+        <div class="section-title">⚡ Actions</div>
+        <button class="button-secondary" onclick="exportGLB()">💾 Download GLB</button>
+        <button class="button-secondary" onclick="testThinking()">🤔 Test Thinking Mode</button>
+        <button class="button-secondary" onclick="testListening()">👂 Test Listening Mode</button>
+      </div>
+    </div>
+  </template>
+
+  <!-- Soul Section (Personality Configuration) -->
+  <template id="soul-template">
+    <div class="sidebar-content">
+      <h2>✨ Soul</h2>
+      <p class="subtitle">Personality Configuration</p>
+
+      <!-- Personality Selector -->
+      <div class="section">
+        <div class="section-title">🎭 Load Personality</div>
+        <p class="about-text">Select a preset personality or load a custom saved configuration.</p>
+        
+        <div class="input-group">
+          <label>Personality Template</label>
+          <select id="personality-selector" onchange="loadPersonalityFromSelector()">
+            <option value="">-- Select Personality --</option>
+            <optgroup label="🌟 Core Templates">
+              <option value="friendly">😊 Kaya (Friendly)</option>
+              <option value="playful">✨ Spark (Playful)</option>
+              <option value="professional">💼 Nexus (Professional)</option>
+            </optgroup>
+            <optgroup label="🎨 Creative & Inspiring">
+              <option value="mentor">📚 Sage (Mentor)</option>
+              <option value="adventurer">🗺️ Atlas (Adventurer)</option>
+              <option value="coach">🔥 Phoenix (Coach)</option>
+              <option value="artistic">🎨 Muse (Artistic)</option>
+              <option value="storyteller">📖 Fable (Storyteller)</option>
+            </optgroup>
+            <optgroup label="🧠 Analytical & Thoughtful">
+              <option value="scientist">🔬 Quill (Scientist)</option>
+              <option value="detective">🔍 Sherlock (Detective)</option>
+              <option value="witty">💬 Clever (Witty)</option>
+              <option value="mysterious">🌑 Eclipse (Mysterious)</option>
+            </optgroup>
+            <optgroup label="💙 Calm & Supportive">
+              <option value="zen">🧘 Zen (Mindful)</option>
+              <option value="empathic">💙 Haven (Empathic)</option>
+            </optgroup>
+            <optgroup label="🚀 Bold & Unconventional">
+              <option value="rebel">🚀 Rogue (Rebel)</option>
+            </optgroup>
+            <optgroup label="😤 Challenging Personalities">
+              <option value="grumpy">😤 Grump (Grumpy)</option>
+              <option value="cynical">😒 Cynic (Cynical)</option>
+              <option value="sarcastic">🙄 Snark (Sarcastic)</option>
+              <option value="melancholic">😔 Noir (Melancholic)</option>
+              <option value="angry">😡 Fury (Angry)</option>
+            </optgroup>
+            <optgroup label="💾 Saved Personalities" id="saved-personalities-group">
+              <!-- Dynamically populated from localStorage -->
+            </optgroup>
+          </select>
+        </div>
+
+        <div class="input-group">
+          <label>Current: &nbsp;<strong id="personality-name">Kwami</strong></label>
+        </div>
+      </div>
+
+      <!-- Basic Configuration -->
+      <div class="section">
+        <div class="section-title">⚙️ Basic Configuration</div>
+        
+        <div class="input-group">
+          <label>Name</label>
+          <input type="text" id="soul-name" value="Kwami" placeholder="Kwami's name" oninput="autoUpdateSoul()">
+        </div>
+
+        <div class="input-group">
+          <label>Personality Description</label>
+          <textarea id="soul-personality" placeholder="Describe Kwami's personality..." oninput="autoUpdateSoul()">Friendly, helpful, and curious AI companion.</textarea>
+        </div>
+
+        <div class="input-group">
+          <label>System Prompt</label>
+          <textarea id="soul-system-prompt" placeholder="Base instructions for AI behavior..." style="min-height: 100px;" oninput="autoUpdateSoul()">You are Kwami, a friendly AI companion.</textarea>
+        </div>
+      </div>
+
+      <!-- Emotional Traits Section -->
+      <div class="section">
+        <div class="section-title">🎭 Emotional Traits</div>
+        <p class="about-text">Adjust emotional dimensions (-100 to +100). Drag sliders to set each trait.</p>
+        
+        <!-- Happiness/Sadness -->
+        <div class="parameter-group trait-group">
+          <div class="trait-header">
+            <span class="trait-label-left">😢 Sadness</span>
+            <span id="happiness-value" class="trait-value">0</span>
+            <span class="trait-label-right">Happiness 😊</span>
+          </div>
+          <input type="range" id="happiness-slider" class="trait-slider" min="-100" max="100" value="0" step="1" 
+                 oninput="updateEmotionalTrait('happiness', this.value)">
+        </div>
+
+        <!-- Energy/Exhaustion -->
+        <div class="parameter-group trait-group">
+          <div class="trait-header">
+            <span class="trait-label-left">😴 Exhaustion</span>
+            <span id="energy-value" class="trait-value">0</span>
+            <span class="trait-label-right">Energy ⚡</span>
+          </div>
+          <input type="range" id="energy-slider" class="trait-slider" min="-100" max="100" value="0" step="1" 
+                 oninput="updateEmotionalTrait('energy', this.value)">
+        </div>
+
+        <!-- Confidence/Anxiety -->
+        <div class="parameter-group trait-group">
+          <div class="trait-header">
+            <span class="trait-label-left">😰 Anxiety</span>
+            <span id="confidence-value" class="trait-value">0</span>
+            <span class="trait-label-right">Confidence 💪</span>
+          </div>
+          <input type="range" id="confidence-slider" class="trait-slider" min="-100" max="100" value="0" step="1" 
+                 oninput="updateEmotionalTrait('confidence', this.value)">
+        </div>
+
+        <!-- Calmness/Anger -->
+        <div class="parameter-group trait-group">
+          <div class="trait-header">
+            <span class="trait-label-left">😡 Anger</span>
+            <span id="calmness-value" class="trait-value">0</span>
+            <span class="trait-label-right">Calmness 🧘</span>
+          </div>
+          <input type="range" id="calmness-slider" class="trait-slider" min="-100" max="100" value="0" step="1" 
+                 oninput="updateEmotionalTrait('calmness', this.value)">
+        </div>
+
+        <!-- Optimism/Pessimism -->
+        <div class="parameter-group trait-group">
+          <div class="trait-header">
+            <span class="trait-label-left">😞 Pessimism</span>
+            <span id="optimism-value" class="trait-value">0</span>
+            <span class="trait-label-right">Optimism 🌟</span>
+          </div>
+          <input type="range" id="optimism-slider" class="trait-slider" min="-100" max="100" value="0" step="1" 
+                 oninput="updateEmotionalTrait('optimism', this.value)">
+        </div>
+
+        <!-- Socialness/Shyness -->
+        <div class="parameter-group trait-group">
+          <div class="trait-header">
+            <span class="trait-label-left">🙈 Shyness</span>
+            <span id="socialness-value" class="trait-value">0</span>
+            <span class="trait-label-right">Socialness 🤝</span>
+          </div>
+          <input type="range" id="socialness-slider" class="trait-slider" min="-100" max="100" value="0" step="1" 
+                 oninput="updateEmotionalTrait('socialness', this.value)">
+        </div>
+
+        <!-- Creativity/Rigidity -->
+        <div class="parameter-group trait-group">
+          <div class="trait-header">
+            <span class="trait-label-left">📏 Rigidity</span>
+            <span id="creativity-value" class="trait-value">0</span>
+            <span class="trait-label-right">Creativity 🎨</span>
+          </div>
+          <input type="range" id="creativity-slider" class="trait-slider" min="-100" max="100" value="0" step="1" 
+                 oninput="updateEmotionalTrait('creativity', this.value)">
+        </div>
+
+        <!-- Patience/Impatience -->
+        <div class="parameter-group trait-group">
+          <div class="trait-header">
+            <span class="trait-label-left">⏱️ Impatience</span>
+            <span id="patience-value" class="trait-value">0</span>
+            <span class="trait-label-right">Patience ⏳</span>
+          </div>
+          <input type="range" id="patience-slider" class="trait-slider" min="-100" max="100" value="0" step="1" 
+                 oninput="updateEmotionalTrait('patience', this.value)">
+        </div>
+
+        <!-- Empathy/Selfishness -->
+        <div class="parameter-group trait-group">
+          <div class="trait-header">
+            <span class="trait-label-left">🙅 Selfishness</span>
+            <span id="empathy-value" class="trait-value">0</span>
+            <span class="trait-label-right">Empathy 💖</span>
+          </div>
+          <input type="range" id="empathy-slider" class="trait-slider" min="-100" max="100" value="0" step="1" 
+                 oninput="updateEmotionalTrait('empathy', this.value)">
+        </div>
+
+        <!-- Curiosity/Indifference -->
+        <div class="parameter-group trait-group">
+          <div class="trait-header">
+            <span class="trait-label-left">😑 Indifference</span>
+            <span id="curiosity-value" class="trait-value">0</span>
+            <span class="trait-label-right">Curiosity 🔍</span>
+          </div>
+          <input type="range" id="curiosity-slider" class="trait-slider" min="-100" max="100" value="0" step="1" 
+                 oninput="updateEmotionalTrait('curiosity', this.value)">
+        </div>
+
+        <button class="button-secondary" onclick="resetEmotionalTraits()">🔄 Reset to Neutral</button>
+      </div>
+
+      <!-- Save Configuration Section -->
+      <div class="section">
+        <div class="section-title">💾 Save Configuration</div>
+        <p class="about-text">Save your custom personality configuration for future use.</p>
+        
+        <div class="input-group">
+          <label>Configuration Name</label>
+          <input type="text" id="save-config-name" placeholder="My Custom Personality" value="">
+        </div>
+
+        <button class="button-primary" onclick="savePersonalityConfig()">💾 Save Personality</button>
+        <button class="button-secondary" onclick="deleteSavedPersonality()">🗑️ Delete Selected</button>
+      </div>
+    </div>
+  </template>
+
+  <script src="agent-management-functions.js"></script>
+  <script type="module" src="main.js"></script>
+</body>
+</html>
