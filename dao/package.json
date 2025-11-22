@@ -1,6 +1,6 @@
 {
   "name": "kwami-dao",
-  "version": "0.1.0",
+  "version": "1.5.5",
   "description": "KWAMI DAO - Governance platform for KWAMI NFT holders",
   "type": "module",
   "private": true,
@@ -47,4 +47,3 @@
     "node": ">=18.0.0"
   }
 }
-

@@ -91,7 +91,7 @@ This starts the production Nuxt server.
 ==> Using Node.js version 22.16.0
 ==> Running build command 'npm run build:dao'...
 
-> kwami@1.4.2 build:dao
+> kwami@1.5.5 build:dao
 > cd dao && npm install && npm run build
 
 added XXX packages
