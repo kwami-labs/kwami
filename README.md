@@ -296,20 +296,21 @@ await kwami.mind.startConversation({
 
 ## What's New
 
-### v1.5.2 - Project Structure Finalization
+### v1.5.2 - Monorepo Restructuring
 
-- **Configuration Management**: Moved config files to appropriate modules
-- **Web Enhancements**: Added onboarding flow and minimap navigation
-- **Solana Infrastructure**: Comprehensive deployment scripts and documentation
-- **Documentation**: Reorganized GitHub and module-specific docs
+**🏗️ Major Project Restructuring:**
+- **Core Library**: Moved to `kwami/` folder for npm publishing
+- **Documentation**: Reorganized into `docs/` with project-specific folders (1_kwami through 8_web)
+- **Workspace Setup**: Configured npm workspaces for all projects
+- **Playground**: Renamed from `playground/` to `pg/`
+- **Clean Separation**: Each project now has its own isolated structure
+- **CI/CD**: Updated GitHub Actions to build and publish from `kwami/`
 
-### v1.5.1 - Kwami App & Ecosystem Updates
-
-- **NEW: Kwami App**: Production-ready Nuxt 4 web application
-- **Documentation Overhaul**: Restructured into numbered sections
-- **Module Updates**: Candy, Solana, Web, DAO, Marketplace enhancements
-- **Playground**: Reorganized to `pg/` directory
-- **Core Library**: Moved to `kwami/` directory
+**📦 Improved Organization:**
+- Root now contains only monorepo-level files
+- Each project has its own README, CHANGELOG, and documentation
+- Clear separation between core library and applications
+- Proper workspace dependency management
 
 ### v1.4.1 - ElevenLabs Agents
 
@@ -354,7 +355,7 @@ const agent = await kwami.mind.createAgent(config);
 - Workflow system (multi-agent orchestration, conditional routing, node types)
 - Conversation management (list, get details, download audio, send feedback)
 
-See [Mind Examples](./src/core/mind/examples/README.md) for comprehensive usage guides.
+See [Mind Examples](./docs/1_kwami/mind-examples.md) for comprehensive usage guides.
 
 ---
 

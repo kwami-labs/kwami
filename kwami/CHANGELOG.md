@@ -1,13 +1,19 @@
-# KWAMI Ecosystem Changelog
+# Kwami Core Library Changelog
 
-All notable changes to the KWAMI ecosystem (all projects) will be documented in this file.
-
-For core library changes only, see [kwami/CHANGELOG.md](./kwami/CHANGELOG.md).
+All notable changes to the KWAMI core library will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ---
+
+## [1.5.2] - 2025-11-22
+
+### Changed
+- **Project Structure**: Moved core library to `kwami/` folder
+- **Monorepo Organization**: Clear separation from other ecosystem projects
+- **Build Configuration**: Updated for standalone package publishing
+- **Documentation**: Core library docs now in `docs/1_kwami/`
 
 ## [1.5.0] - 2025-11-22
 
