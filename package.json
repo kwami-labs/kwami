@@ -1,17 +1,14 @@
 {
-  "name": "kwami-monorepo",
+  "name": "kwami",
   "version": "1.5.8",
   "description": "KWAMI Ecosystem - Monorepo containing the core library and all related projects",
-  "license": "SEE LICENSE IN LICENSE",
+  "license": "SEE LICENSE IN LICENSE.md",
   "private": true,
   "type": "module",
   "workspaces": [
     "kwami",
     "pg",
     "app",
-    "candy",
-    "market",
-    "dao",
     "web"
   ],
   "scripts": {
@@ -21,12 +18,12 @@
     "test:coverage": "npm run test:coverage -w kwami",
     "build": "npm run build -w kwami",
     "dev": "npm run dev -w kwami",
-    "web": "vite --config web/vite.config.ts --port 3331",
-    "build:web": "vite build --config web/vite.config.ts",
-    "preview:web": "vite preview --config web/vite.config.ts",
-    "playground": "vite --config pg/vite.config.js --port 3332",
-    "build:playground": "vite build --config pg/vite.config.js",
-    "preview:playground": "vite preview --config pg/vite.config.js",
+    "web": "npm run dev -w web",
+    "build:web": "npm run build -w web",
+    "preview:web": "npm run preview -w web",
+    "playground": "npm run dev -w pg",
+    "build:playground": "npm run build -w pg",
+    "preview:playground": "npm run preview -w pg",
     "pg": "npm run playground",
     "build:pg": "npm run build:playground",
     "preview:pg": "npm run preview:playground",
@@ -52,6 +49,9 @@
     "vite": "^7.1.12"
   },
   "engines": {
-    "node": ">=18.0.0"
-  }
+    "node": ">=18.0.0",
+    "bun": ">=1.0.0",
+    "deno": ">=1.0.0"
+  },
+  "packageManager": "npm@10.8.2"
 }

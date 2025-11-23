@@ -5,15 +5,12 @@
  * Displays one of three available loaders while media is being loaded
  */
 
-// Import loader GIFs using Vite's asset handling
-const loaderModules = import.meta.glob('./assets/img/loader/*.gif', {
-  query: '?url',
-  import: 'default',
-  eager: true,
-});
-
-// Build array of loader URLs
-const LOADER_GIFS = Object.values(loaderModules);
+// Define loader GIF paths (served from public directory)
+const LOADER_GIFS = [
+  '/img/loader/ai-loader.gif',
+  '/img/loader/loader-no-bg.gif',
+  '/img/loader/loader.gif'
+];
 
 // Validate loaders were found
 if (LOADER_GIFS.length === 0) {

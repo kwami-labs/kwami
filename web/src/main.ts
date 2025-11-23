@@ -1316,17 +1316,23 @@ document.addEventListener('DOMContentLoaded', () => {
   (window as any).themeManager = themeManager;
   (window as any).onboardingTour = onboardingTour;
   
-  // Auto-start tour for first-time users
-  setTimeout(() => {
-    onboardingTour.start();
-  }, 2000);
+  // Don't auto-start tour - let WelcomeLayer trigger it after blob click
+  // The tour will start after the user clicks the welcome layer blob
   
-  // Initialize welcome layer
-  new WelcomeLayer();
+  // Initialize welcome layer with callback to init main app when done
+  new WelcomeLayer(() => {
+    // Initialize main app after welcome layer completes
+    console.log('🎬 Welcome layer complete, initializing main app');
+    const scrollManager = new ScrollManager();
+    new ModeSwitcher();
+    new ActionButtonManager();
+    
+    // Make scrollManager accessible globally for music functions
+    (window as any).scrollManager = scrollManager;
+    
+    console.log('✅ Main app initialized');
+  });
   
-  const scrollManager = new ScrollManager();
-  new ModeSwitcher();
-  new ActionButtonManager();
   // Initialize language switcher
   initLanguageSwitcher();
   
@@ -1347,9 +1353,6 @@ document.addEventListener('DOMContentLoaded', () => {
       });
     });
   }
-  
-  // Make scrollManager accessible globally for music functions
-  (window as any).scrollManager = scrollManager;
   
   // Listen for language changes and update blob position with smooth animation
   i18next.on('languageChanged', (lng: string) => {

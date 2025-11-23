@@ -75,17 +75,17 @@ const audioPlayerState = {
 
 // Build music playlist from assets
 const MUSIC_PLAYLIST = [
-  { name: 'Track 1', url: '/assets/aud/music/0.mp3' },
-  { name: 'Track 2', url: '/assets/aud/music/1.mp3' },
-  { name: 'Track 3', url: '/assets/aud/music/2.mp3' },
-  { name: 'Track 4', url: '/assets/aud/music/3.mp3' },
-  { name: 'Track 5', url: '/assets/aud/music/4.mp3' },
-  { name: 'Track 6', url: '/assets/aud/music/5.mp3' },
-  { name: 'Track 7', url: '/assets/aud/music/6.mp3' },
-  { name: 'Track 8', url: '/assets/aud/music/7.mp3' },
-  { name: 'Track 9', url: '/assets/aud/music/8.mp3' },
-  { name: 'Track 10', url: '/assets/aud/music/9.mp3' },
-  { name: 'Track 11', url: '/assets/aud/music/10.mp3' }
+  { name: 'Track 1', url: '/aud/music/0.mp3' },
+  { name: 'Track 2', url: '/aud/music/1.mp3' },
+  { name: 'Track 3', url: '/aud/music/2.mp3' },
+  { name: 'Track 4', url: '/aud/music/3.mp3' },
+  { name: 'Track 5', url: '/aud/music/4.mp3' },
+  { name: 'Track 6', url: '/aud/music/5.mp3' },
+  { name: 'Track 7', url: '/aud/music/6.mp3' },
+  { name: 'Track 8', url: '/aud/music/7.mp3' },
+  { name: 'Track 9', url: '/aud/music/8.mp3' },
+  { name: 'Track 10', url: '/aud/music/9.mp3' },
+  { name: 'Track 11', url: '/aud/music/10.mp3' }
 ];
 
 const githubStarState = {
@@ -1324,62 +1324,39 @@ const DEFAULT_BACKGROUND = {
 };
 
 const BACKGROUND_IMAGES = [
-  '/assets/img/bg/alaska.jpeg',
-  '/assets/img/bg/binary-reality.jpg',
-  '/assets/img/bg/black-candle.jpg',
-  '/assets/img/bg/black-hole.jpg',
-  '/assets/img/bg/black-sea.jpg',
-  '/assets/img/bg/black-windows.jpg',
-  '/assets/img/bg/black.jpg',
-  '/assets/img/bg/colors.jpeg',
-  '/assets/img/bg/galaxy.jpg',
-  '/assets/img/bg/galaxy2.jpg',
-  '/assets/img/bg/galaxy3.jpg',
-  '/assets/img/bg/galaxy4.jpg',
-  '/assets/img/bg/gargantua.jpg',
-  '/assets/img/bg/interstellar.png',
-  '/assets/img/bg/islan.jpg',
-  '/assets/img/bg/lake.jpg',
-  '/assets/img/bg/mountain.jpeg',
-  '/assets/img/bg/paisaje.jpg',
-  '/assets/img/bg/pik.jpg',
-  '/assets/img/bg/planet.jpg',
-  '/assets/img/bg/planet2.jpg',
-  '/assets/img/bg/planet3.jpg',
-  '/assets/img/bg/sahara.jpeg',
-  '/assets/img/bg/skinet.png',
-  '/assets/img/bg/skynet.png',
-  '/assets/img/bg/universe.jpg',
-  '/assets/img/bg/white-tree.jpg'
+  '/img/bg/alaska.jpeg',
+  '/img/bg/binary-reality.jpg',
+  '/img/bg/black-candle.jpg',
+  '/img/bg/black-hole.jpg',
+  '/img/bg/black-sea.jpg',
+  '/img/bg/black-windows.jpg',
+  '/img/bg/black.jpg',
+  '/img/bg/colors.jpeg',
+  '/img/bg/galaxy.jpg',
+  '/img/bg/galaxy2.jpg',
+  '/img/bg/galaxy3.jpg',
+  '/img/bg/galaxy4.jpg',
+  '/img/bg/gargantua.jpg',
+  '/img/bg/interstellar.png',
+  '/img/bg/islan.jpg',
+  '/img/bg/lake.jpg',
+  '/img/bg/mountain.jpeg',
+  '/img/bg/paisaje.jpg',
+  '/img/bg/pik.jpg',
+  '/img/bg/planet.jpg',
+  '/img/bg/planet2.jpg',
+  '/img/bg/planet3.jpg',
+  '/img/bg/sahara.jpeg',
+  '/img/bg/skinet.png',
+  '/img/bg/skynet.png',
+  '/img/bg/universe.jpg',
+  '/img/bg/white-tree.jpg'
 ];
 
-const imageModules = import.meta.glob('./assets/img/bg/*', {
-  query: '?url',
-  import: 'default',
-  eager: true,
-});
-const videoModules = import.meta.glob('./assets/vid/bg/*', {
-  query: '?url',
-  import: 'default',
-  eager: true,
-});
-
-function buildAssetMap(modules) {
-  const map = {};
-  Object.entries(modules).forEach(([path, url]) => {
-    const normalized = path.replace(/^\.\.\//, '');
-    const filename = normalized.split('/').pop();
-    map[path] = url;
-    map[normalized] = url;
-    if (filename) {
-      map[filename] = url;
-    }
-  });
-  return map;
-}
-
-const IMAGE_ASSET_MAP = buildAssetMap(imageModules);
-const VIDEO_ASSET_MAP = buildAssetMap(videoModules);
+// Asset paths are statically defined in arrays above
+// No need for dynamic imports since paths are known
+const IMAGE_ASSET_MAP = {};
+const VIDEO_ASSET_MAP = {};
 
 // Counter for background randomization clicks
 let backgroundRandomizeClickCount = 0;
@@ -4937,39 +4914,39 @@ function updateSkillStats() {
 
 // Image presets for backgrounds and blob textures
 const IMAGE_PRESETS = [
-  { name: 'Alaska', value: '/assets/img/bg/alaska.jpeg' },
-  { name: 'Binary Reality', value: '/assets/img/bg/binary-reality.jpg' },
-  { name: 'Black Candle', value: '/assets/img/bg/black-candle.jpg' },
-  { name: 'Black Hole', value: '/assets/img/bg/black-hole.jpg' },
-  { name: 'Black Sea', value: '/assets/img/bg/black-sea.jpg' },
-  { name: 'Black Windows', value: '/assets/img/bg/black-windows.jpg' },
-  { name: 'Black', value: '/assets/img/bg/black.jpg' },
-  { name: 'Colors', value: '/assets/img/bg/colors.jpeg' },
-  { name: 'Galaxy', value: '/assets/img/bg/galaxy.jpg' },
-  { name: 'Galaxy 2', value: '/assets/img/bg/galaxy2.jpg' },
-  { name: 'Galaxy 3', value: '/assets/img/bg/galaxy3.jpg' },
-  { name: 'Galaxy 4', value: '/assets/img/bg/galaxy4.jpg' },
-  { name: 'Gargantua', value: '/assets/img/bg/gargantua.jpg' },
-  { name: 'Interstellar', value: '/assets/img/bg/interstellar.png' },
-  { name: 'Island', value: '/assets/img/bg/islan.jpg' },
-  { name: 'Lake', value: '/assets/img/bg/lake.jpg' },
-  { name: 'Mountain', value: '/assets/img/bg/mountain.jpeg' },
-  { name: 'Paisaje', value: '/assets/img/bg/paisaje.jpg' },
-  { name: 'Pik', value: '/assets/img/bg/pik.jpg' },
-  { name: 'Planet', value: '/assets/img/bg/planet.jpg' },
-  { name: 'Planet 2', value: '/assets/img/bg/planet2.jpg' },
-  { name: 'Planet 3', value: '/assets/img/bg/planet3.jpg' },
-  { name: 'Sahara', value: '/assets/img/bg/sahara.jpeg' },
-  { name: 'Skinet', value: '/assets/img/bg/skinet.png' },
-  { name: 'Skynet', value: '/assets/img/bg/skynet.png' },
-  { name: 'Universe', value: '/assets/img/bg/universe.jpg' },
-  { name: 'White Tree', value: '/assets/img/bg/white-tree.jpg' }
+  { name: 'Alaska', value: '/img/bg/alaska.jpeg' },
+  { name: 'Binary Reality', value: '/img/bg/binary-reality.jpg' },
+  { name: 'Black Candle', value: '/img/bg/black-candle.jpg' },
+  { name: 'Black Hole', value: '/img/bg/black-hole.jpg' },
+  { name: 'Black Sea', value: '/img/bg/black-sea.jpg' },
+  { name: 'Black Windows', value: '/img/bg/black-windows.jpg' },
+  { name: 'Black', value: '/img/bg/black.jpg' },
+  { name: 'Colors', value: '/img/bg/colors.jpeg' },
+  { name: 'Galaxy', value: '/img/bg/galaxy.jpg' },
+  { name: 'Galaxy 2', value: '/img/bg/galaxy2.jpg' },
+  { name: 'Galaxy 3', value: '/img/bg/galaxy3.jpg' },
+  { name: 'Galaxy 4', value: '/img/bg/galaxy4.jpg' },
+  { name: 'Gargantua', value: '/img/bg/gargantua.jpg' },
+  { name: 'Interstellar', value: '/img/bg/interstellar.png' },
+  { name: 'Island', value: '/img/bg/islan.jpg' },
+  { name: 'Lake', value: '/img/bg/lake.jpg' },
+  { name: 'Mountain', value: '/img/bg/mountain.jpeg' },
+  { name: 'Paisaje', value: '/img/bg/paisaje.jpg' },
+  { name: 'Pik', value: '/img/bg/pik.jpg' },
+  { name: 'Planet', value: '/img/bg/planet.jpg' },
+  { name: 'Planet 2', value: '/img/bg/planet2.jpg' },
+  { name: 'Planet 3', value: '/img/bg/planet3.jpg' },
+  { name: 'Sahara', value: '/img/bg/sahara.jpeg' },
+  { name: 'Skinet', value: '/img/bg/skinet.png' },
+  { name: 'Skynet', value: '/img/bg/skynet.png' },
+  { name: 'Universe', value: '/img/bg/universe.jpg' },
+  { name: 'White Tree', value: '/img/bg/white-tree.jpg' }
 ];
 
 // Video presets
 const VIDEO_PRESETS = [
   // Local videos
-  { name: 'Stars (Local)', value: '/assets/vid/bg/stars.mp4' },
+  { name: 'Stars (Local)', value: '/vid/bg/stars.mp4' },
 
   // Pexels videos - Space & Abstract
   { name: 'Cosmic Nebula 1', value: 'https://videos.pexels.com/video-files/6394054/6394054-uhd_2732_1366_24fps.mp4' },
