@@ -4,8 +4,8 @@ services:
     runtime: static
     plan: starter
     region: oregon
-    branch: feat/web
-    buildCommand: npm run build:web
+    branch: main
+    buildCommand: npm install && npm run build:web
     staticPublishPath: ./web/dist
     routes:
       - type: rewrite
