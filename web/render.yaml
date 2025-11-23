@@ -1,9 +1,30 @@
 services:
   - type: web
+    name: kwami-website
+    runtime: static
+    plan: starter
+    region: oregon
+    branch: feat/web
+    buildCommand: npm run build:web
+    staticPublishPath: ./web/dist
+    routes:
+      - type: rewrite
+        source: /*
+        destination: /index.html
+    headers:
+      - path: /*
+        name: Cache-Control
+        value: public, max-age=3600
+      - path: /assets/*
+        name: Cache-Control
+        value: public, max-age=31536000, immutable
+
+  - type: web
     name: kwami-dao
     runtime: node
     plan: starter
     region: oregon
+    branch: main
     buildCommand: npm run build:dao
     startCommand: cd dao && node .output/server/index.mjs
     envVars:
@@ -25,6 +46,7 @@ services:
     runtime: node
     plan: starter
     region: oregon
+    branch: main
     buildCommand: npm run build:market
     startCommand: cd market && node .output/server/index.mjs
     envVars:
