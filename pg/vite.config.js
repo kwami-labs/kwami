@@ -27,7 +27,7 @@ export default defineConfig({
   publicDir: resolve(__dirname, './public'),
 
   server: {
-    port: 3000,
+    port: 3333,
     open: true
   },
 
