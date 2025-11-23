@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Kwami Playground</title>
-  <link rel="stylesheet" href="styles.css">
+  <link rel="stylesheet" href="/src/styles.css">
   <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>👻</text></svg>">
 </head>
 <body>
@@ -479,13 +479,13 @@
         <div class="provider-tabs" id="provider-tabs">
           <button class="provider-tab active" data-provider="elevenlabs" onclick="switchProvider('elevenlabs')">
             <span class="provider-icon">
-              <img src="/assets/img/logo/elevenlabs.webp" alt="ElevenLabs" class="provider-logo">
+              <img src="/img/logo/elevenlabs.webp" alt="ElevenLabs" class="provider-logo">
             </span>
             <span class="provider-name">ElevenLabs</span>
           </button>
           <button class="provider-tab" data-provider="openai" onclick="switchProvider('openai')" disabled title="Coming Soon">
             <span class="provider-icon">
-              <img src="/assets/img/logo/openai.webp" alt="OpenAI" class="provider-logo">
+              <img src="/img/logo/openai.webp" alt="OpenAI" class="provider-logo">
             </span>
             <span class="provider-name">OpenAI</span>
           </button>
@@ -1531,7 +1531,7 @@
     </div>
   </template>
 
-  <script src="agent-management-functions.js"></script>
-  <script type="module" src="main.js"></script>
+  <script src="/src/agent-management-functions.js"></script>
+  <script type="module" src="/src/main.js"></script>
 </body>
 </html>

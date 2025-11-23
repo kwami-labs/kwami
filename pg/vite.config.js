@@ -5,31 +5,26 @@ import { copyFileSync, mkdirSync } from 'fs';
 export default defineConfig({
   // Base public path - use './' for relative paths in production
   base: './',
-  
+
   resolve: {
     alias: {
-      'kwami': resolve(__dirname, '../kwami/index.ts')
+      'kwami': resolve(__dirname, '../kwami/index.ts'),
+      '@': resolve(__dirname, './src')
     }
   },
-  
+
   build: {
     outDir: 'dist',
     assetsDir: 'assets',
-    // Copy the assets folder to the build output
     rollupOptions: {
       input: {
         main: resolve(__dirname, 'index.html')
       }
     }
   },
-  
-  // Ensure assets are served correctly from playground
-  publicDir: resolve(__dirname, './assets'),
-  
-  server: {
-    port: 3000,
-    open: true
-  },
+
+  // Public directory for static assets
+  publicDir: resolve(__dirname, './public'),
 
   plugins: [
     {
@@ -38,7 +33,7 @@ export default defineConfig({
         try {
           mkdirSync(resolve(__dirname, 'dist'), { recursive: true });
           copyFileSync(
-            resolve(__dirname, 'agent-management-functions.js'),
+            resolve(__dirname, 'src/agent-management-functions.js'),
             resolve(__dirname, 'dist/agent-management-functions.js')
           );
           console.log('✓ Copied agent-management-functions.js to dist/');

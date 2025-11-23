@@ -3,9 +3,9 @@
  * Provides offline support and caching for better performance
  */
 
-const CACHE_NAME = 'kwami-v1.4.1';
-const STATIC_CACHE = 'kwami-static-v1';
-const DYNAMIC_CACHE = 'kwami-dynamic-v1';
+const CACHE_NAME = 'kwami-v1.5.8-clean-ui';
+const STATIC_CACHE = 'kwami-static-v2';
+const DYNAMIC_CACHE = 'kwami-dynamic-v2';
 
 // Assets to cache on install
 const STATIC_ASSETS = [
@@ -72,6 +72,33 @@ self.addEventListener('fetch', (event) => {
     return;
   }
 
+  // DEVELOPMENT MODE: Network-first strategy for localhost
+  const isLocalhost = url.hostname === 'localhost' || url.hostname === '127.0.0.1';
+  
+  if (isLocalhost) {
+    // Network-first for development
+    event.respondWith(
+      fetch(request).then((response) => {
+        // Clone and cache the response
+        if (response && response.status === 200) {
+          const responseToCache = response.clone();
+          const cacheName = isStaticAsset(url) ? STATIC_CACHE : DYNAMIC_CACHE;
+          caches.open(cacheName).then((cache) => {
+            cache.put(request, responseToCache);
+          });
+        }
+        return response;
+      }).catch(() => {
+        // Fallback to cache if network fails
+        return caches.match(request).then((cachedResponse) => {
+          return cachedResponse || caches.match('/index.html');
+        });
+      })
+    );
+    return;
+  }
+
+  // PRODUCTION MODE: Cache-first strategy
   event.respondWith(
     caches.match(request).then((cachedResponse) => {
       if (cachedResponse) {

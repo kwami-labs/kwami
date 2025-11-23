@@ -3,7 +3,7 @@ import { Kwami } from 'kwami';
 import i18next, { t, createLanguageSwitcher } from '../i18n';
 
 // Static loader path (from public/loader folder)
-const LOADER_GIF = '/loader/laoder.gif';
+const LOADER_GIF = '/loader/loader.gif';
 
 // Helper function to blend two hex colors for middle gradient
 function blendColors(color1: string, color2: string): string {
@@ -81,8 +81,10 @@ export class WelcomeLayer {
   private static readonly STORAGE_KEY = 'kwami_skip_welcome';
   private sidebarNav: HTMLElement | null = null;
   private sidebarPlaceholder: Comment | null = null;
+  private onCompleteCallback: (() => void) | null = null;
 
-  constructor() {
+  constructor(onComplete?: () => void) {
+    this.onCompleteCallback = onComplete || null;
     this.secondsContainer = this.secondsLoader + 2;
     
     // Check if user has opted to skip welcome screen
@@ -174,6 +176,15 @@ export class WelcomeLayer {
           console.warn('⚠️ Could not play intro audio:', error);
         });
       }
+      
+      // Start onboarding tour after skipped animation completes (3 seconds)
+      setTimeout(() => {
+        const onboardingTour = (window as any).onboardingTour;
+        if (onboardingTour) {
+          onboardingTour.start();
+          console.log('🎓 Starting onboarding tour after skipped welcome layer');
+        }
+      }, 3500); // 3.5 seconds - slightly after the 3-second skipped animation
     }, 100);
   }
 
@@ -813,6 +824,15 @@ export class WelcomeLayer {
         onComplete: () => {
           animationActive = false;
           kwamiContainer.style.display = 'none';
+          
+          // Start onboarding tour after welcome layer animation completes
+          setTimeout(() => {
+            const onboardingTour = (window as any).onboardingTour;
+            if (onboardingTour) {
+              onboardingTour.start();
+              console.log('🎓 Starting onboarding tour after welcome layer');
+            }
+          }, 1000); // Wait 1 second after welcome layer finishes for smooth transition
         }
       });
 
@@ -974,6 +994,11 @@ export class WelcomeLayer {
         this.audioElement.src = '';
         this.audioElement = null;
       }
+      
+      // Signal that welcome layer is complete
+      if (this.onCompleteCallback) {
+        this.onCompleteCallback();
+      }
     }, 4000);
   }
 
@@ -1110,6 +1135,11 @@ export class WelcomeLayer {
       
       // Clean up scroll handler
       this.cleanupScrollHandler();
+      
+      // Signal that welcome layer is complete
+      if (this.onCompleteCallback) {
+        this.onCompleteCallback();
+      }
     }, this.secondsContainer * 1000);
   }
 

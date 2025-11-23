@@ -1,0 +1,20 @@
+<!-- SVG placeholder - replace with actual PNG 1200x630 -->
+<svg width="1200" height="630" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#0a0a0a;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#1a1a2e;stop-opacity:1" />
+    </linearGradient>
+    <linearGradient id="accent" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" style="stop-color:#6366f1;stop-opacity:1" />
+      <stop offset="50%" style="stop-color:#8b5cf6;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#6366f1;stop-opacity:1" />
+    </linearGradient>
+  </defs>
+  <rect width="1200" height="630" fill="url(#bg)"/>
+  <text x="600" y="250" font-size="120" font-weight="bold" text-anchor="middle" fill="url(#accent)">KWAMI</text>
+  <text x="600" y="200" font-size="100" text-anchor="middle" fill="white">👻</text>
+  <text x="600" y="350" font-size="36" text-anchor="middle" fill="#ffffff" opacity="0.8">Interactive 3D AI Companion</text>
+  <text x="600" y="400" font-size="28" text-anchor="middle" fill="#ffffff" opacity="0.6">Voice • Music • Motion • Perfectly in Sync</text>
+</svg>
+
