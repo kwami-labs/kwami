@@ -9,7 +9,10 @@
     "kwami",
     "pg",
     "app",
-    "web"
+    "web",
+    "dao",
+    "candy",
+    "market"
   ],
   "scripts": {
     "test": "npm run test -w kwami",
