@@ -5,7 +5,7 @@ export default defineNuxtConfig({
   compatibilityDate: '2024-11-21',
   devtools: { enabled: true },
   ssr: true,
-  
+
   modules: [
     '@nuxtjs/tailwindcss',
     '@pinia/nuxt',
@@ -30,9 +30,9 @@ export default defineNuxtConfig({
       meta: [
         { charset: 'utf-8' },
         { name: 'viewport', content: 'width=device-width, initial-scale=1' },
-        { 
-          name: 'description', 
-          content: 'Buy, sell and trade unique KWAMI NFTs - AI companion NFTs on Solana' 
+        {
+          name: 'description',
+          content: 'Buy, sell and trade unique KWAMI NFTs - AI companion NFTs on Solana'
         },
       ],
       link: [
