@@ -25,7 +25,7 @@ services:
     plan: starter
     region: oregon
     branch: main
-    buildCommand: npm run build:dao
+    buildCommand: npm install && npm run build:dao
     startCommand: cd dao && node .output/server/index.mjs
     envVars:
       - key: NODE_VERSION
@@ -47,7 +47,7 @@ services:
     plan: starter
     region: oregon
     branch: main
-    buildCommand: npm run build:market
+    buildCommand: npm install && npm run build:market
     startCommand: cd market && node .output/server/index.mjs
     envVars:
       - key: NODE_VERSION
