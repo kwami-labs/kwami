@@ -19,7 +19,7 @@
     "format:check": "prettier --check \"src/**/*.{js,ts,json,css}\""
   },
   "dependencies": {
-    "kwami": "*"
+    "kwami": "^1.5.7"
   },
   "devDependencies": {
     "@testing-library/dom": "^10.4.0",
