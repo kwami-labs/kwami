@@ -1,10 +1,10 @@
-# Web App Upgrade to Kwami v1.4.1
+# Web App Upgrade to Kwami v1.5.8
 
 ## ✅ Update Complete
 
 **Date**: November 19, 2025  
 **From**: Local file reference  
-**To**: Kwami v1.4.1  
+**To**: Kwami v1.5.8  
 
 ---
 
@@ -31,7 +31,7 @@ npm install
 **Result**:
 - ✅ 37 packages installed
 - ✅ 0 vulnerabilities
-- ✅ Kwami v1.4.1 linked from parent directory
+- ✅ Kwami v1.5.8 linked from parent directory
 
 ### 3. Verified Build
 ```bash
@@ -66,7 +66,7 @@ npm run dev
 ```json
 {
   "name": "kwami-website",
-  "version": "1.0.0",
+  "version": "1.5.8",
   "dependencies": {
     "kwami": "file:..",  // Uses local v1.4.1
     "three": "^0.181.1",
@@ -89,7 +89,7 @@ npm run dev
 All core features used by the web app are working:
 
 ### Kwami Class
-- ✅ `Kwami.getVersion()` → Returns "1.4.1"
+- ✅ `Kwami.getVersion()` → Returns "1.5.8"
 - ✅ `new Kwami(canvas, config)` → Constructor works
 - ✅ `kwami.body` → Body system accessible
 - ✅ `kwami.mind` → Mind system accessible
@@ -265,7 +265,7 @@ npm run build:check
 
 **✅ WEB APP SUCCESSFULLY UPDATED TO KWAMI v1.4.1**
 
-The web application is now using Kwami v1.4.1 with:
+The web application is now using Kwami v1.5.8 with:
 - ✅ Zero breaking changes
 - ✅ All features working
 - ✅ TypeScript types compatible

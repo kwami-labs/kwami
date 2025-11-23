@@ -293,7 +293,7 @@ html[dir="rtl"] .right-header {
 }
 
 .text-section.exiting {
-  opacity: 0;
+    opacity: 0;
   pointer-events: none;
   transform: translateY(-100vh) rotateX(15deg);
   z-index: 5;

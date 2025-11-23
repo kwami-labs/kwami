@@ -24,7 +24,7 @@ export async function example2_CreateCustomSkill(kwami: Kwami) {
     id: 'my-greeting',
     name: 'Greeting Sequence',
     description: 'Kwami introduces itself with visual effects',
-    version: '1.0.0',
+    version: '1.5.8',
     actions: [
       {
         type: 'mind.speak',
@@ -77,7 +77,7 @@ export async function example4_FocusMode(kwami: Kwami) {
     id: 'focus-mode',
     name: 'Focus Mode',
     description: 'Minimizes and moves to corner for focused work',
-    version: '1.0.0',
+    version: '1.5.8',
     autoReverse: true,
     reverseDelay: 25 * 60 * 1000, // 25 minutes (Pomodoro)
     actions: [
@@ -140,7 +140,7 @@ export async function example5_Celebration(kwami: Kwami) {
     id: 'celebration',
     name: 'Celebration',
     description: 'Celebrates success with visual effects',
-    version: '1.0.0',
+    version: '1.5.8',
     actions: [
       {
         type: 'sequence',
@@ -239,7 +239,7 @@ export async function example6_Meditation(kwami: Kwami) {
     id: 'meditation',
     name: 'Guided Meditation',
     description: 'Calming meditation mode with breathing animation',
-    version: '1.0.0',
+    version: '1.5.8',
     actions: [
       {
         type: 'sequence',
@@ -337,7 +337,7 @@ export function example8_LoadFromString(kwami: Kwami) {
     id: 'simple-wave',
     name: 'Simple Wave',
     description: 'Makes Kwami wave with a color change',
-    version: '1.0.0',
+    version: '1.5.8',
     actions: [
       {
         type: 'mind.speak',

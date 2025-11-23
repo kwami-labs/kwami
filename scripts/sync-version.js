@@ -5,8 +5,12 @@
  * 
  * This script ensures version consistency across the project by:
  * 1. Reading version from package.json (root - single source of truth)
- * 2. Updating version in all relevant files across the monorepo
- * 3. Replacing old versions (1.4.x, 1.5.x) with the current version
+ * 2. Automatically detecting all versions in files that are older than current version
+ * 3. Updating version in all relevant files across the monorepo
+ * 4. Preserving historical version references in CHANGELOG and Version History sections
+ * 
+ * The script is fully automatic and requires NO manual maintenance.
+ * Simply update the version in root package.json and run: npm run sync-version
  * 
  * Run: npm run sync-version
  */
@@ -20,8 +24,34 @@ const __dirname = dirname(__filename);
 
 const rootDir = resolve(__dirname, '..');
 
-// Old versions to replace (1.4.0, 1.4.1, 1.4.2, 1.5.0-1.5.6)
-const OLD_VERSIONS = ['1.4.0', '1.4.1', '1.4.2', '1.5.0', '1.5.1', '1.5.2', '1.5.3', '1.5.4', '1.5.5', '1.5.6'];
+/**
+ * Compare two semantic versions (returns true if v1 < v2)
+ */
+function isVersionOlder(v1, v2) {
+  const [major1, minor1, patch1] = v1.split('.').map(Number);
+  const [major2, minor2, patch2] = v2.split('.').map(Number);
+  
+  if (major1 !== major2) return major1 < major2;
+  if (minor1 !== minor2) return minor1 < minor2;
+  return patch1 < patch2;
+}
+
+/**
+ * Extract all version numbers from content
+ */
+function extractVersions(content) {
+  // Match version numbers like 1.2.3 (digits.digits.digits)
+  // Using (?<!\.) and (?!\.) to avoid matching partial versions like "10.10.10.1"
+  const versionRegex = /(?<!\d)(\d+\.\d+\.\d+)(?!\d)/g;
+  const versions = new Set();
+  let match;
+  
+  while ((match = versionRegex.exec(content)) !== null) {
+    versions.add(match[1]);
+  }
+  
+  return Array.from(versions);
+}
 
 /**
  * Recursively get all files with specific extensions
@@ -50,12 +80,49 @@ function getAllFiles(dir, extensions = ['.md', '.ts', '.js', '.json'], fileList 
 }
 
 /**
+ * Check if a line is in a "Version History" or "Changelog" section
+ */
+function isHistoricalReference(content, matchIndex) {
+  // Get the 500 characters before the match
+  const before = content.substring(Math.max(0, matchIndex - 500), matchIndex);
+  
+  // Check if we're in a version history or changelog section
+  const historySectionRegex = /(##\s*(Version History|Changelog|Release Notes|Updates)|```changelog)/i;
+  
+  // If there's a history section marker in the preceding text
+  if (historySectionRegex.test(before)) {
+    // Check if there's another ## header between the history section and our match
+    // (which would mean we've left the history section)
+    const lastHistoryMarker = before.search(historySectionRegex);
+    const textAfterMarker = before.substring(lastHistoryMarker);
+    
+    // Count ## headers after the history marker
+    const headerAfter = (textAfterMarker.match(/\n##\s+/g) || []).length;
+    
+    // If there's another ## header, we've left the history section
+    return headerAfter === 0;
+  }
+  
+  return false;
+}
+
+/**
  * Update version in a file
  */
-function updateVersionInFile(filePath, currentVersion, oldVersions) {
+function updateVersionInFile(filePath, currentVersion) {
   let content = readFileSync(filePath, 'utf8');
   let originalContent = content;
   let changed = false;
+  
+  // Extract all versions from the file
+  const versionsInFile = extractVersions(content);
+  
+  // Filter to only versions that are older than current version
+  const oldVersions = versionsInFile.filter(v => isVersionOlder(v, currentVersion));
+  
+  if (oldVersions.length === 0) {
+    return { content, changed: false, originalContent };
+  }
   
   // Define patterns to match and replace
   const patterns = [
@@ -67,18 +134,35 @@ function updateVersionInFile(filePath, currentVersion, oldVersions) {
     { regex: /"version":\s*"OLD_VERSION"/g, desc: '"version":' },
     // KWAMI v.X.X.X
     { regex: /KWAMI v\.OLD_VERSION/g, desc: 'KWAMI v.' },
+    // Kwami v X.X.X or Kwami vX.X.X (with optional space, with or without dot)
+    { regex: /Kwami v\.?\s?OLD_VERSION/g, desc: 'Kwami v' },
     // > **Version X.X.X** (in markdown quotes)
     { regex: /(>\s*\*\*Version\s+)OLD_VERSION(\*\*)/g, desc: '> **Version' },
+    // return 'X.X.X' or value: 'X.X.X' (single quotes in code)
+    { regex: /'OLD_VERSION'/g, desc: "Single quoted version" },
+    // return "X.X.X" or value: "X.X.X" (double quotes in code)
+    { regex: /"OLD_VERSION"/g, desc: "Double quoted version" },
   ];
   
   // For each old version, try all patterns
   for (const oldVersion of oldVersions) {
     for (const pattern of patterns) {
       const regex = new RegExp(pattern.regex.source.replace(/OLD_VERSION/g, oldVersion.replace(/\./g, '\\.')), 'g');
-      if (regex.test(content)) {
-        content = content.replace(regex, (match) => match.replace(oldVersion, currentVersion));
+      
+      // Replace with a function to check if it's a historical reference
+      content = content.replace(regex, (match, ...args) => {
+        // Get the index of this match in the original content
+        const matchIndex = args[args.length - 2]; // Second to last arg is the index
+        
+        // Skip if this is in a version history section
+        if (isHistoricalReference(originalContent, matchIndex)) {
+          return match; // Don't change it
+        }
+        
+        // Otherwise, replace the old version with new version
         changed = true;
-      }
+        return match.replace(oldVersion, currentVersion);
+      });
     }
   }
   
@@ -97,7 +181,7 @@ try {
 
   console.log(`\n📦 Syncing version: ${version}`);
   console.log(`   Source: package.json`);
-  console.log(`   Replacing: ${OLD_VERSIONS.join(', ')}\n`);
+  console.log(`   Mode: Automatic (will replace any version < ${version})\n`);
 
   let updatedCount = 0;
   let skippedCount = 0;
@@ -159,7 +243,7 @@ try {
   
   for (const filePath of allFiles) {
     const relativePath = filePath.replace(rootDir + '/', '');
-    const result = updateVersionInFile(filePath, version, OLD_VERSIONS);
+    const result = updateVersionInFile(filePath, version);
     
     if (result.changed) {
       writeFileSync(filePath, result.content, 'utf8');

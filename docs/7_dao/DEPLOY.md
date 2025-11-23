@@ -91,7 +91,7 @@ This starts the production Nuxt server.
 ==> Using Node.js version 1.5.6
 ==> Running build command 'npm run build:dao'...
 
-> kwami@1.5.7 build:dao
+> kwami@1.5.8 build:dao
 > cd dao && npm install && npm run build
 
 added XXX packages
@@ -285,7 +285,7 @@ export default defineEventHandler(() => {
   return {
     status: 'ok',
     timestamp: new Date().toISOString(),
-    version: '1.5.6'
+    version: '1.5.8'
   }
 })
 ```
@@ -348,6 +348,6 @@ Enable autoscaling in Render:
 ---
 
 **Last Updated:** 2025-11-19  
-**Version:** 0.1.0  
+**Version:** 1.5.8  
 **Status:** Production Ready
 

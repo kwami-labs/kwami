@@ -3,7 +3,7 @@
 ## ✅ Status: FULLY COMPLETE
 
 **Date**: November 19, 2025  
-**Version**: 1.5.7  
+**Version**: 1.5.8  
 **Framework**: Nuxt 4.2.1  
 **Runtime**: Bun
 

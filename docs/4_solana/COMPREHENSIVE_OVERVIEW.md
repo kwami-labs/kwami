@@ -601,14 +601,14 @@ cd ../..
 
 ### QWAMI Token Program
 - **Status:** ✅ Production Ready
-- **Version:** 0.2.0
+- **Version:** 1.5.8
 - **Breaking Changes:** Yes (0 decimals)
 - **Tests:** ✅ Passing
 - **Deployment:** Ready for devnet/mainnet
 
 ### Kwami NFT Program
 - **Status:** ✅ Production Ready
-- **Version:** 0.1.0
+- **Version:** 1.5.8
 - **Tests:** ✅ Passing
 - **Deployment:** Ready for devnet/mainnet
 

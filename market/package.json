@@ -1,6 +1,6 @@
 {
   "name": "kwami-marketplace",
-  "version": "1.5.7",
+  "version": "1.5.8",
   "type": "module",
   "private": true,
   "scripts": {
@@ -33,5 +33,11 @@
     "@nuxtjs/tailwindcss": "^6.13.1",
     "@types/bn.js": "^5.1.6",
     "sass": "^1.83.3"
-  }
+  },
+  "engines": {
+    "node": ">=18.0.0",
+    "bun": ">=1.0.0",
+    "deno": ">=1.0.0"
+  },
+  "packageManager": "npm@10.8.2"
 }

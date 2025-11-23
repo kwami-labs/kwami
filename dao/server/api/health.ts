@@ -2,7 +2,7 @@ export default defineEventHandler(() => {
   return {
     status: 'ok',
     service: 'kwami-dao',
-    version: '0.1.0',
+    version: '1.5.8',
     timestamp: new Date().toISOString(),
     uptime: process.uptime(),
     environment: {
