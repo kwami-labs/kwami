@@ -1,6 +1,6 @@
 {
   "name": "kwami",
-  "version": "1.5.7",
+  "version": "1.5.8",
   "description": "A 3D Interactive AI Companion Library - Create engaging AI companions with visual (blob), audio, and AI capabilities",
   "type": "module",
   "main": "./dist/index.js",
@@ -83,5 +83,11 @@
     "README.md",
     "CHANGELOG.md",
     "LICENSE"
-  ]
+  ],
+  "engines": {
+    "node": ">=18.0.0",
+    "bun": ">=1.0.0",
+    "deno": ">=1.0.0"
+  },
+  "packageManager": "npm@10.8.2"
 }
