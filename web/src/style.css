@@ -21,8 +21,11 @@ body {
   background: var(--bg-dark);
   color: var(--text-color);
   overflow-x: hidden;
+  overflow-y: scroll;
   line-height: 1.6;
   scroll-behavior: smooth;
+  /* Create scroll space for all sections */
+  height: calc(var(--section-count) * 100vh);
 }
 
 /* RTL Support for Arabic */
@@ -249,46 +252,58 @@ html[dir="rtl"] .right-header {
 
 /* Left half - Text content */
 .content-left {
-  position: relative;
+  position: fixed;
+  left: 0;
+  top: 0;
   width: 50%;
+  height: 100vh;
   padding: 2rem;
   display: flex;
   flex-direction: column;
   justify-content: flex-start;
   z-index: 10;
-  height: calc(var(--section-count, 22) * 100vh);
+  overflow: hidden;
 }
 
 .text-section {
-  position: sticky;
+  position: fixed;
   top: 0;
-  min-height: 100vh;
+  left: 0;
+  right: 50%;
+  height: 100vh;
   display: flex;
   flex-direction: column;
   justify-content: center;
   padding: 3rem;
   opacity: 0;
-  transform: translateY(50px);
-  transition: opacity 0.4s ease, 
-              transform 0.4s ease;
+  pointer-events: none;
+  transform: translateY(100vh) rotateX(-15deg);
+  transform-origin: center center;
+  transition: all 0.8s cubic-bezier(0.4, 0, 0.2, 1);
+  perspective: 1000px;
+  z-index: 1;
   will-change: transform, opacity;
 }
 
 .text-section.active {
   opacity: 1;
-  transform: translateY(0);
-  animation: slide-up 0.5s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+  pointer-events: auto;
+  transform: translateY(0) rotateX(0deg);
+  z-index: 10;
 }
 
-@keyframes slide-up {
-  from {
-    opacity: 0;
-    transform: translateY(50px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
+.text-section.exiting {
+  opacity: 0;
+  pointer-events: none;
+  transform: translateY(-100vh) rotateX(15deg);
+  z-index: 5;
+}
+
+.text-section.entering {
+  opacity: 0;
+  pointer-events: none;
+  transform: translateY(100vh) rotateX(-15deg);
+  z-index: 1;
 }
 
 /* Section numbers */
@@ -581,6 +596,7 @@ html[dir="rtl"] .right-header {
   top: 1.5rem;
   right: 1.5rem;
   display: flex;
+  align-items: center;
   gap: 0.5rem;
   z-index: 30000;
   pointer-events: auto;
@@ -816,8 +832,7 @@ html[dir="rtl"] .right-header {
 
   .content-left {
     width: 100%;
-    height: auto;
-    min-height: calc(var(--section-count, 22) * 100vh);
+    height: 100vh;
     padding: 2rem;
     padding-bottom: 4rem;
     z-index: 50;
@@ -862,6 +877,7 @@ html[dir="rtl"] .right-header {
   }
 
   .text-section {
+    right: 0;
     padding: 2rem 1rem;
     justify-content: flex-start;
     padding-top: 8rem;
@@ -903,6 +919,7 @@ html[dir="rtl"] .right-header {
 
 @media (max-width: 640px) {
   .text-section {
+    right: 0;
     padding-top: 6rem;
   }
 
@@ -1258,8 +1275,9 @@ html[dir="rtl"] .right-header {
 /* Language Switcher */
 .language-switcher {
   position: relative;
-  z-index: 30000;
+  z-index: 30001;
   pointer-events: auto;
+  flex-shrink: 0;
 }
 
 .lang-btn {

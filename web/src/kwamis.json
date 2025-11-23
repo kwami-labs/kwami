@@ -13,11 +13,7 @@
       "y": 6,
       "z": 3
     },
-    "colors": {
-      "x": "#ffffff",
-      "y": "#808080",
-      "z": "#000000"
-    },
+    "colorPalette": "slate-500",
     "scale": 7.8,
     "rotation": {
       "x": 0,

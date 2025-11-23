@@ -3,23 +3,18 @@ import './components/welcome-layer.css';
 import './accessibility.css';
 import './loading.css';
 import './mobile.css';
-import './social.css';
-import './theme.css';
-import './onboarding.css';
 import { Kwami } from 'kwami';
 import { t, changeLanguage, getCurrentLanguage, updatePageTranslations, createLanguageSwitcher } from './i18n';
 import { WelcomeLayer } from './components/WelcomeLayer';
 import mediaLinks from './media-links.json';
+import kwamiConfigs from './kwamis.json';
 import i18next from './i18n';
 import { initAnalytics, trackSectionView, trackButtonClick, trackMediaInteraction, trackBlobInteraction, trackLanguageChange, trackTabSwitch, trackSidebarNavigation, trackTiming } from './analytics';
 import { initErrorHandler } from './error-handler';
 import { initKeyboardNavigation } from './keyboard-navigation';
 import { initLoadingStates, showBlobLoading, hideBlobLoading, lazyLoadMedia } from './loading';
 import { initMobileUX } from './mobile';
-import { initSocialFeatures } from './social';
-import { initTheme, initPerformanceOptimizer } from './theme';
-import { initOnboarding, initQuickActions } from './onboarding';
-import { initMiniMap } from './minimap';
+import { initPerformanceOptimizer } from './performance';
 
 // Video files from public/video/ directory
 // Add more video files here as you add them to web/public/video/
@@ -85,97 +80,15 @@ const colorPalettes = tailwindColors500.map((color, index) => {
   };
 });
 
-// Blob configurations for different sections (22 sections)
-const blobConfigs = [
-  { // Section 00 - Introduction (calm)
-    spikeX: 0.2, spikeY: 0.2, spikeZ: 0.2,
-    timeX: 5, timeY: 5, timeZ: 5
-  },
-  { // Section 01 - Why Kwami (energetic)
-    spikeX: 2.5, spikeY: 2.5, spikeZ: 2.5,
-    timeX: 8, timeY: 8, timeZ: 8
-  },
-  { // Section 02 - Quick Start (organic)
-    spikeX: 5.0, spikeY: 3.0, spikeZ: 4.0,
-    timeX: 10, timeY: 7, timeZ: 8
-  },
-  { // Section 03 - Architecture (pulsing)
-    spikeX: 1.0, spikeY: 1.0, spikeZ: 1.0,
-    timeX: 15, timeY: 15, timeZ: 15
-  },
-  { // Section 04 - Mind Layer (spiral)
-    spikeX: 8.0, spikeY: 2.0, spikeZ: 5.0,
-    timeX: 12, timeY: 6, timeZ: 9
-  },
-  { // Section 05 - Body Layer (fluid)
-    spikeX: 3.0, spikeY: 4.0, spikeZ: 2.5,
-    timeX: 7, timeY: 9, timeZ: 6
-  },
-  { // Section 06 - Soul Layer (wavy)
-    spikeX: 4.0, spikeY: 4.0, spikeZ: 1.5,
-    timeX: 6, timeY: 6, timeZ: 10
-  },
-  { // Section 07 - Interaction Flow (angular)
-    spikeX: 6.0, spikeY: 1.0, spikeZ: 6.0,
-    timeX: 8, timeY: 12, timeZ: 8
-  },
-  { // Section 08 - Visual Styles (bubble)
-    spikeX: 0.8, spikeY: 0.8, spikeZ: 0.8,
-    timeX: 4, timeY: 4, timeZ: 4
-  },
-  { // Section 09 - Audio & Voice (intricate)
-    spikeX: 7.0, spikeY: 5.0, spikeZ: 3.0,
-    timeX: 11, timeY: 9, timeZ: 7
-  },
-  { // Section 10 - Provider Architecture (meditative)
-    spikeX: 2.0, spikeY: 3.0, spikeZ: 2.0,
-    timeX: 3, timeY: 3, timeZ: 3
-  },
-  { // Section 11 - Customization (fast pulse)
-    spikeX: 3.5, spikeY: 3.5, spikeZ: 3.5,
-    timeX: 18, timeY: 18, timeZ: 18
-  },
-  { // Section 12 - Developer Toolkit (asymmetric)
-    spikeX: 9.0, spikeY: 2.5, spikeZ: 6.5,
-    timeX: 13, timeY: 5, timeZ: 9
-  },
-  { // Section 13 - Performance (geometric)
-    spikeX: 4.5, spikeY: 4.5, spikeZ: 0.5,
-    timeX: 7, timeY: 7, timeZ: 14
-  },
-  { // Section 14 - Use Cases (crystalline)
-    spikeX: 6.5, spikeY: 6.5, spikeZ: 6.5,
-    timeX: 9, timeY: 9, timeZ: 9
-  },
-  { // Section 15 - Connected Ecosystem (gentle)
-    spikeX: 1.5, spikeY: 2.0, spikeZ: 1.5,
-    timeX: 6, timeY: 8, timeZ: 6
-  },
-  { // Section 16 - Ownership & Web3 (flowing)
-    spikeX: 3.2, spikeY: 3.8, spikeZ: 3.5,
-    timeX: 14, timeY: 11, timeZ: 12
-  },
-  { // Section 17 - Roadmap (reactive)
-    spikeX: 4.5, spikeY: 2.8, spikeZ: 3.5,
-    timeX: 16, timeY: 8, timeZ: 12
-  },
-  { // Section 18 - Learning Path (structured)
-    spikeX: 7.5, spikeY: 7.5, spikeZ: 2.0,
-    timeX: 11, timeY: 11, timeZ: 15
-  },
-  { // Section 19 - Community (networked)
-    spikeX: 5.0, spikeY: 6.0, spikeZ: 5.5,
-    timeX: 9, timeY: 10, timeZ: 8
-  },
-  { // Section 20 - Pro & Enterprise (efficient)
-    spikeX: 1.2, spikeY: 1.2, spikeZ: 1.2,
-    timeX: 20, timeY: 20, timeZ: 20
-  },
-  { // Section 21 - Launch (vibrant)
-    spikeX: 4.0, spikeY: 5.5, spikeZ: 4.5,
-    timeX: 13, timeY: 9, timeZ: 11
-  }
-];
+// Blob configurations for different sections - loaded from kwamis.json
+const blobConfigs = kwamiConfigs.map(config => ({
+  spikeX: config.spikes.x,
+  spikeY: config.spikes.y,
+  spikeZ: config.spikes.z,
+  timeX: config.time.x,
+  timeY: config.time.y,
+  timeZ: config.time.z
+}));
 
 // Custom Cursor Light Manager with dual lights (fast + delayed)
 class CursorLight {
@@ -824,10 +737,18 @@ class ScrollManager {
 
   private updateActiveSection(section: number) {
     this.sections.forEach((sec, index) => {
+      // Remove all classes first
+      sec.classList.remove('active', 'exiting', 'entering');
+      
       if (index === section) {
+        // Current section
         sec.classList.add('active');
+      } else if (index < section) {
+        // Previous sections (already passed)
+        sec.classList.add('exiting');
       } else {
-        sec.classList.remove('active');
+        // Future sections (not yet reached)
+        sec.classList.add('entering');
       }
     });
   }
@@ -1300,21 +1221,7 @@ document.addEventListener('DOMContentLoaded', () => {
   const keyboardNav = initKeyboardNavigation();
   initLoadingStates();
   const mobileUX = initMobileUX();
-  
-  // Initialize Phase 3 features
-  const socialFeatures = initSocialFeatures();
-  const themeManager = initTheme();
   const perfOptimizer = initPerformanceOptimizer();
-  
-  // Initialize Phase 4 features
-  const onboardingTour = initOnboarding();
-  const quickActions = initQuickActions();
-  const miniMap = initMiniMap();
-  
-  // Make available globally for command palette
-  (window as any).socialFeatures = socialFeatures;
-  (window as any).themeManager = themeManager;
-  (window as any).onboardingTour = onboardingTour;
   
   // Don't auto-start tour - let WelcomeLayer trigger it after blob click
   // The tour will start after the user clicks the welcome layer blob
@@ -1343,14 +1250,25 @@ document.addEventListener('DOMContentLoaded', () => {
   const loadTime = performance.now() - startTime;
   trackTiming('page', 'dom_loaded', Math.round(loadTime));
   
-  // Register service worker for PWA support
+  // TEMPORARILY DISABLED: Service worker for development
+  // Will re-enable for production
   if ('serviceWorker' in navigator) {
-    window.addEventListener('load', () => {
-      navigator.serviceWorker.register('/sw.js').then((registration) => {
-        console.log('✅ Service Worker registered:', registration.scope);
-      }).catch((error) => {
-        console.error('❌ Service Worker registration failed:', error);
-      });
+    window.addEventListener('load', async () => {
+      // Unregister ALL service workers
+      const registrations = await navigator.serviceWorker.getRegistrations();
+      for (const registration of registrations) {
+        await registration.unregister();
+        console.log('🗑️ Unregistered service worker:', registration.scope);
+      }
+      
+      // Clear ALL caches
+      const cacheNames = await caches.keys();
+      for (const cacheName of cacheNames) {
+        await caches.delete(cacheName);
+        console.log('🗑️ Deleted cache:', cacheName);
+      }
+      
+      console.log('✅ Service workers and caches cleared for development');
     });
   }
   
