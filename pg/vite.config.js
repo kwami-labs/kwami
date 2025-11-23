@@ -26,11 +26,6 @@ export default defineConfig({
   // Public directory for static assets
   publicDir: resolve(__dirname, './public'),
 
-  server: {
-    port: 3333,
-    open: true
-  },
-
   plugins: [
     {
       name: 'copy-agent-management',
