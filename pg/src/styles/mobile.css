@@ -1,0 +1,353 @@
+/**
+ * Mobile Responsive Styles
+ * 
+ * Optimized styles for mobile and tablet devices
+ */
+
+/* ============================================================================
+   Mobile Breakpoints
+   ============================================================================ */
+
+/* Small Mobile: 320px - 480px */
+@media (max-width: 480px) {
+  /* Reduce sidebar width on small screens */
+  #left-sidebar,
+  #right-sidebar {
+    width: 100%;
+    max-width: 320px;
+  }
+  
+  /* Stack color picker palette vertically */
+  .color-picker-palette-row {
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+  
+  .color-preset {
+    width: 40px;
+    height: 40px;
+  }
+  
+  /* Larger touch targets */
+  button,
+  input[type="range"],
+  select {
+    min-height: 44px;
+  }
+  
+  /* Simplified top controls */
+  #menu-toggle-btn,
+  #theme-toggle-btn,
+  #color-picker-btn {
+    width: 50px;
+    height: 50px;
+  }
+}
+
+/* Mobile: 481px - 768px */
+@media (max-width: 768px) {
+  /* Full-width sidebars on mobile */
+  #left-sidebar,
+  #right-sidebar {
+    width: 100%;
+    max-width: 400px;
+    transform: translateX(0);
+  }
+  
+  #left-sidebar {
+    left: 0;
+  }
+  
+  #right-sidebar {
+    right: 0;
+  }
+  
+  /* Hide one sidebar by default on mobile */
+  #right-sidebar {
+    transform: translateX(100%);
+  }
+  
+  #left-sidebar.hidden {
+    transform: translateX(-100%);
+  }
+  
+  #right-sidebar.hidden {
+    transform: translateX(100%);
+  }
+  
+  /* Show mobile sidebar tabs */
+  .mobile-sidebar-tabs {
+    display: flex !important;
+    gap: 8px;
+    margin-bottom: 20px;
+    border-bottom: 2px solid var(--border-section);
+    padding-bottom: 10px;
+  }
+  
+  .mobile-sidebar-tab {
+    flex: 1;
+    padding: 12px 8px;
+    background: var(--bg-section);
+    border: none;
+    border-radius: 8px 8px 0 0;
+    color: var(--text-secondary);
+    font-size: 14px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s ease;
+  }
+  
+  .mobile-sidebar-tab.active {
+    background: var(--bg-button);
+    color: var(--text-primary);
+    border-bottom: 3px solid var(--scrollbar-thumb);
+  }
+  
+  /* Hide swap buttons on mobile */
+  .swap-button {
+    display: none;
+  }
+  
+  /* Show close button for sidebars */
+  .sidebar-close-btn {
+    display: block !important;
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    width: 44px;
+    height: 44px;
+    background: var(--bg-button);
+    border: none;
+    border-radius: 50%;
+    color: var(--text-primary);
+    font-size: 24px;
+    cursor: pointer;
+    z-index: 1001;
+    box-shadow: 0 4px 12px var(--shadow-button);
+  }
+  
+  /* Adjust canvas for mobile */
+  #kwami-canvas {
+    touch-action: none;
+  }
+  
+  /* Mobile-friendly controls */
+  .input-group label {
+    font-size: 14px;
+  }
+  
+  .slider-control input[type="range"] {
+    height: 44px;
+  }
+  
+  /* Audio player adjustments */
+  #audio-player {
+    width: 90%;
+    max-width: 350px;
+  }
+  
+  /* Color picker dropdown */
+  #color-picker-dropdown {
+    width: 90%;
+    max-width: 350px;
+    left: 50%;
+    transform: translateX(-50%);
+  }
+  
+  /* GitHub star button */
+  #github-star-btn {
+    font-size: 12px;
+    padding: 8px 12px;
+  }
+  
+  /* Messages container */
+  #messages-container {
+    bottom: 80px;
+    left: 10px;
+    right: 10px;
+    max-width: calc(100% - 20px);
+  }
+  
+  .message {
+    font-size: 14px;
+    padding: 12px 16px;
+  }
+}
+
+/* Tablet: 769px - 1024px */
+@media (min-width: 769px) and (max-width: 1024px) {
+  #left-sidebar,
+  #right-sidebar {
+    width: 300px;
+  }
+  
+  .sidebar-content {
+    padding: 15px 20px;
+  }
+  
+  /* Adjust font sizes */
+  h2 {
+    font-size: 20px;
+  }
+  
+  .section-title {
+    font-size: 16px;
+  }
+}
+
+/* ============================================================================
+   Touch Optimizations
+   ============================================================================ */
+
+/* Larger touch targets for all interactive elements */
+@media (hover: none) and (pointer: coarse) {
+  button,
+  a,
+  input[type="checkbox"],
+  input[type="radio"],
+  .color-preset,
+  .media-tab {
+    min-width: 44px;
+    min-height: 44px;
+  }
+  
+  /* Increase slider thumb size */
+  input[type="range"]::-webkit-slider-thumb {
+    width: 24px;
+    height: 24px;
+  }
+  
+  input[type="range"]::-moz-range-thumb {
+    width: 24px;
+    height: 24px;
+  }
+  
+  /* Remove hover effects on touch devices */
+  *:hover {
+    transition: none;
+  }
+}
+
+/* ============================================================================
+   Landscape Orientation
+   ============================================================================ */
+
+@media (max-width: 768px) and (orientation: landscape) {
+  /* Reduce sidebar width in landscape */
+  #left-sidebar,
+  #right-sidebar {
+    width: 280px;
+  }
+  
+  /* Adjust vertical spacing */
+  .section {
+    margin-bottom: 20px;
+  }
+  
+  .parameter-group {
+    margin-bottom: 15px;
+  }
+  
+  /* Compact controls */
+  .slider-control {
+    margin-bottom: 12px;
+  }
+}
+
+/* ============================================================================
+   Loading Overlay Mobile
+   ============================================================================ */
+
+@media (max-width: 768px) {
+  #media-loading-overlay {
+    padding: 20px;
+  }
+  
+  .media-loader-container-overlay {
+    max-width: 280px;
+  }
+  
+  .media-loader-image {
+    width: 100px;
+    height: 100px;
+  }
+  
+  .media-loader-text {
+    font-size: 14px;
+  }
+}
+
+/* ============================================================================
+   Accessibility for Mobile
+   ============================================================================ */
+
+/* High contrast mode support */
+@media (prefers-contrast: high) {
+  button,
+  input,
+  select {
+    border: 2px solid currentColor;
+  }
+  
+  .sidebar-content {
+    border: 1px solid var(--text-primary);
+  }
+}
+
+/* Reduced motion support */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+  
+  #left-sidebar,
+  #right-sidebar {
+    transition: none;
+  }
+}
+
+/* ============================================================================
+   iOS Specific Fixes
+   ============================================================================ */
+
+/* Fix for iOS safe areas */
+@supports (padding: max(0px)) {
+  @media (max-width: 768px) {
+    #left-sidebar,
+    #right-sidebar {
+      padding-top: max(20px, env(safe-area-inset-top));
+      padding-bottom: max(30px, env(safe-area-inset-bottom));
+    }
+    
+    #audio-player {
+      bottom: max(100px, calc(100px + env(safe-area-inset-bottom)));
+    }
+  }
+}
+
+/* Fix for iOS webkit scrolling */
+#left-sidebar,
+#right-sidebar {
+  -webkit-overflow-scrolling: touch;
+}
+
+/* ============================================================================
+   Android Specific Fixes
+   ============================================================================ */
+
+/* Fix for Android Chrome address bar */
+@media (max-width: 768px) {
+  #app {
+    min-height: 100vh;
+    min-height: -webkit-fill-available;
+  }
+  
+  html {
+    height: -webkit-fill-available;
+  }
+}
+
