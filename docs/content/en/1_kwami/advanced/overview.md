@@ -15,7 +15,7 @@ For detailed architectural documentation, see:
 Kwami follows a modular Mind-Body-Soul architecture:
 
 ```
-┌──────────────────────────────────────┐
+┌───────────────────────────────────────┐
 │            Kwami (Orchestrator)       │
 ├────────┬─────────────┬────────────────┤
 │  Body  │    Mind     │     Soul       │
