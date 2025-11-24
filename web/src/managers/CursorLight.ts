@@ -2,7 +2,7 @@
  * Custom Cursor Light Manager with dual lights (fast + delayed)
  */
 
-import { ColorPalette } from '../config/colors';
+import type { ColorPalette } from '../config/colors';
 import { hexToRgba } from '../config/colors';
 
 export class CursorLight {

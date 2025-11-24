@@ -71,6 +71,11 @@ export function generateColorPalettes(): ColorPalette[] {
 }
 
 /**
+ * Precomputed color palettes for convenient reuse
+ */
+export const COLOR_PALETTES: ColorPalette[] = generateColorPalettes();
+
+/**
  * Generate random color
  */
 export function generateRandomColor(): string {
