@@ -1,6 +1,8 @@
 <template>
-  <ContentDoc :path="resolvedPath" v-slot="{ doc }">
-    <DocArticle :doc="doc" />
+  <ContentDoc :path="resolvedPath">
+    <template #default="{ doc }">
+      <DocArticle :doc="doc" />
+    </template>
 
     <template #empty>
       <DocNotFound />

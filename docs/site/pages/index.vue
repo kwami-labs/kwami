@@ -7,10 +7,12 @@
       <h2 class="mb-6 text-2xl font-bold text-white">
         Full Documentation
       </h2>
-      <ContentDoc path="/README" v-slot="{ doc }">
-        <article class="prose prose-invert max-w-none">
-          <ContentRenderer :value="doc" />
-        </article>
+      <ContentDoc path="/README">
+        <template #default="{ doc }">
+          <article class="prose prose-invert max-w-none">
+            <ContentRenderer :value="doc" />
+          </article>
+        </template>
 
         <template #empty>
           <p class="text-slate-400">Documentation content not found.</p>
