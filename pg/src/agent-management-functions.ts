@@ -4,7 +4,7 @@
 // ============================================================================
 
 // Provider switching functionality
-window.switchProvider = function(providerName) {
+window.switchProvider = function(providerName: string) {
   console.log('Switching to provider:', providerName);
   
   // Update tab states

@@ -7,14 +7,32 @@
   "scripts": {
     "dev": "vite",
     "build": "vite build",
-    "preview": "vite preview"
+    "build:types": "tsc --emitDeclarationOnly --skipLibCheck",
+    "preview": "vite preview",
+    "test": "vitest",
+    "test:ui": "vitest --ui",
+    "test:e2e": "playwright test",
+    "test:e2e:ui": "playwright test --ui",
+    "test:e2e:debug": "playwright test --debug",
+    "typecheck": "tsc --noEmit",
+    "lint": "eslint src --ext .ts,.js",
+    "profile": "node --inspect-brk node_modules/.bin/vite build"
   },
   "dependencies": {
-    "kwami": "*"
+    "kwami": "*",
+    "xstate": "^5.18.2"
   },
   "devDependencies": {
-    "vite": "^7.2.2"
+    "@playwright/test": "^1.48.2",
+    "@types/node": "^22.9.1",
+    "@types/three": "^0.169.0",
+    "@typescript-eslint/eslint-plugin": "^8.14.0",
+    "@typescript-eslint/parser": "^8.14.0",
+    "@vitest/ui": "^2.1.5",
+    "eslint": "^9.14.0",
+    "playwright": "^1.48.2",
+    "typescript": "^5.6.3",
+    "vite": "^7.2.2",
+    "vitest": "^2.1.5"
   }
 }
-
-

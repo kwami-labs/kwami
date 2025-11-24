@@ -5,7 +5,15 @@
  * Provides reactive state updates and persistence
  */
 
-import { STORAGE_KEYS } from './config.js';
+import { STORAGE_KEYS } from './config';
+import type {
+  SidebarState,
+  AudioPlayerState,
+  ThemeState,
+  ColorPickerState,
+  AgentManagerState,
+  PlaygroundConfiguration
+} from '../types/index.js';
 
 // ============================================================================
 // STATE DEFINITIONS

@@ -6,10 +6,50 @@
  */
 
 // ============================================================================
+// TYPES
+// ============================================================================
+
+export interface Vec3 {
+  x: number;
+  y: number;
+  z: number;
+}
+
+export interface ColorSet {
+  x: string;
+  y: string;
+  z: string;
+}
+
+export interface DefaultValuesConfig {
+  spike: Vec3;
+  amplitude: Vec3;
+  time: Vec3;
+  rotation: Vec3;
+  colors: ColorSet;
+  scale: number;
+  resolution: number;
+  shininess: number;
+  lightIntensity: number;
+  wireframe: boolean;
+}
+
+export interface BackgroundConfig {
+  type: string;
+  opacity: number;
+  colors: string[];
+  stops: number[];
+  angle: number;
+  style: string;
+  image: string | null;
+  video: string | null;
+}
+
+// ============================================================================
 // DEFAULT VALUES
 // ============================================================================
 
-export const DEFAULT_VALUES = {
+export const DEFAULT_VALUES: DefaultValuesConfig = {
   spike: { x: 0.2, y: 0.2, z: 0.2 },
   amplitude: { x: 0.8, y: 0.8, z: 0.8 },
   time: { x: 5, y: 5, z: 5 },
@@ -22,13 +62,13 @@ export const DEFAULT_VALUES = {
   wireframe: false
 };
 
-export const DEFAULT_CAMERA_POSITION = {
+export const DEFAULT_CAMERA_POSITION: Vec3 = {
   x: -0.9,
   y: 7.3,
   z: -1.8
 };
 
-export const DEFAULT_BACKGROUND = {
+export const DEFAULT_BACKGROUND: BackgroundConfig = {
   type: 'gradient',
   opacity: 1.0,
   colors: ['#667eea', '#764ba2', '#f093fb'],
@@ -43,9 +83,9 @@ export const DEFAULT_BACKGROUND = {
 // SKIN CONFIGURATION
 // ============================================================================
 
-export const SKIN_COLLECTION_NAME = '3Colors';
+export const SKIN_COLLECTION_NAME: string = '3Colors';
 
-export const SKIN_NAME_ALIASES = {
+export const SKIN_NAME_ALIASES: Record<string, string> = {
   'tricolor': 'tricolor',
   'tricolor2': 'tricolor2',
   'zebra': 'zebra',
@@ -54,13 +94,13 @@ export const SKIN_NAME_ALIASES = {
   '3Colors-2-zebra': 'zebra'
 };
 
-export const SKIN_VARIANT_LABELS = {
+export const SKIN_VARIANT_LABELS: Record<string, string> = {
   'tricolor': '3Colors - Poles',
   'tricolor2': '3Colors - Donut',
   'zebra': '3Colors - Vintage'
 };
 
-export const SKIN_RANDOMIZATION_TEMPLATE = [
+export const SKIN_RANDOMIZATION_TEMPLATE: string[] = [
   'tricolor',
   'tricolor2',
   'zebra',
@@ -73,7 +113,7 @@ export const SKIN_RANDOMIZATION_TEMPLATE = [
 // MEDIA ASSETS
 // ============================================================================
 
-export const BACKGROUND_IMAGES = [
+export const BACKGROUND_IMAGES: readonly string[] = [
   '/img/bg/alaska.jpeg',
   '/img/bg/binary-reality.jpg',
   '/img/bg/black-candle.jpg',
@@ -114,18 +154,11 @@ export const VIDEO_PRESETS = [
   { name: 'Stars', value: '/vid/bg/stars.mp4' }
 ];
 
-export const MUSIC_PLAYLIST = [
-  { name: 'Track 1', url: '/aud/music/0.mp3' },
-  { name: 'Track 2', url: '/aud/music/1.mp3' },
-  { name: 'Track 3', url: '/aud/music/2.mp3' },
-  { name: 'Track 4', url: '/aud/music/3.mp3' },
-  { name: 'Track 5', url: '/aud/music/4.mp3' },
-  { name: 'Track 6', url: '/aud/music/5.mp3' },
-  { name: 'Track 7', url: '/aud/music/6.mp3' },
-  { name: 'Track 8', url: '/aud/music/7.mp3' },
-  { name: 'Track 9', url: '/aud/music/8.mp3' },
-  { name: 'Track 10', url: '/aud/music/9.mp3' },
-  { name: 'Track 11', url: '/aud/music/10.mp3' }
+// Music playlist - empty by default in pg app
+// Users can load their own audio files via the audio player
+export const MUSIC_PLAYLIST: readonly Array<{ name: string; url: string }> = [
+  // Empty by default - music files not included in pg build
+  // Use the "Load Audio" button (📂) in the audio player to add music
 ];
 
 // ============================================================================

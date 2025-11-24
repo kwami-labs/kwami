@@ -1,6 +1,6 @@
 import { Kwami } from 'kwami';
-import { createMediaLoaderUI } from './media-loader-ui.js';
-import mediaLoadingManager from './media-loading-manager.js';
+import { createMediaLoaderUI } from './media-loader-ui';
+import mediaLoadingManager from './media-loading-manager';
 
 window.kwami = null;
 
@@ -74,18 +74,11 @@ const audioPlayerState = {
 };
 
 // Build music playlist from assets
-const MUSIC_PLAYLIST = [
-  { name: 'Track 1', url: '/aud/music/0.mp3' },
-  { name: 'Track 2', url: '/aud/music/1.mp3' },
-  { name: 'Track 3', url: '/aud/music/2.mp3' },
-  { name: 'Track 4', url: '/aud/music/3.mp3' },
-  { name: 'Track 5', url: '/aud/music/4.mp3' },
-  { name: 'Track 6', url: '/aud/music/5.mp3' },
-  { name: 'Track 7', url: '/aud/music/6.mp3' },
-  { name: 'Track 8', url: '/aud/music/7.mp3' },
-  { name: 'Track 9', url: '/aud/music/8.mp3' },
-  { name: 'Track 10', url: '/aud/music/9.mp3' },
-  { name: 'Track 11', url: '/aud/music/10.mp3' }
+// Note: pg app doesn't include music files by default
+// Users can load their own audio via the audio player's upload feature
+const MUSIC_PLAYLIST: Array<{ name: string; url: string }> = [
+  // Empty by default - music files not included in pg build
+  // To add music, use the "Load Audio" button in the audio player
 ];
 
 const githubStarState = {

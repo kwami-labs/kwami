@@ -1,24 +1,53 @@
 import { defineConfig } from 'vitest/config';
 import { resolve } from 'path';
 
+/**
+ * Vitest Configuration
+ * 
+ * Unit and integration testing configuration for Kwami Playground
+ */
+
 export default defineConfig({
   test: {
-    globals: true,
+    // Test environment
     environment: 'jsdom',
+    
+    // Global test APIs
+    globals: true,
+    
+    // Setup files
     setupFiles: ['./tests/setup.ts'],
+    
+    // Coverage configuration
     coverage: {
       provider: 'v8',
       reporter: ['text', 'json', 'html'],
       exclude: [
         'node_modules/',
         'tests/',
-        '*.config.{js,ts}',
-        'dist/'
+        'dist/',
+        '**/*.config.{js,ts}',
+        '**/*.d.ts'
       ]
     },
-    include: ['tests/**/*.{test,spec}.{js,ts}'],
-    exclude: ['node_modules', 'dist']
+    
+    // Test match patterns
+    include: ['tests/unit/**/*.{test,spec}.{js,ts}'],
+    
+    // Exclude patterns
+    exclude: [
+      'node_modules',
+      'dist',
+      'tests/e2e'
+    ],
+    
+    // Test timeout
+    testTimeout: 10000,
+    
+    // Hooks timeout
+    hookTimeout: 10000
   },
+  
   resolve: {
     alias: {
       '@': resolve(__dirname, './src'),
@@ -26,4 +55,3 @@ export default defineConfig({
     }
   }
 });
-

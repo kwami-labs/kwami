@@ -1,89 +1,43 @@
 /**
- * Test Setup
+ * Vitest Setup
  * 
- * Global setup for Vitest tests
+ * Global setup for unit tests
  */
 
-import { expect, afterEach, vi } from 'vitest';
-import { cleanup } from '@testing-library/dom';
+import { vi } from 'vitest';
 
-// Cleanup after each test
-afterEach(() => {
-  cleanup();
-  localStorage.clear();
-  sessionStorage.clear();
-});
-
-// Mock Web Audio API
-global.AudioContext = vi.fn(() => ({
-  createAnalyser: vi.fn(() => ({
-    connect: vi.fn(),
-    disconnect: vi.fn(),
-    fftSize: 2048,
-    frequencyBinCount: 1024,
-    getByteFrequencyData: vi.fn()
-  })),
-  createGain: vi.fn(() => ({
-    connect: vi.fn(),
-    disconnect: vi.fn(),
-    gain: { value: 1 }
-  })),
-  createMediaElementSource: vi.fn(() => ({
-    connect: vi.fn(),
-    disconnect: vi.fn()
-  })),
-  destination: {},
-  state: 'running',
-  resume: vi.fn()
-})) as any;
-
-// Mock WebGL context
-HTMLCanvasElement.prototype.getContext = vi.fn((contextType) => {
-  if (contextType === 'webgl' || contextType === 'webgl2') {
-    return {
-      canvas: {},
-      drawingBufferWidth: 800,
-      drawingBufferHeight: 600,
-      getExtension: vi.fn(),
-      getParameter: vi.fn(),
-      viewport: vi.fn(),
-      clear: vi.fn(),
-      clearColor: vi.fn()
-    };
-  }
-  return null;
-}) as any;
-
-// Mock matchMedia
-Object.defineProperty(window, 'matchMedia', {
-  writable: true,
-  value: vi.fn().mockImplementation(query => ({
-    matches: false,
-    media: query,
-    onchange: null,
-    addListener: vi.fn(),
-    removeListener: vi.fn(),
-    addEventListener: vi.fn(),
-    removeEventListener: vi.fn(),
-    dispatchEvent: vi.fn(),
-  })),
-});
-
-// Add custom matchers if needed
-expect.extend({
-  toBeWithinRange(received: number, floor: number, ceiling: number) {
-    const pass = received >= floor && received <= ceiling;
-    if (pass) {
-      return {
-        message: () => `expected ${received} not to be within range ${floor} - ${ceiling}`,
-        pass: true,
-      };
-    } else {
-      return {
-        message: () => `expected ${received} to be within range ${floor} - ${ceiling}`,
-        pass: false,
-      };
+// Mock window.performance if not available
+if (typeof window !== 'undefined' && !window.performance) {
+  (window as any).performance = {
+    now: () => Date.now(),
+    memory: {
+      usedJSHeapSize: 10000000,
+      jsHeapSizeLimit: 100000000
     }
-  },
-});
+  };
+}
 
+// Mock localStorage
+const localStorageMock = {
+  getItem: vi.fn(),
+  setItem: vi.fn(),
+  removeItem: vi.fn(),
+  clear: vi.fn(),
+  length: 0,
+  key: vi.fn()
+};
+
+if (typeof window !== 'undefined') {
+  Object.defineProperty(window, 'localStorage', {
+    value: localStorageMock,
+    writable: true
+  });
+}
+
+// Reset mocks before each test
+beforeEach(() => {
+  vi.clearAllMocks();
+  localStorageMock.getItem.mockClear();
+  localStorageMock.setItem.mockClear();
+  localStorageMock.removeItem.mockClear();
+});
