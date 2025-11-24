@@ -528,5 +528,3 @@ Built with:
 ---
 
 **Made with ❤️ by the KWAMI team**
-
-Current version: **1.5.7**
