@@ -1,5 +1,7 @@
 // https://nuxt.com/docs/api/configuration/nuxt-config
 import { fileURLToPath } from 'node:url'
+import { defineNuxtConfig } from 'nuxt/config'
+import { nodePolyfills } from 'vite-plugin-node-polyfills'
 
 export default defineNuxtConfig({
   compatibilityDate: '2025-07-15',
@@ -9,7 +11,7 @@ export default defineNuxtConfig({
   experimental: {
     appManifest: false,
   },
-  
+
   // Disable SSR for Web3 compatibility
   ssr: false,
 
@@ -20,9 +22,9 @@ export default defineNuxtConfig({
       meta: [
         { charset: 'utf-8' },
         { name: 'viewport', content: 'width=device-width, initial-scale=1' },
-        { 
-          name: 'description', 
-          content: 'Create and mint your unique KWAMI NFT on Solana blockchain. Each KWAMI has unique DNA and lives forever on-chain.' 
+        {
+          name: 'description',
+          content: 'Create and mint your unique KWAMI NFT on Solana blockchain. Each KWAMI has unique DNA and lives forever on-chain.'
         },
         { property: 'og:title', content: 'Kwami.io - Mint Your Unique KWAMI NFT' },
         { property: 'og:description', content: 'Create and mint your unique KWAMI NFT on Solana blockchain' },
@@ -45,14 +47,36 @@ export default defineNuxtConfig({
     }
   },
 
+  // CSS
+  css: ['~/assets/css/main.css'],
+
   // Modules
   modules: [
     '@nuxt/ui',
     '@pinia/nuxt',
   ],
 
+  // Build configuration
+  build: {
+    transpile: [
+      '@solana/web3.js',
+      '@coral-xyz/anchor',
+      '@metaplex-foundation/js',
+      '@metaplex-foundation/mpl-token-metadata',
+    ],
+  },
+
   // Vite configuration for Web3 compatibility
   vite: {
+    plugins: [
+      nodePolyfills({
+        globals: {
+          Buffer: true,
+          global: true,
+          process: true,
+        },
+      }),
+    ],
     define: {
       'process.env': {},
       global: 'globalThis',
@@ -62,9 +86,10 @@ export default defineNuxtConfig({
         buffer: 'buffer',
         kwami: fileURLToPath(new URL('../kwami/index.ts', import.meta.url)),
       },
+      conditions: ['browser', 'module', 'import', 'default'],
+      mainFields: ['browser', 'module', 'main'],
     },
     optimizeDeps: {
-      exclude: ['@solana/web3.js', '@coral-xyz/anchor'],
       esbuildOptions: {
         target: 'esnext',
         define: {
@@ -74,6 +99,15 @@ export default defineNuxtConfig({
     },
     build: {
       target: 'esnext',
+      commonjsOptions: {
+        include: [/node_modules/],
+        transformMixedEsModules: true,
+        defaultIsModuleExports: 'auto',
+        requireReturnsDefault: 'auto',
+      },
+      rollupOptions: {
+        external: [],
+      },
     },
   },
 
