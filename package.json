@@ -10,7 +10,7 @@
     "pg",
     "app",
     "web",
-    "docs/site",
+    "docs",
     "dao",
     "candy",
     "market"
@@ -34,7 +34,7 @@
     "app": "npm run dev -w app -- --port 5555",
     "build:app": "npm run build -w app",
     "preview:app": "npm run preview -w app",
-    "candy": "npm run dev -w candy -- --port 6666",
+    "candy": "npm run dev -w candy -- --port 6600",
     "build:candy": "npm run build -w candy",
     "preview:candy": "npm run preview -w candy",
     "dao": "npm run dev -w dao -- --port 7777",
@@ -43,6 +43,9 @@
     "market": "npm run dev -w market -- --port 8888",
     "build:market": "npm run build -w market",
     "preview:market": "npm run preview -w market",
+    "docs": "cd docs && npm run dev -- --port 9999",
+    "build:docs": "cd docs && npm run build",
+    "preview:docs": "cd docs && npm run preview",
     "publish:kwami": "npm publish -w kwami",
     "version:kwami": "npm view kwami",
     "sync-version": "node scripts/sync-version.js"
