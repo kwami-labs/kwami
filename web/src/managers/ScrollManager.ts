@@ -16,6 +16,7 @@ import { isRTLLanguage } from '../utils/languageUtils';
 import { toggleMusicLowpass } from '../media/MusicPlayer';
 import { toggleVoicePlayback } from '../media/VoicePlayer';
 import { getVideoState, playRandomVideo, toggleVideoPresentation } from '../media/VideoPlayer';
+import { rafThrottle, getPassiveEventOptions } from '../utils/performanceUtils';
 
 const blobConfigs = BLOB_CONFIGS;
 const colorPalettes = COLOR_PALETTES;
@@ -39,7 +40,9 @@ export class ScrollManager {
     this.cursorLight = new CursorLight();
 
     this.init();
-    window.addEventListener('scroll', this.handleScroll.bind(this));
+    // Use RAF-throttled scroll handler for better performance
+    const throttledScroll = rafThrottle(this.handleScroll.bind(this));
+    window.addEventListener('scroll', throttledScroll, getPassiveEventOptions());
     this.handleScroll();
   }
 

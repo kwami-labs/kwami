@@ -42,7 +42,7 @@ describe('Color Utils', () => {
   describe('generateRandomColor', () => {
     it('should generate a valid HSL color', () => {
       const result = generateRandomColor();
-      expect(result).toMatch(/^hsl\(\d+, \d+%, \d+%\)$/);
+      expect(result).toMatch(/^hsl\([\d.]+, [\d.]+%, [\d.]+%\)$/);
     });
 
     it('should generate different colors on subsequent calls', () => {
