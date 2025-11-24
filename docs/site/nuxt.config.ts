@@ -22,8 +22,13 @@ export default defineNuxtConfig({
       meta: [
         {
           name: 'description',
-          content: 'Modern documentation hub for the KWAMI ecosystem.'
-        }
+          content: 'Modern documentation hub for the KWAMI ecosystem - 3D characters, AI-powered behavior, blockchain integration, and more.'
+        },
+        { name: 'viewport', content: 'width=device-width, initial-scale=1' },
+        { charset: 'utf-8' }
+      ],
+      link: [
+        { rel: 'icon', type: 'image/x-icon', href: '/favicon.ico' }
       ]
     }
   },
@@ -36,9 +41,18 @@ export default defineNuxtConfig({
     highlight: {
       theme: {
         default: 'github-dark',
+        dark: 'github-dark',
         light: 'github-light',
         sepia: 'one-light'
-      }
+      },
+      preload: ['bash', 'javascript', 'typescript', 'json', 'yaml', 'markdown']
+    },
+    markdown: {
+      toc: {
+        depth: 3,
+        searchDepth: 3
+      },
+      anchorLinks: true
     },
     sources: {
       docs: {
