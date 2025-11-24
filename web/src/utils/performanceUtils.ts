@@ -166,3 +166,4 @@ export function isLowEndDevice(): boolean {
   return (memory && memory < 4) || (cores && cores < 4);
 }
 
+
