@@ -10,6 +10,8 @@ import {
   PlaneGeometry,
   MeshBasicMaterial,
   Vector3,
+  Vector2,
+  Raycaster,
   TextureLoader,
   Texture,
   VideoTexture,
@@ -25,6 +27,7 @@ import { Scene } from './scene/Scene.js';
 import { ContextMenu } from './ContextMenu';
 import type { BackgroundMediaFit, BodyConfig, BlobSkinType, SceneBackgroundConfig } from '../../types/index';
 import { isYouTubeUrl, createYouTubeIframe } from '../utils/YouTubeHelper';
+import { ActionDashboard } from '../actions/ActionDashboard';
 import { logger } from '../../utils/logger';
 
 type BackgroundDirection = 'vertical' | 'horizontal' | 'radial' | 'diagonal';
@@ -150,6 +153,9 @@ export class KwamiBody {
   // Context menu support
   private contextMenu: ContextMenu | null = null;
   private kwamiInstance: any = null; // Reference to parent Kwami instance
+  private actionDashboard: ActionDashboard | null = null;
+  private pointerVector = new Vector2();
+  private pointerRaycaster = new Raycaster();
 
   public audio: KwamiAudio;
   public blob: Blob;
@@ -203,6 +209,9 @@ export class KwamiBody {
    */
   setKwamiInstance(kwami: any): void {
     this.kwamiInstance = kwami;
+    if (kwami?.actions && !this.actionDashboard) {
+      this.actionDashboard = new ActionDashboard(kwami.actions);
+    }
   }
 
   /**
@@ -455,42 +464,51 @@ export class KwamiBody {
    * Handle right-click on canvas
    */
   private handleContextMenu = (event: MouseEvent): void => {
-    // Only show context menu if we have a Kwami instance with actions
-    if (!this.kwamiInstance?.soul?.actions) {
+    if (!this.kwamiInstance?.actions) {
       return;
     }
 
     event.preventDefault();
     event.stopPropagation();
 
-    // Create context menu if not exists
-    if (!this.contextMenu) {
-      this.contextMenu = new ContextMenu({
-        onActionSelect: (actionId: string) => {
-          this.executeContextMenuAction(actionId);
-        },
-        getActions: () => {
-          return this.kwamiInstance.soul.actions.getContextMenuActions();
-        },
-        parentElement: this.canvas.parentElement || undefined,
-      });
+    const clickedOnBlob = this.isPointerOnBlob(event);
+
+    if (clickedOnBlob) {
+      if (!this.contextMenu) {
+        this.contextMenu = new ContextMenu({
+          onActionSelect: (actionId: string) => {
+            this.executeContextMenuAction(actionId);
+          },
+          getActions: () => {
+            return this.kwamiInstance.actions.getContextMenuActions();
+          },
+          parentElement: this.canvas.parentElement || undefined,
+        });
+      }
+      this.actionDashboard?.hide();
+      this.contextMenu.show(event.clientX, event.clientY);
+      return;
     }
 
-    // Use clientX/Y directly since menu uses position: fixed
-    // which is relative to the viewport
-    this.contextMenu.show(event.clientX, event.clientY);
+    // Show the futuristic dashboard for non-blob right-clicks
+    if (!this.actionDashboard && this.kwamiInstance?.actions) {
+      this.actionDashboard = new ActionDashboard(this.kwamiInstance.actions);
+    }
+
+    this.contextMenu?.hide();
+    this.actionDashboard?.show(event.clientX, event.clientY);
   };
 
   /**
    * Execute an action from the context menu
    */
   private async executeContextMenuAction(actionId: string): Promise<void> {
-    if (!this.kwamiInstance?.soul?.actions) {
+    if (!this.kwamiInstance?.actions) {
       return;
     }
 
     try {
-      const result = await this.kwamiInstance.soul.actions.executeAction(actionId, {
+      const result = await this.kwamiInstance.actions.executeAction(actionId, {
         context: {
           trigger: 'context-menu' as const,
         },
@@ -520,6 +538,18 @@ export class KwamiBody {
       this.contextMenu.dispose();
       this.contextMenu = null;
     }
+  }
+
+  /**
+   * Determine if a pointer event intersects with the blob mesh
+   */
+  private isPointerOnBlob(event: MouseEvent): boolean {
+    const rect = this.canvas.getBoundingClientRect();
+    this.pointerVector.x = ((event.clientX - rect.left) / rect.width) * 2 - 1;
+    this.pointerVector.y = -((event.clientY - rect.top) / rect.height) * 2 + 1;
+    this.pointerRaycaster.setFromCamera(this.pointerVector, this.camera);
+    const intersects = this.pointerRaycaster.intersectObject(this.blob.getMesh());
+    return intersects.length > 0;
   }
 
   /**
@@ -2207,6 +2237,11 @@ export class KwamiBody {
     if (this.resizeRafId !== null && typeof window !== 'undefined') {
       window.cancelAnimationFrame(this.resizeRafId);
       this.resizeRafId = null;
+    }
+
+    if (this.actionDashboard) {
+      this.actionDashboard.hide();
+      this.actionDashboard = null;
     }
 
     // Dispose context menu

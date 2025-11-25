@@ -10,7 +10,7 @@ import type {
   ActionTrigger,
   ActionCollection,
 } from './types';
-import { logger } from '../../../utils/logger';
+import { logger } from '../../utils/logger';
 import * as yaml from 'js-yaml';
 
 /**

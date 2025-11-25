@@ -285,6 +285,12 @@ html[dir="rtl"] .right-header {
   will-change: transform, opacity;
 }
 
+/* Page 00 - Empty section, blob takes full screen */
+.text-section.text-section-empty {
+  opacity: 1;
+  pointer-events: none;
+}
+
 .text-section.active {
   opacity: 1;
   pointer-events: auto;
@@ -608,6 +614,13 @@ html[dir="rtl"] .right-header {
   flex-direction: column;
   align-items: center;
   justify-content: center;
+  transition: width 0.8s ease, right 0.8s ease;
+}
+
+/* Page 00: Blob centered in full screen */
+.content-right.page-00 {
+  width: 100%;
+  right: 0;
 }
 
 /* Right Header with Emoji Buttons */

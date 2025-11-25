@@ -63,7 +63,7 @@ export class ScrollManager {
     this.sidebarNav.handleLanguageChange(language, animate);
   }
 
-  public updateBlobPosition(animated: boolean = true) {
+  public updateBlobPosition(animated: boolean = true, forceCenter: boolean = false) {
     if (!this.kwami) return;
 
     const blobMesh = this.kwami.body.blob.getMesh();
@@ -74,7 +74,11 @@ export class ScrollManager {
     let targetX: number;
     let targetY: number;
 
-    if (isMobile) {
+    // Page 00: Center the blob
+    if (forceCenter || this.currentSection === 0) {
+      targetX = 0;
+      targetY = 0;
+    } else if (isMobile) {
       targetX = 0;
       targetY = -9;
     } else {
@@ -106,7 +110,7 @@ export class ScrollManager {
       blobMesh.position.set(targetX, targetY, 0);
     }
 
-    console.log(`🎨 Blob position updated: x=${targetX.toFixed(1)}, y=${targetY.toFixed(1)} (${isRTL ? 'RTL' : 'LTR'})`);
+    console.log(`🎨 Blob position updated: x=${targetX.toFixed(1)}, y=${targetY.toFixed(1)} (${isRTL ? 'RTL' : 'LTR'}, section=${this.currentSection})`);
   }
 
   private async init() {
@@ -235,11 +239,26 @@ export class ScrollManager {
       this.sidebarNav.updateSphereColors(section);
       this.cursorLight.updateColors(palette);
       
+      // Update content-right class based on section
+      const contentRight = document.querySelector('.content-right');
+      if (contentRight) {
+        if (section === 0) {
+          contentRight.classList.add('page-00');
+        } else {
+          contentRight.classList.remove('page-00');
+        }
+      }
+      
+      // Update blob position (center on page 0)
+      this.updateBlobPosition(true);
+      
       // Load and play audio for the new page
       this.pageAudioManager.loadAndPlayPageAudio(section);
       
-      // Trigger text animation for the new page
-      animatePageSection(section);
+      // Trigger text animation for the new page (skip page 0 - no text)
+      if (section !== 0) {
+        animatePageSection(section);
+      }
     }
 
     this.addColorVariations(sectionProgress);
