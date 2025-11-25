@@ -655,7 +655,7 @@ export class ActionManager {
           
           // If no text provided, prompt the user
           if (!text && typeof window !== 'undefined') {
-            text = window.prompt('Enter text to speak:', 'Hello world');
+            text = window.prompt('Enter text to speak:', "Hello world! I'm Kwami your best companion in the upcoming metaverse");
             if (!text) {
               return {
                 success: false,
@@ -675,6 +675,11 @@ export class ActionManager {
             };
           }
 
+          // Set Kwami to speaking state for visual animation
+          if (this.kwami) {
+            this.kwami.setState('speaking');
+          }
+
           // Create speech utterance
           const utter = new SpeechSynthesisUtterance(text);
           utter.rate = rate;
@@ -689,10 +694,168 @@ export class ActionManager {
             }
           }
 
+          // Simulate speech frequency data for blob animation
+          // Since Speech Synthesis API doesn't provide audio stream access,
+          // we'll manually inject realistic frequency data into the animation loop
+          let animationFrameId: number | null = null;
+          let startTime = Date.now();
+          let lastUpdateTime = Date.now();
+          
+          const analyser = this.kwami?.body?.audio?.getAnalyser();
+          if (!analyser) {
+            logger.warn('No audio analyser available for TTS animation');
+          }
+          
+          // Store original method once before starting
+          if (analyser && !(analyser as any)._originalGetByteFrequencyData) {
+            const originalGetByteFrequencyData = analyser.getByteFrequencyData.bind(analyser);
+            (analyser as any)._originalGetByteFrequencyData = originalGetByteFrequencyData;
+          }
+          
+          const simulateSpeechFrequencies = () => {
+            if (!this.kwami?.body?.audio) return;
+            
+            const analyser = this.kwami.body.audio.getAnalyser();
+            if (!analyser || !(analyser as any)._originalGetByteFrequencyData) return;
+            
+            const now = Date.now();
+            const deltaTime = now - lastUpdateTime;
+            lastUpdateTime = now;
+            
+            const time = (now - startTime) / 1000; // Time in seconds
+            
+            // Create realistic speech-like frequency patterns
+            const frequencyData = new Uint8Array(analyser.frequencyBinCount);
+            
+            // Speech rhythm: alternating between vowels and consonants
+            // Slower, more natural rhythm
+            const syllableRate = 3.5 / rate; // syllables per second adjusted by rate
+            const syllablePhase = (time * syllableRate) % 1;
+            
+            // Vowel/consonant envelope (0 = consonant, 1 = vowel)
+            const isVowel = Math.sin(time * syllableRate * Math.PI * 2) * 0.5 + 0.5;
+            const vowelEnvelope = Math.pow(isVowel, 2); // Sharper transitions
+            
+            // Overall amplitude envelope with natural variations
+            const baseAmplitude = 0.6 + Math.sin(time * 0.8) * 0.2; // Slow variation
+            const microAmplitude = Math.sin(time * 6) * 0.15; // Faster variations
+            const amplitude = baseAmplitude + microAmplitude;
+            
+            // Simulate speech formants and patterns
+            for (let i = 0; i < frequencyData.length; i++) {
+              const freq = (i / frequencyData.length) * 11025; // Half of 22.05kHz
+              
+              let energy = 0;
+              
+              // During vowels, emphasize formants
+              if (vowelEnvelope > 0.3) {
+                // Formant frequencies (vary slightly over time for natural speech)
+                const f1 = 700 + Math.sin(time * 1.2) * 100;  // First formant
+                const f2 = 1220 + Math.sin(time * 1.7) * 150; // Second formant
+                const f3 = 2600 + Math.sin(time * 2.1) * 200; // Third formant
+                
+                // Formant 1 (low frequencies) - strongest
+                const dist1 = Math.abs(freq - f1);
+                if (dist1 < 400) {
+                  energy += (1 - dist1 / 400) * 100 * vowelEnvelope * amplitude;
+                }
+                
+                // Formant 2 (mid frequencies)
+                const dist2 = Math.abs(freq - f2);
+                if (dist2 < 500) {
+                  energy += (1 - dist2 / 500) * 85 * vowelEnvelope * amplitude;
+                }
+                
+                // Formant 3 (high frequencies)
+                const dist3 = Math.abs(freq - f3);
+                if (dist3 < 600) {
+                  energy += (1 - dist3 / 600) * 70 * vowelEnvelope * amplitude;
+                }
+              }
+              
+              // During consonants, add noise/burst in high frequencies
+              if (vowelEnvelope < 0.5) {
+                const consonantEnvelope = 1 - vowelEnvelope * 2;
+                if (freq > 2000) {
+                  energy += Math.random() * 50 * consonantEnvelope * amplitude;
+                }
+                // Burst at consonant onset
+                if (syllablePhase < 0.2) {
+                  energy += Math.random() * 40 * amplitude;
+                }
+              }
+              
+              // Add subtle breathiness across all frequencies
+              energy += Math.random() * 12 * amplitude;
+              
+              // Clamp to valid range
+              frequencyData[i] = Math.min(255, Math.max(0, energy));
+            }
+            
+            // Override getByteFrequencyData to inject our simulated data
+            (analyser as any)._simulatedData = frequencyData;
+            analyser.getByteFrequencyData = function(array: Uint8Array) {
+              if ((this as any)._simulatedData) {
+                array.set((this as any)._simulatedData);
+              } else {
+                (this as any)._originalGetByteFrequencyData(array);
+              }
+            };
+            
+            // Continue animation
+            animationFrameId = requestAnimationFrame(simulateSpeechFrequencies);
+          };
+          
+          // Start simulation
+          if (analyser) {
+            simulateSpeechFrequencies();
+          }
+
           // Create a promise to track speech completion
           await new Promise<void>((resolve, reject) => {
-            utter.onend = () => resolve();
-            utter.onerror = (event) => reject(new Error(`Speech synthesis error: ${event.error}`));
+            utter.onend = () => {
+              // Stop frequency simulation
+              if (animationFrameId !== null) {
+                cancelAnimationFrame(animationFrameId);
+              }
+              
+              // Restore original getByteFrequencyData method
+              const analyser = this.kwami?.body?.audio?.getAnalyser();
+              if (analyser && (analyser as any)._originalGetByteFrequencyData) {
+                analyser.getByteFrequencyData = (analyser as any)._originalGetByteFrequencyData;
+                delete (analyser as any)._simulatedData;
+                delete (analyser as any)._originalGetByteFrequencyData;
+              }
+              
+              // Return to idle state
+              if (this.kwami) {
+                this.kwami.setState('idle');
+              }
+              
+              resolve();
+            };
+            
+            utter.onerror = (event) => {
+              // Stop frequency simulation on error
+              if (animationFrameId !== null) {
+                cancelAnimationFrame(animationFrameId);
+              }
+              
+              // Restore original getByteFrequencyData method
+              const analyser = this.kwami?.body?.audio?.getAnalyser();
+              if (analyser && (analyser as any)._originalGetByteFrequencyData) {
+                analyser.getByteFrequencyData = (analyser as any)._originalGetByteFrequencyData;
+                delete (analyser as any)._simulatedData;
+                delete (analyser as any)._originalGetByteFrequencyData;
+              }
+              
+              if (this.kwami) {
+                this.kwami.setState('idle');
+              }
+              
+              reject(new Error(`Speech synthesis error: ${event.error}`));
+            };
+            
             window.speechSynthesis.speak(utter);
           });
 
@@ -705,6 +868,12 @@ export class ActionManager {
           };
         } catch (error: any) {
           logger.error('❌ textToSpeech failed:', error);
+          
+          // Ensure we return to idle state on error
+          if (this.kwami) {
+            this.kwami.setState('idle');
+          }
+          
           return {
             success: false,
             actionId: 'mind.textToSpeech',

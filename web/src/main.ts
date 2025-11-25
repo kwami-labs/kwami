@@ -16,6 +16,7 @@ import { initPerformanceOptimizer } from './performance';
 import { ScrollManager } from './managers/ScrollManager';
 import { ModeSwitcher } from './managers/ModeSwitcher';
 import { ActionButtonManager } from './managers/ActionButtonManager';
+import { HeaderMenuManager } from './managers/HeaderMenuManager';
 import { playRandomMusic } from './media/MusicPlayer';
 import { playRandomVoiceClip, toggleVoicePlayback, stopVoicePlayback } from './media/VoicePlayer';
 import { playRandomVideo, stopVideoPlayback, toggleVideoPresentation } from './media/VideoPlayer';
@@ -192,6 +193,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
   initLanguageSwitcher();
   initThemeToggle();
+  new HeaderMenuManager();
   updatePageTranslations();
 
   const loadTime = performance.now() - startTime;

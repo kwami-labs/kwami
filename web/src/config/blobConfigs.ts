@@ -12,6 +12,10 @@ export interface BlobConfig {
   timeX: number;
   timeY: number;
   timeZ: number;
+  skin?: string;
+  resolution?: number;
+  wireframe?: boolean;
+  colorPalette?: string[];
 }
 
 // Load blob configurations from kwamis.json
@@ -21,6 +25,10 @@ export const BLOB_CONFIGS: BlobConfig[] = kwamiConfigs.map(config => ({
   spikeZ: config.spikes.z,
   timeX: config.time.x,
   timeY: config.time.y,
-  timeZ: config.time.z
+  timeZ: config.time.z,
+  skin: config.skin,
+  resolution: config.resolution,
+  wireframe: config.wireframe,
+  colorPalette: config.colorPalette
 }));
 

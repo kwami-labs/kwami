@@ -684,6 +684,123 @@ html[dir="rtl"] .right-header {
   }
 }
 
+/* Hamburger Menu Button */
+.hamburger-menu-btn {
+  width: 36px;
+  height: 36px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(10, 10, 10, 0.4);
+  backdrop-filter: blur(20px) saturate(180%);
+  -webkit-backdrop-filter: blur(20px) saturate(180%);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 12px;
+  cursor: pointer;
+  transition: all 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.4);
+  opacity: 1;
+  padding: 0;
+}
+
+.hamburger-menu-btn:hover {
+  background: rgba(255, 255, 255, 0.12);
+  border-color: rgba(255, 255, 255, 0.2);
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.5),
+              0 0 25px var(--color-primary);
+}
+
+.hamburger-menu-btn:active {
+  transform: translateY(0px);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.4);
+}
+
+.hamburger-icon {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  width: 18px;
+  height: 14px;
+  justify-content: center;
+  align-items: center;
+}
+
+.hamburger-line {
+  width: 100%;
+  height: 2px;
+  background: currentColor;
+  border-radius: 2px;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  color: rgba(255, 255, 255, 0.9);
+}
+
+.hamburger-menu-btn.active .hamburger-line:nth-child(1) {
+  transform: translateY(5px) rotate(45deg);
+}
+
+.hamburger-menu-btn.active .hamburger-line:nth-child(2) {
+  opacity: 0;
+  transform: scaleX(0);
+}
+
+.hamburger-menu-btn.active .hamburger-line:nth-child(3) {
+  transform: translateY(-5px) rotate(-45deg);
+}
+
+/* Header buttons visibility toggle */
+.right-header > *:not(.hamburger-menu-btn) {
+  transition: all 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Opening animation: right to left (candy first, lang last) */
+.right-header > .header-btn:nth-last-child(2) {
+  transition-delay: 0s;
+}
+
+.right-header > .header-btn:nth-last-child(3) {
+  transition-delay: 0.05s;
+}
+
+.right-header > .header-btn:nth-last-child(4) {
+  transition-delay: 0.1s;
+}
+
+.right-header > .header-theme-toggle {
+  transition-delay: 0.15s;
+}
+
+.right-header > .language-switcher {
+  transition-delay: 0.2s;
+}
+
+.header-hidden {
+  opacity: 0 !important;
+  pointer-events: none !important;
+  transform: translateX(-20px) !important;
+}
+
+/* Closing animation: also right to left (candy first, lang last) */
+.right-header > .header-btn:nth-last-child(2).header-hidden {
+  transition-delay: 0s;
+}
+
+.right-header > .header-btn:nth-last-child(3).header-hidden {
+  transition-delay: 0.05s;
+}
+
+.right-header > .header-btn:nth-last-child(4).header-hidden {
+  transition-delay: 0.1s;
+}
+
+.right-header > .header-theme-toggle.header-hidden {
+  transition-delay: 0.15s;
+}
+
+.right-header > .language-switcher.header-hidden {
+  transition-delay: 0.2s;
+}
+
 /* Bottom Tabs (Voice, Music, Video) */
 .bottom-tabs {
   position: fixed;
@@ -900,6 +1017,12 @@ html[dir="rtl"] .right-header {
     border-radius: 11px;
   }
 
+  .hamburger-menu-btn {
+    width: 40px;
+    height: 40px;
+    border-radius: 11px;
+  }
+
   #kwami-container {
     width: 100%;
     height: 100%;
@@ -999,6 +1122,13 @@ html[dir="rtl"] .right-header {
     width: 38px;
     height: 38px;
     font-size: 19px;
+    border-radius: 10px;
+    background: rgba(10, 10, 10, 0.7);
+  }
+
+  .hamburger-menu-btn {
+    width: 38px;
+    height: 38px;
     border-radius: 10px;
     background: rgba(10, 10, 10, 0.7);
   }
@@ -1581,6 +1711,23 @@ body.light-mode .lang-btn:hover {
   border-color: rgba(0, 0, 0, 0.2);
   box-shadow: 0 6px 20px rgba(0, 0, 0, 0.15),
               0 0 25px var(--color-primary);
+}
+
+body.light-mode .hamburger-menu-btn {
+  background: rgba(245, 245, 245, 0.6);
+  border: 1px solid rgba(0, 0, 0, 0.08);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+body.light-mode .hamburger-menu-btn:hover {
+  background: rgba(255, 255, 255, 0.9);
+  border-color: rgba(0, 0, 0, 0.2);
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.15),
+              0 0 25px var(--color-primary);
+}
+
+body.light-mode .hamburger-line {
+  color: rgba(0, 0, 0, 0.85);
 }
 
 body.light-mode .lang-menu {

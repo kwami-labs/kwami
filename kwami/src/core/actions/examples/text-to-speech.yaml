@@ -1,0 +1,143 @@
+id: kwami-text-to-speech-example
+name: Text to Speech Examples
+description: Examples of using the native browser Speech Synthesis API
+version: 1.0.0
+author: Kwami Team
+
+actions:
+  - id: tts-hello-world
+    name: Say Hello World
+    description: Speak "Hello world" using default settings
+    category: mind
+    version: 1.0.0
+    tags: [speech, tts, demo]
+    enabled: true
+    triggers: [context-menu, api]
+    parameters:
+      - name: text
+        type: string
+        default: Hello world! I'm Kwami your best companion in the upcoming metaverse
+    handler: mind.textToSpeech
+    ui:
+      showInContextMenu: true
+      menuLabel: 🔊 Say Hello World
+      menuOrder: 100
+      menuGroup: speech-examples
+    mindAction:
+      type: speak
+
+  - id: tts-fast-speech
+    name: Fast Speech
+    description: Speak with increased speed (rate = 2)
+    category: mind
+    version: 1.0.0
+    tags: [speech, tts, fast]
+    enabled: true
+    triggers: [context-menu, api]
+    parameters:
+      - name: text
+        type: string
+        default: This is a fast speech example
+      - name: rate
+        type: number
+        default: 2
+    handler: mind.textToSpeech
+    ui:
+      showInContextMenu: true
+      menuLabel: ⚡ Fast Speech
+      menuOrder: 101
+      menuGroup: speech-examples
+    mindAction:
+      type: speak
+
+  - id: tts-slow-speech
+    name: Slow Speech
+    description: Speak with decreased speed (rate = 0.5)
+    category: mind
+    version: 1.0.0
+    tags: [speech, tts, slow]
+    enabled: true
+    triggers: [context-menu, api]
+    parameters:
+      - name: text
+        type: string
+        default: This is a slow speech example
+      - name: rate
+        type: number
+        default: 0.5
+    handler: mind.textToSpeech
+    ui:
+      showInContextMenu: true
+      menuLabel: 🐌 Slow Speech
+      menuOrder: 102
+      menuGroup: speech-examples
+    mindAction:
+      type: speak
+
+  - id: tts-high-pitch
+    name: High Pitch Speech
+    description: Speak with high pitch (pitch = 2)
+    category: mind
+    version: 1.0.0
+    tags: [speech, tts, pitch]
+    enabled: true
+    triggers: [context-menu, api]
+    parameters:
+      - name: text
+        type: string
+        default: This is a high pitch example
+      - name: pitch
+        type: number
+        default: 2
+    handler: mind.textToSpeech
+    ui:
+      showInContextMenu: true
+      menuLabel: 🎵 High Pitch
+      menuOrder: 103
+      menuGroup: speech-examples
+    mindAction:
+      type: speak
+
+  - id: tts-low-pitch
+    name: Low Pitch Speech
+    description: Speak with low pitch (pitch = 0.5)
+    category: mind
+    version: 1.0.0
+    tags: [speech, tts, pitch]
+    enabled: true
+    triggers: [context-menu, api]
+    parameters:
+      - name: text
+        type: string
+        default: This is a low pitch example
+      - name: pitch
+        type: number
+        default: 0.5
+    handler: mind.textToSpeech
+    ui:
+      showInContextMenu: true
+      menuLabel: 📢 Low Pitch
+      menuOrder: 104
+      menuGroup: speech-examples
+    mindAction:
+      type: speak
+
+  - id: tts-custom-text
+    name: Custom Text to Speech
+    description: Prompt user for custom text to speak
+    category: mind
+    version: 1.0.0
+    tags: [speech, tts, custom]
+    enabled: true
+    triggers: [context-menu, api, voice-command]
+    shortcuts:
+      voice: [speak, say something, talk to me]
+    handler: mind.textToSpeech
+    ui:
+      showInContextMenu: true
+      menuLabel: 💬 Speak Custom Text
+      menuOrder: 105
+      menuGroup: speech-examples
+    mindAction:
+      type: speak
+

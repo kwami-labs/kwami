@@ -141,13 +141,13 @@ export class ScrollManager {
 
       this.kwami = new Kwami(canvas, {
         body: {
-          initialSkin: config.skin as 'Donut' | 'Poles' | 'Vintage',
+          initialSkin: (config.skin || 'Donut') as 'Donut' | 'Poles' | 'Vintage',
           blob: {
-            resolution: config.resolution,
+            resolution: config.resolution || 180,
             spikes: { x: config.spikeX, y: config.spikeY, z: config.spikeZ },
             time: { x: config.timeX, y: config.timeY, z: config.timeZ },
             rotation: { x: 0, y: 0, z: 0 },
-            wireframe: config.wireframe,
+            wireframe: config.wireframe || false,
             colors: {
               x: palette.primary,
               y: palette.accent,
@@ -279,6 +279,20 @@ export class ScrollManager {
   }
 
   private getPaletteForSection(section: number): ColorPalette {
+    // Get color palette from kwamis.json config
+    const config = blobConfigs[section % blobConfigs.length];
+    
+    // Check if config has colorPalette property
+    if ((config as any).colorPalette && Array.isArray((config as any).colorPalette)) {
+      const colors = (config as any).colorPalette;
+      return {
+        primary: colors[0] || '#ffffff',
+        secondary: colors[1] || '#000000',
+        accent: colors[2] || '#808080'
+      };
+    }
+    
+    // Fallback to color palettes array
     if (section === 0) {
       return {
         primary: '#ffffff',
@@ -301,14 +315,12 @@ export class ScrollManager {
 
     this.isTransitioning = true;
     const config = blobConfigs[section % blobConfigs.length];
-    const palette = section === 0
-      ? { primary: '#4a4a4a', secondary: '#6a6a6a', accent: '#2a2a2a' }
-      : colorPalettes[section % colorPalettes.length];
+    const palette = this.getPaletteForSection(section);
 
     try {
       this.kwami.body.blob.setSpikes(config.spikeX, config.spikeY, config.spikeZ);
       this.kwami.body.blob.setTime(config.timeX, config.timeY, config.timeZ);
-      this.kwami.body.blob.setColors(palette.primary, palette.secondary, palette.accent);
+      this.kwami.body.blob.setColors(palette.primary, palette.accent, palette.secondary);
 
       const isMobile = window.innerWidth <= MOBILE_BREAKPOINT;
       if (isMobile) {

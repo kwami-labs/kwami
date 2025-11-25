@@ -3,7 +3,7 @@ import { resolve } from 'path';
 import { visualizer } from 'rollup-plugin-visualizer';
 
 export default defineConfig({
-  assetsInclude: ['**/*.glsl', '**/*.mp3', '**/*.mp4', '**/*.wav', '**/*.flac'],
+  assetsInclude: ['**/*.glsl', '**/*.yaml', '**/*.mp3', '**/*.mp4', '**/*.wav', '**/*.flac'],
   resolve: {
     alias: {
       'kwami': resolve(__dirname, '../kwami/index.ts')
@@ -16,6 +16,9 @@ export default defineConfig({
   server: {
     fs: {
       allow: ['..']
+    },
+    hmr: {
+      overlay: false
     }
   },
   build: {

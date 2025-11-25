@@ -24,6 +24,7 @@
     "resolution": 180,
     "wireframe": false,
     "shininess": 0.5,
+    "transparency": 0.5,
     "scene": {
       "cameraPosition": {
         "x": 0,

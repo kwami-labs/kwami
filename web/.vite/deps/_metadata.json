@@ -1,0 +1,70 @@
+{
+  "hash": "a195544d",
+  "configHash": "daf76f06",
+  "lockfileHash": "b4ce97ad",
+  "browserHash": "efc6a5ab",
+  "optimized": {
+    "i18next": {
+      "src": "../../../node_modules/i18next/dist/esm/i18next.js",
+      "file": "i18next.js",
+      "fileHash": "69cc8843",
+      "needsInterop": false
+    },
+    "i18next-browser-languagedetector": {
+      "src": "../../../node_modules/i18next-browser-languagedetector/dist/esm/i18nextBrowserLanguageDetector.js",
+      "file": "i18next-browser-languagedetector.js",
+      "fileHash": "c996b3ec",
+      "needsInterop": false
+    },
+    "gsap": {
+      "src": "../../../node_modules/gsap/index.js",
+      "file": "gsap.js",
+      "fileHash": "6b585939",
+      "needsInterop": false
+    },
+    "three": {
+      "src": "../../../node_modules/three/build/three.module.js",
+      "file": "three.js",
+      "fileHash": "5de5a52d",
+      "needsInterop": false
+    },
+    "js-yaml": {
+      "src": "../../../node_modules/js-yaml/dist/js-yaml.mjs",
+      "file": "js-yaml.js",
+      "fileHash": "4abfe25f",
+      "needsInterop": false
+    },
+    "three/examples/jsm/exporters/GLTFExporter.js": {
+      "src": "../../../node_modules/three/examples/jsm/exporters/GLTFExporter.js",
+      "file": "three_examples_jsm_exporters_GLTFExporter__js.js",
+      "fileHash": "ab79e22d",
+      "needsInterop": false
+    },
+    "three/examples/jsm/controls/OrbitControls.js": {
+      "src": "../../../node_modules/three/examples/jsm/controls/OrbitControls.js",
+      "file": "three_examples_jsm_controls_OrbitControls__js.js",
+      "fileHash": "3630930e",
+      "needsInterop": false
+    },
+    "simplex-noise": {
+      "src": "../../../node_modules/simplex-noise/dist/esm/simplex-noise.js",
+      "file": "simplex-noise.js",
+      "fileHash": "0ad844f0",
+      "needsInterop": false
+    },
+    "@elevenlabs/elevenlabs-js": {
+      "src": "../../../node_modules/@elevenlabs/elevenlabs-js/index.js",
+      "file": "@elevenlabs_elevenlabs-js.js",
+      "fileHash": "8144526a",
+      "needsInterop": true
+    }
+  },
+  "chunks": {
+    "chunk-JIBKNJ7B": {
+      "file": "chunk-JIBKNJ7B.js"
+    },
+    "chunk-BUSYA2B4": {
+      "file": "chunk-BUSYA2B4.js"
+    }
+  }
+}
