@@ -28,6 +28,7 @@ import type {
   MindProviderType,
 } from '../../types';
 import type { KwamiAudio } from '../body/Audio';
+import { logger } from '../../utils/logger';
 import { createMindProvider } from './providers/factory';
 import type { MindConversationCallbacks, MindProvider } from './providers/types';
 
@@ -204,7 +205,7 @@ export class KwamiMind {
     characterLimit?: number;
     remaining?: number;
   }> {
-    console.log('Usage tracking is provider-specific and not implemented yet.');
+    logger.info('Usage tracking is provider-specific and not implemented yet.');
     return {
       charactersUsed: 0,
       characterLimit: 0,

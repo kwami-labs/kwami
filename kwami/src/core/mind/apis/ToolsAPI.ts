@@ -6,6 +6,7 @@
  */
 
 import type { ToolParameter as ToolParameterBase } from '../../../types/elevenlabs-agents';
+import { logger } from '../../../utils/logger';
 
 export type ToolParameter = ToolParameterBase;
 
@@ -73,7 +74,7 @@ export class ToolsAPI {
    * Create a new tool
    */
   async createTool(request: CreateToolRequest): Promise<ToolResponse> {
-    console.log('📝 Creating new tool:', request.name);
+    logger.info('📝 Creating new tool:', request.name);
 
     const response = await fetch('https://api.elevenlabs.io/v1/convai/tools/create', {
       method: 'POST',
@@ -90,7 +91,7 @@ export class ToolsAPI {
     }
 
     const data = await response.json();
-    console.log('✅ Tool created:', data.tool_id);
+    logger.info('✅ Tool created:', data.tool_id);
     return data as ToolResponse;
   }
 
@@ -98,7 +99,7 @@ export class ToolsAPI {
    * Get a tool by ID
    */
   async getTool(toolId: string): Promise<ToolResponse> {
-    console.log('🔍 Fetching tool:', toolId);
+    logger.info('🔍 Fetching tool:', toolId);
 
     const response = await fetch(`https://api.elevenlabs.io/v1/convai/tools/${toolId}`, {
       headers: {
@@ -118,7 +119,7 @@ export class ToolsAPI {
    * List all tools
    */
   async listTools(options?: ListToolsOptions): Promise<ListToolsResponse> {
-    console.log('📋 Listing tools...');
+    logger.info('📋 Listing tools...');
 
     const queryParams = new URLSearchParams();
     if (options?.page_size) queryParams.append('page_size', options.page_size.toString());
@@ -144,7 +145,7 @@ export class ToolsAPI {
    * Update an existing tool
    */
   async updateTool(toolId: string, request: UpdateToolRequest): Promise<ToolResponse> {
-    console.log('✏️ Updating tool:', toolId);
+    logger.info('✏️ Updating tool:', toolId);
 
     const response = await fetch(`https://api.elevenlabs.io/v1/convai/tools/${toolId}`, {
       method: 'PATCH',
@@ -161,7 +162,7 @@ export class ToolsAPI {
     }
 
     const data = await response.json();
-    console.log('✅ Tool updated successfully');
+    logger.info('✅ Tool updated successfully');
     return data as ToolResponse;
   }
 
@@ -169,7 +170,7 @@ export class ToolsAPI {
    * Delete a tool
    */
   async deleteTool(toolId: string): Promise<void> {
-    console.log('🗑️ Deleting tool:', toolId);
+    logger.info('🗑️ Deleting tool:', toolId);
 
     const response = await fetch(`https://api.elevenlabs.io/v1/convai/tools/${toolId}`, {
       method: 'DELETE',
@@ -183,14 +184,14 @@ export class ToolsAPI {
       throw new Error(`Failed to delete tool: ${error}`);
     }
 
-    console.log('✅ Tool deleted successfully');
+    logger.info('✅ Tool deleted successfully');
   }
 
   /**
    * Get dependent agents (which agents use this tool)
    */
   async getDependentAgents(toolId: string): Promise<{ agent_ids: string[] }> {
-    console.log('🔗 Fetching dependent agents for tool:', toolId);
+    logger.info('🔗 Fetching dependent agents for tool:', toolId);
 
     const response = await fetch(`https://api.elevenlabs.io/v1/convai/tools/${toolId}/dependent-agents`, {
       headers: {

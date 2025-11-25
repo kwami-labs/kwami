@@ -22,7 +22,10 @@ import {
 import { KwamiAudio } from './Audio';
 import { Blob } from './blob/Blob.js';
 import { Scene } from './scene/Scene.js';
+import { ContextMenu } from './ContextMenu';
 import type { BackgroundMediaFit, BodyConfig, BlobSkinType, SceneBackgroundConfig } from '../../types/index';
+import { isYouTubeUrl, createYouTubeIframe } from '../utils/YouTubeHelper';
+import { logger } from '../../utils/logger';
 
 type BackgroundDirection = 'vertical' | 'horizontal' | 'radial' | 'diagonal';
 type BlobImageMode = 'none' | 'overlay' | 'glass';
@@ -140,6 +143,13 @@ export class KwamiBody {
   private readonly textureLoader = new TextureLoader();
   private backgroundState: BackgroundState = { ...DEFAULT_BACKGROUND_STATE };
   private backgroundMediaState: BackgroundMediaState | null = null;
+  // YouTube iframe support
+  private youtubeIframe: HTMLIFrameElement | null = null;
+  private youtubeContainer: HTMLDivElement | null = null;
+  
+  // Context menu support
+  private contextMenu: ContextMenu | null = null;
+  private kwamiInstance: any = null; // Reference to parent Kwami instance
 
   public audio: KwamiAudio;
   public blob: Blob;
@@ -183,6 +193,16 @@ export class KwamiBody {
     } else {
       this.applyBackgroundState();
     }
+    
+    // Setup context menu (will be enabled after Kwami instance is set)
+    this.setupContextMenu();
+  }
+  
+  /**
+   * Set the parent Kwami instance (needed for context menu actions)
+   */
+  setKwamiInstance(kwami: any): void {
+    this.kwamiInstance = kwami;
   }
 
   /**
@@ -425,6 +445,84 @@ export class KwamiBody {
   }
 
   /**
+   * Setup context menu for right-click on the blob
+   */
+  private setupContextMenu(): void {
+    this.canvas.addEventListener('contextmenu', this.handleContextMenu);
+  }
+
+  /**
+   * Handle right-click on canvas
+   */
+  private handleContextMenu = (event: MouseEvent): void => {
+    // Only show context menu if we have a Kwami instance with actions
+    if (!this.kwamiInstance?.soul?.actions) {
+      return;
+    }
+
+    event.preventDefault();
+    event.stopPropagation();
+
+    // Create context menu if not exists
+    if (!this.contextMenu) {
+      this.contextMenu = new ContextMenu({
+        onActionSelect: (actionId: string) => {
+          this.executeContextMenuAction(actionId);
+        },
+        getActions: () => {
+          return this.kwamiInstance.soul.actions.getContextMenuActions();
+        },
+        parentElement: this.canvas.parentElement || undefined,
+      });
+    }
+
+    // Use clientX/Y directly since menu uses position: fixed
+    // which is relative to the viewport
+    this.contextMenu.show(event.clientX, event.clientY);
+  };
+
+  /**
+   * Execute an action from the context menu
+   */
+  private async executeContextMenuAction(actionId: string): Promise<void> {
+    if (!this.kwamiInstance?.soul?.actions) {
+      return;
+    }
+
+    try {
+      const result = await this.kwamiInstance.soul.actions.executeAction(actionId, {
+        context: {
+          trigger: 'context-menu' as const,
+        },
+      });
+
+      if (!result.success) {
+        logger.error(`Action '${actionId}' failed:`, result.error);
+      }
+    } catch (error) {
+      logger.error(`Failed to execute action '${actionId}':`, error);
+    }
+  }
+
+  /**
+   * Enable context menu on the blob
+   */
+  enableContextMenu(): void {
+    this.setupContextMenu();
+  }
+
+  /**
+   * Disable context menu on the blob
+   */
+  disableContextMenu(): void {
+    this.canvas.removeEventListener('contextmenu', this.handleContextMenu);
+    if (this.contextMenu) {
+      this.contextMenu.dispose();
+      this.contextMenu = null;
+    }
+  }
+
+  /**
    * Enable click interaction on the blob
    * Click to create liquid-like touch effects
    * Double-click triggers conversation if callback is set
@@ -613,6 +711,7 @@ export class KwamiBody {
   clearBackgroundMedia(): void {
     this.backgroundMediaState = null;
     this.disposeBackgroundMediaPlane();
+    this.disposeYouTubeBackground();
     this.backgroundMediaAspect = null;
     this.backgroundMediaFit = 'cover';
     this.applyBackgroundState();
@@ -1547,7 +1646,7 @@ export class KwamiBody {
       undefined,
       (error) => {
         if (this.currentMediaImageUrl === url) {
-          console.error('Failed to load background image:', error);
+          logger.error('Failed to load background image:', error);
           if (this.backgroundMediaTexture) {
             this.backgroundMediaTexture.dispose();
             this.backgroundMediaTexture = null;
@@ -1572,6 +1671,12 @@ export class KwamiBody {
   private setupVideoBackground(mediaState: BackgroundMediaState, material: MeshBasicMaterial): void {
     const url = mediaState.videoUrl;
     if (!url) return;
+
+    // Check if it's a YouTube URL
+    if (isYouTubeUrl(url)) {
+      this.setupYouTubeBackground(url, mediaState);
+      return;
+    }
 
     this.backgroundMediaFit = mediaState.videoFit ?? 'cover';
 
@@ -1668,7 +1773,7 @@ export class KwamiBody {
 
     const handleError = (event: Event) => {
       if (this.currentVideoUrl === url) {
-        console.error('Failed to load background video:', event);
+        logger.error('Failed to load background video:', event);
         this.disposeVideoBackground();
         material.map = null;
         material.needsUpdate = true;
@@ -1750,6 +1855,103 @@ export class KwamiBody {
       return video.videoWidth / video.videoHeight;
     }
     return null;
+  }
+
+  /**
+   * Setup YouTube video as background using iframe
+   * @private
+   */
+  private setupYouTubeBackground(url: string, mediaState: BackgroundMediaState): void {
+    // Clean up any existing YouTube iframe
+    this.disposeYouTubeBackground();
+
+    // Create container for YouTube iframe
+    const container = document.createElement('div');
+    container.style.position = 'fixed';
+    container.style.top = '0';
+    container.style.left = '0';
+    container.style.width = '100vw';
+    container.style.height = '100vh';
+    container.style.zIndex = '0';
+    container.style.pointerEvents = 'none';
+    container.style.overflow = 'hidden';
+    container.style.backgroundColor = '#000';
+
+    // Create YouTube iframe
+    const iframe = createYouTubeIframe(url, {
+      autoplay: mediaState.videoAutoplay ?? true,
+      mute: mediaState.videoMuted ?? true,
+      loop: mediaState.videoLoop ?? true,
+      controls: false,
+    });
+
+    if (!iframe) {
+      logger.error('Failed to create YouTube iframe for URL:', url);
+      if (mediaState.onError) {
+        mediaState.onError(new Error('Failed to create YouTube iframe'));
+      }
+      return;
+    }
+
+    // Style iframe to cover the entire viewport
+    iframe.style.position = 'absolute';
+    iframe.style.top = '50%';
+    iframe.style.left = '50%';
+    iframe.style.transform = 'translate(-50%, -50%)';
+    iframe.style.minWidth = '100%';
+    iframe.style.minHeight = '100%';
+    iframe.style.width = '100vw';
+    iframe.style.height = '56.25vw'; // 16:9 aspect ratio
+    
+    // For vertical screens, use height-based sizing
+    if (window.innerHeight > window.innerWidth) {
+      iframe.style.width = '177.78vh'; // 16:9 aspect ratio
+      iframe.style.height = '100vh';
+    }
+
+    container.appendChild(iframe);
+    
+    // Insert container into body (before canvas)
+    document.body.insertBefore(container, document.body.firstChild);
+
+    this.youtubeContainer = container;
+    this.youtubeIframe = iframe;
+    this.currentVideoUrl = url;
+
+    // Make canvas background transparent and ensure it's above the iframe
+    this.renderer.setClearAlpha(0);
+    this.canvas.style.position = 'fixed';
+    this.canvas.style.zIndex = '1';
+    this.canvas.style.pointerEvents = 'auto';
+
+    logger.info('🎥 YouTube video background setup:', url);
+
+    // Call onLoad callback after a short delay (iframe needs time to load)
+    setTimeout(() => {
+      if (this.backgroundMediaState?.onLoad) {
+        this.backgroundMediaState.onLoad();
+      }
+    }, 1000);
+  }
+
+  /**
+   * Dispose YouTube background iframe
+   * @private
+   */
+  private disposeYouTubeBackground(): void {
+    if (this.youtubeIframe) {
+      this.youtubeIframe.remove();
+      this.youtubeIframe = null;
+    }
+
+    if (this.youtubeContainer) {
+      this.youtubeContainer.remove();
+      this.youtubeContainer = null;
+    }
+
+    // Restore canvas opacity and reset styles
+    this.renderer.setClearAlpha(1);
+    this.canvas.style.zIndex = '';
   }
 
   /**
@@ -2006,6 +2208,13 @@ export class KwamiBody {
       window.cancelAnimationFrame(this.resizeRafId);
       this.resizeRafId = null;
     }
+
+    // Dispose context menu
+    if (this.contextMenu) {
+      this.contextMenu.dispose();
+      this.contextMenu = null;
+    }
+    this.canvas.removeEventListener('contextmenu', this.handleContextMenu);
 
     this.blobImageMode = 'none';
     this.blob.setGlassMode(false);

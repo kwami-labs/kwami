@@ -9,6 +9,8 @@
  * Part of the Kwami core library for consistent media handling across the application.
  */
 
+import { logger } from '../../utils/logger';
+
 export type MediaType = 'image' | 'video' | 'audio';
 
 export interface MediaLoadOptions {
@@ -152,11 +154,11 @@ export class MediaLoader {
         const validation = await this.validateURLByHeaders(url, options.type);
         if (!validation.valid) {
           // If HEAD request fails, still allow it but warn
-          console.warn(`Could not validate URL headers: ${validation.error}`);
+          logger.warn(`Could not validate URL headers: ${validation.error}`);
         }
       } catch (e) {
         // HEAD request failed, but we'll still try to use the URL
-        console.warn('HEAD request failed, using URL anyway');
+        logger.warn('HEAD request failed, using URL anyway');
       }
 
       // Call onLoad callback

@@ -3,7 +3,7 @@
  * Provides offline support and caching for better performance
  */
 
-const CACHE_NAME = 'kwami-v1.5.8-clean-ui';
+const CACHE_NAME = 'kwami-v1.5.8';
 const STATIC_CACHE = 'kwami-static-v2';
 const DYNAMIC_CACHE = 'kwami-dynamic-v2';
 

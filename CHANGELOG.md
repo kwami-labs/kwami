@@ -4,6 +4,195 @@ All notable changes to the KWAMI ecosystem will be documented in this file.
 
 For detailed core library changes, see [kwami/CHANGELOG.md](./kwami/CHANGELOG.md).
 
+## [1.5.9] - 2025-11-22
+
+### 🎯 Action System - Major Feature Addition
+
+#### Added
+- **Professional Action System**: Comprehensive action management system integrated into Soul component
+  - **ActionManager**: Core action registration, execution, and management
+  - **MCP-Compatible**: Model Context Protocol support for AI agent integration
+  - **Multiple Trigger Types**: Context menu, keyboard shortcuts, voice commands, API calls, time-based, event-driven
+  - **Configuration Support**: Load actions from JSON/YAML files, URLs, or inline strings
+  - **Hot-Reload**: Dynamic action updates without restart
+  - **Type-Safe**: Full TypeScript support with comprehensive type definitions
+  - **Action Categories**: body, mind, soul, integration, system
+  - **Execution History**: Track and query action execution history
+  - **Statistics**: Action usage statistics and analytics
+
+- **Context Menu UI**: Beautiful glassmorphic right-click context menu
+  - Grouped actions by category
+  - Icon support for visual identification
+  - Smart positioning (avoids screen edges)
+  - Smooth animations and hover effects
+  - Branded footer with "✨ Kwami Actions"
+  - Enable/disable via API
+
+- **Built-in Actions**: Pre-configured actions out-of-the-box
+  - `change-blob-opacity` - Adjust blob transparency
+  - `randomize-blob` - Randomize blob appearance
+  - `randomize-background` - Randomize background gradient
+  - `change-blob-scale` - Adjust blob size
+
+- **Action Examples**: Example configurations for future integrations
+  - Instagram post action (YAML)
+  - WhatsApp reply action (YAML)
+  - Basic actions collection (JSON)
+
+- **Documentation**: Comprehensive action system documentation
+  - `ACTION_SYSTEM_IMPLEMENTATION.md` - Complete implementation guide
+  - `ARCHITECTURE.md` - System architecture documentation
+  - `QUICK_START.md` - Quick start guide
+  - `README.md` - Action system overview
+
+### 🎥 YouTube Integration
+
+#### Added
+- **YouTube Connector**: Secure YouTube integration for Kwami
+  - OAuth 2.0 authentication with Google
+  - Access authenticated user's videos and playlists
+  - Public video search (no authentication required)
+  - Video embedding with customizable options
+  - Full TypeScript support
+  - Located in `kwami/src/apps/youtube/`
+
+- **YouTube Helper Utilities**: Core utilities for YouTube URL handling
+  - Extract video ID from various YouTube URL formats
+  - Convert URLs to embed URLs with options (autoplay, loop, controls, etc.)
+  - YouTube URL detection and validation
+  - Create YouTube iframe elements programmatically
+  - Located in `kwami/src/core/utils/YouTubeHelper.ts`
+
+- **Body Component YouTube Support**: Native YouTube video background support
+  - Set YouTube videos as background using iframe
+  - Automatic URL detection and conversion
+  - Proper cleanup and disposal
+  - Integration with existing media state management
+
+### 🛠️ Core Library Enhancements
+
+#### Added
+- **Logger Utility**: Configurable logging system
+  - Log levels: NOLOGS, ERROR, WARNING, INFO
+  - Singleton pattern for global access
+  - Exported from core library: `logger`, `LogLevel`
+  - Located in `kwami/src/utils/logger.ts`
+
+- **App Connectors Module**: New module for external service integrations
+  - YouTube connector exported from main index
+  - Extensible architecture for future connectors
+  - Located in `kwami/src/apps/`
+
+#### Enhanced
+- **Body Component**: Major enhancements
+  - Context menu integration for action system
+  - YouTube iframe background support
+  - Improved media state management
+  - Better error handling with logger
+
+- **Soul Component**: Action system integration
+  - ActionManager instance available via `kwami.soul.actions`
+  - Connects Mind (AI) and Body (visual) through actions
+  - Action execution context and validation
+
+- **Mind Component**: API improvements
+  - Enhanced KnowledgeBaseAPI
+  - Improved ToolsAPI
+  - Better provider integration (ElevenLabs, OpenAI)
+
+- **Skills System**: Integration with action system
+  - Skills and actions work together seamlessly
+  - Clear separation of concerns
+
+### 🌐 Web App Improvements
+
+#### Added
+- **Theme Mode Manager**: Centralized theme management
+  - Dark/light mode toggle
+  - Persistent theme preference (localStorage)
+  - System preference detection
+  - Theme toggle button component
+  - Singleton pattern for global state
+  - Located in `web/src/managers/ThemeModeManager.ts`
+
+- **Background Rings Component**: New visual component
+  - Located in `web/src/components/BackgroundRings.ts`
+
+- **Page Audio Manager**: Enhanced audio management
+  - Located in `web/src/media/PageAudioManager.ts`
+
+#### Enhanced
+- **WelcomeLayer**: Improved user experience
+  - Theme toggle integration
+  - Better hard reload detection
+  - Improved preference management
+  - Enhanced styling and animations
+
+- **Configuration Organization**: Better file structure
+  - Moved `kwamis.json` to `web/src/config/`
+  - Moved `media-links.json` to `web/src/config/`
+  - Cleaner project organization
+
+- **Video Player**: Enhanced functionality
+  - Better YouTube integration
+  - Improved error handling
+
+- **Scroll Manager**: Enhanced navigation
+  - Better scroll behavior
+  - Improved performance
+
+- **Styling**: Major CSS improvements
+  - Enhanced welcome layer styles
+  - Better theme support
+  - Improved responsive design
+  - Glassmorphic effects
+
+#### Changed
+- **Service Worker**: Updated for better caching
+- **i18n**: Added new translations
+- **Constants**: Updated configuration values
+
+#### Removed
+- Old test audio file: `web/public/voices/test.mp3`
+- Moved configuration files to proper locations
+
+### 📚 Documentation & Build
+
+#### Added
+- **YouTube Connector Documentation**: Complete README with examples
+- **Action System Documentation**: Comprehensive guides and examples
+- **Architecture Documentation**: System design and patterns
+
+#### Enhanced
+- **Package Scripts**: Improved docs workspace commands
+  - Updated docs scripts to use workspace flag
+  - Better build and preview commands
+
+### 🔧 Technical Improvements
+
+#### Enhanced
+- **Type Exports**: Better TypeScript support
+  - Action types exported from main index
+  - Logger types exported
+  - App connector types exported
+
+- **Error Handling**: Improved error management
+  - Logger integration throughout core
+  - Better error messages
+  - Graceful degradation
+
+- **Code Organization**: Better structure
+  - Separated concerns (actions, connectors, utilities)
+  - Clear module boundaries
+  - Improved maintainability
+
+### 📊 Statistics
+
+- **35 files changed**: 2,267 insertions(+), 1,309 deletions(-)
+- **New files**: 15+ new files across core and web
+- **Major features**: Action system, YouTube integration, Theme manager
+- **Documentation**: 4+ new documentation files
+
 ## [1.5.8] - 2025-11-22
 
 ### 🐳 Docker Infrastructure

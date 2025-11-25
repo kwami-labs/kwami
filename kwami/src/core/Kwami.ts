@@ -3,6 +3,7 @@ import { KwamiMind } from './mind/Mind';
 import { KwamiSoul } from './soul/Soul';
 import { SkillManager } from './mind/skills/SkillManager';
 import type { KwamiConfig, KwamiState } from '../types/index';
+import { logger } from '../utils/logger';
 
 /**
  * Kwami - The main class for the Kwami AI companion
@@ -47,8 +48,8 @@ export class Kwami {
     // Initialize the body (visual representation)
     this.body = new KwamiBody(canvas, config?.body);
 
-    // Initialize soul (AI personality)
-    this.soul = new KwamiSoul(config?.soul);
+    // Initialize soul (AI personality) - pass this instance for ActionManager
+    this.soul = new KwamiSoul(config?.soul, this);
 
     // Initialize mind (AI capabilities) with reference to audio for visualization
     this.mind = new KwamiMind(this.body.audio, config?.mind);
@@ -58,6 +59,9 @@ export class Kwami {
     
     // Set parent reference in audio for state management during conversations
     this.body.audio.parentKwami = this;
+    
+    // Set Kwami instance in body for context menu access to actions
+    this.body.setKwamiInstance(this);
   }
 
   /**
@@ -107,7 +111,7 @@ export class Kwami {
     try {
       await this.mind.listen();
     } catch (error) {
-      console.error('Error starting to listen:', error);
+      logger.error('Error starting to listen:', error);
       this.setState('idle');
       throw error;
     }
@@ -139,7 +143,7 @@ export class Kwami {
         this.setState('idle');
       }, { once: true });
     } catch (error) {
-      console.error('Error speaking:', error);
+      logger.error('Error speaking:', error);
       this.setState('idle');
       throw error;
     }
@@ -182,7 +186,7 @@ export class Kwami {
       await this.mind.startConversation(systemPrompt, enhancedCallbacks);
       this.setState('listening');
     } catch (error) {
-      console.error('Error starting conversation:', error);
+      logger.error('Error starting conversation:', error);
       this.setState('idle');
       throw error;
     }

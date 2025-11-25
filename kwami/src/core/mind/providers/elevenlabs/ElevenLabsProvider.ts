@@ -30,6 +30,7 @@ import type {
   MindProviderSpeakOptions,
   MindConversationCallbacks,
 } from '../types';
+import { logger } from '../../../../utils/logger';
 import { ToolsAPI } from '../../apis/ToolsAPI';
 import { KnowledgeBaseAPI } from '../../apis/KnowledgeBaseAPI';
 
@@ -125,7 +126,7 @@ export class ElevenLabsProvider implements MindProvider {
       this.audio.loadAudioSource(audioUrl);
       await this.audio.play();
     } catch (error) {
-      console.error('Error generating speech:', error);
+      logger.error('Error generating speech:', error);
       throw error;
     }
   }
@@ -139,7 +140,7 @@ export class ElevenLabsProvider implements MindProvider {
     }
 
     if (this.conversationActive) {
-      console.warn('Conversation already active. Stop current conversation first.');
+      logger.warn('Conversation already active. Stop current conversation first.');
       return;
     }
 
@@ -148,7 +149,7 @@ export class ElevenLabsProvider implements MindProvider {
       throw new Error('Agent ID is required. Please enter your ElevenLabs agent ID in the Mind menu.');
     }
 
-    console.log(`🤖 Starting conversation with Agent ID: ${agentId}`);
+    logger.info(`🤖 Starting conversation with Agent ID: ${agentId}`);
 
     try {
       this.conversationCallbacks = callbacks || {};
@@ -197,16 +198,16 @@ export class ElevenLabsProvider implements MindProvider {
           audioPacketCount++;
 
           if (audioPacketCount % 100 === 0) {
-            console.log(`Sent ${audioPacketCount} audio packets (${pcm16.byteLength} bytes each)`);
+            logger.info(`Sent ${audioPacketCount} audio packets (${pcm16.byteLength} bytes each)`);
           }
         } catch (error) {
-          console.error('Error sending audio data:', error);
+          logger.error('Error sending audio data:', error);
         }
       };
 
       (this as any).setConversationReady = () => {
         isConversationReady = true;
-        console.log('🎤 Audio streaming enabled');
+        logger.info('🎤 Audio streaming enabled');
       };
 
       this.conversationActive = true;
@@ -220,9 +221,9 @@ export class ElevenLabsProvider implements MindProvider {
         callbacks.onTurnEnd();
       }
 
-      console.log('🎤 Microphone active, WebSocket connected. You can now speak!');
+      logger.info('🎤 Microphone active, WebSocket connected. You can now speak!');
     } catch (error) {
-      console.error('Error starting conversation:', error);
+      logger.error('Error starting conversation:', error);
       this.cleanupConversation();
       throw error;
     }
@@ -230,11 +231,11 @@ export class ElevenLabsProvider implements MindProvider {
 
   async stopConversation(): Promise<void> {
     if (!this.conversationActive) {
-      console.log('No active conversation to stop');
+      logger.info('No active conversation to stop');
       return;
     }
 
-    console.log('Stopping conversation...');
+    logger.info('Stopping conversation...');
     this.conversationActive = false;
 
     const iframe = document.getElementById('elevenlabs-conversation-iframe');
@@ -247,7 +248,7 @@ export class ElevenLabsProvider implements MindProvider {
         try {
           this.mediaRecorder.stop();
         } catch {
-          console.log('MediaRecorder already stopped');
+          logger.info('MediaRecorder already stopped');
         }
       }
       this.mediaRecorder = null;
@@ -264,7 +265,7 @@ export class ElevenLabsProvider implements MindProvider {
       (this.audio as any).parentKwami.setState('idle');
     }
 
-    console.log('Conversation stopped');
+    logger.info('Conversation stopped');
   }
 
   isConversationActive(): boolean {
@@ -277,7 +278,7 @@ export class ElevenLabsProvider implements MindProvider {
       !this.conversationWebSocket ||
       this.conversationWebSocket.readyState !== WebSocket.OPEN
     ) {
-      console.error('Cannot send message: conversation not active');
+      logger.error('Cannot send message: conversation not active');
       return;
     }
 
@@ -295,7 +296,7 @@ export class ElevenLabsProvider implements MindProvider {
       this.currentAudioStream = stream;
       return stream;
     } catch (error) {
-      console.error('Error accessing microphone:', error);
+      logger.error('Error accessing microphone:', error);
       throw error;
     }
   }
@@ -316,7 +317,7 @@ export class ElevenLabsProvider implements MindProvider {
       const response = await this.client.voices.getAll();
       return response.voices || [];
     } catch (error) {
-      console.error('Error fetching voices:', error);
+      logger.error('Error fetching voices:', error);
       throw error;
     }
   }
@@ -339,7 +340,7 @@ export class ElevenLabsProvider implements MindProvider {
 
       return this.streamToBlob(audioStream, 'audio/mpeg');
     } catch (error) {
-      console.error('Error generating speech blob:', error);
+      logger.error('Error generating speech blob:', error);
       throw error;
     }
   }
@@ -355,7 +356,7 @@ export class ElevenLabsProvider implements MindProvider {
       stream.getTracks().forEach((track) => track.stop());
       return true;
     } catch (error) {
-      console.error('Microphone test failed:', error);
+      logger.error('Microphone test failed:', error);
       return false;
     }
   }
@@ -366,12 +367,12 @@ export class ElevenLabsProvider implements MindProvider {
     }
 
     try {
-      console.log('📝 Creating new agent...');
+      logger.info('📝 Creating new agent...');
       const response = await this.client.conversationalAi.agents.create(config as any);
-      console.log('✅ Agent created successfully:', (response as any).agentId);
+      logger.info('✅ Agent created successfully:', (response as any).agentId);
       return response as unknown as AgentResponse;
     } catch (error) {
-      console.error('Error creating agent:', error);
+      logger.error('Error creating agent:', error);
       throw error;
     }
   }
@@ -382,11 +383,11 @@ export class ElevenLabsProvider implements MindProvider {
     }
 
     try {
-      console.log('🔍 Fetching agent:', agentId);
+      logger.info('🔍 Fetching agent:', agentId);
       const response = await this.client.conversationalAi.agents.get(agentId);
       return response as unknown as AgentResponse;
     } catch (error) {
-      console.error('Error fetching agent:', error);
+      logger.error('Error fetching agent:', error);
       throw error;
     }
   }
@@ -397,11 +398,11 @@ export class ElevenLabsProvider implements MindProvider {
     }
 
     try {
-      console.log('📋 Listing agents...');
+      logger.info('📋 Listing agents...');
       const response = await this.client.conversationalAi.agents.list(options as any);
       return response as unknown as ListAgentsResponse;
     } catch (error) {
-      console.error('Error listing agents:', error);
+      logger.error('Error listing agents:', error);
       throw error;
     }
   }
@@ -412,12 +413,12 @@ export class ElevenLabsProvider implements MindProvider {
     }
 
     try {
-      console.log('✏️ Updating agent:', agentId);
+      logger.info('✏️ Updating agent:', agentId);
       const response = await this.client.conversationalAi.agents.update(agentId, config as any);
-      console.log('✅ Agent updated successfully');
+      logger.info('✅ Agent updated successfully');
       return response as unknown as AgentResponse;
     } catch (error) {
-      console.error('Error updating agent:', error);
+      logger.error('Error updating agent:', error);
       throw error;
     }
   }
@@ -428,11 +429,11 @@ export class ElevenLabsProvider implements MindProvider {
     }
 
     try {
-      console.log('🗑️ Deleting agent:', agentId);
+      logger.info('🗑️ Deleting agent:', agentId);
       await this.client.conversationalAi.agents.delete(agentId);
-      console.log('✅ Agent deleted successfully');
+      logger.info('✅ Agent deleted successfully');
     } catch (error) {
-      console.error('Error deleting agent:', error);
+      logger.error('Error deleting agent:', error);
       throw error;
     }
   }
@@ -446,12 +447,12 @@ export class ElevenLabsProvider implements MindProvider {
     }
 
     try {
-      console.log('📋 Duplicating agent:', agentId);
+      logger.info('📋 Duplicating agent:', agentId);
       const response = await this.client.conversationalAi.agents.duplicate(agentId, options as any);
-      console.log('✅ Agent duplicated:', (response as any).agentId);
+      logger.info('✅ Agent duplicated:', (response as any).agentId);
       return response as unknown as AgentResponse;
     } catch (error) {
-      console.error('Error duplicating agent:', error);
+      logger.error('Error duplicating agent:', error);
       throw error;
     }
   }
@@ -462,11 +463,11 @@ export class ElevenLabsProvider implements MindProvider {
     }
 
     try {
-      console.log('🔗 Fetching agent link:', agentId);
+      logger.info('🔗 Fetching agent link:', agentId);
       const response = await this.client.conversationalAi.agents.link.get(agentId);
       return response as unknown as AgentLinkResponse;
     } catch (error) {
-      console.error('Error fetching agent link:', error);
+      logger.error('Error fetching agent link:', error);
       throw error;
     }
   }
@@ -480,11 +481,11 @@ export class ElevenLabsProvider implements MindProvider {
     }
 
     try {
-      console.log('🎭 Simulating conversation with agent:', agentId);
+      logger.info('🎭 Simulating conversation with agent:', agentId);
       const response = await this.client.conversationalAi.agents.simulateConversation(agentId, request as any);
       return response as unknown as SimulateConversationResponse;
     } catch (error) {
-      console.error('Error simulating conversation:', error);
+      logger.error('Error simulating conversation:', error);
       throw error;
     }
   }
@@ -499,14 +500,14 @@ export class ElevenLabsProvider implements MindProvider {
     }
 
     try {
-      console.log('🎭 Simulating streaming conversation with agent:', agentId);
+      logger.info('🎭 Simulating streaming conversation with agent:', agentId);
       await this.client.conversationalAi.agents.simulateConversationStream(agentId, request as any);
       if (onChunk) {
-        console.warn('Streaming chunk handler is not implemented in ElevenLabs SDK wrapper yet.');
+        logger.warn('Streaming chunk handler is not implemented in ElevenLabs SDK wrapper yet.');
       }
-      console.log('✅ Conversation stream completed');
+      logger.info('✅ Conversation stream completed');
     } catch (error) {
-      console.error('Error simulating conversation stream:', error);
+      logger.error('Error simulating conversation stream:', error);
       throw error;
     }
   }
@@ -520,11 +521,11 @@ export class ElevenLabsProvider implements MindProvider {
     }
 
     try {
-      console.log('💰 Calculating LLM usage for agent:', agentId);
+      logger.info('💰 Calculating LLM usage for agent:', agentId);
       const response = await this.client.conversationalAi.agents.llmUsage.calculate(agentId, request as any);
       return response as unknown as LLMUsageResponse;
     } catch (error) {
-      console.error('Error calculating LLM usage:', error);
+      logger.error('Error calculating LLM usage:', error);
       throw error;
     }
   }
@@ -535,7 +536,7 @@ export class ElevenLabsProvider implements MindProvider {
     }
 
     try {
-      console.log('📋 Listing conversations...');
+      logger.info('📋 Listing conversations...');
 
       const queryParams = new URLSearchParams();
       if (options?.agent_id) queryParams.append('agent_id', options.agent_id);
@@ -561,7 +562,7 @@ export class ElevenLabsProvider implements MindProvider {
       const data = await response.json();
       return data as ListConversationsResponse;
     } catch (error) {
-      console.error('Error listing conversations:', error);
+      logger.error('Error listing conversations:', error);
       throw error;
     }
   }
@@ -572,7 +573,7 @@ export class ElevenLabsProvider implements MindProvider {
     }
 
     try {
-      console.log('🔍 Fetching conversation:', conversationId);
+      logger.info('🔍 Fetching conversation:', conversationId);
 
       const response = await fetch(
         `https://api.elevenlabs.io/v1/convai/conversations/${conversationId}`,
@@ -590,7 +591,7 @@ export class ElevenLabsProvider implements MindProvider {
       const data = await response.json();
       return data as ConversationResponse;
     } catch (error) {
-      console.error('Error fetching conversation:', error);
+      logger.error('Error fetching conversation:', error);
       throw error;
     }
   }
@@ -601,7 +602,7 @@ export class ElevenLabsProvider implements MindProvider {
     }
 
     try {
-      console.log('🗑️ Deleting conversation:', conversationId);
+      logger.info('🗑️ Deleting conversation:', conversationId);
 
       const response = await fetch(
         `https://api.elevenlabs.io/v1/convai/conversations/${conversationId}`,
@@ -617,9 +618,9 @@ export class ElevenLabsProvider implements MindProvider {
         throw new Error(`Failed to delete conversation: ${response.statusText}`);
       }
 
-      console.log('✅ Conversation deleted successfully');
+      logger.info('✅ Conversation deleted successfully');
     } catch (error) {
-      console.error('Error deleting conversation:', error);
+      logger.error('Error deleting conversation:', error);
       throw error;
     }
   }
@@ -630,7 +631,7 @@ export class ElevenLabsProvider implements MindProvider {
     }
 
     try {
-      console.log('🎵 Downloading conversation audio:', conversationId);
+      logger.info('🎵 Downloading conversation audio:', conversationId);
 
       const response = await fetch(
         `https://api.elevenlabs.io/v1/convai/conversations/${conversationId}/audio`,
@@ -646,10 +647,10 @@ export class ElevenLabsProvider implements MindProvider {
       }
 
       const audioBlob = await response.blob();
-      console.log('✅ Audio downloaded:', audioBlob.size, 'bytes');
+      logger.info('✅ Audio downloaded:', audioBlob.size, 'bytes');
       return audioBlob;
     } catch (error) {
-      console.error('Error fetching conversation audio:', error);
+      logger.error('Error fetching conversation audio:', error);
       throw error;
     }
   }
@@ -663,7 +664,7 @@ export class ElevenLabsProvider implements MindProvider {
     }
 
     try {
-      console.log('💭 Sending feedback for conversation:', conversationId);
+      logger.info('💭 Sending feedback for conversation:', conversationId);
 
       const response = await fetch(
         `https://api.elevenlabs.io/v1/convai/conversations/${conversationId}/feedback`,
@@ -681,9 +682,9 @@ export class ElevenLabsProvider implements MindProvider {
         throw new Error(`Failed to send feedback: ${response.statusText}`);
       }
 
-      console.log('✅ Feedback submitted successfully');
+      logger.info('✅ Feedback submitted successfully');
     } catch (error) {
-      console.error('Error sending feedback:', error);
+      logger.error('Error sending feedback:', error);
       throw error;
     }
   }
@@ -697,7 +698,7 @@ export class ElevenLabsProvider implements MindProvider {
     }
 
     try {
-      console.log('🔐 Getting WebRTC token for agent:', agentId);
+      logger.info('🔐 Getting WebRTC token for agent:', agentId);
 
       const queryParams = new URLSearchParams({ agent_id: agentId });
       if (participantName) {
@@ -718,10 +719,10 @@ export class ElevenLabsProvider implements MindProvider {
       }
 
       const data = await response.json();
-      console.log('✅ WebRTC token obtained');
+      logger.info('✅ WebRTC token obtained');
       return data as ConversationTokenResponse;
     } catch (error) {
-      console.error('Error getting conversation token:', error);
+      logger.error('Error getting conversation token:', error);
       throw error;
     }
   }
@@ -735,7 +736,7 @@ export class ElevenLabsProvider implements MindProvider {
     }
 
     try {
-      console.log('🔗 Getting signed URL for agent:', agentId);
+      logger.info('🔗 Getting signed URL for agent:', agentId);
 
       const queryParams = new URLSearchParams({ agent_id: agentId });
       if (options?.include_conversation_id) {
@@ -756,10 +757,10 @@ export class ElevenLabsProvider implements MindProvider {
       }
 
       const data = await response.json();
-      console.log('✅ Signed URL obtained');
+      logger.info('✅ Signed URL obtained');
       return data as ConversationSignedUrlResponse;
     } catch (error) {
-      console.error('Error getting signed URL:', error);
+      logger.error('Error getting signed URL:', error);
       throw error;
     }
   }
@@ -791,12 +792,12 @@ export class ElevenLabsProvider implements MindProvider {
   private signedUrl: string | null = null;
 
   private async ensureSignedConversation(agentId: string): Promise<void> {
-    console.log('🔑 Getting signed URL from ElevenLabs...');
-    console.log('Agent ID:', agentId);
-    console.log('API Key:', this.config.apiKey ? '✓ Present' : '✗ Missing');
+    logger.info('🔑 Getting signed URL from ElevenLabs...');
+    logger.info('Agent ID:', agentId);
+    logger.info('API Key:', this.config.apiKey ? '✓ Present' : '✗ Missing');
 
     const signedUrlEndpoint = `https://api.elevenlabs.io/v1/convai/conversation/get_signed_url?agent_id=${agentId}`;
-    console.log('Requesting:', signedUrlEndpoint);
+    logger.info('Requesting:', signedUrlEndpoint);
 
     const signedUrlResponse = await fetch(signedUrlEndpoint, {
       method: 'GET',
@@ -806,8 +807,8 @@ export class ElevenLabsProvider implements MindProvider {
       },
     });
 
-    console.log('Response status:', signedUrlResponse.status);
-    console.log('Response headers:', Object.fromEntries(signedUrlResponse.headers.entries()));
+    logger.info('Response status:', signedUrlResponse.status);
+    logger.info('Response headers:', Object.fromEntries(signedUrlResponse.headers.entries()));
 
     if (!signedUrlResponse.ok) {
       let errorDetails = '';
@@ -818,7 +819,7 @@ export class ElevenLabsProvider implements MindProvider {
         errorDetails = await signedUrlResponse.text();
       }
 
-      console.error('Failed to get signed URL:', {
+      logger.error('Failed to get signed URL:', {
         status: signedUrlResponse.status,
         statusText: signedUrlResponse.statusText,
         error: errorDetails,
@@ -836,12 +837,12 @@ export class ElevenLabsProvider implements MindProvider {
     }
 
     const signedUrlData = await signedUrlResponse.json();
-    console.log('Signed URL response:', JSON.stringify(signedUrlData, null, 2));
+    logger.info('Signed URL response:', JSON.stringify(signedUrlData, null, 2));
 
     const signedUrl = signedUrlData.signed_url || signedUrlData.url;
 
     if (!signedUrl) {
-      console.error('No signed URL in response:', signedUrlData);
+      logger.error('No signed URL in response:', signedUrlData);
       throw new Error('No signed URL received from ElevenLabs. Response: ' + JSON.stringify(signedUrlData));
     }
 
@@ -860,13 +861,13 @@ export class ElevenLabsProvider implements MindProvider {
 
       this.conversationWebSocket!.onopen = () => {
         clearTimeout(timeout);
-        console.log('✅ WebSocket connected successfully!');
+        logger.info('✅ WebSocket connected successfully!');
         resolve();
       };
 
       this.conversationWebSocket!.onerror = (error) => {
         clearTimeout(timeout);
-        console.error('WebSocket error:', error);
+        logger.error('WebSocket error:', error);
         reject(new Error('Failed to connect to ElevenLabs conversation. Please check your agent is active.'));
       };
     });
@@ -970,25 +971,25 @@ export class ElevenLabsProvider implements MindProvider {
     if (!this.conversationWebSocket) return;
 
     this.conversationWebSocket.onmessage = async (event) => {
-      console.log('WebSocket message received:', {
+      logger.info('WebSocket message received:', {
         type: event.data instanceof ArrayBuffer ? 'binary' : 'text',
         size: event.data instanceof ArrayBuffer ? event.data.byteLength : event.data.length,
       });
 
       if (event.data instanceof ArrayBuffer) {
-        console.log('Received audio data, size:', event.data.byteLength);
+        logger.info('Received audio data, size:', event.data.byteLength);
         await this.handleAgentAudio(event.data);
       } else if (event.data instanceof Blob) {
         const arrayBuffer = await event.data.arrayBuffer();
-        console.log('Received audio blob, converted size:', arrayBuffer.byteLength);
+        logger.info('Received audio blob, converted size:', arrayBuffer.byteLength);
         await this.handleAgentAudio(arrayBuffer);
       } else {
         try {
           const message = typeof event.data === 'string' ? JSON.parse(event.data) : event.data;
-          console.log('Received JSON message:', message);
+          logger.info('Received JSON message:', message);
           this.handleWebSocketMessage(message);
         } catch (error) {
-          console.log('Received text message:', event.data);
+          logger.info('Received text message:', event.data);
           if (typeof event.data === 'string') {
             this.conversationCallbacks.onAgentResponse?.(event.data);
           }
@@ -997,13 +998,13 @@ export class ElevenLabsProvider implements MindProvider {
     };
 
     this.conversationWebSocket.onerror = (error) => {
-      console.error('WebSocket error:', error);
+      logger.error('WebSocket error:', error);
       this.conversationCallbacks.onError?.(new Error('WebSocket connection error'));
       this.stopConversation();
     };
 
     this.conversationWebSocket.onclose = (event) => {
-      console.log('WebSocket connection closed:', {
+      logger.info('WebSocket connection closed:', {
         code: event.code,
         reason: event.reason,
         wasClean: event.wasClean,
@@ -1064,9 +1065,9 @@ export class ElevenLabsProvider implements MindProvider {
           break;
       }
 
-      console.error(`WebSocket closed: ${closeReason} (${event.code})`);
+      logger.error(`WebSocket closed: ${closeReason} (${event.code})`);
       if (event.reason) {
-        console.error('Close reason from server:', event.reason);
+        logger.error('Close reason from server:', event.reason);
       }
 
       this.conversationActive = false;
@@ -1088,24 +1089,24 @@ export class ElevenLabsProvider implements MindProvider {
 
       setTimeout(() => URL.revokeObjectURL(audioUrl), 10000);
     } catch (error) {
-      console.error('Error playing agent audio:', error);
+      logger.error('Error playing agent audio:', error);
     }
   }
 
   private handleWebSocketMessage(message: any): void {
     switch (message.type) {
       case 'agent_response':
-        console.log('Agent response:', message.text);
+        logger.info('Agent response:', message.text);
         this.conversationCallbacks.onAgentResponse?.(message.text);
         break;
 
       case 'user_transcript':
-        console.log('User transcript:', message.text);
+        logger.info('User transcript:', message.text);
         this.conversationCallbacks.onUserTranscript?.(message.text);
         break;
 
       case 'turn_start':
-        console.log('Agent turn started');
+        logger.info('Agent turn started');
         this.conversationCallbacks.onTurnStart?.();
         if (this.audio && (this.audio as any).parentKwami) {
           (this.audio as any).parentKwami.setState('speaking');
@@ -1113,7 +1114,7 @@ export class ElevenLabsProvider implements MindProvider {
         break;
 
       case 'turn_end':
-        console.log('Agent turn ended');
+        logger.info('Agent turn ended');
         this.conversationCallbacks.onTurnEnd?.();
         if (this.audio && (this.audio as any).parentKwami) {
           (this.audio as any).parentKwami.setState('listening');
@@ -1121,17 +1122,17 @@ export class ElevenLabsProvider implements MindProvider {
         break;
 
       case 'error':
-        console.error('Conversation error:', message.error);
+        logger.error('Conversation error:', message.error);
         this.conversationCallbacks.onError?.(new Error(message.error));
         break;
 
       case 'conversation_end':
-        console.log('Conversation ended');
+        logger.info('Conversation ended');
         this.stopConversation();
         break;
 
       case 'conversation_initiation_metadata':
-        console.log('✅ Conversation initialized:', {
+        logger.info('✅ Conversation initialized:', {
           conversationId: message.conversation_initiation_metadata_event?.conversation_id,
           audioFormat: message.conversation_initiation_metadata_event?.user_input_audio_format,
           agentFormat: message.conversation_initiation_metadata_event?.agent_output_audio_format,
@@ -1153,7 +1154,7 @@ export class ElevenLabsProvider implements MindProvider {
         break;
 
       default:
-        console.log('Unhandled message type:', message.type, message);
+        logger.info('Unhandled message type:', message.type, message);
     }
   }
 
@@ -1163,7 +1164,7 @@ export class ElevenLabsProvider implements MindProvider {
         try {
           this.mediaRecorder.stop();
         } catch {
-          console.log('MediaRecorder already stopped');
+          logger.info('MediaRecorder already stopped');
         }
       }
       this.mediaRecorder = null;

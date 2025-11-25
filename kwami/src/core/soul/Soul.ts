@@ -1,6 +1,8 @@
 import type { SoulConfig, EmotionalTraits } from '../../types/index';
 import * as yaml from 'js-yaml';
 import { personalityTemplates, type PersonalityTemplate } from './templates/loader';
+import { logger } from '../../utils/logger';
+import { ActionManager } from './actions/ActionManager';
 
 /**
  * KwamiSoul - Manages the personality and behavioral characteristics of Kwami
@@ -24,10 +26,14 @@ import { personalityTemplates, type PersonalityTemplate } from './templates/load
  */
 export class KwamiSoul {
   private config: SoulConfig;
+  public actions: ActionManager;
 
-  constructor(config?: SoulConfig) {
+  constructor(config?: SoulConfig, kwamiInstance?: any) {
     const defaults = this.getDefaultConfig();
     this.config = config ? { ...defaults, ...config } : defaults;
+    
+    // Initialize ActionManager (Soul connects Mind and Body through Actions)
+    this.actions = new ActionManager(kwamiInstance);
   }
 
   /**
@@ -74,7 +80,7 @@ export class KwamiSoul {
 
       this.setPersonality(personalityData);
     } catch (error) {
-      console.error('Error loading personality:', error);
+      logger.error('Error loading personality:', error);
       throw error;
     }
   }
@@ -339,7 +345,7 @@ export class KwamiSoul {
     const templateYaml = personalityTemplates[preset];
     
     if (!templateYaml) {
-      console.error(`Personality template '${preset}' not found`);
+      logger.error(`Personality template '${preset}' not found`);
       return;
     }
 
@@ -348,7 +354,7 @@ export class KwamiSoul {
       const config = yaml.load(templateYaml) as SoulConfig;
       this.setPersonality(config);
     } catch (error) {
-      console.error(`Failed to load personality template '${preset}':`, error);
+      logger.error(`Failed to load personality template '${preset}':`, error);
       throw error;
     }
   }
@@ -380,7 +386,7 @@ export class KwamiSoul {
 
       this.setPersonality(config);
     } catch (error) {
-      console.error('Failed to import Soul configuration:', error);
+      logger.error('Failed to import Soul configuration:', error);
       throw error;
     }
   }

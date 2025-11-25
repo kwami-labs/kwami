@@ -1,4 +1,5 @@
 import type { AudioConfig } from '../../types/index';
+import { logger } from '../../utils/logger';
 
 /**
  * KwamiAudio - Manages audio playback and frequency analysis for Kwami
@@ -74,7 +75,7 @@ export class KwamiAudio {
 
       this.frequencyData = new Uint8Array(analyser.frequencyBinCount);
     } catch (error) {
-      console.warn('Failed to initialize Web Audio API:', error);
+      logger.warn('Failed to initialize Web Audio API:', error);
     }
   }
 
@@ -174,14 +175,14 @@ export class KwamiAudio {
       try {
         await this.audioContext.resume();
       } catch (error) {
-        console.warn('Failed to resume AudioContext:', error);
+        logger.warn('Failed to resume AudioContext:', error);
       }
     }
 
     try {
       await this.instance.play();
     } catch (error) {
-      console.warn('Audio playback failed:', error);
+      logger.warn('Audio playback failed:', error);
     }
   }
 
@@ -258,7 +259,7 @@ export class KwamiAudio {
         this.rebuildAudioGraph();
       }
     } catch (error) {
-      console.error('Failed to load audio from ArrayBuffer:', error);
+      logger.error('Failed to load audio from ArrayBuffer:', error);
       throw error;
     }
   }
@@ -281,7 +282,7 @@ export class KwamiAudio {
 
       this.loadAudioSource(audioURL);
     } catch (error) {
-      console.error('Failed to load audio from base64:', error);
+      logger.error('Failed to load audio from base64:', error);
     }
   }
 
@@ -456,7 +457,7 @@ export class KwamiAudio {
         this.streamSource.connect(this.analyser);
       }
     } catch (error) {
-      console.warn('Failed to connect stream for analysis:', error);
+      logger.warn('Failed to connect stream for analysis:', error);
     }
   }
 
@@ -469,7 +470,7 @@ export class KwamiAudio {
         this.streamSource.disconnect();
         this.streamSource = null;
       } catch (error) {
-        console.warn('Failed to disconnect stream:', error);
+        logger.warn('Failed to disconnect stream:', error);
       }
     }
   }
@@ -778,7 +779,7 @@ export class KwamiAudio {
       });
       await this.connectMediaStream(stream);
     } catch (error) {
-      console.error('Failed to access microphone:', error);
+      logger.error('Failed to access microphone:', error);
       throw error;
     }
   }

@@ -1,0 +1,154 @@
+{
+  "id": "kwami-basic-actions",
+  "name": "Kwami Basic Actions",
+  "description": "Collection of basic Kwami actions",
+  "version": "1.0.0",
+  "author": "Kwami Team",
+  "actions": [
+    {
+      "id": "blob-toggle-opacity",
+      "name": "Toggle Blob Transparency",
+      "description": "Toggle between transparent and opaque blob",
+      "category": "body",
+      "version": "1.0.0",
+      "tags": ["appearance", "quick-action"],
+      "enabled": true,
+      "triggers": ["context-menu", "keyboard", "api"],
+      "shortcuts": {
+        "keyboard": "Ctrl+T",
+        "voice": ["toggle transparency", "make it transparent"]
+      },
+      "handler": "body.toggleOpacity",
+      "ui": {
+        "showInContextMenu": true,
+        "menuLabel": "👁️ Toggle Transparency",
+        "menuOrder": 15,
+        "menuGroup": "appearance"
+      },
+      "bodyAction": {
+        "type": "appearance",
+        "target": "blob"
+      }
+    },
+    {
+      "id": "blob-glass-mode",
+      "name": "Enable Glass Mode",
+      "description": "Make the blob act as a glass window showing the background",
+      "category": "body",
+      "version": "1.0.0",
+      "tags": ["appearance", "glass"],
+      "enabled": true,
+      "triggers": ["context-menu", "api"],
+      "handler": "body.enableGlassMode",
+      "ui": {
+        "showInContextMenu": true,
+        "menuLabel": "🔮 Glass Mode",
+        "menuOrder": 50,
+        "menuGroup": "effects"
+      },
+      "bodyAction": {
+        "type": "appearance",
+        "target": "blob"
+      }
+    },
+    {
+      "id": "reset-kwami",
+      "name": "Reset Kwami",
+      "description": "Reset Kwami to default state",
+      "category": "system",
+      "version": "1.0.0",
+      "tags": ["reset", "system"],
+      "enabled": true,
+      "triggers": ["context-menu", "api"],
+      "confirmation": {
+        "required": true,
+        "message": "Are you sure you want to reset Kwami to defaults?"
+      },
+      "handler": "system.reset",
+      "ui": {
+        "showInContextMenu": true,
+        "menuLabel": "🔄 Reset to Defaults",
+        "menuOrder": 200,
+        "menuGroup": "system"
+      },
+      "systemAction": {
+        "type": "reset"
+      }
+    },
+    {
+      "id": "export-personality",
+      "name": "Export Personality",
+      "description": "Export current personality configuration as YAML",
+      "category": "soul",
+      "version": "1.0.0",
+      "tags": ["personality", "export"],
+      "enabled": true,
+      "triggers": ["context-menu", "api"],
+      "handler": "soul.exportPersonality",
+      "ui": {
+        "showInContextMenu": true,
+        "menuLabel": "📤 Export Personality",
+        "menuOrder": 150,
+        "menuGroup": "soul"
+      },
+      "soulAction": {
+        "type": "personality"
+      }
+    },
+    {
+      "id": "kwami-speak",
+      "name": "Make Kwami Speak",
+      "description": "Make Kwami speak a custom message",
+      "category": "mind",
+      "version": "1.0.0",
+      "tags": ["voice", "tts"],
+      "enabled": true,
+      "triggers": ["context-menu", "api"],
+      "parameters": [
+        {
+          "name": "text",
+          "type": "string",
+          "label": "Text",
+          "description": "Text for Kwami to speak",
+          "required": true
+        }
+      ],
+      "handler": "mind.speak",
+      "ui": {
+        "showInContextMenu": true,
+        "menuLabel": "🗣️ Speak",
+        "menuOrder": 60,
+        "menuGroup": "interaction"
+      },
+      "mindAction": {
+        "type": "speak"
+      }
+    },
+    {
+      "id": "play-audio",
+      "name": "Play Audio",
+      "description": "Play or pause audio playback",
+      "category": "body",
+      "version": "1.0.0",
+      "tags": ["audio", "media"],
+      "enabled": true,
+      "triggers": ["context-menu", "keyboard", "api"],
+      "shortcuts": {
+        "keyboard": "Space",
+        "voice": ["play music", "pause music"]
+      },
+      "handler": "body.toggleAudio",
+      "ui": {
+        "showInContextMenu": true,
+        "menuLabel": "🎵 Play/Pause Audio",
+        "menuOrder": 70,
+        "menuGroup": "media"
+      },
+      "bodyAction": {
+        "type": "interaction",
+        "target": "scene"
+      }
+    }
+  ]
+}
+

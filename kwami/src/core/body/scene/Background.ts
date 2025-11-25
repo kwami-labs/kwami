@@ -12,6 +12,7 @@ import {
   Color,
   Vector2,
 } from 'three';
+import { logger } from '../../../utils/logger';
 
 export interface BackgroundConfig {
   type: 'solid' | 'gradient' | 'image' | 'transparent';
@@ -165,7 +166,7 @@ export class BackgroundManager {
       },
       undefined,
       (error) => {
-        console.error('Failed to load background image:', error);
+        logger.error('Failed to load background image:', error);
         this.backgroundTexture = null;
       }
     );

@@ -24,6 +24,7 @@ import {
   genDNA,
 } from '../../../utils/randoms';
 import type { BlobOptions, BlobSkinKey, BlobSkinType } from '../../../types';
+import { logger } from '../../../utils/logger';
 
 const SKIN_ALIAS_MAP: Record<string, BlobSkinKey> = {
   tricolor: 'tricolor',
@@ -611,9 +612,9 @@ export class Blob {
    * Set scale (uniform scaling on all axes)
    */
   setScale(scale: number): void {
-    console.log('Blob.setScale called with:', scale);
+    logger.info('Blob.setScale called with:', scale);
     this.baseScale = scale;
-    console.log('Base scale set to:', this.baseScale);
+    logger.info('Base scale set to:', this.baseScale);
   }
 
   /**
@@ -819,7 +820,7 @@ export class Blob {
         link.click();
       },
       (error: unknown) => {
-        console.error('Failed to export GLTF:', error);
+        logger.error('Failed to export GLTF:', error);
       },
       { binary: true },
     );
@@ -909,7 +910,7 @@ export class Blob {
       }
     };
 
-    // Handle mouse drag for rotation
+    // Handle mouse drag for rotation (all axes)
     const handleMouseDown = (event: MouseEvent) => {
       isDragging = true;
       previousMousePosition = {
@@ -924,9 +925,15 @@ export class Blob {
       const deltaX = event.clientX - previousMousePosition.x;
       const deltaY = event.clientY - previousMousePosition.y;
 
-      // Rotate the blob mesh directly
+      // Rotate around Y-axis (left-right movement)
       this.mesh.rotation.y += deltaX * 0.01;
+      
+      // Rotate around X-axis (up-down movement)
       this.mesh.rotation.x += deltaY * 0.01;
+      
+      // Add subtle Z-axis rotation based on diagonal movement for more natural feel
+      const diagonalMovement = (Math.abs(deltaX) > Math.abs(deltaY) ? deltaX : -deltaY) * 0.005;
+      this.mesh.rotation.z += diagonalMovement;
 
       previousMousePosition = {
         x: event.clientX,
@@ -1009,9 +1016,9 @@ export class Blob {
     try {
       await this.options.audio.startMicrophoneListening();
       this.isListening = true;
-      console.log('🎤 Started listening to microphone');
+      logger.info('🎤 Started listening to microphone');
     } catch (error) {
-      console.error('Failed to start listening:', error);
+      logger.error('Failed to start listening:', error);
       throw error;
     }
   }
@@ -1022,7 +1029,7 @@ export class Blob {
   stopListening(): void {
     this.options.audio.stopMicrophoneListening();
     this.isListening = false;
-    console.log('🔇 Stopped listening to microphone');
+    logger.info('🔇 Stopped listening to microphone');
   }
 
   /**
@@ -1036,7 +1043,7 @@ export class Blob {
 
     this.isThinking = true;
     this.thinkingStartTime = Date.now();
-    console.log(`🤔 Started thinking mode (${this.thinkingDuration / 1000}s)`);
+    logger.info(`🤔 Started thinking mode (${this.thinkingDuration / 1000}s)`);
 
     // Auto-stop after duration
     this.thinkingTimeout = window.setTimeout(() => {
@@ -1054,7 +1061,7 @@ export class Blob {
     }
 
     this.isThinking = false;
-    console.log('💭 Stopped thinking mode');
+    logger.info('💭 Stopped thinking mode');
   }
 
   /**

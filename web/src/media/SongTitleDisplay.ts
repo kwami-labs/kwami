@@ -1,4 +1,4 @@
-import mediaLinks from '../media-links.json';
+import mediaLinks from '../config/media-links.json';
 
 type TitleType = 'music' | 'voice' | 'video';
 

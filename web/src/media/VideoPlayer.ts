@@ -4,6 +4,18 @@ import { getMediaDisplayName } from '../utils/mediaUtils';
 import { hideSongTitle, showSongTitle } from './SongTitleDisplay';
 import { getKwamiInstance } from './AudioController';
 
+/**
+ * Check if a URL is a YouTube URL
+ */
+function isYouTubeUrl(url: string): boolean {
+  try {
+    const urlObj = new URL(url);
+    return urlObj.hostname.includes('youtube.com') || urlObj.hostname === 'youtu.be';
+  } catch {
+    return false;
+  }
+}
+
 const PLAYABLE_VIDEO_LINKS = VIDEO_FILES.filter(url => typeof url === 'string' && url.length > 0);
 
 let currentVideoUrl: string | null = null;
@@ -239,6 +251,17 @@ async function playVideoAsBackground(kwami: Kwami, url: string): Promise<boolean
       fit: 'cover',
     });
 
+    // Check if it's a YouTube URL
+    if (isYouTubeUrl(url)) {
+      // YouTube videos use iframe embedding, no video element to wait for
+      const videoName = getMediaDisplayName(url);
+      showSongTitle(videoName, 'video');
+      currentVideoMode = 'background';
+      console.log('🎥 YouTube video background loaded successfully!');
+      return true;
+    }
+
+    // For regular video files, wait for video element
     const videoElement = await waitForKwamiVideoElement(kwami);
 
     if (!videoElement) {
@@ -282,6 +305,13 @@ async function playVideoAsBackground(kwami: Kwami, url: string): Promise<boolean
 async function playVideoInsideBlob(kwami: Kwami, url: string): Promise<boolean> {
   try {
     kwami.body.clearBackgroundMedia();
+
+    // YouTube videos don't support blob surface mode (can't texture map an iframe)
+    // Fall back to background mode for YouTube URLs
+    if (isYouTubeUrl(url)) {
+      console.log('🎥 YouTube videos in blob mode not supported, using background mode instead');
+      return await playVideoAsBackground(kwami, url);
+    }
 
     kwami.body.setBlobSurfaceVideo(url, {
       autoplay: true,

@@ -20,6 +20,7 @@ import type {
   SequenceAction,
   PositionPreset,
 } from './types';
+import { logger } from '../../../utils/logger';
 
 /**
  * SkillManager - Manages and executes Kwami skills
@@ -62,7 +63,7 @@ export class SkillManager {
     };
     
     this.registry.set(definition.id, entry);
-    console.log(`[SkillManager] Registered skill: ${definition.name} (${definition.id})`);
+    logger.info(`[SkillManager] Registered skill: ${definition.name} (${definition.id})`);
   }
 
   /**
@@ -82,7 +83,7 @@ export class SkillManager {
       
       this.registerSkill(definition, 'file');
     } catch (error) {
-      console.error('[SkillManager] Failed to load skill:', error);
+      logger.error('[SkillManager] Failed to load skill:', error);
       throw error;
     }
   }
@@ -98,7 +99,7 @@ export class SkillManager {
       const format = url.endsWith('.yaml') || url.endsWith('.yml') ? 'yaml' : 'json';
       this.loadSkillFromString(content, format);
     } catch (error) {
-      console.error('[SkillManager] Failed to load skill from URL:', error);
+      logger.error('[SkillManager] Failed to load skill from URL:', error);
       throw error;
     }
   }
@@ -136,7 +137,7 @@ export class SkillManager {
     const { definition } = entry;
     
     try {
-      console.log(`[SkillManager] Executing skill: ${definition.name}`);
+      logger.info(`[SkillManager] Executing skill: ${definition.name}`);
       
       // Create execution context
       const context: SkillContext = {
@@ -163,7 +164,7 @@ export class SkillManager {
       this.activeSkills.delete(id);
       
       const duration = Date.now() - startTime;
-      console.log(`[SkillManager] Skill completed: ${definition.name} (${duration}ms)`);
+      logger.info(`[SkillManager] Skill completed: ${definition.name} (${duration}ms)`);
       
       return {
         success: true,
@@ -252,7 +253,7 @@ export class SkillManager {
         break;
       
       default:
-        console.warn('[SkillManager] Unknown action type:', (action as any).type);
+        logger.warn('[SkillManager] Unknown action type:', (action as any).type);
     }
   }
 
@@ -301,7 +302,7 @@ export class SkillManager {
     } else {
       // Default to current scale if neither preset nor value is provided
       targetScale = this.kwami.body.blob.getScale();
-      console.warn('[SkillManager] ScaleAction missing both preset and value, using current scale');
+      logger.warn('[SkillManager] ScaleAction missing both preset and value, using current scale');
     }
     
     // Animate scale change
@@ -446,7 +447,7 @@ export class SkillManager {
   private async reverseSkill(id: string): Promise<void> {
     const context = this.activeSkills.get(id);
     if (!context || !context.originalState) {
-      console.warn('[SkillManager] Cannot reverse skill: no context or original state');
+      logger.warn('[SkillManager] Cannot reverse skill: no context or original state');
       return;
     }
     
@@ -628,7 +629,7 @@ export class SkillManager {
    */
   clearSkills(): void {
     this.registry.clear();
-    console.log('[SkillManager] All skills cleared');
+    logger.info('[SkillManager] All skills cleared');
   }
 
   /**

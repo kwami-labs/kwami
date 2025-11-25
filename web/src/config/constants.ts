@@ -3,9 +3,14 @@
  */
 
 // Video files from public/video/ directory
+// Also supports YouTube URLs
 export const VIDEO_FILES = [
   '/video/BLACKPINK - \u2018Shut Down\u2019 MV.mp4',
   '/video/BLACKPINK - \u2018\uB6F0\uC5B4(JUMP)\u2019 MV.mp4',
+  // YouTube videos
+  'https://www.youtube.com/watch?v=DRFHklnN-SM', // Jazz
+  'https://www.youtube.com/watch?v=POe9SOEKotk', // BLACKPINK - Shut Down
+  'https://www.youtube.com/watch?v=7lTqB6lcHjY', // BLACKPINK - JUMP
 ];
 
 // Music files from public/music/ directory
@@ -23,10 +28,9 @@ export const MUSIC_FILES = [
   '/music/OTYKEN - STORM (Official Music Video).mp3',
 ];
 
-// Voice files from public/voices/ directory
-export const VOICE_FILES = [
-  '/voices/test.mp3'
-];
+// Voice files from public/voices/ directory - for random voice playback
+// Page-specific voice files are handled by PageAudioManager
+export const VOICE_FILES: string[] = [];
 
 // Playground URL
 export const PLAYGROUND_URL = 'https://pg.kwami.io';

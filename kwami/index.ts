@@ -38,11 +38,19 @@ export * from './src/core/mind/index';
 // Skills System
 export { SkillManager } from './src/core/mind/skills/SkillManager';
 
+// Action System (Soul - connects Mind and Body)
+export { ActionManager } from './src/core/soul/actions/ActionManager';
+export * from './src/core/soul/actions/types';
+
 // Utilities
 export * from './src/utils/randoms';
 export { default as SpeechSynthesisRecorder } from './src/utils/recorder';
 export { MediaLoader } from './src/core/utils/MediaLoader';
 export type { MediaType, MediaLoadOptions, MediaValidationResult } from './src/core/utils/MediaLoader';
+export { logger, LogLevel } from './src/utils/logger';
+
+// App Connectors
+export * from './src/apps';
 
 // Scene setup
 export { Scene } from './src/core/body/scene/Scene';

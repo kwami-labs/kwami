@@ -27,6 +27,7 @@ import type {
   MindConversationCallbacks,
   MindProviderSpeakOptions,
 } from '../types';
+import { logger } from '../../../../utils/logger';
 
 /**
  * Experimental OpenAI provider that focuses on text-to-speech playback via the
@@ -91,7 +92,7 @@ export class OpenAIProvider implements MindProvider {
   }
 
   sendConversationMessage(_text: string): void {
-    console.warn('[OpenAIProvider] Conversation messaging is not available yet.');
+    logger.warn('[OpenAIProvider] Conversation messaging is not available yet.');
   }
 
   async listen(): Promise<MediaStream> {
@@ -153,7 +154,7 @@ export class OpenAIProvider implements MindProvider {
       stream.getTracks().forEach((track) => track.stop());
       return true;
     } catch (error) {
-      console.error('[OpenAIProvider] Microphone test failed:', error);
+      logger.error('[OpenAIProvider] Microphone test failed:', error);
       return false;
     }
   }

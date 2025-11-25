@@ -43,9 +43,9 @@
     "market": "npm run dev -w market -- --port 8888",
     "build:market": "npm run build -w market",
     "preview:market": "npm run preview -w market",
-    "docs": "cd docs && npm run dev -- --port 9999",
-    "build:docs": "cd docs && npm run build",
-    "preview:docs": "cd docs && npm run preview",
+    "docs": "npm run dev -- --port 9999",
+    "build:docs": "npm run build -w docs",
+    "preview:docs": "npm run preview -w docs",
     "publish:kwami": "npm publish -w kwami",
     "version:kwami": "npm view kwami",
     "sync-version": "node scripts/sync-version.js"

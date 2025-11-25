@@ -1,6 +1,7 @@
 import { gsap } from 'gsap';
 import { Kwami } from 'kwami';
 import i18next, { t, createLanguageSwitcher } from '../i18n';
+import { getThemeModeManager } from '../managers/ThemeModeManager';
 
 // Static loader path (from public/loader folder)
 const LOADER_GIF = '/loader/loader.gif';
@@ -82,6 +83,7 @@ export class WelcomeLayer {
   private sidebarNav: HTMLElement | null = null;
   private sidebarPlaceholder: Comment | null = null;
   private onCompleteCallback: (() => void) | null = null;
+  private themeToggleButton: HTMLElement | null = null;
 
   constructor(onComplete?: () => void) {
     this.onCompleteCallback = onComplete || null;
@@ -99,30 +101,39 @@ export class WelcomeLayer {
   }
 
   private shouldSkipWelcome(): boolean {
-    // Check for hard reload (force reload) - always show welcome on hard reload
-    const perfEntries = performance.getEntriesByType('navigation') as PerformanceNavigationTiming[];
-    if (perfEntries.length > 0 && perfEntries[0].type === 'reload') {
-      const isHardReload = performance.navigation?.type === 1; // TYPE_RELOAD
-      if (isHardReload) {
-        return false; // Always show on hard reload
-      }
-    }
-    
     // Check for force-show query parameter
     const urlParams = new URLSearchParams(window.location.search);
     if (urlParams.get('welcome') === '1') {
       return false; // Force show welcome
     }
     
+    // Check for hard reload (Ctrl+Shift+R / Cmd+Shift+R) - reset preference
+    const perfEntries = performance.getEntriesByType('navigation') as PerformanceNavigationTiming[];
+    if (perfEntries.length > 0) {
+      const navEntry = perfEntries[0];
+      // Check if it's a hard reload by looking at the navigation type
+      // In modern browsers, hard reload doesn't have a specific flag, so we keep the preference
+      // Only reset on hard reload if explicitly detected
+      if ((navEntry as any).type === 'reload' && (performance.navigation as any)?.type === 1) {
+        localStorage.removeItem(WelcomeLayer.STORAGE_KEY);
+        console.log('🔄 Hard reload detected - resetting welcome preference');
+        return false;
+      }
+    }
+    
     // Check localStorage preference
-    return localStorage.getItem(WelcomeLayer.STORAGE_KEY) === 'true';
+    const skipWelcome = localStorage.getItem(WelcomeLayer.STORAGE_KEY) === 'true';
+    console.log(`🔍 Checking skip welcome: ${skipWelcome ? 'YES (skipping)' : 'NO (showing)'}`);
+    return skipWelcome;
   }
 
   private setSkipWelcome(skip: boolean) {
     if (skip) {
       localStorage.setItem(WelcomeLayer.STORAGE_KEY, 'true');
+      console.log('💾 Saved to localStorage: kwami_skip_welcome = true');
     } else {
       localStorage.removeItem(WelcomeLayer.STORAGE_KEY);
+      console.log('🗑️ Removed from localStorage: kwami_skip_welcome');
     }
   }
 
@@ -153,9 +164,13 @@ export class WelcomeLayer {
     // Create welcome language switcher using shared function
     const welcomeLangSwitcher = createLanguageSwitcher('welcome-language-switcher');
 
+    // Create theme toggle button
+    this.themeToggleButton = this.createThemeToggleButton();
+
     this.container.appendChild(svg);
     this.container.appendChild(versionDiv);
     this.container.appendChild(welcomeLangSwitcher);
+    this.container.appendChild(this.themeToggleButton);
     document.body.appendChild(this.container);
     this.attachSidebarNavigation();
 
@@ -177,12 +192,17 @@ export class WelcomeLayer {
         });
       }
       
-      // Start onboarding tour after skipped animation completes (3 seconds)
+      // Start onboarding tour and trigger completion callback after skipped animation completes (3 seconds)
       setTimeout(() => {
         const onboardingTour = (window as any).onboardingTour;
         if (onboardingTour) {
           onboardingTour.start();
           console.log('🎓 Starting onboarding tour after skipped welcome layer');
+        }
+        
+        // Signal that welcome layer is complete
+        if (this.onCompleteCallback) {
+          this.onCompleteCallback();
         }
       }, 3500); // 3.5 seconds - slightly after the 3-second skipped animation
     }, 100);
@@ -212,7 +232,7 @@ export class WelcomeLayer {
 
     // Create welcome info text (initially hidden)
     this.welcomeInfo = document.createElement('div');
-    this.welcomeInfo.className = 'welcome-info';
+    this.welcomeInfo.className = 'welcome-info text-paused';
     this.welcomeInfo.style.opacity = '0';
     this.welcomeInfo.style.visibility = 'hidden';
     
@@ -276,6 +296,11 @@ export class WelcomeLayer {
     welcomeLangSwitcher.style.opacity = '0';
     welcomeLangSwitcher.style.visibility = 'hidden';
 
+    // Create theme toggle button (initially hidden)
+    this.themeToggleButton = this.createThemeToggleButton();
+    this.themeToggleButton.style.opacity = '0';
+    this.themeToggleButton.style.visibility = 'hidden';
+
     // Append elements (loader overlay first, then kwami container)
     this.container.appendChild(this.loaderOverlay);
     this.container.appendChild(this.kwamiContainer);
@@ -285,6 +310,7 @@ export class WelcomeLayer {
     this.container.appendChild(svg);
     this.container.appendChild(versionDiv);
     this.container.appendChild(welcomeLangSwitcher);
+    this.container.appendChild(this.themeToggleButton);
 
     // Add to body
     document.body.appendChild(this.container);
@@ -355,6 +381,11 @@ export class WelcomeLayer {
     this.sidebarPlaceholder = null;
   }
 
+  private createThemeToggleButton(): HTMLElement {
+    const themeManager = getThemeModeManager();
+    return themeManager.createThemeToggleButton('welcome-theme-toggle');
+  }
+
   private async initWelcomeKwami() {
     if (!this.kwamiContainer) return;
 
@@ -407,6 +438,13 @@ export class WelcomeLayer {
           }
         }
       });
+
+      // Enable blob interaction WITHOUT conversation callback (disables double-click microphone)
+      // This allows rotation and click effects but no microphone activation
+      this.kwami.body.enableBlobInteraction(undefined);
+      
+      // Disable context menu (no right-click actions)
+      this.kwami.body.disableContextMenu();
 
       // Set blob scale based on screen size - bigger for welcome screen
       const isMobile = window.innerWidth <= 768;
@@ -559,10 +597,11 @@ export class WelcomeLayer {
       gsap.to(this.welcomeInfo, {
         duration: 0.6,
         opacity: 1,
-        ease: 'power2.out'
+        ease: 'power2.out',
+        onStart: () => {
+          setTimeout(() => this.setTextAnimationPaused(false), 50);
+        }
       });
-      
-      // Text will auto-animate via existing character animation
     }
     
     // Show and fade in language switcher
@@ -570,6 +609,17 @@ export class WelcomeLayer {
     if (welcomeLangSwitcher) {
       welcomeLangSwitcher.style.visibility = 'visible';
       gsap.to(welcomeLangSwitcher, {
+        duration: 0.6,
+        delay: 0.3, // Slight delay after welcome info
+        opacity: 1,
+        ease: 'power2.out'
+      });
+    }
+    
+    // Show and fade in theme toggle button
+    if (this.themeToggleButton) {
+      this.themeToggleButton.style.visibility = 'visible';
+      gsap.to(this.themeToggleButton, {
         duration: 0.6,
         delay: 0.3, // Slight delay after welcome info
         opacity: 1,
@@ -849,6 +899,16 @@ export class WelcomeLayer {
       // Fade out welcome language switcher very fast
       if (welcomeLangSwitcher) {
         gsap.to(welcomeLangSwitcher, {
+          duration: 0.2,
+          opacity: 0,
+          scale: 0.8,
+          ease: 'power2.in'
+        });
+      }
+      
+      // Fade out theme toggle button
+      if (this.themeToggleButton) {
+        gsap.to(this.themeToggleButton, {
           duration: 0.2,
           opacity: 0,
           scale: 0.8,
@@ -1179,6 +1239,9 @@ export class WelcomeLayer {
   private reloadWelcomeText() {
     if (!this.welcomeInfo) return;
     
+    // Pause any current animation before transitioning
+    this.setTextAnimationPaused(true);
+
     // Fade out current text (including checkbox)
     gsap.to(this.welcomeInfo, {
       duration: 0.3,
@@ -1206,7 +1269,15 @@ export class WelcomeLayer {
           // Fade back in
           gsap.fromTo(this.welcomeInfo, 
             { opacity: 0, y: 10 },
-            { duration: 0.4, opacity: 1, y: 0, ease: 'power2.out' }
+            { 
+              duration: 0.4, 
+              opacity: 1, 
+              y: 0, 
+              ease: 'power2.out',
+              onComplete: () => {
+                setTimeout(() => this.setTextAnimationPaused(false), 50);
+              }
+            }
           );
         }
       }
@@ -1220,16 +1291,16 @@ export class WelcomeLayer {
     lineEl.className = className;
 
     const characters = Array.from(text);
-    const charAnimDuration = 0.025; // 25ms per character
+    const charAnimDuration = 0.015; // 15ms per character (faster)
     const lineDuration = characters.length * charAnimDuration;
     
-    // Calculate delay: sum of all previous lines' durations + 0.3s gap between lines
-    let baseDelay = 0.5; // Initial delay
+    // Calculate delay: sum of all previous lines' durations + 0.2s gap between lines
+    let baseDelay = 0.3; // Initial delay (faster)
     for (let i = 0; i < lineIndex; i++) {
       const prevLine = this.welcomeInfo.children[i];
       if (prevLine && !prevLine.classList.contains('skip-welcome-container')) {
         const prevText = prevLine.textContent || '';
-        baseDelay += prevText.length * charAnimDuration + 0.3; // 300ms gap between lines
+        baseDelay += prevText.length * charAnimDuration + 0.2; // 200ms gap between lines (faster)
       }
     }
     
@@ -1250,8 +1321,8 @@ export class WelcomeLayer {
   }
 
   private scheduleCheckboxAnimation(infoLines: { text: string; className: string }[]) {
-    const charAnimDuration = 0.025; // 25ms per character
-    let totalDelay = 0.5; // Initial delay
+    const charAnimDuration = 0.015; // 15ms per character (faster)
+    let totalDelay = 0.3; // Initial delay (faster)
     
     // Calculate total animation time for all lines
     infoLines.forEach((line, index) => {
@@ -1259,7 +1330,7 @@ export class WelcomeLayer {
       const lineDuration = lineLength * charAnimDuration;
       totalDelay += lineDuration;
       if (index < infoLines.length - 1) {
-        totalDelay += 0.3; // Gap between lines
+        totalDelay += 0.2; // Gap between lines (faster)
       }
     });
     
@@ -1289,6 +1360,25 @@ export class WelcomeLayer {
         console.error('❌ Checkbox element not found!');
       }
     }, totalDelay * 1000);
+  }
+
+  private setTextAnimationPaused(paused: boolean): void {
+    if (!this.welcomeInfo) return;
+    
+    if (paused) {
+      if (!this.welcomeInfo.classList.contains('text-paused')) {
+        this.welcomeInfo.classList.add('text-paused');
+      }
+      // Force reflow to ensure animation reset
+      void this.welcomeInfo.offsetWidth;
+      return;
+    }
+
+    if (this.welcomeInfo.classList.contains('text-paused')) {
+      // Force reflow before resuming to restart animations
+      void this.welcomeInfo.offsetWidth;
+      this.welcomeInfo.classList.remove('text-paused');
+    }
   }
 }
 

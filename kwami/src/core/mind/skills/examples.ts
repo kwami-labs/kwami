@@ -7,6 +7,7 @@
 
 import type { Kwami } from '../../Kwami';
 import type { SkillDefinition } from './types';
+import { logger } from '../../../utils/logger';
 
 /**
  * Example 1: Execute a predefined skill
@@ -322,11 +323,11 @@ export async function example6_Meditation(kwami: Kwami) {
  */
 export function example7_ListSkills(kwami: Kwami) {
   const skills = kwami.skills.getAllSkills();
-  console.log('Registered skills:', skills.map(s => s.name));
+  logger.info('Registered skills:', skills.map(s => s.name));
   
   // Get statistics
   const stats = kwami.skills.getStats();
-  console.log('Skill statistics:', stats);
+  logger.info('Skill statistics:', stats);
 }
 
 /**

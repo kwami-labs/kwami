@@ -1000,7 +1000,7 @@ html[dir="rtl"] .right-header {
 }
 
 .sidebar-navigation.inside-welcome-layer {
-  z-index: 18000;
+  z-index: 150;
   filter: drop-shadow(0 0 20px rgba(0, 0, 0, 0.4));
 }
 
@@ -1272,6 +1272,53 @@ html[dir="rtl"] .right-header {
   }
 }
 
+/* Theme Toggle in Header */
+.header-theme-toggle {
+  width: 36px;
+  height: 36px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  background: rgba(10, 10, 10, 0.4);
+  backdrop-filter: blur(20px) saturate(180%);
+  -webkit-backdrop-filter: blur(20px) saturate(180%);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 12px;
+  cursor: pointer;
+  transition: all 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.4);
+  opacity: 0.7;
+  flex-shrink: 0;
+}
+
+.header-theme-toggle:hover {
+  background: rgba(255, 255, 255, 0.12);
+  border-color: rgba(255, 255, 255, 0.2);
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.5),
+              0 0 25px var(--color-primary);
+  opacity: 1;
+}
+
+.header-theme-toggle:active {
+  transform: translateY(0px);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.4);
+}
+
+.header-theme-toggle .theme-toggle-icon {
+  font-size: 1.1rem;
+  line-height: 1;
+  transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.header-theme-toggle:hover .theme-toggle-icon {
+  transform: rotate(20deg) scale(1.1);
+}
+
 /* Language Switcher */
 .language-switcher {
   position: relative;
@@ -1283,9 +1330,11 @@ html[dir="rtl"] .right-header {
 .lang-btn {
   display: flex;
   align-items: center;
+  justify-content: center;
   gap: 0.5rem;
-  padding: 0.5rem 0.75rem;
+  padding: 0;
   min-width: 36px;
+  width: 36px;
   height: 36px;
   background: rgba(10, 10, 10, 0.4);
   backdrop-filter: blur(20px) saturate(180%);
@@ -1335,17 +1384,17 @@ html[dir="rtl"] .right-header {
   -webkit-backdrop-filter: blur(20px) saturate(180%);
   border: 1px solid rgba(255, 255, 255, 0.08);
   border-radius: 12px;
-  padding: 0.5rem;
+  padding: 0.3rem;
   box-shadow: 0 4px 16px rgba(0, 0, 0, 0.5);
   opacity: 0;
   visibility: hidden;
   transform: translateY(-10px);
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-  min-width: 150px;
+  min-width: 180px;
   max-height: 400px;
   overflow-y: auto;
   overflow-x: hidden;
-  z-index: 30001;
+  z-index: 30002;
 }
 
 .lang-menu.open {
@@ -1389,7 +1438,7 @@ html[dir="rtl"] .right-header {
 .lang-option {
   display: block;
   width: 100%;
-  padding: 0.6rem 1rem;
+  padding: 0.7rem 1rem;
   background: transparent;
   color: rgba(255, 255, 255, 0.7);
   border: none;
@@ -1399,12 +1448,13 @@ html[dir="rtl"] .right-header {
   text-align: left;
   font-size: 0.9rem;
   font-weight: 500;
+  white-space: nowrap;
 }
 
 .lang-option:hover {
   background: rgba(255, 255, 255, 0.1);
   color: rgba(255, 255, 255, 1);
-  transform: translateX(4px);
+  transform: scale(1.02);
 }
 
 .lang-option:active {
@@ -1425,4 +1475,163 @@ html[dir="rtl"] .right-header {
     height: 38px;
     font-size: 0.85rem;
   }
+}
+
+/* ========================================
+   Light Mode Styles
+   ======================================== */
+
+body.light-mode {
+  --bg-dark: #ffffff;
+  --text-color: #0a0a0a;
+  background: #ffffff;
+}
+
+body.light-mode .content-left {
+  background: transparent;
+}
+
+body.light-mode .content-right {
+  background: #ffffff;
+}
+
+body.light-mode .page-content {
+  color: rgba(0, 0, 0, 0.9);
+}
+
+body.light-mode h1,
+body.light-mode h2,
+body.light-mode h3 {
+  color: rgba(0, 0, 0, 0.95);
+}
+
+body.light-mode p,
+body.light-mode li {
+  color: rgba(0, 0, 0, 0.85);
+}
+
+body.light-mode .header-btn {
+  background: rgba(245, 245, 245, 0.6);
+  border: 1px solid rgba(0, 0, 0, 0.08);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+body.light-mode .header-btn:hover {
+  background: rgba(255, 255, 255, 0.9);
+  border-color: rgba(0, 0, 0, 0.2);
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.15),
+              0 0 25px var(--color-primary);
+}
+
+body.light-mode .header-theme-toggle {
+  background: rgba(245, 245, 245, 0.6);
+  border: 1px solid rgba(0, 0, 0, 0.08);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+body.light-mode .header-theme-toggle:hover {
+  background: rgba(255, 255, 255, 0.9);
+  border-color: rgba(0, 0, 0, 0.2);
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.15),
+              0 0 25px var(--color-primary);
+}
+
+body.light-mode .lang-btn {
+  background: rgba(245, 245, 245, 0.6);
+  border: 1px solid rgba(0, 0, 0, 0.08);
+  color: rgba(0, 0, 0, 0.85);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+body.light-mode .lang-btn:hover {
+  background: rgba(255, 255, 255, 0.9);
+  border-color: rgba(0, 0, 0, 0.2);
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.15),
+              0 0 25px var(--color-primary);
+}
+
+body.light-mode .lang-menu {
+  background: rgba(245, 245, 245, 0.8);
+  border: 1px solid rgba(0, 0, 0, 0.08);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15);
+}
+
+body.light-mode .lang-option {
+  color: rgba(0, 0, 0, 0.7);
+}
+
+body.light-mode .lang-option:hover {
+  background: rgba(0, 0, 0, 0.08);
+  color: rgba(0, 0, 0, 1);
+}
+
+body.light-mode .mode-switcher {
+  background: rgba(245, 245, 245, 0.7);
+  border: 1px solid rgba(0, 0, 0, 0.1);
+}
+
+body.light-mode .mode-btn {
+  color: rgba(0, 0, 0, 0.6);
+}
+
+body.light-mode .mode-btn:hover {
+  color: rgba(0, 0, 0, 0.9);
+}
+
+body.light-mode .mode-btn.active {
+  color: rgba(0, 0, 0, 1);
+}
+
+body.light-mode .bottom-tabs {
+  background: rgba(245, 245, 245, 0.5);
+  border: 1px solid rgba(0, 0, 0, 0.08);
+}
+
+body.light-mode .tab-btn {
+  color: rgba(0, 0, 0, 0.6);
+}
+
+body.light-mode .tab-btn:hover {
+  background: rgba(0, 0, 0, 0.05);
+  color: rgba(0, 0, 0, 0.9);
+}
+
+body.light-mode .tab-btn.active {
+  color: rgba(0, 0, 0, 1);
+  background: rgba(255, 255, 255, 0.5);
+}
+
+body.light-mode .action-button {
+  background: linear-gradient(135deg, var(--color-primary), var(--color-secondary));
+  color: white;
+  border: 1px solid rgba(0, 0, 0, 0.1);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+body.light-mode .action-button:hover {
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.25);
+  transform: translateY(-2px);
+}
+
+body.light-mode #song-title-display {
+  color: rgba(0, 0, 0, 0.8);
+  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+body.light-mode .scroll-indicator {
+  color: rgba(0, 0, 0, 0.5);
+}
+
+/* Adjust other elements as needed */
+body.light-mode code {
+  background: rgba(0, 0, 0, 0.05);
+  color: rgba(0, 0, 0, 0.9);
+}
+
+body.light-mode a {
+  color: var(--color-primary);
+}
+
+body.light-mode a:hover {
+  color: var(--color-secondary);
 }

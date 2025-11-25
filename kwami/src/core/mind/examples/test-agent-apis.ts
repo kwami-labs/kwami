@@ -11,6 +11,7 @@ import type {
   ToolResponse,
   KnowledgeBaseResponse,
 } from '../../../types/elevenlabs-agents';
+import { logger } from '../../../../utils/logger';
 
 /**
  * Configuration - Set your API key here or in environment
@@ -35,17 +36,17 @@ function logTest(name: string, status: TestResult['status'], error?: string, dat
   results.push(result);
   
   const icon = status === 'pass' ? '✅' : status === 'fail' ? '❌' : '⏭️';
-  console.log(`${icon} ${name}`);
-  if (error) console.error(`   Error: ${error}`);
-  if (data) console.log(`   Data:`, data);
+  logger.info(`${icon} ${name}`);
+  if (error) logger.error(`   Error: ${error}`);
+  if (data) logger.info(`   Data:`, data);
 }
 
 /**
  * Test Suite
  */
 async function runTests() {
-  console.log('🧪 Starting ElevenLabs Agent API Tests\n');
-  console.log('==========================================\n');
+  logger.info('🧪 Starting ElevenLabs Agent API Tests\n');
+  logger.info('==========================================\n');
 
   // Initialize Kwami
   let kwami: Kwami;
@@ -71,7 +72,7 @@ async function runTests() {
   }
 
   // Test 1: Agent Config Builder & Validation
-  console.log('\n📋 Testing Agent Configuration\n');
+  logger.info('\n📋 Testing Agent Configuration\n');
 
   try {
     const config = new AgentConfigBuilder()
@@ -99,7 +100,7 @@ async function runTests() {
   }
 
   // Test 2: Create Agent
-  console.log('\n🤖 Testing Agent Creation\n');
+  logger.info('\n🤖 Testing Agent Creation\n');
 
   try {
     const config = new AgentConfigBuilder()
@@ -124,7 +125,7 @@ async function runTests() {
   }
 
   // Test 3: Get Agent
-  console.log('\n🔍 Testing Agent Retrieval\n');
+  logger.info('\n🔍 Testing Agent Retrieval\n');
 
   if (testAgentId) {
     try {
@@ -141,7 +142,7 @@ async function runTests() {
   }
 
   // Test 4: List Agents
-  console.log('\n📋 Testing Agent Listing\n');
+  logger.info('\n📋 Testing Agent Listing\n');
 
   try {
     const agents = await kwami.mind.listAgents({ page_size: 5 });
@@ -154,7 +155,7 @@ async function runTests() {
   }
 
   // Test 5: Update Agent
-  console.log('\n✏️ Testing Agent Update\n');
+  logger.info('\n✏️ Testing Agent Update\n');
 
   if (testAgentId) {
     try {
@@ -174,7 +175,7 @@ async function runTests() {
   }
 
   // Test 6: Duplicate Agent
-  console.log('\n📋 Testing Agent Duplication\n');
+  logger.info('\n📋 Testing Agent Duplication\n');
 
   if (testAgentId) {
     try {
@@ -190,7 +191,7 @@ async function runTests() {
       try {
         await kwami.mind.deleteAgent(duplicate.agent_id);
       } catch (e) {
-        console.warn('Failed to clean up duplicate agent');
+        logger.warn('Failed to clean up duplicate agent');
       }
     } catch (error: any) {
       logTest('Duplicate Agent', 'fail', error.message);
@@ -200,7 +201,7 @@ async function runTests() {
   }
 
   // Test 7: Tools API - Create Tool
-  console.log('\n🔧 Testing Tools API\n');
+  logger.info('\n🔧 Testing Tools API\n');
 
   try {
     const toolsAPI = kwami.mind.getToolsAPI();
@@ -262,7 +263,7 @@ async function runTests() {
   }
 
   // Test 11: Knowledge Base API - Create KB
-  console.log('\n📚 Testing Knowledge Base API\n');
+  logger.info('\n📚 Testing Knowledge Base API\n');
 
   try {
     const kbAPI = kwami.mind.getKnowledgeBaseAPI();
@@ -339,7 +340,7 @@ async function runTests() {
   }
 
   // Cleanup
-  console.log('\n🧹 Cleaning Up Test Resources\n');
+  logger.info('\n🧹 Cleaning Up Test Resources\n');
 
   if (testToolId) {
     try {
@@ -371,28 +372,28 @@ async function runTests() {
   }
 
   // Summary
-  console.log('\n==========================================\n');
-  console.log('📊 Test Summary\n');
+  logger.info('\n==========================================\n');
+  logger.info('📊 Test Summary\n');
   
   const passed = results.filter((r) => r.status === 'pass').length;
   const failed = results.filter((r) => r.status === 'fail').length;
   const skipped = results.filter((r) => r.status === 'skip').length;
   const total = results.length;
 
-  console.log(`✅ Passed:  ${passed}/${total}`);
-  console.log(`❌ Failed:  ${failed}/${total}`);
-  console.log(`⏭️  Skipped: ${skipped}/${total}`);
+  logger.info(`✅ Passed:  ${passed}/${total}`);
+  logger.info(`❌ Failed:  ${failed}/${total}`);
+  logger.info(`⏭️  Skipped: ${skipped}/${total}`);
   
   if (failed > 0) {
-    console.log('\n❌ Failed Tests:\n');
+    logger.info('\n❌ Failed Tests:\n');
     results
       .filter((r) => r.status === 'fail')
       .forEach((r) => {
-        console.log(`  • ${r.name}: ${r.error}`);
+        logger.info(`  • ${r.name}: ${r.error}`);
       });
   }
 
-  console.log('\n==========================================\n');
+  logger.info('\n==========================================\n');
 
   return {
     passed,
@@ -406,7 +407,7 @@ async function runTests() {
 // Run tests if executed directly
 if (typeof window !== 'undefined') {
   runTests().then((summary) => {
-    console.log(
+    logger.info(
       summary.success 
         ? '🎉 All tests passed!' 
         : `⚠️ ${summary.failed} test(s) failed.`

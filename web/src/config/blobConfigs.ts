@@ -3,7 +3,7 @@
  * These configs are now loaded from kwamis.json
  */
 
-import kwamiConfigs from '../kwamis.json';
+import kwamiConfigs from './kwamis.json';
 
 export interface BlobConfig {
   spikeX: number;

@@ -1,5 +1,8 @@
 {
-  "name": "Kwami Documentation",
+  "name": "kwami-docs",
+  "version": "1.5.8",
+  "type": "module",
+  "private": true,
   "scripts": {
     "dev": "nuxt dev --extends docus",
     "build": "nuxt build --extends docus"

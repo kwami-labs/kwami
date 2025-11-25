@@ -222,6 +222,11 @@ export function createLanguageSwitcher(className = 'language-switcher'): HTMLEle
   const currentLang = document.createElement('span');
   currentLang.className = 'current-lang';
   currentLang.textContent = i18next.language.toUpperCase();
+  
+  // Hide language code only for non-welcome switchers (main page)
+  if (className !== 'welcome-language-switcher') {
+    currentLang.style.display = 'none';
+  }
 
   langBtn.appendChild(langIcon);
   langBtn.appendChild(currentLang);

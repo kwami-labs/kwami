@@ -17,6 +17,7 @@ import { toggleMusicLowpass } from '../media/MusicPlayer';
 import { toggleVoicePlayback } from '../media/VoicePlayer';
 import { getVideoState, playRandomVideo, toggleVideoPresentation } from '../media/VideoPlayer';
 import { rafThrottle, getPassiveEventOptions } from '../utils/performanceUtils';
+import { getPageAudioManager } from '../media/PageAudioManager';
 
 const blobConfigs = BLOB_CONFIGS;
 const colorPalettes = COLOR_PALETTES;
@@ -29,6 +30,9 @@ export class ScrollManager {
   private isTransitioning = false;
   private sidebarNav: SidebarNavigator;
   private cursorLight: CursorLight;
+  private pageAudioManager = getPageAudioManager();
+  private clickCount = 0;
+  private clickTimer: number | null = null;
 
   constructor() {
     this.sections = document.querySelectorAll('.text-section');
@@ -126,19 +130,23 @@ export class ScrollManager {
 
       await new Promise(resolve => setTimeout(resolve, 10));
 
+      // Get page 00 config from kwamis.json
+      const config = blobConfigs[0];
+      const palette = this.getPaletteForSection(0);
+
       this.kwami = new Kwami(canvas, {
         body: {
-          initialSkin: 'Poles',
+          initialSkin: config.skin as 'Donut' | 'Poles' | 'Vintage',
           blob: {
-            resolution: 180,
-            spikes: { x: 0.2, y: 0.2, z: 0.2 },
-            time: { x: 1, y: 1, z: 1 },
+            resolution: config.resolution,
+            spikes: { x: config.spikeX, y: config.spikeY, z: config.spikeZ },
+            time: { x: config.timeX, y: config.timeY, z: config.timeZ },
             rotation: { x: 0, y: 0, z: 0 },
-            wireframe: true,
+            wireframe: config.wireframe,
             colors: {
-              x: '#ff0066',
-              y: '#00ff66',
-              z: '#6600ff'
+              x: palette.primary,
+              y: palette.accent,
+              z: palette.secondary
             }
           },
           scene: {
@@ -151,7 +159,7 @@ export class ScrollManager {
       const isMobile = window.innerWidth <= MOBILE_BREAKPOINT;
       const blobScale = isMobile ? BLOB_SCALE_MOBILE : BLOB_SCALE_DESKTOP;
       this.kwami.body.blob.setScale(blobScale);
-      this.kwami.body.blob.setWireframe(true);
+      this.kwami.body.blob.setWireframe(config.wireframe);
 
       if (isMobile) {
         this.kwami.body.blob.setOpacity(BLOB_OPACITY_MOBILE);
@@ -183,6 +191,10 @@ export class ScrollManager {
 
       this.kwami?.body.blob.enableClickInteraction();
       this.setupInteractions(canvas);
+
+      // Load page 00 audio immediately
+      console.log('🎤 Loading page 00 audio on initialization');
+      await this.pageAudioManager.loadAndPlayPageAudio(0);
     } catch (error) {
       console.error('❌ Failed to initialize Kwami:', error);
       const container = document.getElementById('kwami-container');
@@ -221,6 +233,9 @@ export class ScrollManager {
       this.updateKwamiConfig(section);
       this.sidebarNav.updateSphereColors(section);
       this.cursorLight.updateColors(palette);
+      
+      // Load and play audio for the new page
+      this.pageAudioManager.loadAndPlayPageAudio(section);
     }
 
     this.addColorVariations(sectionProgress);
@@ -293,35 +308,59 @@ export class ScrollManager {
     });
 
     canvas.addEventListener('click', (e: MouseEvent) => {
-      if (e.detail >= 2) {
-        return;
+      // Increment click count
+      this.clickCount++;
+
+      // Clear existing timer
+      if (this.clickTimer !== null) {
+        clearTimeout(this.clickTimer);
       }
 
-      const activeTab = document.querySelector('.tab-btn.active');
-      const activeTabType = activeTab?.getAttribute('data-tab');
-
-      if (activeTabType === 'video') {
-        const { currentVideoMode, currentVideoUrl, isVideoLoading } = getVideoState();
-        if (currentVideoUrl && currentVideoMode !== 'none' && !isVideoLoading) {
-          toggleVideoPresentation();
-        } else if (!isVideoLoading && !currentVideoUrl) {
-          playRandomVideo({ mode: 'background' });
+      // Set a timer to detect single vs double click
+      this.clickTimer = window.setTimeout(() => {
+        if (this.clickCount === 1) {
+          // Single click - handle pause/play
+          this.handleSingleClick(e);
+        } else if (this.clickCount === 2) {
+          // Double click - randomize (handled by dblclick event)
+          // We don't need to do anything here as dblclick handler takes care of it
         }
-        return;
-      }
-
-      if (activeTabType === 'music') {
-        const kwami = (window as any).scrollManager?.getKwami?.();
-        if (kwami?.body?.audio?.isPlaying()) {
-          toggleMusicLowpass();
-        }
-        return;
-      }
-
-      if (activeTabType === 'voice') {
-        toggleVoicePlayback();
-      }
+        // Reset click count
+        this.clickCount = 0;
+        this.clickTimer = null;
+      }, 250); // 250ms delay to detect double click
     });
+  }
+
+  private handleSingleClick(e: MouseEvent) {
+    const activeTab = document.querySelector('.tab-btn.active');
+    const activeTabType = activeTab?.getAttribute('data-tab');
+
+    if (activeTabType === 'video') {
+      const { currentVideoMode, currentVideoUrl, isVideoLoading } = getVideoState();
+      if (currentVideoUrl && currentVideoMode !== 'none' && !isVideoLoading) {
+        toggleVideoPresentation();
+      } else if (!isVideoLoading && !currentVideoUrl) {
+        playRandomVideo({ mode: 'background' });
+      }
+      return;
+    }
+
+    if (activeTabType === 'music') {
+      const kwami = (window as any).scrollManager?.getKwami?.();
+      if (kwami?.body?.audio?.isPlaying()) {
+        toggleMusicLowpass();
+      }
+      return;
+    }
+
+    if (activeTabType === 'voice') {
+      toggleVoicePlayback();
+      return;
+    }
+
+    // Default behavior: toggle page audio (no tab selected or other tab)
+    this.pageAudioManager.togglePageAudio();
   }
 
   private performFullRandomization() {

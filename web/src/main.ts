@@ -5,6 +5,7 @@ import './loading.css';
 import './mobile.css';
 import { t, getCurrentLanguage, updatePageTranslations, createLanguageSwitcher } from './i18n';
 import { WelcomeLayer } from './components/WelcomeLayer';
+import { BackgroundRings } from './components/BackgroundRings';
 import i18next from './i18n';
 import { initAnalytics, trackTiming } from './analytics';
 import { initErrorHandler } from './error-handler';
@@ -21,6 +22,8 @@ import { playRandomVideo, stopVideoPlayback, toggleVideoPresentation } from './m
 import { stopKwamiAudio } from './media/AudioController';
 import { generateRandomColor } from './config/colors';
 import { isRTLLanguage } from './utils/languageUtils';
+import { getPageAudioManager } from './media/PageAudioManager';
+import { getThemeModeManager } from './managers/ThemeModeManager';
 
 let scrollManager: ScrollManager | null = null;
 
@@ -39,6 +42,20 @@ function initLanguageSwitcher() {
   console.log('🌐 Language switcher initialized');
 }
 
+function initThemeToggle() {
+  const themeManager = getThemeModeManager();
+  const themeToggle = themeManager.createThemeToggleButton('header-theme-toggle');
+  const rightHeader = document.querySelector('.right-header');
+
+  if (rightHeader) {
+    rightHeader.appendChild(themeToggle);
+  } else {
+    document.body.appendChild(themeToggle);
+  }
+
+  console.log('🌓 Theme toggle initialized');
+}
+
 function initTabs() {
   document.querySelectorAll('.tab-btn').forEach(button => {
     button.addEventListener('click', async function(this: HTMLButtonElement) {
@@ -52,11 +69,15 @@ function initTabs() {
       this.classList.add('active');
       triggerTabAnimation(this, tabType);
 
+      const pageAudioManager = getPageAudioManager();
+
       if (tabType === 'music') {
+        pageAudioManager.stopPageAudio();
         stopVoicePlayback();
         stopVideoPlayback(undefined, { preserveUrl: true });
         await playRandomMusic();
       } else if (tabType === 'voice') {
+        pageAudioManager.stopPageAudio();
         stopVideoPlayback(undefined, { preserveUrl: true });
         if (alreadyActive) {
           await toggleVoicePlayback();
@@ -64,6 +85,7 @@ function initTabs() {
           await playRandomVoiceClip();
         }
       } else if (tabType === 'video') {
+        pageAudioManager.stopPageAudio();
         stopKwamiAudio();
         if (alreadyActive) {
           await toggleVideoPresentation();
@@ -150,10 +172,20 @@ document.addEventListener('DOMContentLoaded', () => {
     new ModeSwitcher();
     new ActionButtonManager();
     (window as any).scrollManager = scrollManager;
+    
+    // Initialize background rings after welcome layer
+    const backgroundRings = new BackgroundRings();
+    backgroundRings.setOpacity(0);
+    setTimeout(() => {
+      backgroundRings.show();
+    }, 500);
+    (window as any).backgroundRings = backgroundRings;
+    
     console.log('✅ Main app initialized');
   });
 
   initLanguageSwitcher();
+  initThemeToggle();
   updatePageTranslations();
 
   const loadTime = performance.now() - startTime;

@@ -1,3 +1,5 @@
+import { logger } from './logger';
+
 export type UtteranceOptions = {
   voice?: string;
   lang?: string;
@@ -76,7 +78,7 @@ export default class SpeechSynthesisRecorder {
           if (voice) {
             this.utterance.voice = voice;
           }
-          console.log(voice, this.utterance);
+          logger.info(voice, this.utterance);
         };
         this.speechSynthesis.getVoices();
       }
@@ -127,18 +129,18 @@ export default class SpeechSynthesisRecorder {
         track.stop();
         this.mediaStream_.getAudioTracks()[0].stop();
         this.mediaStream_.removeTrack(track);
-        console.log(`Completed recording ${this.utterance.text}`, this.chunks);
+        logger.info(`Completed recording ${this.utterance.text}`, this.chunks);
         resolve(this);
       };
       this.mediaRecorder.start();
       this.utterance.onstart = () => {
-        console.log(
+        logger.info(
           `Starting recording SpeechSynthesisUtterance ${this.utterance.text}`,
         );
       };
       this.utterance.onend = () => {
         this.mediaRecorder.stop();
-        console.log(
+        logger.info(
           `Ending recording SpeechSynthesisUtterance ${this.utterance.text}`,
         );
       };
@@ -250,7 +252,7 @@ export default class SpeechSynthesisRecorder {
       data: new ReadableStream(
         {
           start(controller: ReadableStreamDefaultController) {
-            console.log(src.length);
+            logger.info(src.length);
             controller.enqueue(src.splice(0, chunk));
           },
           pull(controller: ReadableStreamDefaultController) {

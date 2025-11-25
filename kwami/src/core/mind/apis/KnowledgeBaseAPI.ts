@@ -5,6 +5,8 @@
  * API Reference: https://elevenlabs.io/docs/api-reference/knowledge-base
  */
 
+import { logger } from '../../../utils/logger';
+
 export interface CreateKnowledgeBaseRequest {
   name: string;
   description?: string;
@@ -116,7 +118,7 @@ export class KnowledgeBaseAPI {
    * Create a new knowledge base
    */
   async createKnowledgeBase(request: CreateKnowledgeBaseRequest): Promise<KnowledgeBaseResponse> {
-    console.log('📚 Creating new knowledge base:', request.name);
+    logger.info('📚 Creating new knowledge base:', request.name);
 
     const response = await fetch('https://api.elevenlabs.io/v1/convai/knowledge-bases/create', {
       method: 'POST',
@@ -133,7 +135,7 @@ export class KnowledgeBaseAPI {
     }
 
     const data = await response.json();
-    console.log('✅ Knowledge base created:', data.knowledge_base_id);
+    logger.info('✅ Knowledge base created:', data.knowledge_base_id);
     return data as KnowledgeBaseResponse;
   }
 
@@ -141,7 +143,7 @@ export class KnowledgeBaseAPI {
    * Get a knowledge base by ID
    */
   async getKnowledgeBase(knowledgeBaseId: string): Promise<KnowledgeBaseResponse> {
-    console.log('🔍 Fetching knowledge base:', knowledgeBaseId);
+    logger.info('🔍 Fetching knowledge base:', knowledgeBaseId);
 
     const response = await fetch(`https://api.elevenlabs.io/v1/convai/knowledge-bases/${knowledgeBaseId}`, {
       headers: {
@@ -161,7 +163,7 @@ export class KnowledgeBaseAPI {
    * List all knowledge bases
    */
   async listKnowledgeBases(options?: ListKnowledgeBasesOptions): Promise<ListKnowledgeBasesResponse> {
-    console.log('📋 Listing knowledge bases...');
+    logger.info('📋 Listing knowledge bases...');
 
     const queryParams = new URLSearchParams();
     if (options?.page_size) queryParams.append('page_size', options.page_size.toString());
@@ -189,7 +191,7 @@ export class KnowledgeBaseAPI {
     knowledgeBaseId: string,
     request: UpdateKnowledgeBaseRequest
   ): Promise<KnowledgeBaseResponse> {
-    console.log('✏️ Updating knowledge base:', knowledgeBaseId);
+    logger.info('✏️ Updating knowledge base:', knowledgeBaseId);
 
     const response = await fetch(`https://api.elevenlabs.io/v1/convai/knowledge-bases/${knowledgeBaseId}`, {
       method: 'PATCH',
@@ -206,7 +208,7 @@ export class KnowledgeBaseAPI {
     }
 
     const data = await response.json();
-    console.log('✅ Knowledge base updated successfully');
+    logger.info('✅ Knowledge base updated successfully');
     return data as KnowledgeBaseResponse;
   }
 
@@ -214,7 +216,7 @@ export class KnowledgeBaseAPI {
    * Delete a knowledge base
    */
   async deleteKnowledgeBase(knowledgeBaseId: string): Promise<void> {
-    console.log('🗑️ Deleting knowledge base:', knowledgeBaseId);
+    logger.info('🗑️ Deleting knowledge base:', knowledgeBaseId);
 
     const response = await fetch(`https://api.elevenlabs.io/v1/convai/knowledge-bases/${knowledgeBaseId}`, {
       method: 'DELETE',
@@ -228,7 +230,7 @@ export class KnowledgeBaseAPI {
       throw new Error(`Failed to delete knowledge base: ${error}`);
     }
 
-    console.log('✅ Knowledge base deleted successfully');
+    logger.info('✅ Knowledge base deleted successfully');
   }
 
   // ==================== Document Management ====================
@@ -240,7 +242,7 @@ export class KnowledgeBaseAPI {
     knowledgeBaseId: string,
     request: CreateKnowledgeBaseDocumentFromURLRequest
   ): Promise<KnowledgeBaseDocumentResponse> {
-    console.log('📄 Creating document from URL:', request.url);
+    logger.info('📄 Creating document from URL:', request.url);
 
     const response = await fetch(
       `https://api.elevenlabs.io/v1/convai/knowledge-bases/${knowledgeBaseId}/documents/create-from-url`,
@@ -260,7 +262,7 @@ export class KnowledgeBaseAPI {
     }
 
     const data = await response.json();
-    console.log('✅ Document created:', data.document_id);
+    logger.info('✅ Document created:', data.document_id);
     return data as KnowledgeBaseDocumentResponse;
   }
 
@@ -271,7 +273,7 @@ export class KnowledgeBaseAPI {
     knowledgeBaseId: string,
     request: CreateKnowledgeBaseDocumentFromTextRequest
   ): Promise<KnowledgeBaseDocumentResponse> {
-    console.log('📄 Creating document from text');
+    logger.info('📄 Creating document from text');
 
     const response = await fetch(
       `https://api.elevenlabs.io/v1/convai/knowledge-bases/${knowledgeBaseId}/documents/create-from-text`,
@@ -291,7 +293,7 @@ export class KnowledgeBaseAPI {
     }
 
     const data = await response.json();
-    console.log('✅ Document created:', data.document_id);
+    logger.info('✅ Document created:', data.document_id);
     return data as KnowledgeBaseDocumentResponse;
   }
 
@@ -302,7 +304,7 @@ export class KnowledgeBaseAPI {
     knowledgeBaseId: string,
     request: CreateKnowledgeBaseDocumentFromFileRequest
   ): Promise<KnowledgeBaseDocumentResponse> {
-    console.log('📄 Creating document from file');
+    logger.info('📄 Creating document from file');
 
     const formData = new FormData();
     formData.append('file', request.file);
@@ -326,7 +328,7 @@ export class KnowledgeBaseAPI {
     }
 
     const data = await response.json();
-    console.log('✅ Document created:', data.document_id);
+    logger.info('✅ Document created:', data.document_id);
     return data as KnowledgeBaseDocumentResponse;
   }
 
@@ -337,7 +339,7 @@ export class KnowledgeBaseAPI {
     knowledgeBaseId: string,
     documentId: string
   ): Promise<KnowledgeBaseDocumentResponse> {
-    console.log('🔍 Fetching document:', documentId);
+    logger.info('🔍 Fetching document:', documentId);
 
     const response = await fetch(
       `https://api.elevenlabs.io/v1/convai/knowledge-bases/${knowledgeBaseId}/documents/${documentId}`,
@@ -363,7 +365,7 @@ export class KnowledgeBaseAPI {
     knowledgeBaseId: string,
     options?: ListKnowledgeBaseDocumentsOptions
   ): Promise<ListKnowledgeBaseDocumentsResponse> {
-    console.log('📋 Listing documents...');
+    logger.info('📋 Listing documents...');
 
     const queryParams = new URLSearchParams();
     if (options?.page_size) queryParams.append('page_size', options.page_size.toString());
@@ -388,7 +390,7 @@ export class KnowledgeBaseAPI {
    * Delete a document
    */
   async deleteDocument(knowledgeBaseId: string, documentId: string): Promise<void> {
-    console.log('🗑️ Deleting document:', documentId);
+    logger.info('🗑️ Deleting document:', documentId);
 
     const response = await fetch(
       `https://api.elevenlabs.io/v1/convai/knowledge-bases/${knowledgeBaseId}/documents/${documentId}`,
@@ -405,14 +407,14 @@ export class KnowledgeBaseAPI {
       throw new Error(`Failed to delete document: ${error}`);
     }
 
-    console.log('✅ Document deleted successfully');
+    logger.info('✅ Document deleted successfully');
   }
 
   /**
    * Get document content
    */
   async getDocumentContent(knowledgeBaseId: string, documentId: string): Promise<DocumentContent> {
-    console.log('📖 Fetching document content:', documentId);
+    logger.info('📖 Fetching document content:', documentId);
 
     const response = await fetch(
       `https://api.elevenlabs.io/v1/convai/knowledge-bases/${knowledgeBaseId}/documents/${documentId}/content`,
@@ -439,7 +441,7 @@ export class KnowledgeBaseAPI {
     documentId: string,
     chunkId: string
   ): Promise<DocumentChunk> {
-    console.log('📄 Fetching document chunk:', chunkId);
+    logger.info('📄 Fetching document chunk:', chunkId);
 
     const response = await fetch(
       `https://api.elevenlabs.io/v1/convai/knowledge-bases/${knowledgeBaseId}/documents/${documentId}/chunks/${chunkId}`,
@@ -464,7 +466,7 @@ export class KnowledgeBaseAPI {
    * Compute RAG index for a knowledge base
    */
   async computeRAGIndex(knowledgeBaseId: string): Promise<RAGIndexResponse> {
-    console.log('🔍 Computing RAG index for knowledge base:', knowledgeBaseId);
+    logger.info('🔍 Computing RAG index for knowledge base:', knowledgeBaseId);
 
     const response = await fetch(
       `https://api.elevenlabs.io/v1/convai/knowledge-bases/${knowledgeBaseId}/rag-index/compute`,
@@ -482,7 +484,7 @@ export class KnowledgeBaseAPI {
     }
 
     const data = await response.json();
-    console.log('✅ RAG index computation started');
+    logger.info('✅ RAG index computation started');
     return data as RAGIndexResponse;
   }
 
@@ -490,7 +492,7 @@ export class KnowledgeBaseAPI {
    * Get RAG index status
    */
   async getRAGIndex(knowledgeBaseId: string): Promise<RAGIndexResponse> {
-    console.log('🔍 Getting RAG index status:', knowledgeBaseId);
+    logger.info('🔍 Getting RAG index status:', knowledgeBaseId);
 
     const response = await fetch(
       `https://api.elevenlabs.io/v1/convai/knowledge-bases/${knowledgeBaseId}/rag-index`,
@@ -513,7 +515,7 @@ export class KnowledgeBaseAPI {
    * Get RAG index overview (summary of all indexes)
    */
   async getRAGIndexOverview(): Promise<RAGIndexOverview[]> {
-    console.log('📊 Getting RAG index overview');
+    logger.info('📊 Getting RAG index overview');
 
     const response = await fetch('https://api.elevenlabs.io/v1/convai/knowledge-bases/rag-index/overview', {
       headers: {
@@ -533,7 +535,7 @@ export class KnowledgeBaseAPI {
    * Delete RAG index
    */
   async deleteRAGIndex(knowledgeBaseId: string): Promise<void> {
-    console.log('🗑️ Deleting RAG index:', knowledgeBaseId);
+    logger.info('🗑️ Deleting RAG index:', knowledgeBaseId);
 
     const response = await fetch(
       `https://api.elevenlabs.io/v1/convai/knowledge-bases/${knowledgeBaseId}/rag-index`,
@@ -550,14 +552,14 @@ export class KnowledgeBaseAPI {
       throw new Error(`Failed to delete RAG index: ${error}`);
     }
 
-    console.log('✅ RAG index deleted successfully');
+    logger.info('✅ RAG index deleted successfully');
   }
 
   /**
    * Get dependent agents (which agents use this knowledge base)
    */
   async getDependentAgents(knowledgeBaseId: string): Promise<{ agent_ids: string[] }> {
-    console.log('🔗 Fetching dependent agents for knowledge base:', knowledgeBaseId);
+    logger.info('🔗 Fetching dependent agents for knowledge base:', knowledgeBaseId);
 
     const response = await fetch(
       `https://api.elevenlabs.io/v1/convai/knowledge-bases/${knowledgeBaseId}/dependent-agents`,
@@ -580,7 +582,7 @@ export class KnowledgeBaseAPI {
    * Get knowledge base size estimate
    */
   async getKnowledgeBaseSize(knowledgeBaseId: string): Promise<{ size_bytes: number }> {
-    console.log('📏 Getting knowledge base size:', knowledgeBaseId);
+    logger.info('📏 Getting knowledge base size:', knowledgeBaseId);
 
     const response = await fetch(
       `https://api.elevenlabs.io/v1/convai/knowledge-bases/${knowledgeBaseId}/size`,
