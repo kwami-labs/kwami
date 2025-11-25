@@ -24,6 +24,7 @@ import { generateRandomColor } from './config/colors';
 import { isRTLLanguage } from './utils/languageUtils';
 import { getPageAudioManager } from './media/PageAudioManager';
 import { getThemeModeManager } from './managers/ThemeModeManager';
+import { initPageTextAnimations, refreshPageTextAnimations } from './utils/pageTextAnimation';
 
 let scrollManager: ScrollManager | null = null;
 
@@ -181,6 +182,11 @@ document.addEventListener('DOMContentLoaded', () => {
     }, 500);
     (window as any).backgroundRings = backgroundRings;
     
+    // Initialize text animations after content is loaded
+    setTimeout(() => {
+      initPageTextAnimations();
+    }, 100);
+    
     console.log('✅ Main app initialized');
   });
 
@@ -214,6 +220,9 @@ document.addEventListener('DOMContentLoaded', () => {
     scrollManager?.syncLanguageDirection(lng);
     setTimeout(() => {
       scrollManager?.updateBlobPosition(true);
+      // Refresh text animations when language changes
+      const currentSection = scrollManager?.getCurrentSection() || 0;
+      refreshPageTextAnimations(currentSection);
     }, 50);
   });
 

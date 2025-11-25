@@ -2,7 +2,7 @@ import type { SoulConfig, EmotionalTraits } from '../../types/index';
 import * as yaml from 'js-yaml';
 import { personalityTemplates, type PersonalityTemplate } from './templates/loader';
 import { logger } from '../../utils/logger';
-import { ActionManager } from './actions/ActionManager';
+import { ActionManager } from '../actions/ActionManager';
 
 /**
  * KwamiSoul - Manages the personality and behavioral characteristics of Kwami
@@ -28,12 +28,12 @@ export class KwamiSoul {
   private config: SoulConfig;
   public actions: ActionManager;
 
-  constructor(config?: SoulConfig, kwamiInstance?: any) {
+  constructor(config?: SoulConfig, actionManager?: ActionManager) {
     const defaults = this.getDefaultConfig();
     this.config = config ? { ...defaults, ...config } : defaults;
     
-    // Initialize ActionManager (Soul connects Mind and Body through Actions)
-    this.actions = new ActionManager(kwamiInstance);
+    // Soul references the shared ActionManager from core
+    this.actions = actionManager ?? new ActionManager(undefined);
   }
 
   /**

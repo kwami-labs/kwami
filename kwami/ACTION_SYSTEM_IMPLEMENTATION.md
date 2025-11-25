@@ -67,7 +67,7 @@ A professional, extensible action system has been successfully integrated into t
 
 ### Core System
 ```
-kwami/src/core/soul/actions/
+kwami/src/core/actions/
 ├── types.ts                    # TypeScript definitions
 ├── ActionManager.ts            # Core action management
 ├── index.ts                    # Exports

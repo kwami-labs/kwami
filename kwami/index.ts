@@ -38,9 +38,9 @@ export * from './src/core/mind/index';
 // Skills System
 export { SkillManager } from './src/core/mind/skills/SkillManager';
 
-// Action System (Soul - connects Mind and Body)
-export { ActionManager } from './src/core/soul/actions/ActionManager';
-export * from './src/core/soul/actions/types';
+// Action System (Core orchestration)
+export { ActionManager } from './src/core/actions/ActionManager';
+export * from './src/core/actions/types';
 
 // Utilities
 export * from './src/utils/randoms';

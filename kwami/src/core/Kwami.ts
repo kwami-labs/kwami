@@ -2,6 +2,7 @@ import { KwamiBody } from './body/Body';
 import { KwamiMind } from './mind/Mind';
 import { KwamiSoul } from './soul/Soul';
 import { SkillManager } from './mind/skills/SkillManager';
+import { ActionManager } from './actions/ActionManager';
 import type { KwamiConfig, KwamiState } from '../types/index';
 import { logger } from '../utils/logger';
 
@@ -33,6 +34,7 @@ export class Kwami {
   public mind: KwamiMind;
   public soul: KwamiSoul;
   public skills: SkillManager;
+  public actions: ActionManager;
 
   private state: KwamiState = 'idle';
 
@@ -48,8 +50,11 @@ export class Kwami {
     // Initialize the body (visual representation)
     this.body = new KwamiBody(canvas, config?.body);
 
-    // Initialize soul (AI personality) - pass this instance for ActionManager
-    this.soul = new KwamiSoul(config?.soul, this);
+    // Initialize the shared action manager (core-level)
+    this.actions = new ActionManager(this);
+
+    // Initialize soul (AI personality) referencing shared actions
+    this.soul = new KwamiSoul(config?.soul, this.actions);
 
     // Initialize mind (AI capabilities) with reference to audio for visualization
     this.mind = new KwamiMind(this.body.audio, config?.mind);

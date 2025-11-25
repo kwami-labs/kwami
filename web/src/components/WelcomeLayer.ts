@@ -1241,7 +1241,7 @@ export class WelcomeLayer {
     
     // Pause any current animation before transitioning
     this.setTextAnimationPaused(true);
-
+    
     // Fade out current text (including checkbox)
     gsap.to(this.welcomeInfo, {
       duration: 0.3,

@@ -18,6 +18,7 @@ import { toggleVoicePlayback } from '../media/VoicePlayer';
 import { getVideoState, playRandomVideo, toggleVideoPresentation } from '../media/VideoPlayer';
 import { rafThrottle, getPassiveEventOptions } from '../utils/performanceUtils';
 import { getPageAudioManager } from '../media/PageAudioManager';
+import { animatePageSection } from '../utils/pageTextAnimation';
 
 const blobConfigs = BLOB_CONFIGS;
 const colorPalettes = COLOR_PALETTES;
@@ -236,6 +237,9 @@ export class ScrollManager {
       
       // Load and play audio for the new page
       this.pageAudioManager.loadAndPlayPageAudio(section);
+      
+      // Trigger text animation for the new page
+      animatePageSection(section);
     }
 
     this.addColorVariations(sectionProgress);

@@ -1,4 +1,4 @@
-import type { AnyActionDefinition } from '../soul/actions/types';
+import type { AnyActionDefinition } from '../actions/types';
 
 /**
  * Context Menu for Kwami Body
