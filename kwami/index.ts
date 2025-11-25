@@ -42,6 +42,9 @@ export { SkillManager } from './src/core/mind/skills/SkillManager';
 export { ActionManager } from './src/core/actions/ActionManager';
 export * from './src/core/actions/types';
 
+// UI Library
+export * from './src/ui';
+
 // Utilities
 export * from './src/utils/randoms';
 export { default as SpeechSynthesisRecorder } from './src/utils/recorder';
@@ -107,8 +110,8 @@ export type {
 } from './src/core/mind/skills/types';
 
 // Soul personality templates
-export type { PersonalityTemplate } from './src/core/soul/templates/loader';
-export { getAvailablePersonalities, getPersonalityTemplate } from './src/core/soul/templates/loader';
+// export type { PersonalityTemplate } from './src/core/soul/templates/loader';
+// export { getAvailablePersonalities, getPersonalityTemplate } from './src/core/soul/templates/loader';
 
 // Default export
 export { Kwami as default } from './src/core/Kwami';

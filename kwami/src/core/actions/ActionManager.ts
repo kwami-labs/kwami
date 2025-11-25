@@ -632,6 +632,90 @@ export class ActionManager {
           throw error;
         }
       },
+
+      'mind.textToSpeech': async (context, params) => {
+        try {
+          // Check if browser supports Speech Synthesis API
+          if (typeof window === 'undefined' || !('speechSynthesis' in window)) {
+            return {
+              success: false,
+              actionId: 'mind.textToSpeech',
+              executionTime: 0,
+              error: { 
+                code: 'API_NOT_SUPPORTED', 
+                message: 'Speech Synthesis API is not supported in this browser' 
+              },
+            };
+          }
+
+          let text = params?.text;
+          let rate = params?.rate ?? 1;
+          let pitch = params?.pitch ?? 1;
+          let voice = params?.voice;
+          
+          // If no text provided, prompt the user
+          if (!text && typeof window !== 'undefined') {
+            text = window.prompt('Enter text to speak:', 'Hello world');
+            if (!text) {
+              return {
+                success: false,
+                actionId: 'mind.textToSpeech',
+                executionTime: 0,
+                error: { code: 'USER_CANCELLED', message: 'User cancelled or provided empty text' },
+              };
+            }
+          }
+
+          if (!text) {
+            return {
+              success: false,
+              actionId: 'mind.textToSpeech',
+              executionTime: 0,
+              error: { code: 'MISSING_TEXT', message: 'Text parameter is required' },
+            };
+          }
+
+          // Create speech utterance
+          const utter = new SpeechSynthesisUtterance(text);
+          utter.rate = rate;
+          utter.pitch = pitch;
+
+          // Set voice if specified
+          if (voice) {
+            const voices = window.speechSynthesis.getVoices();
+            const selectedVoice = voices.find(v => v.name === voice || v.lang === voice);
+            if (selectedVoice) {
+              utter.voice = selectedVoice;
+            }
+          }
+
+          // Create a promise to track speech completion
+          await new Promise<void>((resolve, reject) => {
+            utter.onend = () => resolve();
+            utter.onerror = (event) => reject(new Error(`Speech synthesis error: ${event.error}`));
+            window.speechSynthesis.speak(utter);
+          });
+
+          logger.info(`✅ Spoke text: "${text.substring(0, 50)}${text.length > 50 ? '...' : ''}"`);
+          return { 
+            success: true, 
+            actionId: 'mind.textToSpeech', 
+            executionTime: 0, 
+            data: { text, rate, pitch, voice: utter.voice?.name } 
+          };
+        } catch (error: any) {
+          logger.error('❌ textToSpeech failed:', error);
+          return {
+            success: false,
+            actionId: 'mind.textToSpeech',
+            executionTime: 0,
+            error: { 
+              code: 'EXECUTION_ERROR', 
+              message: error.message || 'Failed to speak text' 
+            },
+          };
+        }
+      },
     };
 
     return handlers[name];
@@ -999,6 +1083,63 @@ export class ActionManager {
         bodyAction: {
           type: 'appearance',
           target: 'blob',
+        },
+      },
+      {
+        id: 'text-to-speech',
+        name: 'Text to Speech',
+        description: 'Convert text to speech using the browser\'s native Speech Synthesis API',
+        category: 'mind',
+        version: '1.0.0',
+        author: 'Kwami Team',
+        tags: ['speech', 'audio', 'voice', 'tts'],
+        enabled: true,
+        triggers: ['context-menu', 'api', 'voice-command'],
+        parameters: [
+          {
+            name: 'text',
+            type: 'string',
+            label: 'Text',
+            description: 'Text to be spoken',
+            required: false,
+          },
+          {
+            name: 'rate',
+            type: 'number',
+            label: 'Speech Rate',
+            description: 'Speed of speech (0.1-10, default is 1)',
+            required: false,
+            default: 1,
+            min: 0.1,
+            max: 10,
+          },
+          {
+            name: 'pitch',
+            type: 'number',
+            label: 'Pitch',
+            description: 'Pitch of the voice (0-2, default is 1)',
+            required: false,
+            default: 1,
+            min: 0,
+            max: 2,
+          },
+          {
+            name: 'voice',
+            type: 'string',
+            label: 'Voice',
+            description: 'Voice name or language code (e.g., "en-US")',
+            required: false,
+          },
+        ],
+        handler: 'mind.textToSpeech',
+        ui: {
+          showInContextMenu: true,
+          menuLabel: '🔊 Text to Speech',
+          menuOrder: 50,
+          menuGroup: 'mind',
+        },
+        mindAction: {
+          type: 'speak',
         },
       },
     ];
