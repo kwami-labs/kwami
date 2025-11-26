@@ -1,6 +1,6 @@
 {
   "name": "kwami",
-  "version": "1.5.8",
+  "version": "1.5.9",
   "description": "KWAMI Ecosystem - Monorepo containing the core library and all related projects",
   "license": "SEE LICENSE IN LICENSE.md",
   "private": true,
@@ -48,7 +48,7 @@
     "preview:docs": "npm run preview -w docs",
     "publish:kwami": "npm publish -w kwami",
     "version:kwami": "npm view kwami",
-    "sync-version": "node scripts/sync-version.js"
+    "sync-version": "node scripts/sync-version.js && npm run publish:kwami"
   },
   "devDependencies": {
     "@types/node": "^24.10.1",

@@ -1,8 +1,4 @@
-/**
- * Kwami App Connectors
- * 
- * Integrations with external services and platforms
- */
-
 export * from './youtube';
+export * from './wallet';
+export * from './registry';
 

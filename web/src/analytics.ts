@@ -5,6 +5,8 @@
  * for the Kwami website.
  */
 
+import { ENABLE_ANALYTICS } from './config/app';
+
 // Extend the Window interface to include gtag
 declare global {
   interface Window {
@@ -18,6 +20,12 @@ declare global {
  * Call this once when the app loads
  */
 export function initAnalytics(): void {
+  // Check if analytics is enabled
+  if (!ENABLE_ANALYTICS) {
+    console.log('📊 Analytics: Disabled by configuration');
+    return;
+  }
+  
   // Check if running in production and GA ID is available
   const GA_ID = import.meta.env.VITE_GA_ID || 'G-XXXXXXXXXX';
   
@@ -56,7 +64,7 @@ export function initAnalytics(): void {
  * @param title - Page title
  */
 export function trackPageView(path?: string, title?: string): void {
-  if (typeof window.gtag === 'undefined') return;
+  if (!ENABLE_ANALYTICS || typeof window.gtag === 'undefined') return;
 
   window.gtag('event', 'page_view', {
     page_path: path || window.location.pathname,
@@ -80,7 +88,7 @@ export function trackEvent(
   label?: string,
   value?: number
 ): void {
-  if (typeof window.gtag === 'undefined') return;
+  if (!ENABLE_ANALYTICS || typeof window.gtag === 'undefined') return;
 
   window.gtag('event', action, {
     event_category: category,
@@ -193,7 +201,7 @@ export function trackTiming(
   value: number,
   label?: string
 ): void {
-  if (typeof window.gtag === 'undefined') return;
+  if (!ENABLE_ANALYTICS || typeof window.gtag === 'undefined') return;
 
   window.gtag('event', 'timing_complete', {
     name: variable,
@@ -229,15 +237,15 @@ function isCTAButton(buttonName: string): boolean {
  * Call this periodically to track how long users stay on the site
  */
 export function trackEngagementTime(): void {
-  if (typeof window.gtag === 'undefined') return;
+  if (!ENABLE_ANALYTICS || typeof window.gtag === 'undefined') return;
 
   window.gtag('event', 'user_engagement', {
     engagement_time_msec: 30000, // 30 seconds
   });
 }
 
-// Auto-track engagement every 30 seconds
-if (typeof window !== 'undefined') {
+// Auto-track engagement every 30 seconds (only if analytics is enabled)
+if (typeof window !== 'undefined' && ENABLE_ANALYTICS) {
   setInterval(() => {
     trackEngagementTime();
   }, 30000);
@@ -248,7 +256,7 @@ if (typeof window !== 'undefined') {
  * @param properties - User properties object
  */
 export function setUserProperties(properties: Record<string, any>): void {
-  if (typeof window.gtag === 'undefined') return;
+  if (!ENABLE_ANALYTICS || typeof window.gtag === 'undefined') return;
 
   window.gtag('set', 'user_properties', properties);
 }

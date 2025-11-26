@@ -27,7 +27,8 @@ import { Scene } from './scene/Scene.js';
 import { ContextMenu } from './ContextMenu';
 import type { BackgroundMediaFit, BodyConfig, BlobSkinType, SceneBackgroundConfig } from '../../types/index';
 import { isYouTubeUrl, createYouTubeIframe } from '../utils/YouTubeHelper';
-import { ActionDashboard } from '../actions/ActionDashboard';
+import { AppDashboard } from '../apps/AppDashboard';
+import { getAppConnectors } from '../../apps/registry';
 import { logger } from '../../utils/logger';
 
 type BackgroundDirection = 'vertical' | 'horizontal' | 'radial' | 'diagonal';
@@ -150,10 +151,11 @@ export class KwamiBody {
   private youtubeIframe: HTMLIFrameElement | null = null;
   private youtubeContainer: HTMLDivElement | null = null;
   
-  // Context menu support
+  // Overlay support
   private contextMenu: ContextMenu | null = null;
+  private appDashboard: AppDashboard | null = null;
+  private readonly appConnectors = getAppConnectors();
   private kwamiInstance: any = null; // Reference to parent Kwami instance
-  private actionDashboard: ActionDashboard | null = null;
   private pointerVector = new Vector2();
   private pointerRaycaster = new Raycaster();
 
@@ -209,8 +211,8 @@ export class KwamiBody {
    */
   setKwamiInstance(kwami: any): void {
     this.kwamiInstance = kwami;
-    if (kwami?.actions && !this.actionDashboard) {
-      this.actionDashboard = new ActionDashboard(kwami.actions);
+    if (!this.appDashboard) {
+      this.appDashboard = new AppDashboard(this.appConnectors, { kwami });
     }
   }
 
@@ -464,16 +466,13 @@ export class KwamiBody {
    * Handle right-click on canvas
    */
   private handleContextMenu = (event: MouseEvent): void => {
-    if (!this.kwamiInstance?.actions) {
-      return;
-    }
-
     event.preventDefault();
     event.stopPropagation();
 
     const clickedOnBlob = this.isPointerOnBlob(event);
+    const hasActions = Boolean(this.kwamiInstance?.actions);
 
-    if (clickedOnBlob) {
+    if (clickedOnBlob && hasActions) {
       if (!this.contextMenu) {
         this.contextMenu = new ContextMenu({
           onActionSelect: (actionId: string) => {
@@ -485,18 +484,16 @@ export class KwamiBody {
           parentElement: this.canvas.parentElement || undefined,
         });
       }
-      this.actionDashboard?.hide();
+      this.appDashboard?.hide();
       this.contextMenu.show(event.clientX, event.clientY);
       return;
     }
 
-    // Show the futuristic dashboard for non-blob right-clicks
-    if (!this.actionDashboard && this.kwamiInstance?.actions) {
-      this.actionDashboard = new ActionDashboard(this.kwamiInstance.actions);
+    if (!this.appDashboard) {
+      this.appDashboard = new AppDashboard(this.appConnectors, { kwami: this.kwamiInstance });
     }
-
     this.contextMenu?.hide();
-    this.actionDashboard?.show(event.clientX, event.clientY);
+    this.appDashboard?.show(event.clientX, event.clientY);
   };
 
   /**
@@ -2239,9 +2236,9 @@ export class KwamiBody {
       this.resizeRafId = null;
     }
 
-    if (this.actionDashboard) {
-      this.actionDashboard.hide();
-      this.actionDashboard = null;
+    if (this.appDashboard) {
+      this.appDashboard.hide();
+      this.appDashboard = null;
     }
 
     // Dispose context menu

@@ -26,6 +26,7 @@ import { isRTLLanguage } from './utils/languageUtils';
 import { getPageAudioManager } from './media/PageAudioManager';
 import { getThemeModeManager } from './managers/ThemeModeManager';
 import { initPageTextAnimations, refreshPageTextAnimations } from './utils/pageTextAnimation';
+import { ENABLE_SERVICE_WORKER, ENABLE_ANALYTICS } from './config/app';
 
 let scrollManager: ScrollManager | null = null;
 
@@ -160,7 +161,14 @@ function initScrollIndicator() {
 
 document.addEventListener('DOMContentLoaded', () => {
   const startTime = performance.now();
-  initAnalytics();
+  
+  // Initialize analytics only if enabled
+  if (ENABLE_ANALYTICS) {
+    initAnalytics();
+  } else {
+    console.log('📊 Analytics disabled by configuration');
+  }
+  
   initErrorHandler();
   initKeyboardNavigation();
   initLoadingStates();
@@ -197,23 +205,39 @@ document.addEventListener('DOMContentLoaded', () => {
   updatePageTranslations();
 
   const loadTime = performance.now() - startTime;
-  trackTiming('page', 'dom_loaded', Math.round(loadTime));
+  
+  // Track timing only if analytics is enabled
+  if (ENABLE_ANALYTICS) {
+    trackTiming('page', 'dom_loaded', Math.round(loadTime));
+  }
 
+  // Service Worker Management
   if ('serviceWorker' in navigator) {
     window.addEventListener('load', async () => {
-      const registrations = await navigator.serviceWorker.getRegistrations();
-      for (const registration of registrations) {
-        await registration.unregister();
-        console.log('🗑️ Unregistered service worker:', registration.scope);
-      }
+      if (ENABLE_SERVICE_WORKER) {
+        // Register service worker if enabled
+        try {
+          const registration = await navigator.serviceWorker.register('/sw.js');
+          console.log('✅ Service worker registered:', registration.scope);
+        } catch (error) {
+          console.error('❌ Service worker registration failed:', error);
+        }
+      } else {
+        // Unregister all service workers and clear caches if disabled
+        const registrations = await navigator.serviceWorker.getRegistrations();
+        for (const registration of registrations) {
+          await registration.unregister();
+          console.log('🗑️ Unregistered service worker:', registration.scope);
+        }
 
-      const cacheNames = await caches.keys();
-      for (const cacheName of cacheNames) {
-        await caches.delete(cacheName);
-        console.log('🗑️ Deleted cache:', cacheName);
-      }
+        const cacheNames = await caches.keys();
+        for (const cacheName of cacheNames) {
+          await caches.delete(cacheName);
+          console.log('🗑️ Deleted cache:', cacheName);
+        }
 
-      console.log('✅ Service workers and caches cleared for development');
+        console.log('✅ Service workers and caches disabled by configuration');
+      }
     });
   }
 
