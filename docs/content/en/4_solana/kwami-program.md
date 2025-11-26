@@ -473,5 +473,5 @@ solana account <collection_authority_pda>
 ---
 
 **Status:** Ready for Devnet Deployment  
-**Version:** 1.5.8  
+**Version:** 1.5.9  
 **License:** See main project LICENSE

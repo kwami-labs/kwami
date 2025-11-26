@@ -4,7 +4,7 @@
 
 **KWAMI** is a comprehensive ecosystem for creating, minting, trading, and governing 3D Interactive AI Companions on the Solana blockchain.
 
-**Version:** 1.5.8  
+**Version:** 1.5.9  
 **Status:** Production Ready  
 **Last Updated:** 2025-11-22
 
@@ -31,7 +31,7 @@ kwami/
 
 ### ✅ Core Library (kwami)
 **Status:** Production Ready  
-**Version:** 1.5.8  
+**Version:** 1.5.9  
 **Published:** npm (kwami)
 
 **Features:**
@@ -571,7 +571,7 @@ See [LICENSE](./LICENSE) for details.
 ---
 
 **Project Status:** ✅ Complete & Production Ready  
-**Version:** 1.5.8  
+**Version:** 1.5.9  
 **Date:** 2025-11-22  
 **Total Development Time:** Comprehensive full-stack ecosystem
 

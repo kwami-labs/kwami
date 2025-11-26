@@ -632,7 +632,7 @@ pub fn burn_kwami_for_refund(ctx: Context<BurnForRefund>)
 
 ---
 
-**Version:** 1.5.8  
+**Version:** 1.5.9  
 **Status:** Design Complete - Ready for Implementation  
 **Last Updated:** November 19, 2025
 

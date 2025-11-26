@@ -46,7 +46,7 @@ kwami.soul.actions.registerAction({
   name: "My Custom Action",
   description: "Does something cool",
   category: "body",
-  version: "1.0.0",
+  version: "1.5.9",
   triggers: ["context-menu", "api"],
   handler: async (context, params) => {
     // Your action logic here
@@ -138,7 +138,7 @@ const searchResults = kwami.soul.actions.getAllActions({
   "name": "My Action",
   "description": "Description of the action",
   "category": "body",
-  "version": "1.0.0",
+  "version": "1.5.9",
   "enabled": true,
   "triggers": ["context-menu", "api"],
   "parameters": [

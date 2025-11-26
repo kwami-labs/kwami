@@ -277,7 +277,7 @@ For production deployment:
 
 ---
 
-**Version:** 1.5.8  
+**Version:** 1.5.9  
 **Status:** ✅ Implemented  
 **Last Updated:** 2025-11-15
 

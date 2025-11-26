@@ -3,7 +3,7 @@ import { KwamiMind } from './mind/Mind';
 import { KwamiSoul } from './soul/Soul';
 import { SkillManager } from './mind/skills/SkillManager';
 import { ActionManager } from './actions/ActionManager';
-import type { KwamiConfig, KwamiState } from '../types/index';
+import type { KwamiConfig, KwamiState, KwamiAppsConfig } from '../types/index';
 import { logger } from '../utils/logger';
 
 /**
@@ -35,6 +35,7 @@ export class Kwami {
   public soul: KwamiSoul;
   public skills: SkillManager;
   public actions: ActionManager;
+  private apps?: KwamiAppsConfig;
 
   private state: KwamiState = 'idle';
 
@@ -43,12 +44,14 @@ export class Kwami {
    * @returns The version string (e.g., "2.2.0")
    */
   static getVersion(): string {
-    return '1.5.8';
+    return '1.5.9';
   }
 
   constructor(canvas: HTMLCanvasElement, config?: KwamiConfig) {
     // Initialize the body (visual representation)
     this.body = new KwamiBody(canvas, config?.body);
+
+    this.apps = config?.apps;
 
     // Initialize the shared action manager (core-level)
     this.actions = new ActionManager(this);
@@ -67,6 +70,10 @@ export class Kwami {
     
     // Set Kwami instance in body for context menu access to actions
     this.body.setKwamiInstance(this);
+  }
+
+  getAppsConfig(): KwamiAppsConfig | undefined {
+    return this.apps;
   }
 
   /**

@@ -67,6 +67,7 @@ export { defaultBlobConfig } from './src/core/body/blob/config';
 // Types
 export type {
   KwamiConfig,
+  KwamiAppsConfig,
   KwamiState,
   BodyConfig,
   AudioConfig,

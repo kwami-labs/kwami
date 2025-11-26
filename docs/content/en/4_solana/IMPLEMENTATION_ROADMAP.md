@@ -65,8 +65,8 @@ This document provides a complete, step-by-step implementation guide for finishi
 
 ```toml
 [dependencies]
-anchor-lang = "1.5.8"
-anchor-spl = "1.5.8"
+anchor-lang = "1.5.9"
+anchor-spl = "1.5.9"
 solana-program = "~1.17"
 ```
 
@@ -497,8 +497,8 @@ pub enum ErrorCode {
 
 ```toml
 [dependencies]
-anchor-lang = "1.5.8"
-anchor-spl = "1.5.8"
+anchor-lang = "1.5.9"
+anchor-spl = "1.5.9"
 qwami-token = { path = "../../qwami-token/programs/qwami-token" }
 ```
 

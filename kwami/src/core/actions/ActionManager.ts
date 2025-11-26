@@ -380,7 +380,7 @@ export class ActionManager {
     const collection: ActionCollection = {
       id: 'kwami-actions-export',
       name: 'Kwami Actions Export',
-      version: '1.0.0',
+      version: '1.5.9',
       actions,
     };
     return JSON.stringify(collection, null, 2);
@@ -394,7 +394,7 @@ export class ActionManager {
     const collection: ActionCollection = {
       id: 'kwami-actions-export',
       name: 'Kwami Actions Export',
-      version: '1.0.0',
+      version: '1.5.9',
       actions,
     };
     return yaml.dump(collection);
@@ -741,66 +741,114 @@ export class ActionManager {
             const microAmplitude = Math.sin(time * 6) * 0.15; // Faster variations
             const amplitude = baseAmplitude + microAmplitude;
             
-            // Simulate speech formants and patterns
-            for (let i = 0; i < frequencyData.length; i++) {
-              const freq = (i / frequencyData.length) * 11025; // Half of 22.05kHz
-              
+            // Match the blob's frequency band expectations
+            // Low: 0-10%, Mid: 10-40%, High: 40-70%, Ultra: 70-100%
+            const dataLength = frequencyData.length;
+            const lowEnd = Math.floor(dataLength * 0.1);
+            const midEnd = Math.floor(dataLength * 0.4);
+            const highEnd = Math.floor(dataLength * 0.7);
+            
+            // Generate frequency data that matches real audio patterns
+            for (let i = 0; i < dataLength; i++) {
+              const binPosition = i / dataLength; // 0 to 1
               let energy = 0;
               
-              // During vowels, emphasize formants
+              // Determine which band we're in
+              const isLow = i < lowEnd;
+              const isMid = i >= lowEnd && i < midEnd;
+              const isHigh = i >= midEnd && i < highEnd;
+              const isUltra = i >= highEnd;
+              
+              // During vowels, emphasize formants in specific bands
               if (vowelEnvelope > 0.3) {
-                // Formant frequencies (vary slightly over time for natural speech)
-                const f1 = 700 + Math.sin(time * 1.2) * 100;  // First formant
-                const f2 = 1220 + Math.sin(time * 1.7) * 150; // Second formant
-                const f3 = 2600 + Math.sin(time * 2.1) * 200; // Third formant
-                
-                // Formant 1 (low frequencies) - strongest
-                const dist1 = Math.abs(freq - f1);
-                if (dist1 < 400) {
-                  energy += (1 - dist1 / 400) * 100 * vowelEnvelope * amplitude;
+                // Low band (0-10%): Fundamental and first formant
+                if (isLow) {
+                  energy += 120 * vowelEnvelope * amplitude;
+                  energy += Math.sin(time * 3) * 30 * vowelEnvelope;
                 }
                 
-                // Formant 2 (mid frequencies)
-                const dist2 = Math.abs(freq - f2);
-                if (dist2 < 500) {
-                  energy += (1 - dist2 / 500) * 85 * vowelEnvelope * amplitude;
+                // Mid band (10-40%): Second formant (main energy for speech)
+                if (isMid) {
+                  energy += 140 * vowelEnvelope * amplitude;
+                  energy += Math.sin(time * 2.5) * 40 * vowelEnvelope;
+                  // Add variation across the mid band
+                  const midPosition = (i - lowEnd) / (midEnd - lowEnd);
+                  energy += Math.sin(midPosition * Math.PI) * 30 * vowelEnvelope;
                 }
                 
-                // Formant 3 (high frequencies)
-                const dist3 = Math.abs(freq - f3);
-                if (dist3 < 600) {
-                  energy += (1 - dist3 / 600) * 70 * vowelEnvelope * amplitude;
+                // High band (40-70%): Third formant
+                if (isHigh) {
+                  energy += 90 * vowelEnvelope * amplitude;
+                  energy += Math.sin(time * 3.5) * 25 * vowelEnvelope;
+                }
+                
+                // Ultra band (70-100%): Harmonics and breathiness
+                if (isUltra) {
+                  energy += 40 * vowelEnvelope * amplitude;
+                  energy += Math.random() * 20 * vowelEnvelope;
                 }
               }
               
-              // During consonants, add noise/burst in high frequencies
+              // During consonants, different distribution
               if (vowelEnvelope < 0.5) {
                 const consonantEnvelope = 1 - vowelEnvelope * 2;
-                if (freq > 2000) {
-                  energy += Math.random() * 50 * consonantEnvelope * amplitude;
+                
+                // Consonants have less low frequency energy
+                if (isLow) {
+                  energy += 40 * consonantEnvelope * amplitude;
                 }
-                // Burst at consonant onset
-                if (syllablePhase < 0.2) {
-                  energy += Math.random() * 40 * amplitude;
+                
+                // Mid frequencies for voiced consonants
+                if (isMid) {
+                  energy += 70 * consonantEnvelope * amplitude;
+                  energy += Math.random() * 30 * consonantEnvelope;
+                }
+                
+                // High frequencies for fricatives
+                if (isHigh) {
+                  energy += 100 * consonantEnvelope * amplitude;
+                  energy += Math.random() * 50 * consonantEnvelope;
+                }
+                
+                // Ultra high for sibilants
+                if (isUltra) {
+                  energy += 80 * consonantEnvelope * amplitude;
+                  energy += Math.random() * 60 * consonantEnvelope;
+                }
+                
+                // Burst at consonant onset across all bands
+                if (syllablePhase < 0.15) {
+                  energy += Math.random() * 50 * amplitude;
                 }
               }
               
-              // Add subtle breathiness across all frequencies
-              energy += Math.random() * 12 * amplitude;
+              // Add subtle noise floor
+              energy += Math.random() * 10;
               
-              // Clamp to valid range
+              // Clamp to valid range (0-255)
               frequencyData[i] = Math.min(255, Math.max(0, energy));
             }
             
-            // Override getByteFrequencyData to inject our simulated data
+            // Store simulated data and override getByteFrequencyData
             (analyser as any)._simulatedData = frequencyData;
-            analyser.getByteFrequencyData = function(array: Uint8Array) {
-              if ((this as any)._simulatedData) {
-                array.set((this as any)._simulatedData);
-              } else {
-                (this as any)._originalGetByteFrequencyData(array);
-              }
-            };
+            
+            // Override to inject our data into whatever array is passed
+            if (!(analyser as any)._hasOverride) {
+              analyser.getByteFrequencyData = function(array: Uint8Array) {
+                if ((this as any)._simulatedData) {
+                  // Copy our simulated data into the provided array
+                  const simData = (this as any)._simulatedData;
+                  const len = Math.min(array.length, simData.length);
+                  for (let i = 0; i < len; i++) {
+                    array[i] = simData[i];
+                  }
+                } else {
+                  // Fall back to original method
+                  (this as any)._originalGetByteFrequencyData.call(this, array);
+                }
+              };
+              (analyser as any)._hasOverride = true;
+            }
             
             // Continue animation
             animationFrameId = requestAnimationFrame(simulateSpeechFrequencies);
@@ -825,6 +873,7 @@ export class ActionManager {
                 analyser.getByteFrequencyData = (analyser as any)._originalGetByteFrequencyData;
                 delete (analyser as any)._simulatedData;
                 delete (analyser as any)._originalGetByteFrequencyData;
+                delete (analyser as any)._hasOverride;
               }
               
               // Return to idle state
@@ -847,6 +896,7 @@ export class ActionManager {
                 analyser.getByteFrequencyData = (analyser as any)._originalGetByteFrequencyData;
                 delete (analyser as any)._simulatedData;
                 delete (analyser as any)._originalGetByteFrequencyData;
+                delete (analyser as any)._hasOverride;
               }
               
               if (this.kwami) {
@@ -1078,7 +1128,7 @@ export class ActionManager {
         name: 'Change Blob Transparency',
         description: 'Adjust the transparency/opacity of the Kwami blob',
         category: 'body',
-        version: '1.0.0',
+        version: '1.5.9',
         author: 'Kwami Team',
         tags: ['appearance', 'transparency'],
         enabled: true,
@@ -1112,7 +1162,7 @@ export class ActionManager {
         name: 'Toggle Wireframe',
         description: 'Toggle wireframe mode on/off',
         category: 'body',
-        version: '1.0.0',
+        version: '1.5.9',
         author: 'Kwami Team',
         tags: ['appearance', 'wireframe', 'debug'],
         enabled: true,
@@ -1137,7 +1187,7 @@ export class ActionManager {
         name: 'Toggle Follow Click',
         description: 'Make the blob follow your clicks. Double-click to return to original position',
         category: 'body',
-        version: '1.0.0',
+        version: '1.5.9',
         author: 'Kwami Team',
         tags: ['interaction', 'animation', 'follow'],
         enabled: true,
@@ -1159,7 +1209,7 @@ export class ActionManager {
         name: 'Randomize Blob',
         description: 'Randomize the blob appearance with random colors and shapes',
         category: 'body',
-        version: '1.0.0',
+        version: '1.5.9',
         author: 'Kwami Team',
         tags: ['appearance', 'random'],
         enabled: true,
@@ -1181,7 +1231,7 @@ export class ActionManager {
         name: 'Randomize Background',
         description: 'Generate a random gradient background',
         category: 'body',
-        version: '1.0.0',
+        version: '1.5.9',
         author: 'Kwami Team',
         tags: ['background', 'random'],
         enabled: true,
@@ -1203,7 +1253,7 @@ export class ActionManager {
         name: 'Clear Background',
         description: 'Remove background and make it transparent',
         category: 'body',
-        version: '1.0.0',
+        version: '1.5.9',
         author: 'Kwami Team',
         tags: ['background', 'clear'],
         enabled: true,
@@ -1225,7 +1275,7 @@ export class ActionManager {
         name: 'Change Blob Size',
         description: 'Adjust the size/scale of the Kwami blob',
         category: 'body',
-        version: '1.0.0',
+        version: '1.5.9',
         author: 'Kwami Team',
         tags: ['size', 'scale'],
         enabled: true,
@@ -1259,7 +1309,7 @@ export class ActionManager {
         name: 'Text to Speech',
         description: 'Convert text to speech using the browser\'s native Speech Synthesis API',
         category: 'mind',
-        version: '1.0.0',
+        version: '1.5.9',
         author: 'Kwami Team',
         tags: ['speech', 'audio', 'voice', 'tts'],
         enabled: true,

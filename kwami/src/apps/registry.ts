@@ -1,4 +1,6 @@
 import type { Kwami } from '../core/Kwami';
+import { getYouTubeConnector, type YouTubeConfig } from './youtube';
+import { logger } from '../utils/logger';
 
 export interface AppConnectorButton {
   id: string;
@@ -21,11 +23,32 @@ const DEFAULT_CONNECTORS: AppConnectorButton[] = [
   {
     id: 'youtube',
     name: 'YouTube Studio',
-    description: 'Import playlists, connect channels, and sync audio-reactive visuals.',
+    description: 'Connect your channel to import playlists and drive Kwami with video audio.',
     icon: '📺',
     accent: 'linear-gradient(120deg, #ff6b6b, #ffa06e)',
-    actionLabel: 'Open Connector',
-    onLaunch: connectExternal('https://pg.kwami.io?panel=apps&app=youtube'),
+    actionLabel: 'Connect',
+    onLaunch: async ({ kwami }) => {
+      if (typeof window === 'undefined') {
+        logger.warn('[Kwami] YouTube connector requires a browser environment.');
+        return;
+      }
+
+      const config = extractYouTubeConfig(kwami);
+      const connector = getYouTubeConnector(config);
+
+      const initialized = await connector.initialize();
+      if (!initialized) {
+        logger.warn('[Kwami] Missing YouTube credentials. Provide clientId/apiKey when calling getYouTubeConnector().');
+        return;
+      }
+
+      const auth = await connector.signIn();
+      if (auth.success) {
+        logger.info('[Kwami] Connected to YouTube as', auth.user?.email ?? auth.user?.name ?? 'unknown user');
+      } else {
+        logger.error('[Kwami] YouTube sign-in failed:', auth.error);
+      }
+    },
   },
   {
     id: 'wallet',
@@ -58,5 +81,10 @@ const DEFAULT_CONNECTORS: AppConnectorButton[] = [
 
 export function getAppConnectors(): AppConnectorButton[] {
   return DEFAULT_CONNECTORS;
+}
+
+function extractYouTubeConfig(kwami?: Kwami): YouTubeConfig | undefined {
+  const appsConfig = kwami?.getAppsConfig?.();
+  return appsConfig?.youtube;
 }
 

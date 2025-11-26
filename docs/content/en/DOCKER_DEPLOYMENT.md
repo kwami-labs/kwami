@@ -437,7 +437,7 @@ jobs:
 
 ---
 
-**Version**: 1.5.8  
+**Version**: 1.5.9  
 **Last Updated**: November 22, 2025  
 **Made with ❤️ by the KWAMI team**
 

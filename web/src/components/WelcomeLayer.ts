@@ -1,7 +1,9 @@
 import { gsap } from 'gsap';
 import { Kwami } from 'kwami';
+import type { KwamiConfig } from 'kwami';
 import i18next, { t, createLanguageSwitcher } from '../i18n';
 import { getThemeModeManager } from '../managers/ThemeModeManager';
+import { getKwamiAppsConfig } from '../config/env';
 
 // Static loader path (from public/loader folder)
 const LOADER_GIF = '/loader/loader.gif';
@@ -159,7 +161,7 @@ export class WelcomeLayer {
     const versionDiv = document.createElement('div');
     versionDiv.id = 'version';
     versionDiv.className = 'fixed bottom-10 text-sm text-gray-400 opacity-80';
-    versionDiv.textContent = 'KWAMI v.1.5.8';
+    versionDiv.textContent = 'KWAMI v.1.5.9';
 
     // Create welcome language switcher using shared function
     const welcomeLangSwitcher = createLanguageSwitcher('welcome-language-switcher');
@@ -287,7 +289,7 @@ export class WelcomeLayer {
     const versionDiv = document.createElement('div');
     versionDiv.id = 'version';
     versionDiv.className = 'fixed bottom-10 text-sm text-gray-400 opacity-80';
-    versionDiv.textContent = 'KWAMI v.1.5.8';
+    versionDiv.textContent = 'KWAMI v.1.5.9';
     versionDiv.style.visibility = 'hidden';
     versionDiv.style.opacity = '0';
 
@@ -416,7 +418,7 @@ export class WelcomeLayer {
       this.blobSpikeState = { ...spikes };
       this.blobTimeState = { ...timeConfig };
 
-      this.kwami = new Kwami(canvas, {
+      const kwamiConfig: KwamiConfig = {
         body: {
           initialSkin: 'Donut',
           blob: {
@@ -436,8 +438,15 @@ export class WelcomeLayer {
             cameraPosition: { x: 0, y: 0, z: 12 },
             enableControls: false
           }
-        }
-      });
+        },
+      };
+
+      const appsConfig = getKwamiAppsConfig();
+      if (appsConfig) {
+        kwamiConfig.apps = appsConfig;
+      }
+
+      this.kwami = new Kwami(canvas, kwamiConfig);
 
       // Enable blob interaction WITHOUT conversation callback (disables double-click microphone)
       // This allows rotation and click effects but no microphone activation

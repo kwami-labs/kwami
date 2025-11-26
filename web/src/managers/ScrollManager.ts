@@ -1,4 +1,5 @@
 import { Kwami } from 'kwami';
+import type { KwamiConfig } from 'kwami';
 import { COLOR_PALETTES } from '../config/colors';
 import type { ColorPalette } from '../config/colors';
 import { BLOB_CONFIGS } from '../config/blobConfigs';
@@ -19,6 +20,7 @@ import { getVideoState, playRandomVideo, toggleVideoPresentation } from '../medi
 import { rafThrottle, getPassiveEventOptions } from '../utils/performanceUtils';
 import { getPageAudioManager } from '../media/PageAudioManager';
 import { animatePageSection } from '../utils/pageTextAnimation';
+import { getKwamiAppsConfig } from '../config/env';
 
 const blobConfigs = BLOB_CONFIGS;
 const colorPalettes = COLOR_PALETTES;
@@ -139,7 +141,7 @@ export class ScrollManager {
       const config = blobConfigs[0];
       const palette = this.getPaletteForSection(0);
 
-      this.kwami = new Kwami(canvas, {
+      const kwamiConfig: KwamiConfig = {
         body: {
           initialSkin: (config.skin || 'Donut') as 'Donut' | 'Poles' | 'Vintage',
           blob: {
@@ -151,15 +153,22 @@ export class ScrollManager {
             colors: {
               x: palette.primary,
               y: palette.accent,
-              z: palette.secondary
-            }
+              z: palette.secondary,
+            },
           },
           scene: {
             cameraPosition: { x: 0, y: 0, z: 12 },
-            enableControls: false
-          }
-        }
-      });
+            enableControls: false,
+          },
+        },
+      };
+
+      const appsConfig = getKwamiAppsConfig();
+      if (appsConfig) {
+        kwamiConfig.apps = appsConfig;
+      }
+
+      this.kwami = new Kwami(canvas, kwamiConfig);
 
       const isMobile = window.innerWidth <= MOBILE_BREAKPOINT;
       const blobScale = isMobile ? BLOB_SCALE_MOBILE : BLOB_SCALE_DESKTOP;
@@ -285,15 +294,18 @@ export class ScrollManager {
     // Check if config has colorPalette property
     if ((config as any).colorPalette && Array.isArray((config as any).colorPalette)) {
       const colors = (config as any).colorPalette;
-      return {
+      const palette = {
         primary: colors[0] || '#ffffff',
         secondary: colors[1] || '#000000',
         accent: colors[2] || '#808080'
       };
+      console.log(`🎨 Page ${section} palette from kwamis.json:`, palette);
+      return palette;
     }
     
     // Fallback to color palettes array
     if (section === 0) {
+      console.log(`🎨 Page ${section} using fallback palette (no colorPalette in config)`);
       return {
         primary: '#ffffff',
         secondary: '#000000',

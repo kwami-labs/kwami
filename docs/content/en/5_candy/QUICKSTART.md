@@ -182,7 +182,7 @@ All installed via Bun:
 
 ---
 
-**Version**: 1.5.8  
+**Version**: 1.5.9  
 **Status**: ✅ **WORKING**  
 **Port**: 3005  
 **Date**: Nov 15, 2025

@@ -1,5 +1,7 @@
 import type { Scene, PerspectiveCamera, WebGLRenderer } from 'three';
 import type { KwamiAudio } from '../core/body/Audio';
+import type { YouTubeConfig } from '../apps/youtube/YouTubeConnector';
+import type { WalletConfig } from '../apps/wallet/WalletConnector';
 
 /**
  * Kwami states representing different modes of operation
@@ -275,6 +277,7 @@ export interface KwamiConfig {
   body?: BodyConfig;
   mind?: MindConfig;
   soul?: SoulConfig;
+  apps?: KwamiAppsConfig;
 }
 
 /**
@@ -294,6 +297,11 @@ export interface BlobOptions {
   shininess?: number;
   wireframe?: boolean;
   onAfterRender?: () => void;
+}
+
+export interface KwamiAppsConfig {
+  youtube?: YouTubeConfig;
+  wallet?: WalletConfig;
 }
 
 /**

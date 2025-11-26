@@ -2,7 +2,7 @@
 
 An **independent, reusable** 3D Interactive AI Companion Library for creating engaging AI companions with visual (blob), audio, and AI capabilities.
 
-> **Version 1.5.8** - Core library for the KWAMI ecosystem
+> **Version 1.5.9** - Core library for the KWAMI ecosystem
 
 [![npm version](https://img.shields.io/npm/v/kwami.svg)](https://www.npmjs.com/package/kwami)
 [![License](https://img.shields.io/badge/license-MIT-blue.svg)](../LICENSE)

@@ -4,7 +4,7 @@
  */
 
 export type QwamiToken = {
-  version: '1.5.8'
+  version: '1.5.9'
   name: 'qwami_token'
   instructions: [
     {

@@ -298,5 +298,5 @@ To make it production-ready:
 
 **Test Status:** Ready for Testing  
 **Last Updated:** 2025-11-19  
-**Version:** 1.5.8
+**Version:** 1.5.9
 
