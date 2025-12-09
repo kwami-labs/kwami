@@ -51,3 +51,8 @@ docs/dist
 *.glb.tar.xz
 *.glb.tar.lzma
 *.glb.tar.lz
+
+# Vite/Nuxt
+.vite/
+.nuxt/
+.output/
