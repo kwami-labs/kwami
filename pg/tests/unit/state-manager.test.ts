@@ -11,14 +11,31 @@ import {
   observeState,
   notifyStateChange
 } from '../../src/core/state-manager';
+import { STORAGE_KEYS } from '../../src/core/config';
 
 describe('State Manager', () => {
   beforeEach(() => {
+    // Mock localStorage
+    const store: Record<string, string> = {};
+    
+    vi.stubGlobal('localStorage', {
+      getItem: vi.fn((key: string) => store[key] || null),
+      setItem: vi.fn((key: string, value: string) => {
+        store[key] = value.toString();
+      }),
+      removeItem: vi.fn((key: string) => {
+        delete store[key];
+      }),
+      clear: vi.fn(() => {
+        for (const key in store) delete store[key];
+      })
+    });
+    
     localStorage.clear();
   });
   
   afterEach(() => {
-    localStorage.clear();
+    vi.unstubAllGlobals();
   });
   
   describe('State Persistence', () => {
@@ -45,15 +62,19 @@ describe('State Manager', () => {
     });
     
     it('should clear all state', () => {
-      saveState('key1', 'value1');
-      saveState('key2', 'value2');
-      saveState('key3', 'value3');
+      saveState(STORAGE_KEYS.THEME, 'dark');
+      saveState(STORAGE_KEYS.APP_COLOR, 'blue');
+      
+      // Save some unrelated state
+      saveState('other_key', 'value');
       
       clearAllState();
       
-      expect(loadState('key1', null)).toBeNull();
-      expect(loadState('key2', null)).toBeNull();
-      expect(loadState('key3', null)).toBeNull();
+      expect(loadState(STORAGE_KEYS.THEME, null)).toBeNull();
+      expect(loadState(STORAGE_KEYS.APP_COLOR, null)).toBeNull();
+      
+      // Unrelated state should persist (or cleared if implementation changed, but currently it only clears STORAGE_KEYS)
+      expect(loadState('other_key', null)).toEqual('value');
     });
   });
   

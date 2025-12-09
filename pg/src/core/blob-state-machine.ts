@@ -5,7 +5,7 @@
  * States: idle, listening, thinking, speaking, error, minimized
  */
 
-import { createMachine, interpret, StateFrom } from 'xstate';
+import { createMachine, interpret, StateFrom, assign } from 'xstate';
 
 // ============================================================================
 // STATE MACHINE TYPES
@@ -62,41 +62,36 @@ export const blobStateMachine = createMachine({
   },
   states: {
     idle: {
-      entry: 'onEnterIdle',
+      entry: ['onEnterIdle', { type: 'recordStateTransition', params: { state: 'idle' } }],
       on: {
         START_LISTENING: {
-          target: 'listening',
-          actions: 'recordStateTransition'
+          target: 'listening'
         },
         START_THINKING: {
-          target: 'thinking',
-          actions: 'recordStateTransition'
+          target: 'thinking'
         },
         MINIMIZE: {
-          target: 'minimized',
-          actions: 'recordStateTransition'
+          target: 'minimized'
         },
         ERROR: {
           target: 'error',
-          actions: ['setErrorMessage', 'recordStateTransition']
+          actions: 'setErrorMessage'
         }
       }
     },
     
     listening: {
-      entry: 'onEnterListening',
+      entry: ['onEnterListening', { type: 'recordStateTransition', params: { state: 'listening' } }],
       on: {
         START_THINKING: {
-          target: 'thinking',
-          actions: 'recordStateTransition'
+          target: 'thinking'
         },
         STOP: {
-          target: 'idle',
-          actions: 'recordStateTransition'
+          target: 'idle'
         },
         ERROR: {
           target: 'error',
-          actions: ['setErrorMessage', 'recordStateTransition']
+          actions: 'setErrorMessage'
         },
         UPDATE_AUDIO: {
           actions: 'updateAudioLevel'
@@ -105,43 +100,38 @@ export const blobStateMachine = createMachine({
     },
     
     thinking: {
-      entry: 'onEnterThinking',
+      entry: ['onEnterThinking', { type: 'recordStateTransition', params: { state: 'thinking' } }],
       on: {
         START_SPEAKING: {
-          target: 'speaking',
-          actions: 'recordStateTransition'
+          target: 'speaking'
         },
         STOP: {
-          target: 'idle',
-          actions: 'recordStateTransition'
+          target: 'idle'
         },
         ERROR: {
           target: 'error',
-          actions: ['setErrorMessage', 'recordStateTransition']
+          actions: 'setErrorMessage'
         }
       },
       after: {
         10000: {
-          target: 'idle',
-          actions: 'recordStateTransition'
+          target: 'idle'
         }
       }
     },
     
     speaking: {
-      entry: 'onEnterSpeaking',
+      entry: ['onEnterSpeaking', { type: 'recordStateTransition', params: { state: 'speaking' } }],
       on: {
         START_LISTENING: {
-          target: 'listening',
-          actions: 'recordStateTransition'
+          target: 'listening'
         },
         STOP: {
-          target: 'idle',
-          actions: 'recordStateTransition'
+          target: 'idle'
         },
         ERROR: {
           target: 'error',
-          actions: ['setErrorMessage', 'recordStateTransition']
+          actions: 'setErrorMessage'
         },
         UPDATE_AUDIO: {
           actions: 'updateAudioLevel'
@@ -150,31 +140,30 @@ export const blobStateMachine = createMachine({
     },
     
     error: {
-      entry: 'onEnterError',
+      entry: ['onEnterError', { type: 'recordStateTransition', params: { state: 'error' } }],
       on: {
         RECOVER: {
           target: 'idle',
-          actions: ['clearErrorMessage', 'recordStateTransition']
+          actions: 'clearErrorMessage'
         },
         STOP: {
           target: 'idle',
-          actions: ['clearErrorMessage', 'recordStateTransition']
+          actions: 'clearErrorMessage'
         }
       },
       after: {
         5000: {
           target: 'idle',
-          actions: ['clearErrorMessage', 'recordStateTransition']
+          actions: 'clearErrorMessage'
         }
       }
     },
     
     minimized: {
-      entry: 'onEnterMinimized',
+      entry: ['onEnterMinimized', { type: 'recordStateTransition', params: { state: 'minimized' } }],
       on: {
         RESTORE: {
-          target: 'idle',
-          actions: 'recordStateTransition'
+          target: 'idle'
         }
       }
     }
@@ -223,32 +212,38 @@ export const blobStateMachine = createMachine({
       }
     },
     
-    setErrorMessage: ({ context, event }) => {
+    setErrorMessage: assign(({ event }) => {
       if (event.type === 'ERROR') {
-        context.errorMessage = event.message;
+        return { errorMessage: event.message };
       }
-    },
+      return {};
+    }),
     
-    clearErrorMessage: ({ context }) => {
-      context.errorMessage = null;
-    },
+    clearErrorMessage: assign({
+      errorMessage: null
+    }),
     
-    updateAudioLevel: ({ context, event }) => {
+    updateAudioLevel: assign(({ event }) => {
       if (event.type === 'UPDATE_AUDIO') {
-        context.audioLevel = event.level;
+        return { audioLevel: event.level };
       }
-    },
+      return {};
+    }),
     
-    recordStateTransition: ({ context }, params) => {
-      const currentState = params.self.value as BlobState;
-      context.lastState = context.stateHistory[context.stateHistory.length - 1] || null;
-      context.stateHistory.push(currentState);
+    recordStateTransition: assign(({ context }, params: { state: BlobState }) => {
+      const currentState = params.state;
+      const newHistory = [...context.stateHistory, currentState];
       
       // Keep only last 20 states
-      if (context.stateHistory.length > 20) {
-        context.stateHistory.shift();
+      if (newHistory.length > 20) {
+        newHistory.shift();
       }
-    }
+      
+      return {
+        lastState: context.stateHistory[context.stateHistory.length - 1] || null,
+        stateHistory: newHistory
+      };
+    })
   }
 });
 
