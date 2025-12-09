@@ -1,6 +1,6 @@
 {
   "name": "kwami-io",
-  "version": "1.5.10",
+  "version": "1.5.11",
   "description": "KWAMI NFT Candy Machine - Mint unique KWAMI NFTs on Solana blockchain",
   "type": "module",
   "private": true,

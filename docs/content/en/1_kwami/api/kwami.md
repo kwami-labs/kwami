@@ -80,7 +80,7 @@ static getVersion(): string
 
 Get the current version of Kwami.
 
-**Returns:** Version string (e.g., "1.5.10")
+**Returns:** Version string (e.g., "1.5.11")
 
 **Example:**
 ```typescript

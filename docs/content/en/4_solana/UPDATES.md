@@ -169,5 +169,5 @@ anchor test
 
 **Updated:** November 19, 2025  
 **Status:** Ready for clean build and deployment  
-**Version:** 1.5.10 → 0.2.0 (breaking change)
+**Version:** 1.5.11 → 0.2.0 (breaking change)
 

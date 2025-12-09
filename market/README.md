@@ -69,5 +69,5 @@ See [SETUP_GUIDE](../docs/6_market/SETUP_GUIDE.md) for complete configuration.
 ---
 
 **Status:** Production Ready
-**Version:** 1.5.10
+**Version:** 1.5.11
 **Network:** Devnet/Mainnet

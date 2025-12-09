@@ -4366,7 +4366,7 @@ async function initializeSkills() {
         id: 'minimize-top-right',
         name: 'Minimize to Top Right',
         description: 'Minimizes Kwami and moves it to the top-right corner of the screen',
-        version: '1.5.10',
+        version: '1.5.11',
         author: 'Kwami Team',
         tags: ['position', 'scale', 'ui'],
         trigger: 'manual',
@@ -4380,7 +4380,7 @@ async function initializeSkills() {
         id: 'rainbow-transition',
         name: 'Rainbow Color Transition',
         description: 'Cycles through rainbow colors with smooth transitions',
-        version: '1.5.10',
+        version: '1.5.11',
         author: 'Kwami Team',
         tags: ['colors', 'animation', 'visual'],
         trigger: 'manual',
@@ -4401,7 +4401,7 @@ async function initializeSkills() {
         id: 'energetic-mode',
         name: 'Energetic Mode',
         description: 'Makes Kwami more energetic with faster movements and vibrant colors',
-        version: '1.5.10',
+        version: '1.5.11',
         author: 'Kwami Team',
         tags: ['mood', 'animation', 'personality'],
         trigger: 'manual',
@@ -4425,7 +4425,7 @@ async function initializeSkills() {
         id: 'calm-meditation',
         name: 'Calm Meditation Mode',
         description: 'Creates a calm, meditative atmosphere with slow movements and soothing colors',
-        version: '1.5.10',
+        version: '1.5.11',
         author: 'Kwami Team',
         tags: ['mood', 'meditation', 'calm'],
         trigger: 'manual',
@@ -4448,7 +4448,7 @@ async function initializeSkills() {
         id: 'focus-session',
         name: 'Focus Session',
         description: 'Pomodoro-style focus mode with greeting and minimization',
-        version: '1.5.10',
+        version: '1.5.11',
         author: 'Kwami Team',
         tags: ['productivity', 'focus', 'pomodoro'],
         trigger: 'manual',
@@ -4475,7 +4475,7 @@ async function initializeSkills() {
         id: 'party-mode',
         name: 'Party Mode',
         description: 'Celebration mode with rapid color changes and energetic movement',
-        version: '1.5.10',
+        version: '1.5.11',
         author: 'Kwami Team',
         tags: ['celebration', 'animation', 'fun'],
         trigger: 'manual',
@@ -4615,7 +4615,7 @@ window.quickSkillMinimize = async function() {
     id: 'quick-minimize',
     name: 'Quick Minimize',
     description: 'Quick minimize action',
-    version: '1.5.10',
+    version: '1.5.11',
     actions: [
       {
         type: 'body.scale',
@@ -4646,7 +4646,7 @@ window.quickSkillCenter = async function() {
     id: 'quick-center',
     name: 'Quick Center',
     description: 'Center Kwami',
-    version: '1.5.10',
+    version: '1.5.11',
     actions: [
       {
         type: 'body.scale',
@@ -4677,7 +4677,7 @@ window.quickSkillEnergize = async function() {
     id: 'quick-energize',
     name: 'Quick Energize',
     description: 'Energize Kwami',
-    version: '1.5.10',
+    version: '1.5.11',
     actions: [
       {
         type: 'sequence',
@@ -4721,7 +4721,7 @@ window.quickSkillCalm = async function() {
     id: 'quick-calm',
     name: 'Quick Calm',
     description: 'Calm Kwami',
-    version: '1.5.10',
+    version: '1.5.11',
     actions: [
       {
         type: 'sequence',
@@ -4778,7 +4778,7 @@ window.quickSkillReset = async function() {
     id: 'quick-reset',
     name: 'Quick Reset',
     description: 'Reset to defaults',
-    version: '1.5.10',
+    version: '1.5.11',
     actions: [
       {
         type: 'sequence',
