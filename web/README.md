@@ -184,5 +184,5 @@ See [IMPROVEMENTS.md](./IMPROVEMENTS.md) for detailed tracking of all improvemen
 
 ---
 
-**Version:** 1.5.9-dev  
+**Version:** 1.5.10-dev  
 **Status:** Under Active Development

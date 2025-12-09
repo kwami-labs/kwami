@@ -155,7 +155,7 @@ kwami.soul.actions.registerAction({
   name: 'Toggle Glass Mode',
   description: 'Toggle glass transparency effect',
   category: 'body',
-  version: '1.5.9',
+  version: '1.5.10',
   triggers: ['context-menu', 'keyboard'],
   shortcuts: {
     keyboard: 'Ctrl+G',

@@ -45,7 +45,7 @@ kwami.soul.actions.registerAction({
   name: 'My First Action',
   description: 'A simple action that changes the blob',
   category: 'body',
-  version: '1.5.9',
+  version: '1.5.10',
   triggers: ['context-menu', 'api'],
   
   // The action logic
@@ -88,7 +88,7 @@ Create `my-actions.json`:
     "name": "Sunset Mood",
     "description": "Set a sunset color palette",
     "category": "body",
-    "version": "1.5.9",
+    "version": "1.5.10",
     "triggers": ["context-menu"],
     "handler": "body.setSunsetColors",
     "ui": {
@@ -113,7 +113,7 @@ kwami.soul.actions.registerAction({
   id: 'custom-opacity',
   name: 'Set Custom Opacity',
   category: 'body',
-  version: '1.5.9',
+  version: '1.5.10',
   triggers: ['api'], // Only via API, not in context menu
   
   // Define parameters

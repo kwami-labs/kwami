@@ -32,7 +32,7 @@ All remaining vulnerabilities require **breaking changes** to fix. They are nest
 
 ### Critical (3)
 
-#### 1. kwami@1.5.9 - False Positive
+#### 1. kwami@1.5.10 - False Positive
 - **Issue:** Flagged as malware
 - **Reality:** This is your own package. The npm advisory is likely a false positive or targeting a different package with the same name.
 - **Action:** Can be ignored or version can be bumped to 1.5.10 to avoid the flag.
