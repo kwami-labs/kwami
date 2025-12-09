@@ -4,7 +4,7 @@
  */
 
 export type KwamiNft = {
-  version: '1.5.10'
+  version: '1.5.11'
   name: 'kwami_nft'
   instructions: [
     {

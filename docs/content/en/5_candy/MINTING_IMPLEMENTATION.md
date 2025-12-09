@@ -2,7 +2,7 @@
 
 **Date**: November 20, 2025  
 **Status**: FULLY IMPLEMENTED ✅  
-**Version**: 1.5.10
+**Version**: 1.5.11
 
 ---
 
@@ -477,6 +477,6 @@ To make it production-ready, simply replace the mock functions in `arweaveUpload
 
 **Built with**: Nuxt 4 • Solana • Arweave • Three.js • TypeScript  
 **Date**: November 20, 2025  
-**Version**: 1.5.10  
+**Version**: 1.5.11  
 **LFG!** 🚀
 

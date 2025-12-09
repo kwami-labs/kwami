@@ -1,6 +1,6 @@
 # Kwami Architecture Overview
 
-High-level architecture overview for Kwami v1.5.100. For detailed component architecture, see the [architecture documentation](./architecture/).
+High-level architecture overview for Kwami v1.5.1100. For detailed component architecture, see the [architecture documentation](./architecture/).
 
 ## System Overview
 

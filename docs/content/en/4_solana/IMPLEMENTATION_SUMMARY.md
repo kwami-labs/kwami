@@ -407,5 +407,5 @@ With this economic integration, the path to that vision is now clear, transparen
 
 **Built with 💜 by the KWAMI team**  
 **Date:** November 22, 2025  
-**Version:** 1.5.10
+**Version:** 1.5.11
 

@@ -4,7 +4,7 @@ All notable changes to the KWAMI ecosystem will be documented in this file.
 
 For detailed core library changes, see [kwami/CHANGELOG.md](./kwami/CHANGELOG.md).
 
-## [1.5.10] - 2025-12-09
+## [1.5.11] - 2025-12-09
 
 ### 🔒 Security
 

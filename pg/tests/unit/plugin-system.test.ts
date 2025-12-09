@@ -23,7 +23,7 @@ describe('PluginManager', () => {
     const testPlugin: Plugin = {
       metadata: {
         name: 'test-plugin',
-        version: '1.5.10',
+        version: '1.5.11',
         author: 'Test',
         description: 'Test plugin'
       },
@@ -41,7 +41,7 @@ describe('PluginManager', () => {
     const testPlugin: Plugin = {
       metadata: {
         name: 'test-plugin',
-        version: '1.5.10',
+        version: '1.5.11',
         author: 'Test',
         description: 'Test plugin'
       },
@@ -58,7 +58,7 @@ describe('PluginManager', () => {
     const testPlugin: Plugin = {
       metadata: {
         name: 'test-plugin',
-        version: '1.5.10',
+        version: '1.5.11',
         author: 'Test',
         description: 'Test plugin'
       },
@@ -77,7 +77,7 @@ describe('PluginManager', () => {
     const testPlugin: Plugin = {
       metadata: {
         name: 'test-plugin',
-        version: '1.5.10',
+        version: '1.5.11',
         author: 'Test',
         description: 'Test plugin'
       },
@@ -98,7 +98,7 @@ describe('PluginManager', () => {
     const testPlugin: Plugin = {
       metadata: {
         name: 'test-plugin',
-        version: '1.5.10',
+        version: '1.5.11',
         author: 'Test',
         description: 'Test plugin'
       },
@@ -137,7 +137,7 @@ describe('PluginManager', () => {
     const dependentPlugin: Plugin = {
       metadata: {
         name: 'dependent-plugin',
-        version: '1.5.10',
+        version: '1.5.11',
         author: 'Test',
         description: 'Dependent plugin',
         dependencies: ['non-existent-plugin']
@@ -152,7 +152,7 @@ describe('PluginManager', () => {
     const testPlugin: Plugin = {
       metadata: {
         name: 'test-plugin',
-        version: '1.5.10',
+        version: '1.5.11',
         author: 'Test',
         description: 'Test plugin'
       },
@@ -169,7 +169,7 @@ describe('PluginManager', () => {
     const plugin1: Plugin = {
       metadata: {
         name: 'plugin-1',
-        version: '1.5.10',
+        version: '1.5.11',
         author: 'Test',
         description: 'Plugin 1'
       },
@@ -179,7 +179,7 @@ describe('PluginManager', () => {
     const plugin2: Plugin = {
       metadata: {
         name: 'plugin-2',
-        version: '1.5.10',
+        version: '1.5.11',
         author: 'Test',
         description: 'Plugin 2'
       },

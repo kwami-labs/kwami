@@ -297,7 +297,7 @@ From beautiful UI to complete blockchain integration, everything you need to min
 
 ---
 
-**Version:** 1.5.10  
+**Version:** 1.5.11  
 **Release Date:** November 22, 2025  
 **Status:** Production Ready (Pending Deployment)
 

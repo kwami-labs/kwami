@@ -451,6 +451,6 @@ Refund = Original Base Cost × 50%
 ---
 
 **Last Updated:** November 22, 2025  
-**Version:** 1.5.10  
+**Version:** 1.5.11  
 **Status:** Production Ready 🚀
 

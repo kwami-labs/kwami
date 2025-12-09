@@ -77,7 +77,7 @@ Expected output:
 ==> Using Node.js version 1.5.6
 ==> Running build command 'npm run build:dao'...
 
-> kwami@1.5.10 build:dao
+> kwami@1.5.11 build:dao
 > cd dao && npm install && npm run build
 
 added 1752 packages
@@ -105,7 +105,7 @@ Expected health response:
 {
   "status": "ok",
   "service": "kwami-dao",
-  "version": "1.5.10",
+  "version": "1.5.11",
   "timestamp": "2025-11-19T...",
   "uptime": 123.45,
   "environment": {
@@ -335,7 +335,7 @@ render deploy -s kwami-dao
 
 **Status:** ✅ Ready to Deploy  
 **Last Updated:** 2025-11-19  
-**Version:** 1.5.10  
+**Version:** 1.5.11  
 **Build Time:** ~2-3 minutes  
 **Tested:** ✅ Local build successful
 
