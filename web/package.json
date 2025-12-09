@@ -36,14 +36,14 @@
     "@types/three": "^0.160.0",
     "@typescript-eslint/eslint-plugin": "^8.18.2",
     "@typescript-eslint/parser": "^8.18.2",
-    "@vitest/ui": "^2.1.8",
+    "@vitest/ui": "^4.0.9",
     "eslint": "^9.18.0",
     "jsdom": "^27.2.0",
     "prettier": "^3.4.2",
     "rollup-plugin-visualizer": "^6.0.5",
     "typescript": "~5.9.3",
     "vite": "^7.2.2",
-    "vitest": "^2.1.8",
+    "vitest": "^4.0.9",
     "web-vitals": "^5.1.0"
   }
 }
