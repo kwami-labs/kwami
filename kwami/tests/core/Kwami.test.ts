@@ -27,6 +27,7 @@ vi.mock('../../src/core/body/Body', () => ({
       dispose: vi.fn(),
       enableBlobInteraction: vi.fn(),
       disableBlobInteraction: vi.fn(),
+      setKwamiInstance: vi.fn(),
     };
   }),
 }));

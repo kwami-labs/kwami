@@ -220,11 +220,11 @@ solana/
 ```toml
 ✅ [package]
    name = "qwami-token"
-   version = "1.5.9"
+   version = "1.5.10"
 
 ✅ [dependencies]
-   anchor-lang = "1.5.9"
-   anchor-spl = "1.5.9"
+   anchor-lang = "1.5.10"
+   anchor-spl = "1.5.10"
 ```
 
 **KWAMI NFT - Similar structure** ✅

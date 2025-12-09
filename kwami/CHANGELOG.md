@@ -7,6 +7,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [1.5.10] - 2025-12-09
+
+### 🔒 Security
+
+#### Fixed
+- **Malware Flag**: Bumped version to resolve npm audit malware warning for `kwami` package
+
 ## [1.5.6] - 2025-11-22
 
 ### Fixed

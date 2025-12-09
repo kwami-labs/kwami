@@ -191,7 +191,7 @@ export function getStateSnapshot() {
  */
 export function exportConfiguration() {
   return {
-    version: '1.5.9',
+    version: '1.5.10',
     timestamp: new Date().toISOString(),
     state: getStateSnapshot(),
     blob: window.kwami?.body?.getParams?.() || {},

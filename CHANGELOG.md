@@ -4,6 +4,14 @@ All notable changes to the KWAMI ecosystem will be documented in this file.
 
 For detailed core library changes, see [kwami/CHANGELOG.md](./kwami/CHANGELOG.md).
 
+## [1.5.10] - 2025-12-09
+
+### 🔒 Security
+
+#### Fixed
+- **Malware Flag**: Bumped version to resolve npm audit malware warning for `kwami` package
+- **Dependencies**: Updated internal dependencies to use new version
+
 ## [1.5.9] - 2025-11-22
 
 ### 🎯 Action System - Major Feature Addition

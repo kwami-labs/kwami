@@ -1,6 +1,6 @@
 {
   "name": "kwami",
-  "version": "1.5.9",
+  "version": "1.5.10",
   "description": "KWAMI Ecosystem - Monorepo containing the core library and all related projects",
   "license": "SEE LICENSE IN LICENSE.md",
   "private": true,

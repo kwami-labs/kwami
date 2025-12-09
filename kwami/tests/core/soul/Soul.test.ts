@@ -1,6 +1,7 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { KwamiSoul } from '../../../src/core/soul/Soul';
 import type { SoulConfig } from '../../../src/types';
+import { logger, LogLevel } from '../../../src/utils/logger';
 
 describe('KwamiSoul', () => {
   beforeEach(() => {
@@ -485,12 +486,16 @@ describe('KwamiSoul', () => {
 
     it('should handle invalid preset gracefully', () => {
       const soul = new KwamiSoul();
+      // Enable error logging for this test
+      logger.setLevel(LogLevel.ERROR);
       const consoleError = vi.spyOn(console, 'error').mockImplementation(() => {});
       
       soul.loadPresetPersonality('nonexistent' as any);
       
       expect(consoleError).toHaveBeenCalled();
       consoleError.mockRestore();
+      // Reset logger level
+      logger.setLevel(LogLevel.NOLOGS);
     });
   });
 });
