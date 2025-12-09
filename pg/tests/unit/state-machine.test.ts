@@ -65,6 +65,7 @@ describe('BlobStateMachineService', () => {
   });
 
   it('should update audio level', () => {
+    machine.startListening(); // Must be in listening or speaking state
     machine.updateAudioLevel(0.75);
     expect(machine.getContext().audioLevel).toBe(0.75);
   });
@@ -73,6 +74,7 @@ describe('BlobStateMachineService', () => {
     machine.startListening();
     machine.startThinking();
     machine.startSpeaking();
+    machine.stopAndReset(); // Transition back to idle to record speaking
     
     const history = machine.getStateHistory();
     expect(history).toContain('listening');
