@@ -6,7 +6,7 @@ export default defineNuxtConfig({
     '@nuxt/eslint',
     '@nuxtjs/i18n',
     '@pinia/nuxt',
-    '@pinia-plugin-persistedstate/nuxt',
+    'pinia-plugin-persistedstate/nuxt',
     '@nuxt/ui',
     '@nuxt/image',
     '@nuxtjs/supabase',
