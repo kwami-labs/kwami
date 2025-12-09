@@ -19,9 +19,8 @@
     "anchor:deploy:mainnet": "./scripts/deploy-anchor.sh mainnet-beta"
   },
   "dependencies": {
-    "@bundlr-network/client": "^0.11.17",
     "@coral-xyz/anchor": "^0.29.0",
-    "@irys/sdk": "^0.2.8",
+    "@irys/sdk": "^0.2.11",
     "@metaplex-foundation/js": "^0.20.1",
     "@metaplex-foundation/mpl-token-metadata": "^3.2.1",
     "@nuxt/hints": "1.0.0-alpha.1",
@@ -29,7 +28,7 @@
     "@nuxt/test-utils": "3.20.1",
     "@nuxt/ui": "4.1.0",
     "@pinia/nuxt": "^0.5.1",
-    "@solana/spl-token": "^0.4.0",
+    "@solana/spl-token": "^0.4.9",
     "@solana/wallet-adapter-base": "^0.9.23",
     "@solana/wallet-adapter-wallets": "^0.19.32",
     "@solana/web3.js": "^1.95.0",

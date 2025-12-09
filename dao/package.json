@@ -20,7 +20,7 @@
     "@metaplex-foundation/mpl-token-metadata": "^3.2.1",
     "@nuxt/ui": "^4.1.0",
     "@pinia/nuxt": "^0.8.0",
-    "@solana/spl-token": "^0.4.0",
+    "@solana/spl-token": "^0.4.9",
     "@solana/wallet-adapter-base": "^0.9.23",
     "@solana/wallet-adapter-wallets": "^0.19.32",
     "@solana/web3.js": "^1.95.0",
