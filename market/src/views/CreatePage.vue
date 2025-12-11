@@ -137,9 +137,9 @@
         </svg>
         <span>Open KWAMI App</span>
       </a>
-      <NuxtLink to="/" class="btn btn-outline flex-1">
+      <RouterLink to="/" class="btn btn-outline flex-1">
         Browse Marketplace
-      </NuxtLink>
+      </RouterLink>
     </div>
 
     <!-- Educational Section -->
@@ -176,7 +176,7 @@
             Discover permanent decentralized storage
           </p>
         </a>
-        <NuxtLink
+        <RouterLink
           to="/activity"
           class="card hover:border-primary-500/50 transition-all"
         >
@@ -184,7 +184,7 @@
           <p class="text-sm text-gray-400">
             See the latest KWAMI mints and sales
           </p>
-        </NuxtLink>
+        </RouterLink>
       </div>
     </div>
   </div>

@@ -1,73 +1,116 @@
-# 🎨 KWAMI NFT Marketplace
+# KWAMI Marketplace
 
-A fully functional Metaplex NFT marketplace for KWAMI NFTs built with Nuxt 4 and Solana.
+A decentralized NFT marketplace for KWAMI AI companion NFTs built on Solana using Vue 3 + Vite + TypeScript.
 
-## 🌟 Features
+## Features
 
-- Browse and search KWAMI NFTs
-- Buy and sell NFTs with SOL
-- User profiles and collections
-- Wallet integration (Phantom)
-- Real-time marketplace data
-- Mobile responsive design
+- 🎨 Browse and discover KWAMI NFTs
+- 💰 Buy and sell NFTs on the marketplace
+- 👛 Phantom wallet integration
+- 🔍 Advanced filtering and search
+- 📊 Real-time marketplace statistics
+- 🎮 Create new KWAMI NFTs
+- 📱 Responsive design with Tailwind CSS
 
-## 🚀 Quick Start
+## Tech Stack
+
+- **Framework**: Vue 3 with Composition API
+- **Build Tool**: Vite
+- **Language**: TypeScript
+- **Styling**: Tailwind CSS + SCSS
+- **State Management**: Pinia
+- **Routing**: Vue Router
+- **Blockchain**: Solana Web3.js
+- **NFT Standards**: Metaplex
+
+## Prerequisites
+
+- Node.js >= 18.0.0
+- npm >= 10.0.0
+- Phantom Wallet (browser extension)
+
+## Setup
+
+1. **Install dependencies**:
+   ```bash
+   npm install
+   ```
+
+2. **Configure environment**:
+   ```bash
+   cp .env.sample .env
+   ```
+   
+   Edit `.env` and configure your Solana network settings:
+   - `VITE_SOLANA_NETWORK`: Network to use (devnet, testnet, mainnet-beta)
+   - `VITE_SOLANA_RPC_URL`: RPC endpoint URL
+   - `VITE_KWAMI_NFT_PROGRAM_ID`: Your KWAMI NFT program ID
+   - `VITE_KWAMI_COLLECTION_MINT`: Collection mint address
+   - `VITE_KWAMI_COLLECTION_AUTHORITY`: Collection authority address
+   - `VITE_KWAMI_DNA_REGISTRY`: DNA registry address
+
+3. **Start development server**:
+   ```bash
+   npm run dev
+   ```
+   
+   Open [http://localhost:5173](http://localhost:5173) in your browser.
+
+## Development Commands
+
+- `npm run dev` - Start development server
+- `npm run build` - Build for production
+- `npm run preview` - Preview production build
+- `npm run type-check` - Run TypeScript type checking
+
+## Project Structure
+
+```
+market/
+├── src/
+│   ├── assets/          # Static assets (styles, images)
+│   ├── components/      # Reusable Vue components
+│   ├── composables/     # Vue composables (hooks)
+│   ├── layouts/         # Layout components
+│   ├── router/          # Vue Router configuration
+│   ├── stores/          # Pinia stores
+│   ├── types/           # TypeScript type definitions
+│   ├── views/           # Page components
+│   ├── App.vue          # Root component
+│   └── main.ts          # Application entry point
+├── public/              # Static public assets
+├── index.html           # HTML entry point
+├── vite.config.ts       # Vite configuration
+├── tailwind.config.ts   # Tailwind CSS configuration
+└── tsconfig.json        # TypeScript configuration
+```
+
+## Wallet Connection
+
+The marketplace uses Phantom wallet for authentication and transactions. Make sure you have the Phantom browser extension installed:
+
+- [Download Phantom](https://phantom.app)
+
+For development on devnet, you can request an airdrop of SOL from the wallet interface.
+
+## Building for Production
 
 ```bash
-cd market
-npm install
-npm run dev
+npm run build
 ```
 
-The marketplace will be available at `http://localhost:3000`
+The built files will be in the `dist/` directory, ready to be deployed to any static hosting service.
 
-## 📚 Documentation
+## Migration from market2/
 
-For complete documentation, see [docs/6_market/README.md](../docs/6_market/README.md)
+This project is a migration from the Nuxt 3-based market2/ application to a standard Vite + Vue 3 setup. Key differences:
 
-### Key Documents
-- [Start Here](../docs/6_market/START_HERE.md) - Introduction and overview
-- [Quick Start](../docs/6_market/QUICKSTART.md) - Quick setup guide
-- [Setup Guide](../docs/6_market/SETUP_GUIDE.md) - Detailed setup
-- [Features](../docs/6_market/FEATURES.md) - Feature documentation
-- [Deployment](../docs/6_market/DEPLOYMENT.md) - Deployment guide
+- **No SSR**: Client-side only application (vs Nuxt's SSR)
+- **Manual routing**: Vue Router with explicit route definitions (vs Nuxt's file-based routing)
+- **Environment variables**: `import.meta.env.VITE_*` (vs Nuxt's `useRuntimeConfig()`)
+- **Imports**: `@/` alias for absolute imports (vs `~/`)
+- **Components**: `<RouterLink>` (vs `<NuxtLink>`)
 
-## 🔗 Related
+## License
 
-- [Changelog](./CHANGELOG.md) - Version history and changes
-- [Main README](../README.md) - KWAMI project overview
-- [Solana Programs](../docs/4_solana/) - Blockchain documentation
-- [Candy Machine](../docs/5_candy/) - Minting documentation
-
-## 🏗️ Tech Stack
-
-- Nuxt 4
-- Solana + Metaplex
-- Vue 3 + Tailwind CSS
-- Pinia
-- Solana Wallet Adapter
-
-## 📦 Core Functionality
-
-- Browse NFT listings
-- Buy NFTs with SOL
-- List your KWAMIs for sale
-- View user collections
-- Track marketplace activity
-- Search and filter NFTs
-
-## 🔐 Environment Setup
-
-```env
-NUXT_PUBLIC_SOLANA_NETWORK=devnet
-NUXT_PUBLIC_SOLANA_RPC_URL=https://api.devnet.solana.com
-NUXT_PUBLIC_KWAMI_NFT_PROGRAM_ID=your_program_id
-```
-
-See [SETUP_GUIDE](../docs/6_market/SETUP_GUIDE.md) for complete configuration.
-
----
-
-**Status:** Production Ready
-**Version:** 1.5.11
-**Network:** Devnet/Mainnet
+See LICENSE file in the repository root.

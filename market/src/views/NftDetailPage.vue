@@ -8,9 +8,9 @@
       <div class="text-6xl mb-4">⚠️</div>
       <h2 class="text-2xl font-bold mb-2">Error Loading NFT</h2>
       <p class="text-gray-400 mb-6">{{ error }}</p>
-      <NuxtLink to="/" class="btn btn-primary">
+      <RouterLink to="/" class="btn btn-primary">
         Back to Marketplace
-      </NuxtLink>
+      </RouterLink>
     </div>
 
     <!-- NFT Details -->
@@ -50,9 +50,9 @@
         <!-- Header -->
         <div>
           <div class="flex items-center space-x-2 mb-2">
-            <NuxtLink to="/" class="text-primary-400 hover:text-primary-300 text-sm">
+            <RouterLink to="/" class="text-primary-400 hover:text-primary-300 text-sm">
               KWAMI Collection
-            </NuxtLink>
+            </RouterLink>
             <span class="text-gray-600">→</span>
             <span class="text-sm text-gray-400">{{ nft.name }}</span>
           </div>
@@ -60,7 +60,7 @@
           <h1 class="text-4xl font-bold mb-2">{{ nft.name }}</h1>
           
           <div class="flex items-center space-x-4">
-            <NuxtLink
+            <RouterLink
               :to="`/profile/${nft.owner}`"
               class="flex items-center space-x-2 text-gray-400 hover:text-white transition-colors"
             >
@@ -68,7 +68,7 @@
                 <span class="text-sm">👤</span>
               </div>
               <span class="text-sm">{{ shortAddress(nft.owner) }}</span>
-            </NuxtLink>
+            </RouterLink>
 
             <span v-if="nft.rarity" class="badge badge-warning">
               {{ nft.rarity }}
@@ -218,7 +218,7 @@ import { useWalletStore } from '~/stores/wallet'
 import type { NFTListing } from '~/stores/marketplace'
 
 const route = useRoute()
-const router = useRouter()
+const router = useRouter
 const walletStore = useWalletStore()
 const { fetchNftByMint } = useMetaplex()
 const { buyNft, listNft, unlistNft } = useMarketplace()

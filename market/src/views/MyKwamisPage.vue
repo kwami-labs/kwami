@@ -27,12 +27,12 @@
         Start your collection by creating or buying a KWAMI
       </p>
       <div class="flex items-center justify-center space-x-4">
-        <NuxtLink to="/create" class="btn btn-primary">
+        <RouterLink to="/create" class="btn btn-primary">
           Create KWAMI
-        </NuxtLink>
-        <NuxtLink to="/" class="btn btn-outline">
+        </RouterLink>
+        <RouterLink to="/" class="btn btn-outline">
           Explore Marketplace
-        </NuxtLink>
+        </RouterLink>
       </div>
     </div>
 
@@ -135,7 +135,7 @@ import { useMetaplex } from '~/composables/useMetaplex'
 import { useMarketplace } from '~/composables/useMarketplace'
 import type { NFTListing } from '~/stores/marketplace'
 
-const router = useRouter()
+const router = useRouter
 const walletStore = useWalletStore()
 const { fetchWalletNfts } = useMetaplex()
 const { listNft } = useMarketplace()

@@ -23,24 +23,24 @@
           <h3 class="font-bold mb-4">Marketplace</h3>
           <ul class="space-y-2">
             <li>
-              <NuxtLink to="/" class="text-gray-400 hover:text-primary-400 text-sm transition-colors">
+              <RouterLink to="/" class="text-gray-400 hover:text-primary-400 text-sm transition-colors">
                 Explore
-              </NuxtLink>
+              </RouterLink>
             </li>
             <li>
-              <NuxtLink to="/activity" class="text-gray-400 hover:text-primary-400 text-sm transition-colors">
+              <RouterLink to="/activity" class="text-gray-400 hover:text-primary-400 text-sm transition-colors">
                 Activity
-              </NuxtLink>
+              </RouterLink>
             </li>
             <li>
-              <NuxtLink to="/create" class="text-gray-400 hover:text-primary-400 text-sm transition-colors">
+              <RouterLink to="/create" class="text-gray-400 hover:text-primary-400 text-sm transition-colors">
                 Create KWAMI
-              </NuxtLink>
+              </RouterLink>
             </li>
             <li>
-              <NuxtLink to="/my-kwamis" class="text-gray-400 hover:text-primary-400 text-sm transition-colors">
+              <RouterLink to="/my-kwamis" class="text-gray-400 hover:text-primary-400 text-sm transition-colors">
                 My Collection
-              </NuxtLink>
+              </RouterLink>
             </li>
           </ul>
         </div>

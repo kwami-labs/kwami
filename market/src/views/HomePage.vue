@@ -10,12 +10,12 @@
           Discover, collect, and trade unique AI companion NFTs on Solana
         </p>
         <div class="flex items-center justify-center space-x-4">
-          <NuxtLink to="#explore" class="btn btn-primary text-lg px-8 py-3">
+          <RouterLink to="#explore" class="btn btn-primary text-lg px-8 py-3">
             Explore NFTs
-          </NuxtLink>
-          <NuxtLink to="/create" class="btn btn-outline text-lg px-8 py-3">
+          </RouterLink>
+          <RouterLink to="/create" class="btn btn-outline text-lg px-8 py-3">
             Create KWAMI
-          </NuxtLink>
+          </RouterLink>
         </div>
       </div>
     </section>
@@ -71,9 +71,9 @@
                 : 'Try adjusting your filters' 
               }}
             </p>
-            <NuxtLink to="/create" class="btn btn-primary">
+            <RouterLink to="/create" class="btn btn-primary">
               Create KWAMI
-            </NuxtLink>
+            </RouterLink>
           </div>
 
           <!-- NFT Grid -->
@@ -139,7 +139,7 @@ import { useMetaplex } from '~/composables/useMetaplex'
 import { useMarketplace } from '~/composables/useMarketplace'
 import type { NFTListing, MarketplaceFilters } from '~/stores/marketplace'
 
-const router = useRouter()
+const router = useRouter
 const marketplaceStore = useMarketplaceStore()
 const walletStore = useWalletStore()
 const { fetchListedNfts } = useMetaplex()

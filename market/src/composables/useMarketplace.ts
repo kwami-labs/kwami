@@ -2,8 +2,8 @@ import { ref } from 'vue'
 import { PublicKey, Transaction, SystemProgram, LAMPORTS_PER_SOL } from '@solana/web3.js'
 import { TOKEN_PROGRAM_ID, createTransferInstruction, getAssociatedTokenAddress } from '@solana/spl-token'
 import { useSolana } from './useSolana'
-import { useMarketplaceStore } from '~/stores/marketplace'
-import type { NFTListing } from '~/stores/marketplace'
+import { useMarketplaceStore } from '@/stores/marketplace'
+import type { NFTListing } from '@/stores/marketplace'
 
 export const useMarketplace = () => {
   const { getConnection, confirmTransaction } = useSolana()
@@ -281,4 +281,3 @@ export const useMarketplace = () => {
     getStats,
   }
 }
-

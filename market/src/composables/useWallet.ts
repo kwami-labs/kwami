@@ -1,5 +1,5 @@
 import { ref, computed, onMounted, onUnmounted } from 'vue'
-import { useWalletStore } from '~/stores/wallet'
+import { useWalletStore } from '@/stores/wallet'
 import { useSolana } from './useSolana'
 
 // This is a simplified wallet composable
@@ -162,4 +162,3 @@ export const useWallet = () => {
     signMessage,
   }
 }
-

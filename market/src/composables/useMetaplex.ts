@@ -1,18 +1,16 @@
-import { ref } from 'vue'
-import { Connection, PublicKey } from '@solana/web3.js'
-import { Metaplex, keypairIdentity, bundlrStorage } from '@metaplex-foundation/js'
+import { ref, computed } from 'vue'
+import { PublicKey } from '@solana/web3.js'
+import { Metaplex, keypairIdentity } from '@metaplex-foundation/js'
 import { useSolana } from './useSolana'
-import { useRuntimeConfig } from '#app'
-import type { NFTListing } from '~/stores/marketplace'
+import type { NFTListing } from '@/stores/marketplace'
 
 export const useMetaplex = () => {
   const { getConnection } = useSolana()
-  const config = useRuntimeConfig()
   
   const loading = ref(false)
   const error = ref<string | null>(null)
 
-  const collectionMint = computed(() => config.public.kwamiCollectionMint as string)
+  const collectionMint = computed(() => import.meta.env.VITE_KWAMI_COLLECTION_MINT as string)
 
   /**
    * Initialize Metaplex instance
@@ -199,4 +197,3 @@ export const useMetaplex = () => {
     uploadFile,
   }
 }
-

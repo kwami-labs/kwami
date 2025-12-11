@@ -1,5 +1,5 @@
 <template>
-  <NuxtLink 
+  <RouterLink 
     :to="`/nft/${nft.mint}`"
     class="nft-card group"
   >
@@ -105,7 +105,7 @@
         </div>
       </div>
     </div>
-  </NuxtLink>
+  </RouterLink>
 </template>
 
 <script setup lang="ts">

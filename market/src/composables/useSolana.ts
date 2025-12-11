@@ -1,14 +1,12 @@
 import { ref, computed } from 'vue'
-import { Connection, PublicKey, clusterApiUrl, LAMPORTS_PER_SOL } from '@solana/web3.js'
-import { useRuntimeConfig } from '#app'
+import { Connection, PublicKey, LAMPORTS_PER_SOL } from '@solana/web3.js'
 
 export const useSolana = () => {
-  const config = useRuntimeConfig()
   const connecting = ref(false)
   const error = ref<string | null>(null)
 
-  const network = computed(() => config.public.solanaNetwork as 'devnet' | 'mainnet-beta' | 'testnet')
-  const rpcUrl = computed(() => config.public.solanaRpcUrl as string)
+  const network = computed(() => import.meta.env.VITE_SOLANA_NETWORK as 'devnet' | 'mainnet-beta' | 'testnet')
+  const rpcUrl = computed(() => import.meta.env.VITE_SOLANA_RPC_URL as string)
 
   /**
    * Get Solana connection
@@ -119,4 +117,3 @@ export const useSolana = () => {
     getTransaction,
   }
 }
-

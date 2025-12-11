@@ -32,9 +32,9 @@
           : `No ${activeTab} transactions found` 
         }}
       </p>
-      <NuxtLink to="/" class="btn btn-primary">
+      <RouterLink to="/" class="btn btn-primary">
         Explore Marketplace
-      </NuxtLink>
+      </RouterLink>
     </div>
 
     <!-- Activity Table -->
@@ -98,23 +98,23 @@
               <span v-else class="text-gray-400">—</span>
             </td>
             <td>
-              <NuxtLink
+              <RouterLink
                 :to="`/profile/${activity.from}`"
                 @click.stop
                 class="font-mono text-sm text-primary-400 hover:text-primary-300"
               >
                 {{ shortAddress(activity.from) }}
-              </NuxtLink>
+              </RouterLink>
             </td>
             <td>
-              <NuxtLink
+              <RouterLink
                 v-if="activity.to"
                 :to="`/profile/${activity.to}`"
                 @click.stop
                 class="font-mono text-sm text-primary-400 hover:text-primary-300"
               >
                 {{ shortAddress(activity.to) }}
-              </NuxtLink>
+              </RouterLink>
               <span v-else class="text-gray-400">—</span>
             </td>
             <td class="text-sm text-gray-400">
@@ -156,7 +156,7 @@ interface Activity {
   timestamp: number
 }
 
-const router = useRouter()
+const router = useRouter
 
 const loading = ref(false)
 const loadingMore = ref(false)

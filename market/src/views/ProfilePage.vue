@@ -8,9 +8,9 @@
       <div class="text-6xl mb-4">⚠️</div>
       <h2 class="text-2xl font-bold mb-2">Error Loading Profile</h2>
       <p class="text-gray-400 mb-6">{{ error }}</p>
-      <NuxtLink to="/" class="btn btn-primary">
+      <RouterLink to="/" class="btn btn-primary">
         Back to Marketplace
-      </NuxtLink>
+      </RouterLink>
     </div>
 
     <!-- Profile Content -->
@@ -52,9 +52,9 @@
           </div>
 
           <div v-if="isOwnProfile" class="flex items-center space-x-2">
-            <NuxtLink to="/my-kwamis" class="btn btn-primary">
+            <RouterLink to="/my-kwamis" class="btn btn-primary">
               Manage Collection
-            </NuxtLink>
+            </RouterLink>
           </div>
         </div>
       </div>
@@ -121,9 +121,9 @@
             : 'This wallet doesn\'t own any KWAMIs' 
           }}
         </p>
-        <NuxtLink v-if="isOwnProfile" to="/create" class="btn btn-primary">
+        <RouterLink v-if="isOwnProfile" to="/create" class="btn btn-primary">
           Create KWAMI
-        </NuxtLink>
+        </RouterLink>
       </div>
 
       <!-- NFT Grid -->
@@ -151,7 +151,7 @@ import { useSolana } from '~/composables/useSolana'
 import type { NFTListing } from '~/stores/marketplace'
 
 const route = useRoute()
-const router = useRouter()
+const router = useRouter
 const walletStore = useWalletStore()
 const { fetchWalletNfts } = useMetaplex()
 const { getBalance } = useSolana()

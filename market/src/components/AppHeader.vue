@@ -3,7 +3,7 @@
     <div class="container mx-auto px-4">
       <div class="flex items-center justify-between h-20">
         <!-- Logo -->
-        <NuxtLink to="/" class="flex items-center space-x-3 group">
+        <RouterLink to="/" class="flex items-center space-x-3 group">
           <div class="w-12 h-12 bg-gradient-to-br from-primary-500 to-kwami-purple rounded-xl flex items-center justify-center group-hover:scale-110 transition-transform">
             <span class="text-2xl">👻</span>
           </div>
@@ -11,38 +11,38 @@
             <h1 class="text-xl font-bold gradient-text">KWAMI</h1>
             <p class="text-xs text-gray-400">Marketplace</p>
           </div>
-        </NuxtLink>
+        </RouterLink>
 
         <!-- Desktop Navigation -->
         <nav class="hidden md:flex items-center space-x-1">
-          <NuxtLink
+          <RouterLink
             to="/"
             class="nav-link"
             active-class="nav-link-active"
           >
             Explore
-          </NuxtLink>
-          <NuxtLink
+          </RouterLink>
+          <RouterLink
             to="/my-kwamis"
             class="nav-link"
             active-class="nav-link-active"
           >
             My KWAMIs
-          </NuxtLink>
-          <NuxtLink
+          </RouterLink>
+          <RouterLink
             to="/activity"
             class="nav-link"
             active-class="nav-link-active"
           >
             Activity
-          </NuxtLink>
-          <NuxtLink
+          </RouterLink>
+          <RouterLink
             to="/create"
             class="nav-link"
             active-class="nav-link-active"
           >
             Create
-          </NuxtLink>
+          </RouterLink>
         </nav>
 
         <!-- Wallet Button -->
@@ -87,7 +87,7 @@
           v-if="mobileMenuOpen"
           class="md:hidden py-4 border-t border-gray-800"
         >
-          <NuxtLink
+          <RouterLink
             to="/"
             class="mobile-nav-link"
             active-class="mobile-nav-link-active"
@@ -97,8 +97,8 @@
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
             </svg>
             <span>Explore</span>
-          </NuxtLink>
-          <NuxtLink
+          </RouterLink>
+          <RouterLink
             to="/my-kwamis"
             class="mobile-nav-link"
             active-class="mobile-nav-link-active"
@@ -108,8 +108,8 @@
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/>
             </svg>
             <span>My KWAMIs</span>
-          </NuxtLink>
-          <NuxtLink
+          </RouterLink>
+          <RouterLink
             to="/activity"
             class="mobile-nav-link"
             active-class="mobile-nav-link-active"
@@ -119,8 +119,8 @@
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"/>
             </svg>
             <span>Activity</span>
-          </NuxtLink>
-          <NuxtLink
+          </RouterLink>
+          <RouterLink
             to="/create"
             class="mobile-nav-link"
             active-class="mobile-nav-link-active"
@@ -130,7 +130,7 @@
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
             </svg>
             <span>Create</span>
-          </NuxtLink>
+          </RouterLink>
         </nav>
       </Transition>
     </div>
