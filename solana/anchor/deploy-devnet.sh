@@ -29,6 +29,13 @@ echo -e "\n${YELLOW}Step 1: Checking prerequisites...${NC}"
 
 # Check Solana CLI
 if ! command -v solana &> /dev/null; then
+    # Try to add default Solana path
+    if [ -d "$HOME/.local/share/solana/install/active_release/bin" ]; then
+        export PATH="$HOME/.local/share/solana/install/active_release/bin:$PATH"
+    fi
+fi
+
+if ! command -v solana &> /dev/null; then
     echo -e "${RED}❌ Solana CLI not found. Please install it first.${NC}"
     exit 1
 fi
