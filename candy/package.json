@@ -1,33 +1,18 @@
 {
-  "name": "kwami-io",
-  "version": "1.5.11",
-  "description": "KWAMI NFT Candy Machine - Mint unique KWAMI NFTs on Solana blockchain",
-  "type": "module",
+  "name": "kwami-candy",
   "private": true,
+  "version": "0.0.0",
+  "type": "module",
   "scripts": {
-    "dev": "nuxt dev",
-    "build": "nuxt build",
-    "generate": "nuxt generate",
-    "preview": "nuxt preview",
-    "postinstall": "nuxt prepare",
-    "lint": "eslint .",
-    "lint:fix": "eslint . --fix",
-    "typecheck": "nuxt typecheck",
-    "anchor:build": "./scripts/build-anchor.sh",
-    "anchor:test": "./scripts/test-anchor.sh",
-    "anchor:deploy": "./scripts/deploy-anchor.sh devnet",
-    "anchor:deploy:mainnet": "./scripts/deploy-anchor.sh mainnet-beta"
+    "dev": "vite",
+    "build": "vue-tsc -b && vite build",
+    "preview": "vite preview"
   },
   "dependencies": {
     "@coral-xyz/anchor": "^0.29.0",
     "@irys/sdk": "^0.2.11",
     "@metaplex-foundation/js": "^0.20.1",
     "@metaplex-foundation/mpl-token-metadata": "^3.2.1",
-    "@nuxt/hints": "1.0.0-alpha.1",
-    "@nuxt/image": "2.0.0",
-    "@nuxt/test-utils": "3.20.1",
-    "@nuxt/ui": "4.1.0",
-    "@pinia/nuxt": "^0.5.1",
     "@solana/spl-token": "^0.4.9",
     "@solana/wallet-adapter-base": "^0.9.23",
     "@solana/wallet-adapter-wallets": "^0.19.32",
@@ -36,31 +21,26 @@
     "bs58": "^5.0.0",
     "buffer": "^6.0.3",
     "crypto-js": "^4.2.0",
-    "nuxt": "^4.2.1",
     "pinia": "^2.1.7",
     "process": "^0.11.10",
-    "socket.io": "^4.8.1",
     "socket.io-client": "^4.8.1",
     "stream-browserify": "^3.0.0",
     "three": "^0.169.0",
-    "kwami": "^1.5.7",
-    "typescript": "^5.6.3",
-    "util": "^0.12.5",
     "vue": "^3.5.24",
-    "vue-router": "^4.6.3"
+    "vue-router": "^4.6.3",
+    "kwami": "file:../../dist",
+    "@iconify/vue": "^4.1.1"
   },
   "devDependencies": {
-    "@rollup/plugin-commonjs": "^29.0.0",
-    "@types/crypto-js": "^4.2.2",
-    "@types/three": "^0.169.0",
-    "eslint": "^9.12.0",
-    "vite-plugin-node-polyfills": "^0.24.0",
-    "vue-tsc": "^2.1.6"
-  },
-  "engines": {
-    "node": ">=18.0.0",
-    "bun": ">=1.0.0",
-    "deno": ">=1.0.0"
-  },
-  "packageManager": "npm@10.8.2"
+    "@vitejs/plugin-vue": "^5.1.0",
+    "autoprefixer": "^10.4.19",
+    "postcss": "^8.4.38",
+    "tailwindcss": "^3.4.3",
+    "typescript": "^5.6.3",
+    "vite": "^5.2.0",
+    "vite-plugin-node-polyfills": "^0.21.0",
+    "vue-tsc": "^2.0.6",
+    "@types/node": "^20.12.7",
+    "@types/three": "^0.164.0"
+  }
 }

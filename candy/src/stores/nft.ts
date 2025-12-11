@@ -1,0 +1,287 @@
+import { defineStore } from 'pinia'
+import { ref } from 'vue'
+import type { PublicKey } from '@solana/web3.js'
+import { uploadImageToArweave, uploadMetadataToArweave } from '@/utils/arweaveUpload'
+import { checkDnaExists as checkDnaOnChain, mintKwamiNft, fetchOwnedKwamis, getTotalMintedCount, burnKwamiNft } from '@/utils/solanaHelpers'
+import { prepareKwamiMetadata } from '@/utils/prepareKwamiMetadata'
+import { calculateKwamiDNA } from '@/utils/calculateKwamiDNA'
+import { useWalletStore } from './wallet'
+
+export interface KwamiNFT {
+  mint: string
+  name: string
+  symbol: string
+  uri: string
+  dna: string
+  owner: string
+  image?: string
+  attributes?: Array<{ trait_type: string; value: any }>
+}
+
+export const useNFTStore = defineStore('nft', () => {
+  const walletStore = useWalletStore()
+  
+  // State
+  const ownedNfts = ref<KwamiNFT[]>([])
+  const totalMinted = ref(0)
+  const loading = ref(false)
+  const mintingStatus = ref<'idle' | 'generating-dna' | 'checking' | 'uploading' | 'minting' | 'success' | 'error'>('idle')
+  const error = ref<string | null>(null)
+  
+  // Current KWAMI being created
+  const currentDna = ref<string | null>(null)
+  const currentMetadata = ref<any>(null)
+  const currentBlobConfig = ref<any>(null)
+  const currentImageBuffer = ref<Buffer | null>(null)
+  
+  // Fetch user's owned KWAMIs
+  const fetchOwnedNfts = async () => {
+    if (!walletStore.connected || !walletStore.publicKey) return
+    
+    try {
+      loading.value = true
+      error.value = null
+      
+      // Fetch NFTs from blockchain
+      const nfts = await fetchOwnedKwamis(walletStore.publicKey, walletStore.wallet)
+      ownedNfts.value = nfts
+      
+      console.log(`[NFT Store] Fetched ${nfts.length} owned KWAMIs`)
+    } catch (err: any) {
+      console.error('Error fetching owned NFTs:', err)
+      error.value = err.message
+    } finally {
+      loading.value = false
+    }
+  }
+  
+  // Fetch global statistics
+  const fetchStats = async () => {
+    if (!walletStore.wallet) return
+    
+    try {
+      const count = await getTotalMintedCount(walletStore.wallet)
+      totalMinted.value = count
+      
+      console.log(`[NFT Store] Total minted: ${count}`)
+    } catch (err: any) {
+      console.error('Error fetching stats:', err)
+    }
+  }
+  
+  // Calculate DNA for a KWAMI configuration
+  const calculateDNA = async (config: any): Promise<string> => {
+    try {
+      mintingStatus.value = 'generating-dna'
+      
+      // Calculate DNA from body configuration
+      const dna = calculateKwamiDNA(config)
+      currentDna.value = dna
+      
+      return dna
+    } catch (err: any) {
+      error.value = err.message
+      throw err
+    }
+  }
+  
+  // Check if DNA already exists on-chain
+  const checkDnaExists = async (dna: string): Promise<boolean> => {
+    if (!walletStore.wallet) {
+      throw new Error('Wallet not connected')
+    }
+    
+    try {
+      mintingStatus.value = 'checking'
+      
+      // Check DNA on blockchain
+      const exists = await checkDnaOnChain(dna, walletStore.wallet)
+      
+      console.log(`[NFT Store] DNA exists: ${exists}`)
+      return exists
+    } catch (err: any) {
+      console.error('Error checking DNA:', err)
+      throw err
+    }
+  }
+  
+  // Mint a new KWAMI NFT
+  const mintKwami = async (
+    config: any,
+    metadata: { name: string; description: string },
+    imageBuffer: Buffer | null = null
+  ) => {
+    if (!walletStore.connected || !walletStore.wallet) {
+      throw new Error('Wallet not connected')
+    }
+    
+    try {
+      error.value = null
+      
+      // Calculate DNA
+      const dna = await calculateDNA(config)
+      
+      // Check if DNA already exists
+      const exists = await checkDnaExists(dna)
+      if (exists) {
+        throw new Error('This KWAMI DNA already exists! Try modifying the configuration.')
+      }
+      
+      // Upload image to Arweave
+      mintingStatus.value = 'uploading'
+      
+      let imageResult
+      if (imageBuffer) {
+        // Use actual image buffer from canvas
+        imageResult = await uploadImageToArweave(
+          imageBuffer,
+          walletStore.wallet,
+          'image/png'
+        )
+      } else {
+        // Fallback to mock (for testing)
+        console.warn('[NFT Store] No image buffer provided, using mock upload')
+        imageResult = await uploadImageToArweave(
+          Buffer.from('mock'),
+          walletStore.publicKey!.toBase58() as any,
+          'image/png'
+        )
+      }
+      
+      console.log('[NFT Store] Image uploaded:', imageResult.uri)
+      
+      // Prepare metadata using the utility
+      const metadataJson = prepareKwamiMetadata({
+        name: metadata.name,
+        description: metadata.description,
+        dna,
+        bodyConfig: config,
+        imageUri: imageResult.uri,
+        creatorAddress: walletStore.publicKey!.toBase58(),
+      })
+      
+      // Upload metadata to Arweave
+      const metadataResult = await uploadMetadataToArweave(
+        metadataJson,
+        walletStore.wallet
+      )
+      
+      console.log('[NFT Store] Metadata uploaded:', metadataResult.uri)
+      currentMetadata.value = metadataJson
+      
+      // Mint NFT on-chain
+      mintingStatus.value = 'minting'
+      const mintAddress = await mintKwamiNft(
+        walletStore.wallet,
+        dna,
+        metadataResult.uri,
+        metadata.name
+      )
+      
+      console.log('[NFT Store] KWAMI minted:', mintAddress)
+      
+      mintingStatus.value = 'success'
+      
+      // Refresh owned NFTs
+      await fetchOwnedNfts()
+      await fetchStats()
+      
+      return mintAddress
+    } catch (err: any) {
+      console.error('Error minting KWAMI:', err)
+      error.value = err.message
+      mintingStatus.value = 'error'
+      throw err
+    }
+  }
+  
+  // Update KWAMI metadata (Mind/Soul only)
+  const updateMetadata = async (mint: string, newMetadata: any) => {
+    if (!walletStore.connected) {
+      throw new Error('Wallet not connected')
+    }
+    
+    try {
+      loading.value = true
+      error.value = null
+      
+      // TODO: Implement metadata update
+      // Upload new metadata to Arweave
+      // Call update_metadata instruction
+      
+      await fetchOwnedNfts()
+    } catch (err: any) {
+      console.error('Error updating metadata:', err)
+      error.value = err.message
+      throw err
+    } finally {
+      loading.value = false
+    }
+  }
+  
+  // Burn KWAMI (to change DNA)
+  const burnKwami = async (mint: string) => {
+    if (!walletStore.connected || !walletStore.wallet) {
+      throw new Error('Wallet not connected')
+    }
+    
+    try {
+      loading.value = true
+      error.value = null
+      
+      // Burn NFT on-chain
+      await burnKwamiNft(walletStore.wallet, mint)
+      
+      console.log('[NFT Store] KWAMI burned:', mint)
+      
+      await fetchOwnedNfts()
+      await fetchStats()
+    } catch (err: any) {
+      console.error('Error burning KWAMI:', err)
+      error.value = err.message
+      throw err
+    } finally {
+      loading.value = false
+    }
+  }
+  
+  // Update blob configuration
+  const setBlobConfig = (config: any) => {
+    currentBlobConfig.value = config
+  }
+  
+  // Set current image buffer
+  const setImageBuffer = (buffer: Buffer | null) => {
+    currentImageBuffer.value = buffer
+  }
+  
+  // Reset minting status
+  const resetMintingStatus = () => {
+    mintingStatus.value = 'idle'
+    error.value = null
+    currentDna.value = null
+    currentMetadata.value = null
+  }
+  
+  return {
+    ownedNfts,
+    totalMinted,
+    loading,
+    mintingStatus,
+    error,
+    currentDna,
+    currentMetadata,
+    currentBlobConfig,
+    currentImageBuffer,
+    fetchOwnedNfts,
+    fetchStats,
+    calculateDNA,
+    checkDnaExists,
+    mintKwami,
+    updateMetadata,
+    burnKwami,
+    resetMintingStatus,
+    setBlobConfig,
+    setImageBuffer,
+  }
+})
