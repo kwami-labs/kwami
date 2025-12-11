@@ -5,33 +5,26 @@
   "type": "module",
   "private": true,
   "scripts": {
-    "dev": "nuxt dev",
-    "build": "nuxt build",
-    "generate": "nuxt generate",
-    "preview": "nuxt preview",
-    "postinstall": "nuxt prepare",
+    "dev": "vite",
+    "build": "vue-tsc -b && vite build",
+    "preview": "vite preview",
+    "typecheck": "vue-tsc --noEmit",
     "lint": "eslint .",
-    "lint:fix": "eslint . --fix",
-    "typecheck": "nuxt typecheck"
+    "lint:fix": "eslint . --fix"
+  },
+  "engines": {
+    "node": ">=18.0.0"
   },
   "dependencies": {
-    "@coral-xyz/anchor": "^0.29.0",
     "@metaplex-foundation/js": "^0.20.1",
-    "@metaplex-foundation/mpl-token-metadata": "^3.2.1",
-    "@nuxt/ui": "^4.1.0",
-    "@pinia/nuxt": "^0.8.0",
-    "@solana/spl-token": "^0.4.9",
-    "@solana/wallet-adapter-base": "^0.9.23",
-    "@solana/wallet-adapter-wallets": "^0.19.32",
-    "@solana/web3.js": "^1.95.0",
-    "@vueuse/core": "^11.3.0",
-    "bs58": "^5.0.0",
+    "@metaplex-foundation/mpl-token-metadata": "^3.4.0",
+    "@solana/spl-token": "^0.4.14",
+    "@solana/wallet-adapter-base": "^0.9.27",
+    "@solana/wallet-adapter-wallets": "^0.19.37",
+    "@solana/web3.js": "^1.98.4",
     "buffer": "^6.0.3",
-    "crypto-browserify": "^3.12.0",
-    "kwami": "^1.5.7",
-    "three": "^0.181.1",
-    "nuxt": "^4.2.1",
-    "pinia": "^2.1.7",
+    "crypto-browserify": "^3.12.1",
+    "pinia": "^3.0.4",
     "process": "^0.11.10",
     "solana-wallets-vue": "^0.7.1",
     "stream-browserify": "^3.0.0",
@@ -40,12 +33,11 @@
     "vue-router": "^4.6.3"
   },
   "devDependencies": {
-    "@types/node": "^20.14.0",
-    "eslint": "^9.12.0",
-    "typescript": "^5.6.3",
-    "vue-tsc": "^2.1.6"
-  },
-  "engines": {
-    "node": ">=18.0.0"
+    "@types/node": "^24.10.1",
+    "@vitejs/plugin-vue": "^6.0.1",
+    "@vue/tsconfig": "^0.8.1",
+    "typescript": "~5.9.3",
+    "vite": "^7.2.4",
+    "vue-tsc": "^3.1.4"
   }
 }
