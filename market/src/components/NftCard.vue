@@ -110,8 +110,8 @@
 
 <script setup lang="ts">
 import { computed } from 'vue'
-import type { NFTListing } from '~/stores/marketplace'
-import { useWalletStore } from '~/stores/wallet'
+import type { NFTListing } from '@/stores/marketplace'
+import { useWalletStore } from '@/stores/wallet'
 
 interface Props {
   nft: NFTListing

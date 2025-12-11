@@ -95,7 +95,7 @@
 
 <script setup lang="ts">
 import { ref, watch } from 'vue'
-import type { MarketplaceFilters } from '~/stores/marketplace'
+import type { MarketplaceFilters } from '@/stores/marketplace'
 
 interface Props {
   filters: MarketplaceFilters

@@ -119,7 +119,7 @@
 
 <script setup lang="ts">
 import { ref } from 'vue'
-import type { NFTListing } from '~/stores/marketplace'
+import type { NFTListing } from '@/stores/marketplace'
 
 interface Props {
   nft: NFTListing

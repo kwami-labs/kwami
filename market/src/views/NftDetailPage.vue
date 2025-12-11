@@ -212,13 +212,13 @@
 <script setup lang="ts">
 import { ref, computed, onMounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
-import { useMetaplex } from '~/composables/useMetaplex'
-import { useMarketplace } from '~/composables/useMarketplace'
-import { useWalletStore } from '~/stores/wallet'
-import type { NFTListing } from '~/stores/marketplace'
+import { useMetaplex } from '@/composables/useMetaplex'
+import { useMarketplace } from '@/composables/useMarketplace'
+import { useWalletStore } from '@/stores/wallet'
+import type { NFTListing } from '@/stores/marketplace'
 
 const route = useRoute()
-const router = useRouter
+const router = useRouter()
 const walletStore = useWalletStore()
 const { fetchNftByMint } = useMetaplex()
 const { buyNft, listNft, unlistNft } = useMarketplace()
@@ -308,7 +308,4 @@ onMounted(() => {
   loadNft()
 })
 
-definePageMeta({
-  layout: 'default',
-})
 </script>

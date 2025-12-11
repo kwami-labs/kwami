@@ -145,13 +145,13 @@
 <script setup lang="ts">
 import { ref, computed, onMounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
-import { useWalletStore } from '~/stores/wallet'
-import { useMetaplex } from '~/composables/useMetaplex'
-import { useSolana } from '~/composables/useSolana'
-import type { NFTListing } from '~/stores/marketplace'
+import { useWalletStore } from '@/stores/wallet'
+import { useMetaplex } from '@/composables/useMetaplex'
+import { useSolana } from '@/composables/useSolana'
+import type { NFTListing } from '@/stores/marketplace'
 
 const route = useRoute()
-const router = useRouter
+const router = useRouter()
 const walletStore = useWalletStore()
 const { fetchWalletNfts } = useMetaplex()
 const { getBalance } = useSolana()
@@ -222,7 +222,4 @@ onMounted(() => {
   loadProfile()
 })
 
-definePageMeta({
-  layout: 'default',
-})
 </script>

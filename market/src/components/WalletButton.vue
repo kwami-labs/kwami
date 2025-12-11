@@ -142,8 +142,8 @@
 
 <script setup lang="ts">
 import { ref, computed } from 'vue'
-import { useWallet } from '~/composables/useWallet'
-import { useWalletStore } from '~/stores/wallet'
+import { useWallet } from '@/composables/useWallet'
+import { useWalletStore } from '@/stores/wallet'
 
 const walletStore = useWalletStore()
 const { connect, disconnect, refreshBalance, error: walletError } = useWallet()

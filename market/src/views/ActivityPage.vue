@@ -156,7 +156,7 @@ interface Activity {
   timestamp: number
 }
 
-const router = useRouter
+const router = useRouter()
 
 const loading = ref(false)
 const loadingMore = ref(false)
@@ -246,7 +246,4 @@ onMounted(() => {
   loadActivity()
 })
 
-definePageMeta({
-  layout: 'default',
-})
 </script>
