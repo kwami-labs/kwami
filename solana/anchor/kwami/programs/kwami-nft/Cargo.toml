@@ -14,11 +14,12 @@ no-idl = []
 no-log-ix-name = []
 cpi = ["no-entrypoint"]
 default = []
+idl-build = []
 
 [dependencies]
 anchor-lang = "0.29.0"
 anchor-spl = "0.29.0"
-mpl-token-metadata = "1.13.1"
 
-[dev-dependencies]
-solana-program-test = "~1.17"
+#[dev-dependencies]
+#solana-program-test = "~1.17"
+solana-program-test = "1.18"
