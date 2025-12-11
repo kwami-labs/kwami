@@ -437,7 +437,7 @@ pub struct Initialize<'info> {
         mint::decimals = 0,
         mint::authority = collection_authority,
     )]
-    pub collection_mint: Account<'info, Mint>,
+    pub collection_mint: Box<Account<'info, Mint>>,
 
     #[account(
         init,
@@ -446,7 +446,7 @@ pub struct Initialize<'info> {
         seeds = [b"collection-authority", collection_mint.key().as_ref()],
         bump,
     )]
-    pub collection_authority: Account<'info, CollectionAuthority>,
+    pub collection_authority: Box<Account<'info, CollectionAuthority>>,
 
     #[account(
         init,
@@ -455,7 +455,7 @@ pub struct Initialize<'info> {
         seeds = [b"dna-registry", collection_mint.key().as_ref()],
         bump,
     )]
-    pub dna_registry: Account<'info, DnaRegistry>,
+    pub dna_registry: Box<Account<'info, DnaRegistry>>,
 
     #[account(
         init,
@@ -464,7 +464,7 @@ pub struct Initialize<'info> {
         seeds = [b"kwami-treasury"],
         bump,
     )]
-    pub treasury: Account<'info, KwamiTreasury>,
+    pub treasury: Box<Account<'info, KwamiTreasury>>,
 
     /// QWAMI token vault (PDA owned by treasury)
     #[account(
@@ -473,10 +473,10 @@ pub struct Initialize<'info> {
         token::mint = qwami_mint,
         token::authority = treasury,
     )]
-    pub qwami_vault: Account<'info, TokenAccount>,
+    pub qwami_vault: Box<Account<'info, TokenAccount>>,
 
     /// QWAMI token mint
-    pub qwami_mint: Account<'info, Mint>,
+    pub qwami_mint: Box<Account<'info, Mint>>,
 
     #[account(mut)]
     pub payer: Signer<'info>,
@@ -494,7 +494,7 @@ pub struct MintKwami<'info> {
         mint::decimals = 0,
         mint::authority = collection_authority,
     )]
-    pub mint: Account<'info, Mint>,
+    pub mint: Box<Account<'info, Mint>>,
 
     #[account(
         init,
@@ -503,28 +503,28 @@ pub struct MintKwami<'info> {
         seeds = [b"kwami-nft", mint.key().as_ref()],
         bump,
     )]
-    pub kwami_nft: Account<'info, KwamiNft>,
+    pub kwami_nft: Box<Account<'info, KwamiNft>>,
 
     #[account(
         mut,
         seeds = [b"collection-authority", collection_authority.collection_mint.as_ref()],
         bump = collection_authority.bump,
     )]
-    pub collection_authority: Account<'info, CollectionAuthority>,
+    pub collection_authority: Box<Account<'info, CollectionAuthority>>,
 
     #[account(
         mut,
         seeds = [b"dna-registry", collection_authority.collection_mint.as_ref()],
         bump,
     )]
-    pub dna_registry: Account<'info, DnaRegistry>,
+    pub dna_registry: Box<Account<'info, DnaRegistry>>,
 
     #[account(
         mut,
         seeds = [b"kwami-treasury"],
         bump = treasury.bump,
     )]
-    pub treasury: Account<'info, KwamiTreasury>,
+    pub treasury: Box<Account<'info, KwamiTreasury>>,
 
     /// User's QWAMI token account (pays minting cost)
     #[account(
@@ -532,14 +532,14 @@ pub struct MintKwami<'info> {
         constraint = user_qwami_account.mint == qwami_vault.mint @ ErrorCode::InvalidQwamiMint,
         constraint = user_qwami_account.owner == owner.key() @ ErrorCode::InvalidQwamiAccount,
     )]
-    pub user_qwami_account: Account<'info, TokenAccount>,
+    pub user_qwami_account: Box<Account<'info, TokenAccount>>,
 
     /// Treasury's QWAMI vault (receives minting payment)
     #[account(
         mut,
         constraint = qwami_vault.key() == treasury.qwami_vault @ ErrorCode::InvalidTreasuryVault,
     )]
-    pub qwami_vault: Account<'info, TokenAccount>,
+    pub qwami_vault: Box<Account<'info, TokenAccount>>,
 
     /// CHECK: This is the metadata account created by Metaplex
     #[account(mut)]
@@ -576,24 +576,24 @@ pub struct BurnKwami<'info> {
         has_one = owner,
         close = owner,
     )]
-    pub kwami_nft: Account<'info, KwamiNft>,
+    pub kwami_nft: Box<Account<'info, KwamiNft>>,
 
     #[account(mut)]
-    pub mint: Account<'info, Mint>,
+    pub mint: Box<Account<'info, Mint>>,
 
     #[account(
         mut,
         seeds = [b"dna-registry", dna_registry.collection.as_ref()],
         bump,
     )]
-    pub dna_registry: Account<'info, DnaRegistry>,
+    pub dna_registry: Box<Account<'info, DnaRegistry>>,
 
     #[account(
         mut,
         seeds = [b"kwami-treasury"],
         bump = treasury.bump,
     )]
-    pub treasury: Account<'info, KwamiTreasury>,
+    pub treasury: Box<Account<'info, KwamiTreasury>>,
 
     /// User's QWAMI token account (receives refund)
     #[account(
@@ -601,14 +601,14 @@ pub struct BurnKwami<'info> {
         constraint = user_qwami_account.mint == qwami_vault.mint @ ErrorCode::InvalidQwamiMint,
         constraint = user_qwami_account.owner == owner.key() @ ErrorCode::InvalidQwamiAccount,
     )]
-    pub user_qwami_account: Account<'info, TokenAccount>,
+    pub user_qwami_account: Box<Account<'info, TokenAccount>>,
 
     /// Treasury's QWAMI vault (pays refund)
     #[account(
         mut,
         constraint = qwami_vault.key() == treasury.qwami_vault @ ErrorCode::InvalidTreasuryVault,
     )]
-    pub qwami_vault: Account<'info, TokenAccount>,
+    pub qwami_vault: Box<Account<'info, TokenAccount>>,
 
     #[account(mut)]
     pub owner: Signer<'info>,
@@ -622,7 +622,7 @@ pub struct CheckDna<'info> {
         seeds = [b"dna-registry", dna_registry.collection.as_ref()],
         bump,
     )]
-    pub dna_registry: Account<'info, DnaRegistry>,
+    pub dna_registry: Box<Account<'info, DnaRegistry>>,
 }
 
 #[derive(Accounts)]

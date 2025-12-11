@@ -385,7 +385,7 @@ pub mod qwami_token {
 
         // Transfer USDC from treasury to seller
         let treasury_seeds = &[
-            b"qwami-treasury",
+            b"qwami-treasury".as_ref(),
             &[treasury.bump],
         ];
         let signer = &[&treasury_seeds[..]];
@@ -427,7 +427,7 @@ pub struct Initialize<'info> {
         mint::decimals = 0,
         mint::authority = token_authority,
     )]
-    pub mint: Account<'info, Mint>,
+    pub mint: Box<Account<'info, Mint>>,
 
     #[account(
         init,
@@ -436,7 +436,7 @@ pub struct Initialize<'info> {
         seeds = [b"token-authority", mint.key().as_ref()],
         bump,
     )]
-    pub token_authority: Account<'info, TokenAuthority>,
+    pub token_authority: Box<Account<'info, TokenAuthority>>,
 
     #[account(
         init,
@@ -445,7 +445,7 @@ pub struct Initialize<'info> {
         seeds = [b"qwami-treasury"],
         bump,
     )]
-    pub treasury: Account<'info, QwamiTreasury>,
+    pub treasury: Box<Account<'info, QwamiTreasury>>,
 
     /// USDC token vault (PDA owned by treasury)
     #[account(
@@ -454,10 +454,10 @@ pub struct Initialize<'info> {
         token::mint = usdc_mint,
         token::authority = treasury,
     )]
-    pub usdc_vault: Account<'info, TokenAccount>,
+    pub usdc_vault: Box<Account<'info, TokenAccount>>,
 
     /// USDC mint (official USDC on Solana)
-    pub usdc_mint: Account<'info, Mint>,
+    pub usdc_mint: Box<Account<'info, Mint>>,
 
     #[account(mut)]
     pub payer: Signer<'info>,
