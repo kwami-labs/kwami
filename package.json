@@ -11,7 +11,6 @@
     "app",
     "web",
     "docs",
-    "docs2",
     "dao",
     "candy",
     "market"
@@ -44,12 +43,9 @@
     "market": "npm run dev -w market -- --port 8888",
     "build:market": "npm run build -w market",
     "preview:market": "npm run preview -w market",
-    "docs": "npm run dev -w docs -- --port 9999",
-    "build:docs": "npm run build -w docs",
-    "preview:docs": "npm run preview -w docs",
-    "docs2": "npm run docs:dev -w docs2",
-    "build:docs2": "npm run docs:build -w docs2",
-    "preview:docs2": "npm run docs:preview -w docs2",
+    "docs": "npm run docs:dev -w docs",
+    "build:docs": "npm run docs:build -w docs",
+    "preview:docs": "npm run docs:preview -w docs",
     "publish:kwami": "npm publish -w kwami",
     "version:kwami": "npm view kwami",
     "sync-version": "node scripts/sync-version.js && npm run publish:kwami"
@@ -61,22 +57,7 @@
     "vitest": "^4.0.15"
   },
   "overrides": {
-    "@metaplex-foundation/js": {
-      "@irys/sdk": "^0.2.11"
-    },
-    "@irys/sdk": {
-      "aptos": "^1.22.1"
-    },
-    "zod": "^3.24.2",
-    "@nuxt/content": {
-      "zod": "^3.24.2"
-    },
-    "docus": {
-      "zod": "^3.24.2"
-    },
-    "@nuxt/ui": {
-      "zod": "^3.24.2"
-    }
+    "zod": "^3.24.2"
   },
   "engines": {
     "node": ">=22.0.0",
