@@ -64,7 +64,8 @@ export default defineConfig({
       transformMixedEsModules: true,
     },
     rollupOptions: {
-      external: ['stream', 'crypto', 'fs', 'path', 'react', 'react-dom'],
+      // Only keep React externals; let Vite bundle the polyfills for stream/crypto/path
+      external: ['react', 'react-dom'],
     },
   },
 })
