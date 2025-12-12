@@ -38,6 +38,7 @@ export default defineConfig({
       'util',
       'rpc-websockets',
       'eventemitter3',
+      'bn.js',
     ],
     exclude: [
       '@solana/web3.js',

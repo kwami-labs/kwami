@@ -5,6 +5,9 @@ node_modules/
 dist/
 *.tsbuildinfo
 
+# Solana/Anchor build output
+solana/**/target/
+
 # IDE
 .vscode/
 .idea/
