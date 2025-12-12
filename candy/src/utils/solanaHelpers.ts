@@ -4,7 +4,7 @@
  */
 
 import { Connection, PublicKey, Transaction, SystemProgram, LAMPORTS_PER_SOL, Keypair } from '@solana/web3.js'
-import type { WalletContextState } from '@solana/wallet-adapter-base'
+import { TOKEN_PROGRAM_ID } from '@solana/spl-token'
 import { AnchorProvider, Program, web3 } from '@coral-xyz/anchor'
 import type { KwamiNft } from '../types/kwami_nft'
 import type { QwamiToken } from '../types/qwami_token'
@@ -294,7 +294,7 @@ export async function mintKwamiNft(
         owner: wallet.publicKey,
         metadataProgram: TOKEN_METADATA_PROGRAM_ID,
         systemProgram: SystemProgram.programId,
-        tokenProgram: web3.TOKEN_PROGRAM_ID,
+        tokenProgram: TOKEN_PROGRAM_ID,
         rent: web3.SYSVAR_RENT_PUBKEY,
       })
       .signers([mintKeypair])
@@ -437,7 +437,7 @@ export async function burnKwamiNft(
         mint,
         dnaRegistry,
         owner: wallet.publicKey,
-        tokenProgram: web3.TOKEN_PROGRAM_ID,
+        tokenProgram: TOKEN_PROGRAM_ID,
       })
       .rpc()
 

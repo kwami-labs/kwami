@@ -47,7 +47,9 @@ export async function uploadImageToArweave(
   contentType: string = 'image/png'
 ): Promise<UploadResult> {
   try {
-    console.log('[Arweave] Uploading image...', { size: imageBuffer.length, contentType })
+    const data = Buffer.isBuffer(imageBuffer) ? imageBuffer : Buffer.from(imageBuffer)
+
+    console.log('[Arweave] Uploading image...', { size: data.length, contentType })
 
     // For development/testing with mock wallet, return placeholder
     if (!wallet || typeof wallet === 'string') {
@@ -64,7 +66,7 @@ export async function uploadImageToArweave(
     const irys = await getIrysInstance(wallet)
 
     // Fund if needed (check balance first)
-    const price = await irys.getPrice(imageBuffer.length)
+    const price = await irys.getPrice(data.length)
     const balance = await irys.getLoadedBalance()
     
     if (balance.lt(price)) {
@@ -73,7 +75,7 @@ export async function uploadImageToArweave(
     }
 
     // Upload image
-    const receipt = await irys.upload(imageBuffer, {
+    const receipt = await irys.upload(data, {
       tags: [
         { name: 'Content-Type', value: contentType },
         { name: 'App-Name', value: 'kwami.io' },

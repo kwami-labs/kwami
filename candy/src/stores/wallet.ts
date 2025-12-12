@@ -15,6 +15,7 @@ export const useWalletStore = defineStore('wallet', () => {
     getBalance,
     connection,
     network,
+    wallet,
   } = useSolanaWallet()
   
   // Computed
@@ -80,6 +81,7 @@ export const useWalletStore = defineStore('wallet', () => {
     shortAddress,
     connection,
     network,
+    wallet,
     connect,
     disconnect,
     updateBalance,

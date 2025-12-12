@@ -32,15 +32,16 @@
     "@iconify/vue": "^4.1.1"
   },
   "devDependencies": {
-    "@vitejs/plugin-vue": "^5.1.0",
+    "@types/crypto-js": "^4.2.2",
+    "@types/node": "^24.10.1",
+    "@types/three": "^0.164.0",
+    "@vitejs/plugin-vue": "^6.0.1",
     "autoprefixer": "^10.4.19",
     "postcss": "^8.4.38",
     "tailwindcss": "^3.4.3",
-    "typescript": "^5.6.3",
-    "vite": "^5.2.0",
+    "typescript": "~5.9.3",
+    "vite": "^7.2.7",
     "vite-plugin-node-polyfills": "^0.21.0",
-    "vue-tsc": "^2.0.6",
-    "@types/node": "^20.12.7",
-    "@types/three": "^0.164.0"
+    "vue-tsc": "^3.1.4"
   }
 }
