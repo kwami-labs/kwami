@@ -1,7 +1,7 @@
 import { defineStore } from 'pinia';
 import { PublicKey } from '@solana/web3.js';
 import { Metaplex } from '@metaplex-foundation/js';
-import type { Nft, Sft } from '@metaplex-foundation/js';
+import { useWalletStore } from '@/stores/wallet';
 
 export interface KwamiNFT {
   mint: string;
@@ -37,7 +37,7 @@ export const useNFTStore = defineStore('nft', {
       
       try {
         const walletStore = useWalletStore();
-        const connection = walletStore.initializeConnection();
+        const connection = walletStore.initializeConnection() as any;
         
         // Initialize Metaplex
         const metaplex = Metaplex.make(connection);
@@ -92,7 +92,7 @@ export const useNFTStore = defineStore('nft', {
         
         // Auto-select first NFT if available
         if (kwamiNFTs.length > 0 && !this.selectedNFT) {
-          this.selectedNFT = kwamiNFTs[0];
+          this.selectedNFT = kwamiNFTs[0] ?? null;
         }
         
       } catch (error) {

@@ -57,7 +57,7 @@
       </div>
       
       <div class="actions">
-        <UButton
+        <BaseButton
           v-if="!hasVoted && canVote"
           color="primary"
           @click="$emit('vote', proposal.id)"
@@ -67,7 +67,7 @@
         <BaseBadge v-else-if="hasVoted" color="green">
           Voted {{ userVote?.vote }}
         </BaseBadge>
-        <UButton
+        <BaseButton
           variant="outline"
           @click="$emit('view', proposal.id)"
         >

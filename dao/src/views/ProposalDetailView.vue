@@ -7,8 +7,7 @@
     
     <div v-else class="proposal-content">
       <div class="back-button">
-        <UButton
-          icon="i-heroicons-arrow-left"
+        <BaseButton
           variant="ghost"
           @click="router.back()"
         >
@@ -100,10 +99,9 @@
           </div>
           
           <div class="vote-buttons">
-            <UButton
+            <BaseButton
               color="green"
               size="lg"
-              icon="i-heroicons-hand-thumb-up"
               :loading="isVoting"
               :disabled="!canVote"
               @click="vote('for')"
@@ -111,10 +109,9 @@
               Vote For
             </BaseButton>
             
-            <UButton
+            <BaseButton
               color="red"
               size="lg"
-              icon="i-heroicons-hand-thumb-down"
               :loading="isVoting"
               :disabled="!canVote"
               @click="vote('against')"
@@ -122,10 +119,9 @@
               Vote Against
             </BaseButton>
             
-            <UButton
+            <BaseButton
               color="gray"
               size="lg"
-              icon="i-heroicons-minus-circle"
               :loading="isVoting"
               :disabled="!canVote"
               @click="vote('abstain')"
@@ -145,6 +141,16 @@
 </template>
 
 <script setup lang="ts">
+import { ref, computed, onMounted } from 'vue';
+import { useRoute, useRouter } from 'vue-router';
+import { useWallet } from 'solana-wallets-vue';
+import { useAuth } from '@/composables/useAuth';
+import { useGovernanceStore } from '@/stores/governance';
+import { useQwamiStore } from '@/stores/qwami';
+import BaseIcon from '@/components/BaseIcon.vue';
+import BaseButton from '@/components/BaseButton.vue';
+import BaseBadge from '@/components/BaseBadge.vue';
+
 const route = useRoute();
 const router = useRouter();
 const auth = useAuth();

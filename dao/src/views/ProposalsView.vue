@@ -6,23 +6,23 @@
     </div>
     
     <div class="filters">
-      <UButton
+      <BaseButton
         :color="filter === 'active' ? 'primary' : 'gray'"
-        variant="soft"
+        variant="outline"
         @click="filter = 'active'"
       >
         Active ({{ governanceStore.activeProposals.length }})
       </BaseButton>
-      <UButton
+      <BaseButton
         :color="filter === 'past' ? 'primary' : 'gray'"
-        variant="soft"
+        variant="outline"
         @click="filter = 'past'"
       >
         Past ({{ governanceStore.pastProposals.length }})
       </BaseButton>
-      <UButton
+      <BaseButton
         :color="filter === 'all' ? 'primary' : 'gray'"
-        variant="soft"
+        variant="outline"
         @click="filter = 'all'"
       >
         All ({{ governanceStore.proposals.length }})
@@ -38,7 +38,7 @@
       <BaseIcon name="i-heroicons-document" class="icon" />
       <h3>No {{ filter }} Proposals</h3>
       <p v-if="auth.canParticipate.value">Create the first proposal!</p>
-      <UButton
+      <BaseButton
         v-if="auth.canParticipate.value"
         to="/create"
         color="primary"
@@ -62,6 +62,14 @@
 </template>
 
 <script setup lang="ts">
+import { ref, computed, onMounted } from 'vue';
+import { useRouter } from 'vue-router';
+import { useAuth } from '@/composables/useAuth';
+import { useGovernanceStore } from '@/stores/governance';
+import ProposalCard from '@/components/ProposalCard.vue';
+import BaseButton from '@/components/BaseButton.vue';
+import BaseIcon from '@/components/BaseIcon.vue';
+
 const auth = useAuth();
 const governanceStore = useGovernanceStore();
 const router = useRouter();

@@ -22,7 +22,6 @@ export default defineConfig({
       stream: 'stream-browserify',
       crypto: 'crypto-browserify',
       util: 'util',
-      kwami: fileURLToPath(new URL('../kwami/index.ts', import.meta.url)),
     },
   },
   
@@ -39,13 +38,11 @@ export default defineConfig({
       'rpc-websockets',
       'eventemitter3',
       'bn.js',
+      'jayson/lib/client/browser',
     ],
     exclude: [
       '@solana/web3.js',
       '@metaplex-foundation/js',
-      'whatwg-url',
-      'tr46',
-      'webidl-conversions',
       '@fractalwagmi/popup-connection',
       '@keystonehq/sdk',
       'qrcode.react',
@@ -67,7 +64,7 @@ export default defineConfig({
       transformMixedEsModules: true,
     },
     rollupOptions: {
-      external: ['stream', 'crypto', 'fs', 'path'],
+      external: ['stream', 'crypto', 'fs', 'path', 'react', 'react-dom'],
     },
   },
 })

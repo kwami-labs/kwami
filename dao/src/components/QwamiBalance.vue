@@ -3,14 +3,15 @@
     <div class="balance-card">
       <div class="balance-header">
         <h3>QWAMI Balance</h3>
-        <UButton
-          icon="i-heroicons-arrow-path"
+        <BaseButton
           size="xs"
           color="gray"
           variant="ghost"
           :loading="qwamiStore.isLoading"
           @click="refreshBalance"
-        />
+        >
+          Refresh
+        </BaseButton>
       </div>
       
       <div class="balance-amount">
@@ -19,7 +20,7 @@
       </div>
       
       <div class="balance-status">
-        <UBadge
+        <BaseBadge
           :color="qwamiStore.hasEnoughForGovernance ? 'green' : 'orange'"
           variant="subtle"
         >

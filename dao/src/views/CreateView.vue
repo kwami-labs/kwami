@@ -98,7 +98,7 @@
         </div>
         
         <div class="form-actions">
-          <UButton
+          <BaseButton
             type="button"
             variant="outline"
             @click="router.back()"
@@ -106,7 +106,7 @@
             Cancel
           </BaseButton>
           
-          <UButton
+          <BaseButton
             type="submit"
             color="primary"
             size="lg"
@@ -122,6 +122,16 @@
 </template>
 
 <script setup lang="ts">
+import { ref, reactive, computed } from 'vue';
+import { useRouter } from 'vue-router';
+import { useAuth } from '@/composables/useAuth';
+import { useQwamiStore } from '@/stores/qwami';
+import { useGovernanceStore } from '@/stores/governance';
+import WalletButton from '@/components/WalletButton.vue';
+import BaseIcon from '@/components/BaseIcon.vue';
+import BaseButton from '@/components/BaseButton.vue';
+import BaseBadge from '@/components/BaseBadge.vue';
+
 const router = useRouter();
 const auth = useAuth();
 const qwamiStore = useQwamiStore();

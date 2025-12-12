@@ -15,8 +15,8 @@
       <BaseIcon name="i-heroicons-x-circle" class="icon error" />
       <h3>No KWAMI NFT Found</h3>
       <p>You need to own at least one KWAMI NFT to participate in the DAO.</p>
-      <UButton
-        to="https://kwami.io"
+      <BaseButton
+        href="https://kwami.io"
         target="_blank"
         color="primary"
         class="mt-4"
@@ -59,7 +59,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, watch } from 'vue';
+import { ref, watch } from 'vue';
 import { useAuth } from '@/composables/useAuth';
 import { useNFTStore } from '@/stores/nft';
 import BaseIcon from '@/components/BaseIcon.vue';

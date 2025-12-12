@@ -1,6 +1,7 @@
 import { defineStore } from 'pinia';
 import { PublicKey } from '@solana/web3.js';
 import { getAccount, getAssociatedTokenAddress } from '@solana/spl-token';
+import { useWalletStore } from '@/stores/wallet';
 
 export const useQwamiStore = defineStore('qwami', {
   state: () => ({
@@ -28,7 +29,7 @@ export const useQwamiStore = defineStore('qwami', {
       
       try {
         const walletStore = useWalletStore();
-        const connection = walletStore.initializeConnection();
+        const connection = walletStore.initializeConnection() as any;
         
         const qwamiMint = import.meta.env.VITE_QWAMI_TOKEN_MINT;
         
@@ -49,7 +50,7 @@ export const useQwamiStore = defineStore('qwami', {
         
         try {
           // Get token account info
-          const tokenAccount = await getAccount(connection, tokenAccountAddress);
+          const tokenAccount = await getAccount(connection as any, tokenAccountAddress);
           
           // Convert balance (accounting for decimals, typically 9 for SPL tokens)
           this.balance = Number(tokenAccount.amount) / 1e9;

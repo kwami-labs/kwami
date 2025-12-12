@@ -22,25 +22,9 @@ const props = defineProps<{
 const className = computed(() => props.class || '');
 
 // Map icon names to SVG paths
-const iconPath = computed(() => {
-  const icons: Record<string, string> = {
-    'i-heroicons-home': 'path',
-    'i-heroicons-wallet': 'path',
-    'i-heroicons-document-text': 'path',
-    'i-heroicons-plus-circle': 'path',
-    'i-heroicons-check-circle': 'path',
-    'i-heroicons-x-circle': 'path',
-    'i-heroicons-arrow-path': 'path',
-    'i-heroicons-clock': 'path',
-    'i-heroicons-exclamation-triangle': 'path',
-    'i-heroicons-lock-closed': 'path',
-    'i-heroicons-document': 'path',
-    'i-heroicons-plus': 'path',
-  };
-  
-  // For simplicity, return a generic path - you can expand this later
-  return 'path';
-});
+// For now we just render a generic path and ignore the specific name.
+// This avoids unused variable warnings while keeping the API flexible.
+const iconPath = computed(() => 'path');
 </script>
 
 <style scoped>
