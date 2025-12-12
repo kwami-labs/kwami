@@ -22,6 +22,12 @@ declare global {
     // media loaders
     initializeMediaLoaders?: () => void;
 
+    // background media controls (used by media-loaders)
+    resolveMediaPath?: (value: string) => string;
+    setMediaType?: (type: 'none' | 'image' | 'video', opts?: { silent?: boolean }) => void;
+    setBackgroundImage?: (value: string, opts?: { silent?: boolean }) => void;
+    setBackgroundVideo?: (value: string, opts?: { silent?: boolean }) => void;
+
     // export/import
     exportConfig?: () => void;
     importConfig?: (file: File) => Promise<void>;
@@ -33,6 +39,12 @@ declare global {
     randomizeBlob?: () => void;
     randomizeBackground?: () => void;
 
+    // blob surface media
+    setBlobMediaType?: (type: 'none' | 'image' | 'video') => void;
+    randomizeBlobMedia?: (type: 'image' | 'video') => void;
+    clearBlobMedia?: () => void;
+    randomize3DTexture?: () => void;
+
     // theme
     toggleTheme?: () => void;
 
@@ -42,6 +54,25 @@ declare global {
     // misc (legacy)
     __KWAMI_PLAYGROUND__?: any;
     mindConfig?: any;
+    conversationCallbacks?: any;
+
+    // mind / conversation
+    initializeMind?: () => Promise<void>;
+    applyVoiceSettings?: () => void;
+    loadAvailableVoices?: () => Promise<void>;
+    selectUserVoice?: () => void;
+    applyVoicePreset?: (preset: string) => void;
+    applyVoicePresetV2?: (preset: string) => void;
+    previewVoice?: () => Promise<void>;
+    toggleConversation?: () => Promise<void>;
+    startConversation?: () => Promise<void>;
+    stopConversation?: () => Promise<void>;
+    testMicrophone?: () => Promise<void>;
+    applyPronunciation?: () => void;
+    checkUsage?: () => Promise<void>;
+    exportMindConfig?: () => void;
+    importMindConfig?: () => void;
+
     skillDefinitions?: any;
   }
 }
