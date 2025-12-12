@@ -46,6 +46,13 @@ if ! command -v anchor &> /dev/null; then
     echo -e "${RED}❌ Anchor not found. Please install it first.${NC}"
     exit 1
 fi
+
+# If AVM is available, select a compatible Anchor version for this repo
+if command -v avm &> /dev/null; then
+    ANCHOR_VERSION="${ANCHOR_VERSION:-0.32.1}"
+    avm use "$ANCHOR_VERSION" &> /dev/null || true
+fi
+
 echo -e "${GREEN}✅ Anchor found: $(anchor --version)${NC}"
 
 # Step 2: Configure Solana for devnet
@@ -55,23 +62,59 @@ echo -e "${GREEN}✅ Configured for devnet${NC}"
 
 # Step 3: Check wallet balance
 echo -e "\n${YELLOW}Step 3: Checking wallet balance...${NC}"
+
+# Configurable funding behavior (override via env vars)
+MIN_SOL_BALANCE="${MIN_SOL_BALANCE:-5}"
+AIRDROP_AMOUNT="${AIRDROP_AMOUNT:-2}"
+MAX_AIRDROP_ATTEMPTS="${MAX_AIRDROP_ATTEMPTS:-2}"
+
 WALLET_ADDRESS=$(solana address)
-BALANCE=$(solana balance | awk '{print $1}')
+
+get_balance() {
+    # `solana balance` prints like: "6 SOL" -> take the numeric portion
+    solana balance | awk '{print $1}'
+}
+
+is_lt() {
+    # float-safe compare without depending on `bc`
+    awk -v a="$1" -v b="$2" 'BEGIN { exit !(a+0 < b+0) }'
+}
+
+BALANCE=$(get_balance)
+
 echo -e "Wallet: ${BLUE}${WALLET_ADDRESS}${NC}"
 echo -e "Balance: ${BLUE}${BALANCE} SOL${NC}"
 
-if (( $(echo "$BALANCE < 5" | bc -l) )); then
-    echo -e "${YELLOW}⚠️  Low balance. Requesting airdrop...${NC}"
-    solana airdrop 2 || echo -e "${YELLOW}⚠️  Airdrop failed. You may need to wait or request manually.${NC}"
-    sleep 2
-    solana airdrop 2 || echo -e "${YELLOW}⚠️  Airdrop failed. You may need to wait or request manually.${NC}"
+if is_lt "$BALANCE" "$MIN_SOL_BALANCE"; then
+    echo -e "${YELLOW}⚠️  Low balance (< ${MIN_SOL_BALANCE} SOL). Attempting airdrop...${NC}"
+
+    for ((i=1; i<=MAX_AIRDROP_ATTEMPTS; i++)); do
+        # Re-check before each attempt so we don't spam airdrops
+        BALANCE=$(get_balance)
+        if ! is_lt "$BALANCE" "$MIN_SOL_BALANCE"; then
+            break
+        fi
+
+        echo -e "${YELLOW}Airdrop attempt ${i}/${MAX_AIRDROP_ATTEMPTS}: ${AIRDROP_AMOUNT} SOL${NC}"
+        if ! solana airdrop "$AIRDROP_AMOUNT"; then
+            echo -e "${YELLOW}⚠️  Airdrop failed (rate limit is common on devnet). You may need to wait or request manually.${NC}"
+        fi
+
+        sleep 2
+        BALANCE=$(get_balance)
+        echo -e "Updated balance: ${BLUE}${BALANCE} SOL${NC}"
+    done
+
+    if is_lt "$BALANCE" "$MIN_SOL_BALANCE"; then
+        echo -e "${YELLOW}⚠️  Balance is still below ${MIN_SOL_BALANCE} SOL; deployment may fail due to insufficient funds.${NC}"
+    fi
 fi
 
 # Step 4: Build QWAMI Token program
 echo -e "\n${YELLOW}Step 4: Building QWAMI Token program...${NC}"
 cd qwami
 anchor clean
-anchor build
+anchor build --no-idl
 echo -e "${GREEN}✅ QWAMI Token program built${NC}"
 
 # Get QWAMI program ID
@@ -88,7 +131,7 @@ echo -e "Explorer: ${BLUE}https://explorer.solana.com/address/${QWAMI_PROGRAM_ID
 echo -e "\n${YELLOW}Step 6: Building KWAMI NFT program...${NC}"
 cd ../kwami
 anchor clean
-anchor build
+anchor build --no-idl
 echo -e "${GREEN}✅ KWAMI NFT program built${NC}"
 
 # Get KWAMI program ID

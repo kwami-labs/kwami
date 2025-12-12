@@ -1,7 +1,11 @@
 import * as anchor from "@coral-xyz/anchor";
 import { Program } from "@coral-xyz/anchor";
 import { KwamiNft } from "../target/types/kwami_nft";
-import { TOKEN_PROGRAM_ID } from "@solana/spl-token";
+import {
+  TOKEN_PROGRAM_ID,
+  createMint,
+  createAccount,
+} from "@solana/spl-token";
 import * as fs from "fs";
 
 /**
@@ -41,6 +45,8 @@ async function main() {
   console.log("Wallet:", provider.wallet.publicKey.toString());
   console.log("Cluster:", provider.connection.rpcEndpoint);
   
+  const payer = (provider.wallet as any).payer as anchor.web3.Keypair;
+
   // QWAMI mint from previous initialization
   const qwamiMint = new anchor.web3.PublicKey(QWAMI_MINT_ADDRESS);
   console.log("QWAMI Mint:", qwamiMint.toString());
@@ -72,6 +78,30 @@ async function main() {
   // Create QWAMI vault keypair
   const qwamiVaultKeypair = anchor.web3.Keypair.generate();
   console.log("QWAMI Vault:", qwamiVaultKeypair.publicKey.toString());
+
+  // Create collection mint + QWAMI vault off-chain (program Initialize no longer `init`s them)
+  console.log("\n🏗️  Creating collection mint off-chain...");
+  await createMint(
+    provider.connection,
+    payer,
+    collectionAuthority, // mint authority (PDA)
+    null,
+    0,
+    collectionMintKeypair,
+    undefined,
+    TOKEN_PROGRAM_ID
+  );
+
+  console.log("🏗️  Creating QWAMI vault token account off-chain...");
+  await createAccount(
+    provider.connection,
+    payer,
+    qwamiMint,
+    treasury, // owner/authority (PDA)
+    qwamiVaultKeypair,
+    undefined,
+    TOKEN_PROGRAM_ID
+  );
   
   // Initialize program
   console.log("\n⏳ Sending initialization transaction...");
@@ -89,9 +119,7 @@ async function main() {
         payer: provider.wallet.publicKey,
         systemProgram: anchor.web3.SystemProgram.programId,
         tokenProgram: TOKEN_PROGRAM_ID,
-        rent: anchor.web3.SYSVAR_RENT_PUBKEY,
       })
-      .signers([collectionMintKeypair, qwamiVaultKeypair])
       .rpc();
     
     console.log("\n✅ KWAMI NFT Program Initialized!");

@@ -1,6 +1,7 @@
 use anchor_lang::prelude::*;
 use anchor_lang::system_program::{Transfer as SystemTransfer, transfer as system_transfer};
 use anchor_spl::token::{self, Mint, Token, TokenAccount, MintTo, Burn, Transfer};
+use anchor_lang::solana_program::program_option::COption;
 
 declare_id!("11111111111111111111111111111111"); // Will be updated after deployment
 
@@ -421,11 +422,11 @@ pub mod qwami_token {
 
 #[derive(Accounts)]
 pub struct Initialize<'info> {
+    /// QWAMI mint account must be created off-chain (so this instruction stays under the SBF stack limit)
     #[account(
-        init,
-        payer = payer,
-        mint::decimals = 0,
-        mint::authority = token_authority,
+        mut,
+        constraint = mint.decimals == 0 @ ErrorCode::InvalidMintDecimals,
+        constraint = mint.mint_authority == COption::Some(token_authority.key()) @ ErrorCode::InvalidMintAuthority,
     )]
     pub mint: Box<Account<'info, Mint>>,
 
@@ -447,10 +448,9 @@ pub struct Initialize<'info> {
     )]
     pub treasury: Box<Account<'info, QwamiTreasury>>,
 
-    /// USDC token vault (PDA owned by treasury)
+    /// USDC token vault must be created off-chain and owned by the `treasury` PDA
     #[account(
-        init,
-        payer = payer,
+        mut,
         token::mint = usdc_mint,
         token::authority = treasury,
     )]
@@ -464,7 +464,6 @@ pub struct Initialize<'info> {
 
     pub system_program: Program<'info, System>,
     pub token_program: Program<'info, Token>,
-    pub rent: Sysvar<'info, Rent>,
 }
 
 #[derive(Accounts)]
@@ -790,6 +789,12 @@ pub enum ErrorCode {
 
     #[msg("Invalid treasury vault provided")]
     InvalidTreasuryVault,
+
+    #[msg("Invalid mint authority")]
+    InvalidMintAuthority,
+
+    #[msg("Invalid mint decimals")]
+    InvalidMintDecimals,
 
     #[msg("Insufficient treasury balance to process this transaction")]
     InsufficientTreasuryBalance,

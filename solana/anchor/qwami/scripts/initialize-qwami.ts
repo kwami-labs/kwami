@@ -1,7 +1,11 @@
 import * as anchor from "@coral-xyz/anchor";
 import { Program } from "@coral-xyz/anchor";
 import { QwamiToken } from "../target/types/qwami_token";
-import { TOKEN_PROGRAM_ID } from "@solana/spl-token";
+import {
+  TOKEN_PROGRAM_ID,
+  createMint,
+  createAccount,
+} from "@solana/spl-token";
 
 /**
  * Initialize QWAMI Token Program on Devnet
@@ -27,6 +31,8 @@ async function main() {
   console.log("Wallet:", provider.wallet.publicKey.toString());
   console.log("Cluster:", provider.connection.rpcEndpoint);
   
+  const payer = (provider.wallet as any).payer as anchor.web3.Keypair;
+
   // Create mint keypair
   const mintKeypair = anchor.web3.Keypair.generate();
   console.log("\n📝 Generated Addresses:");
@@ -52,6 +58,30 @@ async function main() {
   // Create USDC vault keypair
   const usdcVaultKeypair = anchor.web3.Keypair.generate();
   console.log("USDC Vault:", usdcVaultKeypair.publicKey.toString());
+
+  // Create the mint + vault off-chain (program Initialize no longer `init`s them to stay under SBF stack limit)
+  console.log("\n🏗️  Creating QWAMI mint off-chain...");
+  await createMint(
+    provider.connection,
+    payer,
+    tokenAuthority, // mint authority (PDA)
+    null,
+    0,
+    mintKeypair,
+    undefined,
+    TOKEN_PROGRAM_ID
+  );
+
+  console.log("🏗️  Creating USDC vault token account off-chain...");
+  await createAccount(
+    provider.connection,
+    payer,
+    usdcMint,
+    treasury, // owner/authority (PDA)
+    usdcVaultKeypair,
+    undefined,
+    TOKEN_PROGRAM_ID
+  );
   
   // Initialize program
   console.log("\n⏳ Sending initialization transaction...");
@@ -68,9 +98,7 @@ async function main() {
         payer: provider.wallet.publicKey,
         systemProgram: anchor.web3.SystemProgram.programId,
         tokenProgram: TOKEN_PROGRAM_ID,
-        rent: anchor.web3.SYSVAR_RENT_PUBKEY,
       })
-      .signers([mintKeypair, usdcVaultKeypair])
       .rpc();
     
     console.log("\n✅ QWAMI Token Program Initialized!");

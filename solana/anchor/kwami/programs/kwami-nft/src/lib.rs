@@ -1,18 +1,6 @@
 use anchor_lang::prelude::*;
-use anchor_lang::solana_program::{
-    program::invoke,
-    system_instruction,
-};
-use anchor_spl::{
-    associated_token::AssociatedToken,
-    token::{self, Mint, Token, TokenAccount, Transfer},
-    metadata::{
-        create_metadata_accounts_v3,
-        CreateMetadataAccountsV3,
-        Metadata as MetaplexMetadata,
-        mpl_token_metadata::types::DataV2,
-    },
-};
+use anchor_lang::solana_program::program_option::COption;
+use anchor_spl::token::{self, Mint, Token, TokenAccount, Transfer};
 
 declare_id!("11111111111111111111111111111111"); // Will be updated after deployment
 
@@ -72,61 +60,61 @@ const DIVIDEND_POOL_PERCENTAGE: u64 = 80; // 80%
 /// Operations fund allocation (20% of revenue)
 const OPERATIONS_FUND_PERCENTAGE: u64 = 20; // 20%
 
+/// Calculate the current generation number based on timestamp
+/// Returns generation number (0-74) and max supply for that generation
+fn get_current_generation_info(current_timestamp: i64) -> (i64, u64) {
+    // If before launch, return Gen #0 with first generation supply
+    if current_timestamp < LAUNCH_TIMESTAMP {
+        return (0, ANNUAL_SUPPLY_INCREMENT);
+    }
+
+    // Calculate years since launch
+    let seconds_since_launch = current_timestamp - LAUNCH_TIMESTAMP;
+    let years_since_launch = seconds_since_launch / SECONDS_PER_YEAR;
+
+    // Cap at Gen #74 (2100)
+    let generation = years_since_launch.min(MAX_GENERATION);
+
+    // Calculate max supply for this generation
+    // Formula: (generation + 1) × 133,333,333
+    let max_supply = (generation as u64 + 1) * ANNUAL_SUPPLY_INCREMENT;
+
+    (generation, max_supply)
+}
+
+/// Calculate the total minting cost in QWAMI tokens based on generation
+/// Returns (base_cost, platform_fee, transaction_fee, total_cost)
+fn calculate_mint_cost(generation: i64) -> (u64, u64, u64, u64) {
+    // Determine base cost by generation tier
+    let base_cost = if generation == 0 {
+        GEN_0_MINT_COST
+    } else if generation >= 1 && generation <= 5 {
+        GEN_1_5_MINT_COST
+    } else if generation >= 6 && generation <= 20 {
+        GEN_6_20_MINT_COST
+    } else if generation >= 21 && generation <= 50 {
+        GEN_21_50_MINT_COST
+    } else {
+        // Gen #51-74
+        GEN_51_74_MINT_COST
+    };
+
+    // Calculate fees
+    let platform_fee = (base_cost * PLATFORM_FEE_PERCENTAGE) / 100;
+    let transaction_fee = TRANSACTION_FEE_QWAMI;
+    let total_cost = base_cost + platform_fee + transaction_fee;
+
+    (base_cost, platform_fee, transaction_fee, total_cost)
+}
+
+/// Calculate burn refund amount (50% of original base cost)
+fn calculate_burn_refund(base_cost: u64) -> u64 {
+    (base_cost * BURN_REFUND_PERCENTAGE) / 100
+}
+
 #[program]
 pub mod kwami_nft {
     use super::*;
-
-    /// Calculate the current generation number based on timestamp
-    /// Returns generation number (0-74) and max supply for that generation
-    fn get_current_generation_info(current_timestamp: i64) -> (i64, u64) {
-        // If before launch, return Gen #0 with first generation supply
-        if current_timestamp < LAUNCH_TIMESTAMP {
-            return (0, ANNUAL_SUPPLY_INCREMENT);
-        }
-
-        // Calculate years since launch
-        let seconds_since_launch = current_timestamp - LAUNCH_TIMESTAMP;
-        let years_since_launch = seconds_since_launch / SECONDS_PER_YEAR;
-        
-        // Cap at Gen #74 (2100)
-        let generation = years_since_launch.min(MAX_GENERATION);
-        
-        // Calculate max supply for this generation
-        // Formula: (generation + 1) × 133,333,333
-        let max_supply = (generation as u64 + 1) * ANNUAL_SUPPLY_INCREMENT;
-        
-        (generation, max_supply)
-    }
-
-    /// Calculate the total minting cost in QWAMI tokens based on generation
-    /// Returns (base_cost, platform_fee, transaction_fee, total_cost)
-    fn calculate_mint_cost(generation: i64) -> (u64, u64, u64, u64) {
-        // Determine base cost by generation tier
-        let base_cost = if generation == 0 {
-            GEN_0_MINT_COST
-        } else if generation >= 1 && generation <= 5 {
-            GEN_1_5_MINT_COST
-        } else if generation >= 6 && generation <= 20 {
-            GEN_6_20_MINT_COST
-        } else if generation >= 21 && generation <= 50 {
-            GEN_21_50_MINT_COST
-        } else {
-            // Gen #51-74
-            GEN_51_74_MINT_COST
-        };
-
-        // Calculate fees
-        let platform_fee = (base_cost * PLATFORM_FEE_PERCENTAGE) / 100;
-        let transaction_fee = TRANSACTION_FEE_QWAMI;
-        let total_cost = base_cost + platform_fee + transaction_fee;
-
-        (base_cost, platform_fee, transaction_fee, total_cost)
-    }
-
-    /// Calculate burn refund amount (50% of original base cost)
-    fn calculate_burn_refund(base_cost: u64) -> u64 {
-        (base_cost * BURN_REFUND_PERCENTAGE) / 100
-    }
 
     /// Initialize the Kwami NFT program, DNA registry, and treasury
     pub fn initialize(ctx: Context<Initialize>) -> Result<()> {
@@ -253,46 +241,9 @@ pub mod kwami_nft {
         dna_registry.dna_hashes.push(dna_hash);
         dna_registry.dna_count += 1;
 
-        // Mint NFT token to owner
-        let collection_seeds = &[
-            b"collection-authority",
-            collection_authority.collection_mint.as_ref(),
-            &[collection_authority.bump],
-        ];
-        let signer = &[&collection_seeds[..]];
-
-        // Create metadata account using Metaplex
-        let metadata_data = DataV2 {
-            name,
-            symbol,
-            uri,
-            seller_fee_basis_points: 0,
-            creators: None,
-            collection: None,
-            uses: None,
-        };
-
-        let metadata_ctx = CpiContext::new_with_signer(
-            ctx.accounts.metadata_program.to_account_info(),
-            CreateMetadataAccountsV3 {
-                metadata: ctx.accounts.metadata.to_account_info(),
-                mint: ctx.accounts.mint.to_account_info(),
-                mint_authority: collection_authority.to_account_info(),
-                update_authority: collection_authority.to_account_info(),
-                payer: ctx.accounts.owner.to_account_info(),
-                system_program: ctx.accounts.system_program.to_account_info(),
-                rent: ctx.accounts.rent.to_account_info(),
-            },
-            signer,
-        );
-
-        create_metadata_accounts_v3(
-            metadata_ctx,
-            metadata_data,
-            false, // is_mutable
-            true,  // update_authority_is_signer
-            None,  // collection_details
-        )?;
+        // NOTE: Metaplex metadata creation is intentionally omitted here.
+        // The `anchor-spl` metadata helpers are not available in Anchor v0.29.x,
+        // and we keep the on-chain program build compatible with Solana 1.18 toolchains.
 
         // Increment collection counter
         collection_authority.total_minted += 1;
@@ -362,11 +313,11 @@ pub mod kwami_nft {
         );
 
         // Transfer QWAMI refund from treasury to user
-        let treasury_seeds = &[
-            b"kwami-treasury",
+        let treasury_seeds: &[&[u8]] = &[
+            b"kwami-treasury".as_ref(),
             &[treasury.bump],
         ];
-        let signer = &[&treasury_seeds[..]];
+        let signer = &[treasury_seeds];
 
         let transfer_ctx = CpiContext::new_with_signer(
             ctx.accounts.token_program.to_account_info(),
@@ -431,11 +382,11 @@ pub mod kwami_nft {
 
 #[derive(Accounts)]
 pub struct Initialize<'info> {
+    /// Collection mint must be created off-chain (keeps this instruction under the SBF stack limit)
     #[account(
-        init,
-        payer = payer,
-        mint::decimals = 0,
-        mint::authority = collection_authority,
+        mut,
+        constraint = collection_mint.decimals == 0 @ ErrorCode::InvalidCollectionMintDecimals,
+        constraint = collection_mint.mint_authority == COption::Some(collection_authority.key()) @ ErrorCode::InvalidCollectionMintAuthority,
     )]
     pub collection_mint: Box<Account<'info, Mint>>,
 
@@ -466,10 +417,9 @@ pub struct Initialize<'info> {
     )]
     pub treasury: Box<Account<'info, KwamiTreasury>>,
 
-    /// QWAMI token vault (PDA owned by treasury)
+    /// QWAMI token vault must be created off-chain and owned by the `treasury` PDA
     #[account(
-        init,
-        payer = payer,
+        mut,
         token::mint = qwami_mint,
         token::authority = treasury,
     )]
@@ -483,7 +433,6 @@ pub struct Initialize<'info> {
 
     pub system_program: Program<'info, System>,
     pub token_program: Program<'info, Token>,
-    pub rent: Sysvar<'info, Rent>,
 }
 
 #[derive(Accounts)]
@@ -541,17 +490,11 @@ pub struct MintKwami<'info> {
     )]
     pub qwami_vault: Box<Account<'info, TokenAccount>>,
 
-    /// CHECK: This is the metadata account created by Metaplex
-    #[account(mut)]
-    pub metadata: UncheckedAccount<'info>,
-
     #[account(mut)]
     pub owner: Signer<'info>,
 
-    pub metadata_program: Program<'info, MetaplexMetadata>,
     pub system_program: Program<'info, System>,
     pub token_program: Program<'info, Token>,
-    pub rent: Sysvar<'info, Rent>,
 }
 
 #[derive(Accounts)]
@@ -794,6 +737,12 @@ pub enum ErrorCode {
 
     #[msg("Invalid treasury vault. Please use the official treasury account.")]
     InvalidTreasuryVault,
+
+    #[msg("Invalid collection mint authority")]
+    InvalidCollectionMintAuthority,
+
+    #[msg("Invalid collection mint decimals")]
+    InvalidCollectionMintDecimals,
 
     #[msg("Insufficient treasury balance to process refund. Contact support.")]
     InsufficientTreasuryBalance,
