@@ -31,23 +31,41 @@ export default defineConfig({
   },
   
   optimizeDeps: {
+    // Force dependency pre-bundling so CJS deps (like @solana/buffer-layout) don't get served as-is via /@fs
+    force: true,
     include: [
+      // Polyfills
       'buffer',
       'stream-browserify',
       'util',
+
+      // Solana stack (helps prevent CJS/ESM named export runtime errors)
+      '@solana/web3.js',
+      '@solana/buffer-layout',
+      '@solana/buffer-layout/lib/Layout.js',
+
+      // Previously problematic CJS deps
       'rpc-websockets',
       'eventemitter3',
       'bn.js',
       'jayson/lib/client/browser',
     ],
     exclude: [
-      '@solana/web3.js',
-      '@metaplex-foundation/js',
+      // React-based wallet deps we don't want Vite to try bundling for a Vue app
       '@fractalwagmi/popup-connection',
       '@keystonehq/sdk',
       'qrcode.react',
       'react-modal',
       'react-qr-reader',
+    ],
+    needsInterop: [
+      '@solana/buffer-layout',
+      '@solana/buffer-layout/lib/Layout.js',
+      'rpc-websockets',
+      'eventemitter3',
+      'bn.js',
+      'jayson',
+      'jayson/lib/client/browser',
     ],
     esbuildOptions: {
       target: 'esnext',
