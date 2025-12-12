@@ -1,12 +1,22 @@
 # 👻 kwami
 
-An **independent, reusable** 3D Interactive AI Companion Library for creating engaging AI companions with visual (blob), audio, and AI capabilities.
+Kwami is an **independent, reusable** 3D interactive AI companion library (npm: `kwami`) for building companions with a real-time 3D “blob” body, voice/AI capabilities, and a personality system.
+
+This repository is the **KWAMI ecosystem monorepo**: the core library plus playground + apps (Candy Machine, Marketplace, DAO, Website) and Solana programs that use it.
 
 > **Version 1.5.11** - [See what's new](#whats-new)
 
 [![npm version](https://img.shields.io/npm/v/kwami.svg)](https://www.npmjs.com/package/kwami)
 [![License](https://img.shields.io/badge/license-AGPL--3.0%20%7C%20Commercial-blue.svg)](./LICENSE)
 [![Live Demo](https://img.shields.io/badge/demo-kwami.io-green.svg)](https://kwami.io)
+
+## 🧭 What’s in this repo?
+
+- **`kwami/`**: the core npm library
+- **`pg/`**: interactive playground for exploring + tuning features
+- **`app/`, `candy/`, `market/`, `dao/`, `web/`**: ecosystem apps built on top of the core library
+- **`solana/`**: on-chain programs (token/NFT infrastructure)
+- **`docs/`**: documentation (EN/ES) for the full ecosystem
 
 ## ✨ Features
 
@@ -61,7 +71,7 @@ docker build -f docker/Dockerfile.bun -t kwami-app:bun .
 docker build -f docker/Dockerfile.deno -t kwami-app:deno .
 ```
 
-👉 **[Complete Docker Deployment Guide](./docs/DOCKER_DEPLOYMENT.md)**
+👉 **[Complete Docker Deployment Guide (EN)](./docs/en/DOCKER_DEPLOYMENT.md)** / **[ES](./docs/es/DOCKER_DEPLOYMENT.md)**
 
 ## 🚀 Quick Start
 
@@ -106,37 +116,42 @@ kwami.body.blob.setRandomBlob();
 
 ## 📚 Documentation
 
-### Getting Started
+Docs live under `docs/` (English + Spanish):
 
-- **[Quick Start Guide](./docs/1_kwami/getting-started/quickstart.md)** - Get running in 5 minutes
-- **[Installation Guide](./docs/1_kwami/getting-started/installation.md)** - Detailed setup for all environments
-- **[Core Concepts](./docs/1_kwami/getting-started/concepts.md)** - Understand the architecture
+- **Docs Home (EN)**: [docs/en/index.md](./docs/en/index.md)
+- **Docs Home (ES)**: [docs/es/index.md](./docs/es/index.md)
 
-### Core Components
+### Getting Started (Core Library)
 
-- **[Body](./docs/1_kwami/core/body.md)** - Visual 3D blob and scene management
-- **[Mind](./docs/1_kwami/core/mind.md)** - AI capabilities and provider system
-- **[Soul](./docs/1_kwami/core/soul.md)** - Personality and emotional intelligence
+- **[Quick Start](./docs/en/kwami/getting-started/quickstart.md)** - Get running in minutes
+- **[Installation](./docs/en/kwami/getting-started/installation.md)** - Detailed setup for all environments
+- **[Core Concepts](./docs/en/kwami/getting-started/concepts.md)** - Mind/Body/Soul architecture explained
 
-### Guides
+### Core Components (Core Library)
 
-- **[Configuration](./docs/1_kwami/guides/configuration.md)** - Complete configuration reference
-- **[Animations](./docs/1_kwami/guides/animations.md)** - Animation states and effects
+- **[Body](./docs/en/kwami/core/body.md)** - 3D blob and scene management
+- **[Mind](./docs/en/kwami/core/mind.md)** - AI capabilities + provider system
+- **[Soul](./docs/en/kwami/core/soul.md)** - Personality + emotional traits
 
-### Architecture
+### Guides (Core Library)
 
-- **[Mind Architecture](./docs/1_kwami/architecture/mind-arch.md)** - Provider system internals
-- **[Body Architecture](./docs/1_kwami/architecture/body-arch.md)** - Rendering pipeline
-- **[Soul Architecture](./docs/1_kwami/architecture/soul-arch.md)** - Personality system
+- **[Configuration](./docs/en/kwami/guides/configuration.md)** - Configuration reference
+- **[Animations](./docs/en/kwami/guides/animations.md)** - Animation states and effects
 
-### Advanced
+### Architecture (Core Library)
 
-- **[Advanced Topics](./docs/1_kwami/advanced/overview.md)** - Performance, custom development, testing
+- **[Architecture Overview](./docs/en/kwami/ARCHITECTURE.md)** - System overview
+- **[Mind Architecture](./docs/en/kwami/architecture/mind-arch.md)** - Provider internals
+- **[Body Architecture](./docs/en/kwami/architecture/body-arch.md)** - Rendering pipeline
+- **[Soul Architecture](./docs/en/kwami/architecture/soul-arch.md)** - Personality system
 
-### API Reference
+### Advanced (Core Library)
 
-- **[Kwami API](./docs/1_kwami/api/kwami.md)** - Complete API documentation
-- **[Full Documentation Index](./docs/README.md)** - Browse all documentation
+- **[Advanced Topics](./docs/en/kwami/advanced/overview.md)** - Performance, custom development, testing
+
+### API Reference (Core Library)
+
+- **[Kwami API](./docs/en/kwami/api/kwami.md)** - Complete API documentation
 
 ## 🎮 Interactive Playground
 
@@ -163,41 +178,59 @@ See [Playground README](./pg/README.md) for details.
 ## 🌐 KWAMI Ecosystem
 
 ### 📦 Core Library (`/kwami`)
+
 The core npm package (`kwami`) - a standalone, reusable 3D interactive AI companion library featuring a Mind-Body-Soul architecture. Published to npm for easy integration into any JavaScript/TypeScript project. This is the heart of the KWAMI ecosystem, providing the foundational 3D blob visualization, AI voice capabilities, and personality system that powers all other projects.
+
 - **npm Package:** [@kwami](https://www.npmjs.com/package/kwami)
 - **Source Code:** [kwami/](./kwami/)
-- **Documentation:** [docs/1_kwami/](./docs/1_kwami/)
+- **Documentation:** [docs/en/kwami/README.md](./docs/en/kwami/README.md)
 
 ### 🎮 Playground (`/pg`)
+
 Interactive demo with full configuration UI for testing all Kwami features.
-- Documentation: [docs/2_pg/](./docs/2_pg/)
+
+- Documentation: [docs/en/pg/README.md](./docs/en/pg/README.md)
 
 ### 🔮 Kwami App (`/app`)
+
 Full-featured Nuxt 4 web application providing a complete Kwami experience. Built with glassmorphic UI, multi-language support (en, fr, es), Supabase authentication, and ElevenLabs voice integration. A production-ready implementation of the Kwami 3D AI companion.
-- Documentation: [docs/3_app/](./docs/3_app/)
+
+- Documentation: [docs/en/app/README.md](./docs/en/app/README.md)
 
 ### ⛓️ Solana Programs (`/solana`)
+
 Smart contracts for QWAMI token and KWAMI NFT system with 10B supply by 2100.
-- Documentation: [docs/4_solana/](./docs/4_solana/)
+
+- Documentation: [docs/en/solana/README.md](./docs/en/solana/README.md)
 
 ### 🎨 Candy Machine (`/candy`)
+
 Mint your own KWAMI NFTs on Solana with unique DNA-based validation.
-- Documentation: [docs/5_candy/](./docs/5_candy/)
+
+- Documentation: [docs/en/candy/README.md](./docs/en/candy/README.md)
 
 ### 🛒 Marketplace (`/market`)
+
 Buy, sell, and trade KWAMI NFTs on the Solana blockchain.
-- Documentation: [docs/6_market/](./docs/6_market/)
+
+- Documentation: [docs/en/market/README.md](./docs/en/market/README.md)
 
 ### 🏛️ DAO (`/dao`)
+
 Decentralized governance platform for KWAMI NFT holders to participate in community decisions.
-- Documentation: [docs/7_dao/](./docs/7_dao/)
+
+- Documentation: [docs/en/dao/README.md](./docs/en/dao/README.md)
 
 ### 🌐 Website (`/web`)
+
 Public-facing website showcasing the KWAMI ecosystem.
-- Documentation: [docs/8_web/](./docs/8_web/)
+
+- Documentation: [docs/en/web/README.md](./docs/en/web/README.md)
 
 ### 📚 Documentation (`/docs`)
+
 Complete documentation for all components and APIs organized by project.
+Start here: [docs/en/index.md](./docs/en/index.md) (English) / [docs/es/index.md](./docs/es/index.md) (Spanish)
 
 ## 🎯 Core Concepts
 
@@ -233,14 +266,16 @@ kwami.mind.setStability(0.5);
 kwami.mind.setSimilarityBoost(0.75);
 
 // Advanced: Create agents with Tools & Knowledge Base
-import { AgentConfigBuilder } from 'kwami';
+import { AgentConfigBuilder } from "kwami";
 
 const config = new AgentConfigBuilder()
-  .withName('Support Agent')
-  .withVoice('voice_id')
-  .withLLM('gpt-4o')
-  .withTools([{ name: 'create_ticket', url: 'https://api.example.com/tickets' }])
-  .withKnowledgeBase([{ knowledge_base_id: 'kb_123' }])
+  .withName("Support Agent")
+  .withVoice("voice_id")
+  .withLLM("gpt-4o")
+  .withTools([
+    { name: "create_ticket", url: "https://api.example.com/tickets" },
+  ])
+  .withKnowledgeBase([{ knowledge_base_id: "kb_123" }])
   .build();
 
 const agent = await kwami.mind.createAgent(config);
@@ -318,6 +353,7 @@ await kwami.mind.startConversation({
 ### v1.5.2 - Monorepo Restructuring
 
 **🏗️ Major Project Restructuring:**
+
 - **Core Library**: Moved to `kwami/` folder for npm publishing
 - **Documentation**: Reorganized into `docs/` with project-specific folders (1_kwami through 8_web)
 - **Workspace Setup**: Configured npm workspaces for all projects
@@ -326,6 +362,7 @@ await kwami.mind.startConversation({
 - **CI/CD**: Updated GitHub Actions to build and publish from `kwami/`
 
 **📦 Improved Organization:**
+
 - Root now contains only monorepo-level files
 - Each project has its own README, CHANGELOG, and documentation
 - Clear separation between core library and applications
@@ -338,20 +375,22 @@ await kwami.mind.startConversation({
 **Professional-grade agent management with Tools and Knowledge Base:**
 
 ```typescript
-import { AgentConfigBuilder } from 'kwami';
+import { AgentConfigBuilder } from "kwami";
 
 // Create an advanced agent with tools and knowledge
 const config = new AgentConfigBuilder()
-  .withName('Support Agent')
-  .withVoice('voice_id')
-  .withLLM('gpt-4o')
-  .withPrompt('You are a helpful support agent')
-  .withTools([{
-    name: 'create_ticket',
-    description: 'Create support ticket',
-    url: 'https://api.example.com/tickets'
-  }])
-  .withKnowledgeBase([{ knowledge_base_id: 'kb_123' }])
+  .withName("Support Agent")
+  .withVoice("voice_id")
+  .withLLM("gpt-4o")
+  .withPrompt("You are a helpful support agent")
+  .withTools([
+    {
+      name: "create_ticket",
+      description: "Create support ticket",
+      url: "https://api.example.com/tickets",
+    },
+  ])
+  .withKnowledgeBase([{ knowledge_base_id: "kb_123" }])
   .withMaxDuration(1800)
   .build();
 
@@ -359,6 +398,7 @@ const agent = await kwami.mind.createAgent(config);
 ```
 
 **Key Features:**
+
 - ✨ **AgentConfigBuilder** - Fluent API for agent configuration with validation
 - 🔧 **Tools API** - Create custom tools with webhooks and parameters
 - 📚 **Knowledge Base API** - RAG support with document management (URL, text, file)
@@ -368,13 +408,14 @@ const agent = await kwami.mind.createAgent(config);
 - 📖 **Comprehensive Examples** - Complete documentation and test suite
 
 **APIs Implemented:**
+
 - Agent CRUD operations (create, read, update, delete, duplicate, list)
 - Tools management (create tools, manage webhooks, parameter schemas)
 - Knowledge Base (create KBs, add documents, RAG indexing, semantic search)
 - Workflow system (multi-agent orchestration, conditional routing, node types)
 - Conversation management (list, get details, download audio, send feedback)
 
-See [Mind Examples](./docs/1_kwami/mind-examples.md) for comprehensive usage guides.
+See [Mind Examples](./docs/en/kwami/mind-examples.md) for comprehensive usage guides.
 
 ---
 
@@ -399,6 +440,7 @@ npm run dev
 ```
 
 **Features:**
+
 - 🔌 Multi-wallet support (Phantom, Solflare, Backpack, etc.)
 - ✅ Automatic KWAMI NFT holder verification
 - 💰 QWAMI token balance tracking for governance
@@ -407,11 +449,12 @@ npm run dev
 - 📊 Real-time voting statistics
 
 **DAO Membership:**
+
 - Own at least 1 KWAMI NFT
 - Hold 100+ QWAMI tokens to participate in governance
 - One QWAMI = One vote
 
-See [dao/README.md](./dao/README.md) and [docs/7_dao/](./docs/7_dao/) for complete documentation.
+See [dao/README.md](./dao/README.md) and [docs/en/dao/README.md](./docs/en/dao/README.md) for complete documentation.
 
 ---
 
@@ -458,7 +501,7 @@ Audio → Web Audio API → FFT → Blob Vertices → Render
 User → Mind Provider → Soul Context → LLM → TTS → Animation
 ```
 
-See [Architecture Overview](./docs/1_kwami/ARCHITECTURE.md) for diagrams and details.
+See [Architecture Overview](./docs/en/kwami/ARCHITECTURE.md) for diagrams and details.
 
 ## 🚀 Deployment
 
@@ -513,7 +556,8 @@ Built with:
 
 ## 📧 Support
 
-- **Documentation:** [docs/README.md](./docs/README.md)
+- **Documentation (EN):** [docs/en/index.md](./docs/en/index.md)
+- **Documentation (ES):** [docs/es/index.md](./docs/es/index.md)
 - **Issues:** [GitHub Issues](https://github.com/alexcolls/kwami/issues)
 - **Discussions:** [GitHub Discussions](https://github.com/alexcolls/kwami/discussions)
 
@@ -522,7 +566,8 @@ Built with:
 - 🌐 **Live Demo:** [kwami.io](https://kwami.io)
 - 📦 **npm Package:** [npmjs.com/package/kwami](https://www.npmjs.com/package/kwami)
 - 💻 **GitHub:** [github.com/alexcolls/kwami](https://github.com/alexcolls/kwami)
-- 📚 **Full Docs:** [docs/README.md](./docs/README.md)
+- 📚 **Docs (EN):** [docs/en/index.md](./docs/en/index.md)
+- 📚 **Docs (ES):** [docs/es/index.md](./docs/es/index.md)
 - 📝 **Changelog:** [CHANGELOG.md](./CHANGELOG.md)
 
 ---
