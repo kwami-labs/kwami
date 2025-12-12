@@ -26,6 +26,8 @@ yarn-debug.log*
 yarn-error.log*
 
 # Lock files (use only package-lock.json)
+**/package-lock.json
+!/package-lock.json
 yarn.lock
 bun.lock
 deno.lock
@@ -59,3 +61,9 @@ docs/dist
 .vite/
 .nuxt/
 .output/
+
+# Workspace-generated build artifacts
+candy/vite.config.js
+candy/vite.config.d.ts
+solana/anchor/DEVNET_DEPLOYMENT_RECORD.md
+**/cargo-build-sbf-child-script-cargo.sh
