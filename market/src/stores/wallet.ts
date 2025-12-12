@@ -1,6 +1,5 @@
 import { defineStore } from 'pinia'
 import { ref, computed } from 'vue'
-import type { PublicKey } from '@solana/web3.js'
 
 export interface WalletState {
   connected: boolean

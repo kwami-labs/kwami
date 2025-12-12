@@ -122,6 +122,7 @@ export const useMarketplace = () => {
       // For this demo, we'll simulate the listing
       const listedNft: NFTListing = {
         ...nft,
+        owner: ownerPublicKey,
         price,
         listed: true,
         listedAt: Date.now(),

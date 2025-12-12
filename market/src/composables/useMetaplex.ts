@@ -1,6 +1,6 @@
 import { ref, computed } from 'vue'
 import { PublicKey } from '@solana/web3.js'
-import { Metaplex, keypairIdentity } from '@metaplex-foundation/js'
+import { Metaplex, keypairIdentity, toMetaplexFile } from '@metaplex-foundation/js'
 import { useSolana } from './useSolana'
 import type { NFTListing } from '@/stores/marketplace'
 
@@ -53,20 +53,29 @@ export const useMetaplex = () => {
       const nftListings: NFTListing[] = []
       for (const nft of filteredNfts) {
         try {
-          const metadata = await metaplex.nfts().load({ metadata: nft })
+          // The SDK typing here is a bit loose; cast to any to work with metadata.json
+          const metadata: any = await metaplex.nfts().load({ metadata: nft as any })
           
           nftListings.push({
-            mint: nft.mintAddress.toString(),
-            name: nft.name,
-            symbol: nft.symbol,
+            mint: metadata.mintAddress.toString(),
+            name: metadata.name,
+            symbol: metadata.symbol,
             description: metadata.json?.description || '',
             image: metadata.json?.image || '',
-            glbUri: metadata.json?.animation_url || metadata.json?.properties?.files?.find((f: any) => f.type === 'model/gltf-binary')?.uri,
+            glbUri:
+              metadata.json?.animation_url ||
+              metadata.json?.properties?.files?.find((f: any) => f.type === 'model/gltf-binary')?.uri,
             owner: walletAddress,
             listed: false,
-            dnaHash: metadata.json?.attributes?.find((a: any) => a.trait_type === 'DNA')?.value || '',
-            attributes: metadata.json?.attributes || [],
-            rarity: metadata.json?.attributes?.find((a: any) => a.trait_type === 'Rarity')?.value,
+            dnaHash:
+              metadata.json?.attributes?.find((a: any) => a.trait_type === 'DNA')?.value || '',
+            attributes:
+              (metadata.json?.attributes || []).map((a: any) => ({
+                trait_type: a.trait_type ?? '',
+                value: (a.value ?? '') as string | number,
+              })),
+            rarity:
+              metadata.json?.attributes?.find((a: any) => a.trait_type === 'Rarity')?.value,
             metadata: metadata.json,
           })
         } catch (err) {
@@ -96,20 +105,28 @@ export const useMetaplex = () => {
       const mint = new PublicKey(mintAddress)
 
       const nft = await metaplex.nfts().findByMint({ mintAddress: mint })
-      const metadata = await metaplex.nfts().load({ metadata: nft })
+      const metadata: any = await metaplex.nfts().load({ metadata: nft as any })
 
       return {
         mint: mintAddress,
-        name: nft.name,
-        symbol: nft.symbol,
+        name: metadata.name,
+        symbol: metadata.symbol,
         description: metadata.json?.description || '',
         image: metadata.json?.image || '',
-        glbUri: metadata.json?.animation_url || metadata.json?.properties?.files?.find((f: any) => f.type === 'model/gltf-binary')?.uri,
-        owner: nft.updateAuthorityAddress.toString(),
+        glbUri:
+          metadata.json?.animation_url ||
+          metadata.json?.properties?.files?.find((f: any) => f.type === 'model/gltf-binary')?.uri,
+        owner: metadata.updateAuthorityAddress.toString(),
         listed: false,
-        dnaHash: metadata.json?.attributes?.find((a: any) => a.trait_type === 'DNA')?.value || '',
-        attributes: metadata.json?.attributes || [],
-        rarity: metadata.json?.attributes?.find((a: any) => a.trait_type === 'Rarity')?.value,
+        dnaHash:
+          metadata.json?.attributes?.find((a: any) => a.trait_type === 'DNA')?.value || '',
+        attributes:
+          (metadata.json?.attributes || []).map((a: any) => ({
+            trait_type: a.trait_type ?? '',
+            value: (a.value ?? '') as string | number,
+          })),
+        rarity:
+          metadata.json?.attributes?.find((a: any) => a.trait_type === 'Rarity')?.value,
         metadata: metadata.json,
       }
     } catch (err: any) {
@@ -173,7 +190,8 @@ export const useMetaplex = () => {
 
       const metaplex = getMetaplex(wallet)
       const buffer = await file.arrayBuffer()
-      const { uri } = await metaplex.storage().upload(new Uint8Array(buffer))
+      const metaplexFile = toMetaplexFile(new Uint8Array(buffer), file.name)
+      const uri = await metaplex.storage().upload(metaplexFile)
       
       return uri
     } catch (err: any) {

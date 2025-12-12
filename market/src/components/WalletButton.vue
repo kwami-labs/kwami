@@ -141,7 +141,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed } from 'vue'
+import { ref, computed, onMounted, onBeforeUnmount } from 'vue'
 import { useWallet } from '@/composables/useWallet'
 import { useWalletStore } from '@/stores/wallet'
 
@@ -183,13 +183,23 @@ const copyAddress = async () => {
 }
 
 // Close menu when clicking outside
-if (process.client) {
-  document.addEventListener('click', (e) => {
+onMounted(() => {
+  const handleClickOutside = (e: MouseEvent) => {
     const target = e.target as HTMLElement
     if (!target.closest('.relative')) {
       showMenu.value = false
     }
+  }
+
+  if (typeof window !== 'undefined' && typeof document !== 'undefined') {
+    document.addEventListener('click', handleClickOutside)
+  }
+
+  onBeforeUnmount(() => {
+    if (typeof window !== 'undefined' && typeof document !== 'undefined') {
+      document.removeEventListener('click', handleClickOutside)
+    }
   })
-}
+})
 </script>
 
