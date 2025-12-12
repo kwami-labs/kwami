@@ -156,7 +156,7 @@ export const VIDEO_PRESETS = [
 
 // Music playlist - empty by default in pg app
 // Users can load their own audio files via the audio player
-export const MUSIC_PLAYLIST: readonly Array<{ name: string; url: string }> = [
+export const MUSIC_PLAYLIST: ReadonlyArray<{ name: string; url: string }> = [
   // Empty by default - music files not included in pg build
   // Use the "Load Audio" button (📂) in the audio player to add music
 ];

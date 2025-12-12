@@ -226,7 +226,7 @@ export function importConfiguration(config) {
     
     // Import blob configuration
     if (config.blob && window.kwami?.body) {
-      window.kwami.body.updateParams(config.blob);
+      window.kwami.body.updateParams?.(config.blob);
     }
     
     // Import background

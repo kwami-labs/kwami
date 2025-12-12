@@ -75,7 +75,8 @@ export function initializeExportImport() {
       input.type = 'file';
       input.accept = '.json';
       input.onchange = (e) => {
-        const file = e.target.files[0];
+        const target = e.target as HTMLInputElement | null;
+        const file = target?.files?.[0];
         if (file) {
           importConfig(file);
         }

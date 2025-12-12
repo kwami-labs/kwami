@@ -170,42 +170,42 @@ export const blobStateMachine = createMachine({
   }
 }, {
   actions: {
-    onEnterIdle: (context) => {
+    onEnterIdle: (context: any) => {
       console.log('[State Machine] → IDLE');
       if (typeof window !== 'undefined' && window.kwami?.body) {
         window.kwami.body.setState?.('idle');
       }
     },
     
-    onEnterListening: (context) => {
+    onEnterListening: (context: any) => {
       console.log('[State Machine] → LISTENING');
       if (typeof window !== 'undefined' && window.kwami?.body) {
         window.kwami.body.setState?.('listening');
       }
     },
     
-    onEnterThinking: (context) => {
+    onEnterThinking: (context: any) => {
       console.log('[State Machine] → THINKING');
       if (typeof window !== 'undefined' && window.kwami?.body) {
         window.kwami.body.setState?.('thinking');
       }
     },
     
-    onEnterSpeaking: (context) => {
+    onEnterSpeaking: (context: any) => {
       console.log('[State Machine] → SPEAKING');
       if (typeof window !== 'undefined' && window.kwami?.body) {
         window.kwami.body.setState?.('speaking');
       }
     },
     
-    onEnterError: (context) => {
+    onEnterError: (context: any) => {
       console.log('[State Machine] → ERROR:', context.errorMessage);
       if (typeof window !== 'undefined' && window.kwami?.body) {
         window.kwami.body.setState?.('error');
       }
     },
     
-    onEnterMinimized: (context) => {
+    onEnterMinimized: (context: any) => {
       console.log('[State Machine] → MINIMIZED');
       if (typeof window !== 'undefined' && window.kwami?.body) {
         window.kwami.body.setState?.('minimized');

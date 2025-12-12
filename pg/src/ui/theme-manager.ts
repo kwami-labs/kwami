@@ -11,10 +11,12 @@ import { STORAGE_KEYS } from '../core/config.js';
  * Apply theme to document
  * @param {string} theme - 'light' or 'dark'
  */
+const LEGACY_THEME_KEY = 'kwami-theme';
+
 export function applyTheme(theme) {
   const body = document.body;
   const icon = document.getElementById('theme-toggle-icon');
-  
+
   if (theme === 'dark') {
     body.classList.add('dark-mode');
     if (icon) icon.textContent = '☀️';
@@ -22,16 +24,30 @@ export function applyTheme(theme) {
     body.classList.remove('dark-mode');
     if (icon) icon.textContent = '🌙';
   }
-  
+
   themeState.current = theme;
   saveState(STORAGE_KEYS.THEME, theme);
-  
+
+  // Also persist to legacy key for backwards compatibility.
+  try {
+    localStorage.setItem(LEGACY_THEME_KEY, theme);
+  } catch {
+    // ignore
+  }
+
   // Update theme toggle button accessibility
   const toggleButton = document.getElementById('theme-toggle-btn');
   if (toggleButton) {
     const label = theme === 'dark' ? 'Switch to light theme' : 'Switch to dark theme';
     toggleButton.setAttribute('aria-label', label);
     toggleButton.setAttribute('title', label);
+  }
+
+  // Notify any listeners (e.g., color picker) that theme changed.
+  try {
+    document.dispatchEvent(new CustomEvent('kwami:theme-changed', { detail: { theme } }));
+  } catch {
+    // ignore
   }
 }
 
@@ -51,10 +67,20 @@ export function initializeThemeToggle() {
   
   // Load saved theme or detect system preference
   const savedTheme = loadState(STORAGE_KEYS.THEME);
-  
+
+  // Legacy localStorage fallback
+  let legacyTheme: string | null = null;
+  try {
+    legacyTheme = localStorage.getItem(LEGACY_THEME_KEY);
+  } catch {
+    // ignore
+  }
+
   let initialTheme = 'light';
   if (savedTheme) {
     initialTheme = savedTheme;
+  } else if (legacyTheme) {
+    initialTheme = legacyTheme;
   } else if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
     initialTheme = 'dark';
   }

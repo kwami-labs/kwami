@@ -14,6 +14,12 @@
 // CORE EXPORTS
 // ============================================================================
 
+// NOTE: `export { ... } from` does not create local bindings; we also import the symbols
+// we reference later in this file.
+import { getBlobStateMachine } from './core/blob-state-machine';
+import { getPluginManager } from './core/plugin-system';
+import { getPerformanceProfiler, getPerformanceHUD } from './core/performance-profiler';
+
 export { getBlobStateMachine, resetBlobStateMachine, BlobStateMachineService } from './core/blob-state-machine';
 export type { BlobState, BlobContext, BlobEvent } from './core/blob-state-machine';
 
@@ -24,7 +30,27 @@ export { getPerformanceProfiler, getPerformanceHUD, resetPerformanceProfiler, Pe
 export type { PerformanceMetrics, PerformanceReport, MemoryMetrics, GPUMetrics } from './core/performance-profiler';
 
 export * from './core/state-manager';
-export * from './core/config';
+
+export {
+  DEFAULT_VALUES,
+  DEFAULT_CAMERA_POSITION,
+  DEFAULT_BACKGROUND,
+  SKIN_COLLECTION_NAME,
+  SKIN_NAME_ALIASES,
+  SKIN_VARIANT_LABELS,
+  SKIN_RANDOMIZATION_TEMPLATE,
+  BACKGROUND_IMAGES,
+  IMAGE_PRESETS,
+  VIDEO_PRESETS,
+  MUSIC_PLAYLIST,
+  AUDIO_DEFAULTS,
+  INTERACTION_DEFAULTS,
+  STORAGE_KEYS,
+  API_CONFIG,
+  UI_CONFIG,
+} from './core/config';
+
+export type { Vec3, ColorSet, DefaultValuesConfig, BackgroundConfig as CoreBackgroundConfig } from './core/config';
 
 // ============================================================================
 // COMPONENT EXPORTS

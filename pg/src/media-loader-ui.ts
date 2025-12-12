@@ -125,20 +125,24 @@ export function createMediaLoaderUI(options) {
   container.innerHTML = tabsHTML + contentHTML;
 
   // Get elements
-  const tabs = container.querySelectorAll('.media-loader-tab');
-  const tabContents = container.querySelectorAll('.media-loader-tab-content');
-  const urlInput = container.querySelector('.media-loader-url-input');
-  const urlBtn = container.querySelector('.media-loader-url-btn');
-  const fileInput = container.querySelector('.media-loader-file-input');
-  const uploadBtn = container.querySelector('.media-loader-upload-btn');
-  const dropzone = container.querySelector('.media-loader-dropzone');
-  const presetSelect = container.querySelector('.media-loader-preset-select');
-  const statusEl = container.querySelector('.media-loader-status');
-  const statusIcon = container.querySelector('.media-loader-status-icon');
-  const statusText = container.querySelector('.media-loader-status-text');
+  const tabs = container.querySelectorAll<HTMLButtonElement>('.media-loader-tab');
+  const tabContents = container.querySelectorAll<HTMLElement>('.media-loader-tab-content');
+  const urlInput = container.querySelector<HTMLInputElement>('.media-loader-url-input');
+  const urlBtn = container.querySelector<HTMLButtonElement>('.media-loader-url-btn');
+  const fileInput = container.querySelector<HTMLInputElement>('.media-loader-file-input');
+  const uploadBtn = container.querySelector<HTMLButtonElement>('.media-loader-upload-btn');
+  const dropzone = container.querySelector<HTMLElement>('.media-loader-dropzone');
+  const presetSelect = container.querySelector<HTMLSelectElement>('.media-loader-preset-select');
+  const statusEl = container.querySelector<HTMLDivElement>('.media-loader-status');
+  const statusIcon = container.querySelector<HTMLSpanElement>('.media-loader-status-icon');
+  const statusText = container.querySelector<HTMLSpanElement>('.media-loader-status-text');
 
   // Show status message
   function showStatus(message, isError = false) {
+    if (!statusEl || !statusIcon || !statusText) {
+      return;
+    }
+
     statusEl.style.display = 'flex';
     statusIcon.textContent = isError ? '⚠️' : '✅';
     statusText.textContent = message;
@@ -173,7 +177,8 @@ export function createMediaLoaderUI(options) {
   // Preset selection
   if (presetSelect) {
     presetSelect.addEventListener('change', async (e) => {
-      const value = e.target.value;
+      const target = e.target as HTMLSelectElement | null;
+      const value = target?.value;
       if (!value) return;
 
       try {
@@ -247,7 +252,8 @@ export function createMediaLoaderUI(options) {
     });
 
     fileInput.addEventListener('change', async (e) => {
-      const file = e.target.files?.[0];
+      const target = e.target as HTMLInputElement | null;
+      const file = target?.files?.[0];
       if (!file) return;
 
       try {

@@ -36,10 +36,10 @@ export function updateStatus(message, duration = UI_CONFIG.MESSAGE_AUTO_DISMISS)
 export function showError(message, duration = UI_CONFIG.ERROR_AUTO_DISMISS) {
   const error = document.getElementById('error');
   if (!error) return;
-  
+
   error.textContent = message;
   error.classList.remove('hidden');
-  
+
   if (message && duration > 0) {
     setTimeout(() => {
       if (error.textContent === message) {
@@ -48,6 +48,13 @@ export function showError(message, duration = UI_CONFIG.ERROR_AUTO_DISMISS) {
       }
     }, duration);
   }
+}
+
+/**
+ * Backwards-compatible alias used in older code paths.
+ */
+export function updateError(message, duration = UI_CONFIG.ERROR_AUTO_DISMISS) {
+  showError(message, duration);
 }
 
 /**
@@ -93,4 +100,5 @@ export function showLoading(message) {
 // Export to window for backward compatibility
 window.updateStatus = updateStatus;
 window.showError = showError;
+window.updateError = updateError;
 

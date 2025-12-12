@@ -4,6 +4,7 @@
  * Provides keyboard navigation and shortcuts for common actions
  */
 
+import { sidebarState } from '../core/state-manager.js';
 import { toggleMenus } from '../ui/sidebar-manager.js';
 import { toggleTheme } from '../ui/theme-manager.js';
 import { showInfo } from '../ui/messages.js';
@@ -11,38 +12,34 @@ import { showInfo } from '../ui/messages.js';
 // Shortcut definitions
 const shortcuts = {
   // UI Controls
-  'Escape': { action: toggleMenus, description: 'Toggle sidebars' },
-  'h': { action: toggleMenus, description: 'Toggle sidebars' },
-  't': { action: toggleTheme, description: 'Toggle theme' },
-  
+  Escape: { action: toggleMenus, description: 'Toggle sidebars' },
+  h: { action: toggleMenus, description: 'Toggle sidebars' },
+  t: { action: toggleTheme, description: 'Toggle theme' },
+
   // Blob randomization
-  'r': { action: () => window.randomizeBlob?.(), description: 'Random blob' },
-  'b': { action: () => window.randomizeBackground?.(), description: 'Random background' },
-  
+  r: { action: () => window.randomizeBlob?.(), description: 'Random blob' },
+  b: { action: () => window.randomizeBackground?.(), description: 'Random background' },
+
   // Sections
-  '1': { action: () => focusSection('mind'), description: 'Go to Mind' },
-  '2': { action: () => focusSection('body'), description: 'Go to Body' },
-  '3': { action: () => focusSection('soul'), description: 'Go to Soul' },
-  
+  1: { action: () => focusSection('mind'), description: 'Go to Mind' },
+  2: { action: () => focusSection('body'), description: 'Go to Body' },
+  3: { action: () => focusSection('soul'), description: 'Go to Soul' },
+
   // Audio
-  'Space': { action: () => toggleAudio(), description: 'Play/Pause audio', preventDefault: true },
-  
+  Space: { action: () => toggleAudio(), description: 'Play/Pause audio', preventDefault: true },
+
   // Help
-  '?': { action: showHelp, description: 'Show shortcuts' }
-};
+  '?': { action: showHelp, description: 'Show shortcuts' },
+} as const;
 
 /**
  * Focus on a specific section
- * @param {string} section - Section to focus
  */
-function focusSection(section) {
-  // Implementation depends on current sidebar state
-  const { sidebarState } = await import('../core/state-manager.js');
-  
+function focusSection(section: 'mind' | 'body' | 'soul') {
   if (sidebarState.left === section || sidebarState.right === section) {
     return; // Already visible
   }
-  
+
   // Swap to make section visible
   if (sidebarState.hidden === section) {
     window.swapLeftSidebar?.();
@@ -82,7 +79,8 @@ function showHelp() {
 export function initializeKeyboardShortcuts() {
   document.addEventListener('keydown', (e) => {
     // Ignore if typing in input/textarea
-    if (e.target.matches('input, textarea, select')) {
+    const target = e.target as Element | null;
+    if (target?.matches?.('input, textarea, select')) {
       return;
     }
     

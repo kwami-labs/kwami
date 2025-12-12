@@ -4,15 +4,26 @@
  * Manages the rotating 3-section sidebar system (Mind/Body/Soul)
  */
 
+import type { SidebarSection } from '../types/index.js';
+
 import { sidebarState, sectionLabels } from '../core/state-manager.js';
 import { UI_CONFIG } from '../core/config.js';
+
+type SidebarSide = 'left' | 'right';
+type SidebarRenderHook = (side: SidebarSide, section: SidebarSection) => void;
+
+let sidebarRenderHook: SidebarRenderHook | null = null;
+
+export function setSidebarRenderHook(hook: SidebarRenderHook | null) {
+  sidebarRenderHook = hook;
+}
 
 /**
  * Initialize sidebar system
  */
 export function initializeSidebars() {
-  renderSidebar('left', sidebarState.left);
-  renderSidebar('right', sidebarState.right);
+  renderSidebar('left', sidebarState.left as SidebarSection);
+  renderSidebar('right', sidebarState.right as SidebarSection);
   updateSwapButtons();
   applySidebarVisibility();
   updateMenuToggleButton();
@@ -23,26 +34,26 @@ export function initializeSidebars() {
  * @param {string} side - 'left' or 'right'
  * @param {string} section - 'mind', 'body', or 'soul'
  */
-export function renderSidebar(side, section) {
+export function renderSidebar(side: SidebarSide, section: SidebarSection) {
   const container = document.getElementById(`${side}-content`);
-  const template = document.getElementById(`${section}-template`);
-  
+  const template = document.getElementById(`${section}-template`) as HTMLTemplateElement | null;
+
   if (!container || !template) {
     console.error(`Missing ${side} sidebar or ${section} template`);
     return;
   }
-  
+
   container.innerHTML = '';
   const content = template.content.cloneNode(true);
   container.appendChild(content);
-  
-  // Initialize section-specific controls
-  if (section === 'mind') {
-    // Mind controls initialized elsewhere
-  } else if (section === 'body') {
-    // Body controls initialized elsewhere
-  } else if (section === 'soul') {
-    // Soul controls initialized elsewhere
+
+  // Allow the app to re-bind section-specific DOM listeners after render.
+  if (sidebarRenderHook) {
+    try {
+      sidebarRenderHook(side, section);
+    } catch (error) {
+      console.warn('[Sidebar Manager] sidebarRenderHook error:', error);
+    }
   }
 }
 
@@ -56,7 +67,7 @@ export function swapLeftSidebar() {
   sidebarState.left = sidebarState.hidden;
   sidebarState.hidden = temp;
   
-  renderSidebar('left', sidebarState.left);
+  renderSidebar('left', sidebarState.left as SidebarSection);
   updateSwapButtons();
   
   setTimeout(() => {
@@ -74,7 +85,7 @@ export function swapRightSidebar() {
   sidebarState.right = sidebarState.hidden;
   sidebarState.hidden = temp;
   
-  renderSidebar('right', sidebarState.right);
+  renderSidebar('right', sidebarState.right as SidebarSection);
   updateSwapButtons();
   
   setTimeout(() => {
@@ -149,13 +160,14 @@ export function toggleMenus() {
  * Switch mobile sidebar tab
  * @param {string} section - Section to display
  */
-export function switchMobileSidebarTab(section) {
+export function switchMobileSidebarTab(section: SidebarSection) {
   // Update active tab
   const tabs = document.querySelectorAll('.mobile-sidebar-tab');
-  tabs.forEach(tab => {
-    const isActive = tab.dataset.section === section;
-    tab.classList.toggle('active', isActive);
-    tab.setAttribute('aria-selected', String(isActive));
+  tabs.forEach((tab) => {
+    const el = tab as HTMLElement;
+    const isActive = el.dataset.section === section;
+    el.classList.toggle('active', isActive);
+    el.setAttribute('aria-selected', String(isActive));
   });
   
   // Render the selected section in left sidebar

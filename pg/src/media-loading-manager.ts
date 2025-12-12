@@ -20,13 +20,15 @@ if (LOADER_GIFS.length === 0) {
 }
 
 class MediaLoadingManager {
+  private overlay: HTMLElement | null = null;
+  private loaderImage: HTMLImageElement | null = null;
+  private currentLoader: string | null = null;
+  private isVisible = false;
+  private hideTimeout: ReturnType<typeof setTimeout> | null = null;
+  private initialized = false;
+
   constructor() {
-    this.overlay = null;
-    this.loaderImage = null;
-    this.currentLoader = null;
-    this.isVisible = false;
-    this.hideTimeout = null;
-    this.initialized = false;
+    // fields initialized above
   }
 
   /**
@@ -37,7 +39,7 @@ class MediaLoadingManager {
     if (this.initialized) return;
     
     this.overlay = document.getElementById('media-loading-overlay');
-    this.loaderImage = document.getElementById('media-loader-image');
+    this.loaderImage = document.getElementById('media-loader-image') as HTMLImageElement | null;
     
     if (!this.overlay || !this.loaderImage) {
       console.warn('Media loading overlay elements not found in DOM');
