@@ -145,10 +145,15 @@ echo -e "${GREEN}✅ KWAMI NFT deployed to devnet${NC}"
 echo -e "Explorer: ${BLUE}https://explorer.solana.com/address/${KWAMI_PROGRAM_ID}?cluster=devnet${NC}"
 
 # Step 8: Create deployment record
+# Keep deployment records out of the repo root (avoid untracked artifacts).
 echo -e "\n${YELLOW}Step 8: Creating deployment record...${NC}"
 cd ..
 
-cat > DEVNET_DEPLOYMENT_RECORD.md << EOF
+RECORD_DIR="target/deploy"
+RECORD_FILE="$RECORD_DIR/DEVNET_DEPLOYMENT_RECORD.md"
+mkdir -p "$RECORD_DIR"
+
+cat > "$RECORD_FILE" << EOF
 # 🚀 Devnet Deployment Record
 
 **Date:** $(date)
@@ -225,7 +230,7 @@ Balance: ${BALANCE} SOL
 
 ## 📚 Resources
 
-- [Devnet Deployment Guide](./DEVNET_DEPLOYMENT_GUIDE.md)
+- [Devnet Deployment Guide](../../DEVNET_DEPLOYMENT_GUIDE.md)
 - [Solana Explorer](https://explorer.solana.com/?cluster=devnet)
 - [Anchor Docs](https://www.anchor-lang.com/)
 
@@ -234,7 +239,7 @@ Balance: ${BALANCE} SOL
 **Deployment Status:** ✅ Programs Deployed (Initialization Pending)
 EOF
 
-echo -e "${GREEN}✅ Deployment record created: DEVNET_DEPLOYMENT_RECORD.md${NC}"
+echo -e "${GREEN}✅ Deployment record created: ${RECORD_FILE}${NC}"
 
 # Final summary
 echo -e "\n${GREEN}"
