@@ -187,9 +187,62 @@ try {
   let skippedCount = 0;
   const updatedFiles = [];
 
+  /**
+   * Resolve npm workspaces to concrete workspace directories.
+   * Supports:
+   * - ["app", "web"]
+   * - { packages: ["packages/*"] }
+   * - Simple trailing globs like "packages/*"
+   */
+  function getWorkspaceDirsFromRootPackageJson() {
+    const ws = rootPackageJson.workspaces;
+    const workspaceEntries = Array.isArray(ws) ? ws : (ws && Array.isArray(ws.packages) ? ws.packages : null);
+    const fallbackEntries = ['kwami', 'app', 'candy', 'market', 'dao', 'web', 'pg'];
+
+    const entries = workspaceEntries ?? fallbackEntries;
+    const dirs = [];
+
+    for (const entry of entries) {
+      if (typeof entry !== 'string' || !entry.trim()) continue;
+
+      // Simple "something/*" expansion (common in npm workspaces)
+      if (entry.endsWith('/*')) {
+        const baseRel = entry.slice(0, -2);
+        const baseAbs = resolve(rootDir, baseRel);
+        if (!existsSync(baseAbs)) continue;
+
+        try {
+          const children = readdirSync(baseAbs);
+          for (const child of children) {
+            const childAbs = join(baseAbs, child);
+            const stat = statSync(childAbs);
+            if (!stat.isDirectory()) continue;
+            if (['node_modules', '.git', 'dist', '.output', '.nuxt', 'build'].includes(child)) continue;
+            dirs.push(join(baseRel, child));
+          }
+        } catch {
+          // ignore workspace expansion failures; individual package.json updates are best-effort
+        }
+
+        continue;
+      }
+
+      // Skip unsupported complex globs (**, {}, etc.) rather than guessing
+      if (entry.includes('*')) {
+        console.log(`   ⚠️  Skipping unsupported workspace pattern: ${entry}`);
+        continue;
+      }
+
+      dirs.push(entry);
+    }
+
+    // De-dupe while preserving order
+    return Array.from(new Set(dirs));
+  }
+
   // First, update workspace package.json files
   console.log('📦 Updating workspace package.json files...\n');
-  const workspaces = ['kwami', 'app', 'candy', 'market', 'dao', 'web', 'pg'];
+  const workspaces = getWorkspaceDirsFromRootPackageJson();
   
   for (const workspace of workspaces) {
     const packageJsonPath = resolve(rootDir, workspace, 'package.json');
@@ -200,12 +253,6 @@ try {
         
         if (!packageJson.version) {
           // Add version if it doesn't exist (insert after name for proper order)
-          const orderedPackageJson = {
-            name: packageJson.name,
-            version: version,
-            ...packageJson
-          };
-          delete orderedPackageJson.name; // Remove duplicate name
           const finalPackageJson = {
             name: packageJson.name,
             version: version,
@@ -221,16 +268,16 @@ try {
           writeFileSync(packageJsonPath, JSON.stringify(packageJson, null, 2) + '\n', 'utf8');
           updatedFiles.push(`${workspace}/package.json`);
           console.log(`   ✓ ${workspace}/package.json (${oldVersion} → ${version})`);
-      updatedCount++;
-    } else {
+          updatedCount++;
+        } else {
           // Already up to date
           console.log(`   ✓ ${workspace}/package.json (already ${version})`);
-      skippedCount++;
-    }
+          skippedCount++;
+        }
       } catch (err) {
         console.log(`   ⚠️  Could not update ${workspace}/package.json: ${err.message}`);
-    skippedCount++;
-  }
+        skippedCount++;
+      }
     } else {
       console.log(`   ⏭️  ${workspace}/package.json (not found)`);
       skippedCount++;
