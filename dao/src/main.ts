@@ -1,3 +1,7 @@
+// CRITICAL: Import polyfills FIRST before anything else
+import '@/polyfills';
+
+// Now import everything else AFTER polyfills are set up
 import { createApp } from 'vue';
 import { createPinia } from 'pinia';
 import App from '@/App.vue';
@@ -5,12 +9,6 @@ import router from '@/router';
 import solanaWalletPlugin from '@/plugins/solana';
 import 'solana-wallets-vue/styles.css';
 import '@/styles/global.css';
-import { Buffer } from 'buffer';
-
-// Polyfills for Solana
-globalThis.Buffer = Buffer;
-(window as any).global = window;
-(window as any).process = { env: {} };
 
 const app = createApp(App);
 

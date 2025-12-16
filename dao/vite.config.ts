@@ -1,5 +1,6 @@
 import { defineConfig, createLogger } from 'vite'
 import vue from '@vitejs/plugin-vue'
+import { nodePolyfills } from 'vite-plugin-node-polyfills'
 import { fileURLToPath, URL } from 'node:url'
 
 const logger = createLogger()
@@ -13,20 +14,45 @@ logger.warn = (msg, options) => {
 // https://vite.dev/config/
 export default defineConfig({
   customLogger: logger,
-  plugins: [vue()],
-  
+  plugins: [
+    vue(),
+    nodePolyfills({
+      include: ['buffer', 'process', 'util', 'stream', 'crypto'],
+      globals: {
+        Buffer: true,
+        process: true,
+        global: true,
+      },
+      protocolImports: true,
+      overrides: {
+        buffer: 'buffer/',
+      },
+    }),
+  ],
+
   resolve: {
     alias: {
       '@': fileURLToPath(new URL('./src', import.meta.url)),
-      buffer: 'buffer',
+
+      // Force browser polyfills instead of Vite externalizing Node core modules.
+      buffer: 'buffer/',
+      util: 'util/',
       stream: 'stream-browserify',
       crypto: 'crypto-browserify',
-      util: 'util',
+      process: 'process',
+
+      // Also cover `node:` protocol imports.
+      'node:buffer': 'buffer/',
+      'node:util': 'util/',
+      'node:stream': 'stream-browserify',
+      'node:crypto': 'crypto-browserify',
+      'node:process': 'process',
     },
   },
-  
+
   define: {
-    'process.env': {},
+    // Solana / Anchor stack expects this in browser builds.
+    'process.env.ANCHOR_BROWSER': JSON.stringify(true),
     global: 'globalThis',
   },
   
