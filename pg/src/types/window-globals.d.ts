@@ -28,6 +28,15 @@ declare global {
     setBackgroundImage?: (value: string, opts?: { silent?: boolean }) => void;
     setBackgroundVideo?: (value: string, opts?: { silent?: boolean }) => void;
 
+    // background helpers (used by UI buttons)
+    randomizeGradientColors?: () => void;
+    randomizeBackground?: () => void;
+    randomizeMediaSelection?: (type: 'image' | 'video') => void;
+    clearMediaSelection?: (type: 'image' | 'video') => void;
+    uploadMediaFile?: (type: 'image' | 'video') => void;
+    resetBackground?: () => void;
+    randomizeBackgroundWithGlass?: () => void;
+
     // export/import
     exportConfig?: () => void;
     importConfig?: (file: File) => Promise<void>;
