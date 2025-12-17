@@ -1,7 +1,7 @@
 #!/bin/bash
 
-# 🚀 KWAMI Ecosystem Devnet Deployment Script
-# This script deploys both QWAMI Token and KWAMI NFT programs to Solana devnet
+# 🚀 KWAMI Ecosystem Unified Deployment Script
+# This script deploys both QWAMI Token and KWAMI NFT programs to Solana
 
 set -e  # Exit on error
 
@@ -17,7 +17,7 @@ NC='\033[0m' # No Color
 
 echo -e "${BLUE}"
 echo "═══════════════════════════════════════════════════════════"
-echo "  🚀 KWAMI Ecosystem Devnet Deployment"
+echo "  🚀 KWAMI Ecosystem Deployment"
 echo "═══════════════════════════════════════════════════════════"
 echo -e "${NC}"
 
@@ -27,8 +27,50 @@ if [ ! -d "qwami" ] || [ ! -d "kwami" ]; then
     exit 1
 fi
 
-# Step 1: Check prerequisites
-echo -e "\n${YELLOW}Step 1: Checking prerequisites...${NC}"
+# Step 1: Select Network
+echo -e "\n${YELLOW}Step 1: Select deployment network${NC}"
+echo -e "${BLUE}1)${NC} Devnet (testing)"
+echo -e "${BLUE}2)${NC} Mainnet-beta (production)"
+echo -e "${BLUE}3)${NC} Localnet (local development)"
+echo ""
+
+read -p "Enter your choice (1-3): " network_choice
+
+case $network_choice in
+    1)
+        CLUSTER="devnet"
+        CLUSTER_URL="https://api.devnet.solana.com"
+        USDC_MINT="4zMMC9srt5Ri5X14GAgXhaHii3GnPAEERYPJgZJDncDU"  # Devnet USDC
+        ;;
+    2)
+        CLUSTER="mainnet-beta"
+        CLUSTER_URL="https://api.mainnet-beta.solana.com"
+        USDC_MINT="EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v"  # Mainnet USDC
+        
+        echo -e "\n${RED}⚠️  WARNING: You are about to deploy to MAINNET!${NC}"
+        echo -e "${YELLOW}This will use real SOL and the deployment is permanent.${NC}"
+        read -p "Are you sure you want to continue? (yes/no): " confirm
+        
+        if [ "$confirm" != "yes" ]; then
+            echo -e "${YELLOW}Deployment cancelled.${NC}"
+            exit 0
+        fi
+        ;;
+    3)
+        CLUSTER="localnet"
+        CLUSTER_URL="http://localhost:8899"
+        USDC_MINT="11111111111111111111111111111111"  # Placeholder for localnet
+        ;;
+    *)
+        echo -e "${RED}❌ Invalid choice. Exiting.${NC}"
+        exit 1
+        ;;
+esac
+
+echo -e "${GREEN}✅ Selected network: ${CLUSTER}${NC}"
+
+# Step 2: Check prerequisites
+echo -e "\n${YELLOW}Step 2: Checking prerequisites...${NC}"
 
 # Check Solana CLI
 if ! command -v solana &> /dev/null; then
@@ -58,13 +100,13 @@ fi
 
 echo -e "${GREEN}✅ Anchor found: $(anchor --version)${NC}"
 
-# Step 2: Configure Solana for devnet
-echo -e "\n${YELLOW}Step 2: Configuring Solana for devnet...${NC}"
-solana config set --url devnet
-echo -e "${GREEN}✅ Configured for devnet${NC}"
+# Step 3: Configure Solana
+echo -e "\n${YELLOW}Step 3: Configuring Solana for ${CLUSTER}...${NC}"
+solana config set --url $CLUSTER
+echo -e "${GREEN}✅ Configured for ${CLUSTER}${NC}"
 
-# Step 3: Check wallet balance
-echo -e "\n${YELLOW}Step 3: Checking wallet balance...${NC}"
+# Step 4: Check wallet balance
+echo -e "\n${YELLOW}Step 4: Checking wallet balance...${NC}"
 
 # Configurable funding behavior (override via env vars)
 MIN_SOL_BALANCE="${MIN_SOL_BALANCE:-4}"
@@ -89,32 +131,37 @@ echo -e "Wallet: ${BLUE}${WALLET_ADDRESS}${NC}"
 echo -e "Balance: ${BLUE}${BALANCE} SOL${NC}"
 
 if is_lt "$BALANCE" "$MIN_SOL_BALANCE"; then
-    echo -e "${YELLOW}⚠️  Low balance (< ${MIN_SOL_BALANCE} SOL). Attempting airdrop...${NC}"
+    if [ "$CLUSTER" = "devnet" ]; then
+        echo -e "${YELLOW}⚠️  Low balance (< ${MIN_SOL_BALANCE} SOL). Attempting airdrop...${NC}"
 
-    for ((i=1; i<=MAX_AIRDROP_ATTEMPTS; i++)); do
-        # Re-check before each attempt so we don't spam airdrops
-        BALANCE=$(get_balance)
-        if ! is_lt "$BALANCE" "$MIN_SOL_BALANCE"; then
-            break
+        for ((i=1; i<=MAX_AIRDROP_ATTEMPTS; i++)); do
+            # Re-check before each attempt so we don't spam airdrops
+            BALANCE=$(get_balance)
+            if ! is_lt "$BALANCE" "$MIN_SOL_BALANCE"; then
+                break
+            fi
+
+            echo -e "${YELLOW}Airdrop attempt ${i}/${MAX_AIRDROP_ATTEMPTS}: ${AIRDROP_AMOUNT} SOL${NC}"
+            if ! solana airdrop "$AIRDROP_AMOUNT"; then
+                echo -e "${YELLOW}⚠️  Airdrop failed (rate limit is common on devnet). You may need to wait or request manually.${NC}"
+            fi
+
+            sleep 2
+            BALANCE=$(get_balance)
+            echo -e "Updated balance: ${BLUE}${BALANCE} SOL${NC}"
+        done
+
+        if is_lt "$BALANCE" "$MIN_SOL_BALANCE"; then
+            echo -e "${YELLOW}⚠️  Balance is still below ${MIN_SOL_BALANCE} SOL; deployment may fail due to insufficient funds.${NC}"
         fi
-
-        echo -e "${YELLOW}Airdrop attempt ${i}/${MAX_AIRDROP_ATTEMPTS}: ${AIRDROP_AMOUNT} SOL${NC}"
-        if ! solana airdrop "$AIRDROP_AMOUNT"; then
-            echo -e "${YELLOW}⚠️  Airdrop failed (rate limit is common on devnet). You may need to wait or request manually.${NC}"
-        fi
-
-        sleep 2
-        BALANCE=$(get_balance)
-        echo -e "Updated balance: ${BLUE}${BALANCE} SOL${NC}"
-    done
-
-    if is_lt "$BALANCE" "$MIN_SOL_BALANCE"; then
-        echo -e "${YELLOW}⚠️  Balance is still below ${MIN_SOL_BALANCE} SOL; deployment may fail due to insufficient funds.${NC}"
+    else
+        echo -e "${RED}❌ Insufficient balance for ${CLUSTER}. Please fund your wallet.${NC}"
+        exit 1
     fi
 fi
 
-# Step 4: Build QWAMI Token program
-echo -e "\n${YELLOW}Step 4: Building QWAMI Token program...${NC}"
+# Step 5: Build QWAMI Token program
+echo -e "\n${YELLOW}Step 5: Building QWAMI Token program...${NC}"
 cd qwami
 anchor clean
 anchor build
@@ -124,16 +171,14 @@ echo -e "${GREEN}✅ QWAMI Token program built (with IDL)${NC}"
 QWAMI_PROGRAM_ID=$(anchor keys list | grep qwami_token | awk '{print $2}')
 echo -e "QWAMI Program ID: ${BLUE}${QWAMI_PROGRAM_ID}${NC}"
 
-# Step 5: Deploy QWAMI Token program
-echo -e "\n${YELLOW}Step 5: Deploying QWAMI Token to devnet...${NC}"
+# Step 6: Deploy QWAMI Token program
+echo -e "\n${YELLOW}Step 6: Deploying QWAMI Token to ${CLUSTER}...${NC}"
+anchor deploy --provider.cluster $CLUSTER
+echo -e "${GREEN}✅ QWAMI Token deployed to ${CLUSTER}${NC}"
+echo -e "Explorer: ${BLUE}https://explorer.solana.com/address/${QWAMI_PROGRAM_ID}?cluster=${CLUSTER}${NC}"
 
-
-anchor deploy --provider.cluster devnet
-echo -e "${GREEN}✅ QWAMI Token deployed to devnet${NC}"
-echo -e "Explorer: ${BLUE}https://explorer.solana.com/address/${QWAMI_PROGRAM_ID}?cluster=devnet${NC}"
-
-# Step 6: Build KWAMI NFT program
-echo -e "\n${YELLOW}Step 6: Building KWAMI NFT program...${NC}"
+# Step 7: Build KWAMI NFT program
+echo -e "\n${YELLOW}Step 7: Building KWAMI NFT program...${NC}"
 cd ../kwami
 anchor clean
 anchor build
@@ -143,16 +188,14 @@ echo -e "${GREEN}✅ KWAMI NFT program built (with IDL)${NC}"
 KWAMI_PROGRAM_ID=$(anchor keys list | grep kwami_nft | awk '{print $2}')
 echo -e "KWAMI NFT Program ID: ${BLUE}${KWAMI_PROGRAM_ID}${NC}"
 
-# Step 7: Deploy KWAMI NFT program
-echo -e "\n${YELLOW}Step 7: Deploying KWAMI NFT to devnet...${NC}"
+# Step 8: Deploy KWAMI NFT program
+echo -e "\n${YELLOW}Step 8: Deploying KWAMI NFT to ${CLUSTER}...${NC}"
+anchor deploy --provider.cluster $CLUSTER
+echo -e "${GREEN}✅ KWAMI NFT deployed to ${CLUSTER}${NC}"
+echo -e "Explorer: ${BLUE}https://explorer.solana.com/address/${KWAMI_PROGRAM_ID}?cluster=${CLUSTER}${NC}"
 
-
-anchor deploy --provider.cluster devnet
-echo -e "${GREEN}✅ KWAMI NFT deployed to devnet${NC}"
-echo -e "Explorer: ${BLUE}https://explorer.solana.com/address/${KWAMI_PROGRAM_ID}?cluster=devnet${NC}"
-
-# Step 8: Update program IDs in source code and redeploy
-echo -e "\n${YELLOW}Step 8: Updating program IDs in source code...${NC}"
+# Step 9: Update program IDs in source code and redeploy
+echo -e "\n${YELLOW}Step 9: Updating program IDs in source code...${NC}"
 cd ..
 
 # Update QWAMI program ID
@@ -173,41 +216,39 @@ else
     echo -e "${RED}❌ Could not find ${KWAMI_LIB_RS}${NC}"
 fi
 
-# Step 9: Rebuild and redeploy with correct IDs
-echo -e "\n${YELLOW}Step 9: Rebuilding with correct program IDs...${NC}"
+# Step 10: Rebuild and redeploy with correct IDs
+echo -e "\n${YELLOW}Step 10: Rebuilding with correct program IDs...${NC}"
 
-echo -e "\n${YELLOW}Rebuilding QWAMI...${NC}"
+echo -e "${YELLOW}Rebuilding QWAMI...${NC}"
 cd qwami
 anchor build
 
-
-anchor deploy --provider.cluster devnet
+anchor deploy --provider.cluster $CLUSTER
 echo -e "${GREEN}✅ QWAMI redeployed with correct ID${NC}"
 
 # Upload QWAMI IDL
 echo -e "${YELLOW}Uploading QWAMI IDL...${NC}"
-anchor idl init --filepath target/idl/qwami_token.json "${QWAMI_PROGRAM_ID}" --provider.cluster devnet || \
-  anchor idl upgrade --filepath target/idl/qwami_token.json "${QWAMI_PROGRAM_ID}" --provider.cluster devnet
+anchor idl init --filepath target/idl/qwami_token.json "${QWAMI_PROGRAM_ID}" --provider.cluster $CLUSTER 2>/dev/null || \
+  anchor idl upgrade --filepath target/idl/qwami_token.json "${QWAMI_PROGRAM_ID}" --provider.cluster $CLUSTER
 echo -e "${GREEN}✅ QWAMI IDL uploaded${NC}"
 
 echo -e "\n${YELLOW}Rebuilding KWAMI...${NC}"
 cd ../kwami
 anchor build
 
-
-anchor deploy --provider.cluster devnet
+anchor deploy --provider.cluster $CLUSTER
 echo -e "${GREEN}✅ KWAMI redeployed with correct ID${NC}"
 
 # Upload KWAMI IDL
 echo -e "${YELLOW}Uploading KWAMI IDL...${NC}"
-anchor idl init --filepath target/idl/kwami_nft.json "${KWAMI_PROGRAM_ID}" --provider.cluster devnet || \
-  anchor idl upgrade --filepath target/idl/kwami_nft.json "${KWAMI_PROGRAM_ID}" --provider.cluster devnet
+anchor idl init --filepath target/idl/kwami_nft.json "${KWAMI_PROGRAM_ID}" --provider.cluster $CLUSTER 2>/dev/null || \
+  anchor idl upgrade --filepath target/idl/kwami_nft.json "${KWAMI_PROGRAM_ID}" --provider.cluster $CLUSTER
 echo -e "${GREEN}✅ KWAMI IDL uploaded${NC}"
 
 cd ..
 
-# Step 10: Initialize programs
-echo -e "\n${YELLOW}Step 10: Initializing programs...${NC}"
+# Step 11: Initialize programs
+echo -e "\n${YELLOW}Step 11: Initializing programs...${NC}"
 
 # Check if Node.js/npm is available
 if ! command -v node &> /dev/null || ! command -v npm &> /dev/null; then
@@ -222,7 +263,7 @@ else
     cd qwami
     
     # Set environment variables for Anchor provider
-    export ANCHOR_PROVIDER_URL="https://api.devnet.solana.com"
+    export ANCHOR_PROVIDER_URL="$CLUSTER_URL"
     export ANCHOR_WALLET="${HOME}/.config/solana/id.json"
     
     if npm run initialize; then
@@ -238,7 +279,7 @@ else
     cd ../kwami
     
     # Update QWAMI mint address in initialization script
-    if [ -f "devnet-addresses.json" ] && [ -f "../qwami/devnet-addresses.json" ]; then
+    if [ -f "../qwami/devnet-addresses.json" ]; then
         QWAMI_MINT=$(cat ../qwami/devnet-addresses.json | grep -o '"qwamiMint": "[^"]*"' | cut -d'"' -f4)
         if [ -n "$QWAMI_MINT" ]; then
             sed -i "s/const QWAMI_MINT_ADDRESS = \"[^\"]*\";/const QWAMI_MINT_ADDRESS = \"${QWAMI_MINT}\";/" scripts/initialize-kwami.ts
@@ -257,17 +298,17 @@ else
     INIT_SKIPPED=false
 fi
 
-# Step 11: Create deployment record
-echo -e "\n${YELLOW}Step 11: Creating deployment record...${NC}"
+# Step 12: Create deployment record
+echo -e "\n${YELLOW}Step 12: Creating deployment record...${NC}"
 
-RECORD_FILE="$SCRIPT_DIR/DEPLOY_DEVNET_RECORD.md"
+RECORD_FILE="$SCRIPT_DIR/DEPLOY_${CLUSTER^^}_RECORD.md"
 
 cat > "$RECORD_FILE" << EOF
-# 🚀 Devnet Deployment Record
+# 🚀 ${CLUSTER^} Deployment Record
 
 **Date:** $(date)
 **Deployer:** ${WALLET_ADDRESS}
-**Cluster:** Devnet
+**Cluster:** ${CLUSTER}
 
 ---
 
@@ -276,22 +317,22 @@ cat > "$RECORD_FILE" << EOF
 ### QWAMI Token Program
 \`\`\`
 Program ID: ${QWAMI_PROGRAM_ID}
-Explorer: https://explorer.solana.com/address/${QWAMI_PROGRAM_ID}?cluster=devnet
+Explorer: https://explorer.solana.com/address/${QWAMI_PROGRAM_ID}?cluster=${CLUSTER}
 \`\`\`
 
 ### KWAMI NFT Program
 \`\`\`
 Program ID: ${KWAMI_PROGRAM_ID}
-Explorer: https://explorer.solana.com/address/${KWAMI_PROGRAM_ID}?cluster=devnet
+Explorer: https://explorer.solana.com/address/${KWAMI_PROGRAM_ID}?cluster=${CLUSTER}
 \`\`\`
 
 ---
 
 ## 🔑 Configuration
 
-### Devnet USDC
+### USDC Mint
 \`\`\`
-USDC Mint: 4zMMC9srt5Ri5X14GAgXhaHii3GnPAEERYPJgZJDncDU
+USDC Mint: ${USDC_MINT}
 \`\`\`
 
 ### Wallet
@@ -304,7 +345,7 @@ Balance: ${BALANCE} SOL
 
 ## ⚠️ Next Steps
 
-1. **Test on Devnet**
+1. **Test on ${CLUSTER^}**
    - Run test scripts
    - Verify all operations work
    - Check treasury accounting
@@ -318,8 +359,7 @@ Balance: ${BALANCE} SOL
 
 ## 📚 Resources
 
-- [Devnet Deployment Guide](../../DEVNET_DEPLOYMENT_GUIDE.md)
-- [Solana Explorer](https://explorer.solana.com/?cluster=devnet)
+- [Solana Explorer](https://explorer.solana.com/?cluster=${CLUSTER})
 - [Anchor Docs](https://www.anchor-lang.com/)
 
 ---
@@ -357,25 +397,22 @@ echo -e "QWAMI Token: ${BLUE}${QWAMI_PROGRAM_ID}${NC}"
 echo -e "KWAMI NFT:   ${BLUE}${KWAMI_PROGRAM_ID}${NC}"
 
 echo -e "\n${YELLOW}🔗 Explorer Links:${NC}"
-echo -e "QWAMI: ${BLUE}https://explorer.solana.com/address/${QWAMI_PROGRAM_ID}?cluster=devnet${NC}"
-echo -e "KWAMI: ${BLUE}https://explorer.solana.com/address/${KWAMI_PROGRAM_ID}?cluster=devnet${NC}"
+echo -e "QWAMI: ${BLUE}https://explorer.solana.com/address/${QWAMI_PROGRAM_ID}?cluster=${CLUSTER}${NC}"
+echo -e "KWAMI: ${BLUE}https://explorer.solana.com/address/${KWAMI_PROGRAM_ID}?cluster=${CLUSTER}${NC}"
 
 if [ "$INIT_SKIPPED" = true ] || [ "$QWAMI_INITIALIZED" = false ] || [ "$KWAMI_INITIALIZED" = false ]; then
     echo -e "\n${YELLOW}⚠️  Next Steps:${NC}"
     [ "$INIT_SKIPPED" = true ] && echo -e "1. Install Node.js if needed"
     [ "$QWAMI_INITIALIZED" = false ] && echo -e "2. Run: cd qwami && npm run initialize"
     [ "$KWAMI_INITIALIZED" = false ] && echo -e "3. Run: cd kwami && npm run initialize"
-    echo -e "4. Test all operations on devnet"
+    echo -e "4. Test all operations on ${CLUSTER}"
     echo -e "5. Monitor for 24-48 hours"
 else
     echo -e "\n${GREEN}🎊 All Done! Programs are deployed and initialized!${NC}"
     echo -e "\n${YELLOW}📋 Next Steps:${NC}"
-    echo -e "1. Test all operations on devnet"
+    echo -e "1. Test all operations on ${CLUSTER}"
     echo -e "2. Monitor for 24-48 hours"
     echo -e "3. Review treasury accounting"
 fi
 
-echo -e "\n${YELLOW}📖 Full guide: ./DEVNET_DEPLOYMENT_GUIDE.md${NC}"
-
 echo -e "\n${GREEN}🎉 Ready for the next phase!${NC}\n"
-
