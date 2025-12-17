@@ -10,6 +10,7 @@ import type {
   WalletConnectWidgetState,
 } from './types';
 import { createDivider, createRow, createText, formatSol, truncateAddress } from './utils';
+import { getWalletKindFallback, getWalletLogoSvg, initials } from './logos';
 
 function renderContent(slot: GlassContent, target: HTMLElement): void {
   if (typeof slot === 'string') {
@@ -97,9 +98,10 @@ export function createWalletConnectWidget(options: WalletConnectWidgetOptions = 
   walletsSection.style.gap = '0.5rem';
 
   const walletButtons = document.createElement('div');
+  walletButtons.className = 'kwami-wallet-list';
   walletButtons.style.display = 'flex';
   walletButtons.style.flexDirection = 'column';
-  walletButtons.style.gap = '0.5rem';
+  walletButtons.style.gap = '0.55rem';
 
   const actionsSection = document.createElement('div');
   actionsSection.style.display = 'flex';
@@ -197,7 +199,7 @@ export function createWalletConnectWidget(options: WalletConnectWidgetOptions = 
 
     walletsSection.innerHTML = '';
 
-    if (state.availableWallets.length === 0 || state.availableWallets.every((w) => !w.installed)) {
+    if (state.availableWallets.length === 0) {
       const msg = createText('No Solana wallets detected. Install Phantom, Solflare, Backpack, Glow, or Slope.', {
         muted: true,
       });
@@ -206,70 +208,84 @@ export function createWalletConnectWidget(options: WalletConnectWidgetOptions = 
       return;
     }
 
-    const prompt = createText('Select a wallet to connect', { muted: true });
+    const prompt = createText('Choose a wallet', { muted: true });
     prompt.style.fontSize = '0.85rem';
     walletsSection.appendChild(prompt);
     walletsSection.appendChild(walletButtons);
 
-    state.availableWallets.forEach(({ name, installed, url, readyState }) => {
-      const label = document.createElement('div');
-      label.style.display = 'flex';
-      label.style.alignItems = 'center';
-      label.style.justifyContent = 'space-between';
-      label.style.width = '100%';
-      label.style.gap = '0.75rem';
+    state.availableWallets.forEach(({ name, installed, url, kind }) => {
+      const button = document.createElement('button');
+      button.type = 'button';
+      button.className = ['kwami-glass-surface', 'kwami-glass-wallet-option'].join(' ');
+
+      const icon = document.createElement('div');
+      icon.className = 'kwami-wallet-option-icon';
+
+      const svg = getWalletLogoSvg(name);
+      if (svg) {
+        icon.innerHTML = svg;
+      } else {
+        icon.textContent = initials(name);
+        icon.style.fontWeight = '800';
+        icon.style.fontSize = '0.78rem';
+        icon.style.letterSpacing = '0.08em';
+      }
+
+      const meta = document.createElement('div');
+      meta.style.display = 'flex';
+      meta.style.flexDirection = 'column';
+      meta.style.gap = '0.15rem';
+      meta.style.minWidth = '0';
+
+      const nameLine = document.createElement('div');
+      nameLine.className = 'kwami-wallet-option-name';
+      nameLine.textContent = name;
+
+      const subtitle = document.createElement('div');
+      subtitle.className = 'kwami-wallet-option-subtitle';
+
+      const normalizedKind = kind ?? getWalletKindFallback(name);
+      const kindLabel = normalizedKind === 'hardware' ? 'Hardware' : 'Browser';
+      const recommended = name.toLowerCase().includes('phantom');
+
+      subtitle.textContent = recommended ? `${kindLabel} • Recommended` : kindLabel;
+
+      meta.appendChild(nameLine);
+      meta.appendChild(subtitle);
 
       const left = document.createElement('div');
       left.style.display = 'flex';
-      left.style.flexDirection = 'column';
-      left.style.gap = '0.15rem';
+      left.style.alignItems = 'center';
+      left.style.gap = '0.85rem';
+      left.style.minWidth = '0';
 
-      const nameLine = createText(name);
-      nameLine.style.fontWeight = '700';
+      left.appendChild(icon);
+      left.appendChild(meta);
 
-      const statusLine = createText(
-        installed
-          ? (readyState ? String(readyState) : 'installed')
-          : (readyState ? String(readyState) : 'not detected'),
-        { muted: true },
-      );
-      statusLine.style.fontSize = '0.78rem';
-      statusLine.style.textTransform = 'uppercase';
-      statusLine.style.letterSpacing = '0.12em';
+      const pill = document.createElement('div');
+      pill.className = ['kwami-wallet-option-pill', installed ? 'kwami-wallet-option-pill--primary' : '']
+        .filter(Boolean)
+        .join(' ');
+      pill.textContent = installed ? 'Connect' : url ? 'Install' : 'Not installed';
 
-      left.appendChild(nameLine);
-      left.appendChild(statusLine);
+      button.appendChild(left);
+      button.appendChild(pill);
 
-      const right = createText(installed ? 'Connect' : url ? 'Install' : 'Not installed', { muted: !installed });
-      right.style.fontSize = '0.85rem';
-      right.style.fontWeight = '700';
+      if (!installed && !url) {
+        button.disabled = true;
+      }
 
-      label.appendChild(left);
-      label.appendChild(right);
-
-      const btn = createGlassButton({
-        label,
-        icon: installed ? '🔌' : '⬇',
-        mode: installed ? 'outline' : 'ghost',
-        size: 'md',
-        theme: options.theme,
-        appearance: { ...options.appearance, borderRadius: '16px' },
-        disabled: !installed && !url,
-        onClick: () => {
-          if (installed) {
-            void connect(name);
-            return;
-          }
-          if (url) {
-            window.open(url, '_blank');
-            return;
-          }
-        },
+      button.addEventListener('click', () => {
+        if (installed) {
+          void connect(name);
+          return;
+        }
+        if (url) {
+          window.open(url, '_blank');
+        }
       });
 
-      btn.element.style.width = '100%';
-      btn.element.style.justifyContent = 'space-between';
-      walletButtons.appendChild(btn.element);
+      walletButtons.appendChild(button);
     });
   }
 
@@ -369,38 +385,56 @@ export function createWalletConnectWidget(options: WalletConnectWidgetOptions = 
       name: w.name,
       installed: w.installed ?? true,
       url: w.url,
+      kind: w.kind,
       readyState: w.readyState,
     }));
 
-    // Known wallets we want to show even if not detected
-    const known = ['Phantom', 'Solflare', 'Backpack', 'Glow', 'Slope'];
+    // Ranked wallets (most common first)
+    const rank = ['Phantom', 'Solflare', 'Backpack', 'Glow', 'Slope', 'Ledger', 'Trezor'];
 
     const byName = new Map(normalizedDetected.map((w) => [w.name.toLowerCase(), w] as const));
 
     const combined = [
-      ...known.map((name) => {
+      ...rank.map((name) => {
         const existing = byName.get(name.toLowerCase());
         return (
           existing ?? {
             name,
             installed: false,
             url: undefined,
+            kind: getWalletKindFallback(name),
             readyState: 'not detected',
           }
         );
       }),
-      ...normalizedDetected.filter((w) => !known.some((k) => k.toLowerCase() === w.name.toLowerCase())),
+      ...normalizedDetected.filter((w) => !rank.some((k) => k.toLowerCase() === w.name.toLowerCase())),
     ];
 
-    // Sort installed first, then alphabetically
+    const rankIndex = (name: string) => {
+      const idx = rank.findIndex((r) => r.toLowerCase() === name.toLowerCase());
+      return idx === -1 ? 999 : idx;
+    };
+
+    // Sort by ranking first, then installed, then alphabetically
     combined.sort((a, b) => {
+      const ra = rankIndex(a.name);
+      const rb = rankIndex(b.name);
+      if (ra !== rb) return ra - rb;
+
       const ai = a.installed ? 0 : 1;
       const bi = b.installed ? 0 : 1;
       if (ai !== bi) return ai - bi;
+
       return a.name.localeCompare(b.name);
     });
 
-    state.availableWallets = combined.map((w) => ({ name: w.name, installed: w.installed, url: w.url, readyState: w.readyState }));
+    state.availableWallets = combined.map((w) => ({
+      name: w.name,
+      installed: w.installed,
+      url: w.url,
+      kind: w.kind ?? getWalletKindFallback(w.name),
+      readyState: w.readyState,
+    }));
   }
 
   async function refreshBalance(): Promise<void> {
