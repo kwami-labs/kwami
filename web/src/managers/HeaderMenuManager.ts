@@ -4,7 +4,7 @@
  */
 
 export class HeaderMenuManager {
-  private hamburgerBtn: HTMLButtonElement;
+  private hamburgerBtn?: HTMLButtonElement;
   private rightHeader: HTMLElement | null;
   private isOpen: boolean = false;
 
@@ -17,7 +17,7 @@ export class HeaderMenuManager {
 
     this.hamburgerBtn = this.createHamburgerButton();
     this.rightHeader.appendChild(this.hamburgerBtn);
-    
+
     // Initially hide all buttons
     this.updateButtonsVisibility();
   }
@@ -47,12 +47,14 @@ export class HeaderMenuManager {
   }
 
   private toggleMenu(): void {
+    if (!this.hamburgerBtn) return;
+
     this.isOpen = !this.isOpen;
     this.updateButtonsVisibility();
-    
+
     // Update aria-expanded attribute
     this.hamburgerBtn.setAttribute('aria-expanded', this.isOpen.toString());
-    
+
     // Toggle active class for animation (active = open = X icon)
     this.hamburgerBtn.classList.toggle('active', this.isOpen);
   }

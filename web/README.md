@@ -109,8 +109,7 @@ web/
 ├── package.json
 ├── tsconfig.json
 ├── vite.config.ts
-├── vitest.config.ts
-└── IMPROVEMENTS.md     # Detailed improvement tracking
+└── vitest.config.ts
 ```
 
 ## 📦 Build
@@ -141,33 +140,10 @@ Each section triggers unique blob shapes:
 ### Color System
 6 rotating color palettes with progressive random variations
 
-## 🎯 Recent Improvements
-
-See [IMPROVEMENTS.md](./IMPROVEMENTS.md) for detailed tracking of all improvements.
-
-### Phase 1: Critical Fixes ✅
-- Added missing PWA icons and social images
-- Fixed Google Analytics placeholder
-- Implemented comprehensive error handling for media
-- Created proper favicon
-
-### Phase 2: Code Quality (In Progress)
-- Refactored codebase into modular structure
-- Added ESLint and Prettier for code quality
-- Implemented unit testing with Vitest
-- Created utility modules for common operations
-
-### Phase 3-5: Upcoming
-- Performance optimization and code splitting
-- Mobile experience improvements
-- Complete accessibility audit
-- Enhanced documentation
-
 ## 🐛 Known Issues
 
-- main.ts still needs full modularization (2,384 lines)
-- Icon placeholders need professional design
-- Service worker caching strategy needs completion
+- Service worker caching strategy needs completion (currently feature-flagged)
+- Bundle size/performance can be improved further (code-splitting + lazy-loading)
 
 ## 🤝 Contributing
 

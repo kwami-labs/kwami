@@ -118,8 +118,7 @@ export class BackgroundRings {
   }
 
   private startAnimation() {
-    // @ts-ignore - gsap trialWarn config
-    gsap.config({ trialWarn: false });
+    (gsap as any).config({ trialWarn: false });
 
     const colorInterp = gsap.utils.interpolate(this.colorArr);
     

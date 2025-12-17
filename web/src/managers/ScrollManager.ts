@@ -1,5 +1,4 @@
-import { Kwami } from 'kwami';
-import type { KwamiConfig } from 'kwami';
+import type { Kwami, KwamiConfig } from 'kwami';
 import { COLOR_PALETTES } from '../config/colors';
 import type { ColorPalette } from '../config/colors';
 import { BLOB_CONFIGS } from '../config/blobConfigs';
@@ -14,9 +13,6 @@ import { getCurrentLanguage } from '../i18n';
 import { SidebarNavigator } from './SidebarNavigator';
 import { CursorLight } from './CursorLight';
 import { isRTLLanguage } from '../utils/languageUtils';
-import { toggleMusicLowpass } from '../media/MusicPlayer';
-import { toggleVoicePlayback } from '../media/VoicePlayer';
-import { getVideoState, playRandomVideo, toggleVideoPresentation } from '../media/VideoPlayer';
 import { rafThrottle, getPassiveEventOptions } from '../utils/performanceUtils';
 import { getPageAudioManager } from '../media/PageAudioManager';
 import { animatePageSection } from '../utils/pageTextAnimation';
@@ -168,12 +164,13 @@ export class ScrollManager {
         kwamiConfig.apps = appsConfig;
       }
 
+      const { Kwami } = await import('kwami');
       this.kwami = new Kwami(canvas, kwamiConfig);
 
       const isMobile = window.innerWidth <= MOBILE_BREAKPOINT;
       const blobScale = isMobile ? BLOB_SCALE_MOBILE : BLOB_SCALE_DESKTOP;
       this.kwami.body.blob.setScale(blobScale);
-      this.kwami.body.blob.setWireframe(config.wireframe);
+      this.kwami.body.blob.setWireframe(config.wireframe ?? false);
 
       if (isMobile) {
         this.kwami.body.blob.setOpacity(BLOB_OPACITY_MOBILE);
@@ -367,7 +364,7 @@ export class ScrollManager {
       this.clickTimer = window.setTimeout(() => {
         if (this.clickCount === 1) {
           // Single click - handle pause/play
-          this.handleSingleClick(e);
+          void this.handleSingleClick(e);
         } else if (this.clickCount === 2) {
           // Double click - randomize (handled by dblclick event)
           // We don't need to do anything here as dblclick handler takes care of it
@@ -379,16 +376,17 @@ export class ScrollManager {
     });
   }
 
-  private handleSingleClick(e: MouseEvent) {
+  private async handleSingleClick(e: MouseEvent) {
     const activeTab = document.querySelector('.tab-btn.active');
     const activeTabType = activeTab?.getAttribute('data-tab');
 
     if (activeTabType === 'video') {
+      const { getVideoState, playRandomVideo, toggleVideoPresentation } = await import('../media/VideoPlayer');
       const { currentVideoMode, currentVideoUrl, isVideoLoading } = getVideoState();
       if (currentVideoUrl && currentVideoMode !== 'none' && !isVideoLoading) {
-        toggleVideoPresentation();
+        await toggleVideoPresentation();
       } else if (!isVideoLoading && !currentVideoUrl) {
-        playRandomVideo({ mode: 'background' });
+        await playRandomVideo({ mode: 'background' });
       }
       return;
     }
@@ -396,13 +394,15 @@ export class ScrollManager {
     if (activeTabType === 'music') {
       const kwami = (window as any).scrollManager?.getKwami?.();
       if (kwami?.body?.audio?.isPlaying()) {
-        toggleMusicLowpass();
+        const { toggleMusicLowpass } = await import('../media/MusicPlayer');
+        await toggleMusicLowpass();
       }
       return;
     }
 
     if (activeTabType === 'voice') {
-      toggleVoicePlayback();
+      const { toggleVoicePlayback } = await import('../media/VoicePlayer');
+      await toggleVoicePlayback();
       return;
     }
 

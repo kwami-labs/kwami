@@ -3,7 +3,7 @@ use anchor_lang::system_program::{Transfer as SystemTransfer, transfer as system
 use anchor_spl::token::{self, Mint, Token, TokenAccount, MintTo, Burn, Transfer};
 use anchor_lang::solana_program::program_option::COption;
 
-declare_id!("11111111111111111111111111111111"); // Will be updated after deployment
+declare_id!("4GCAV5a3UfEAa3Zer3Bmuti7DFe9mN4Znrjok8AUyNG2"); // Will be updated after deployment
 
 /// Maximum supply: 1 trillion tokens (0 decimals - integer token)
 const MAX_SUPPLY: u64 = 1_000_000_000_000; // 1 trillion whole tokens
@@ -11,8 +11,6 @@ const MAX_SUPPLY: u64 = 1_000_000_000_000; // 1 trillion whole tokens
 /// Base price in USD cents (1 cent = 0.01 USD)
 const BASE_PRICE_USD_CENTS: u64 = 1;
 
-/// Reserve requirement: Maintain 110% reserves for redemptions
-const RESERVE_REQUIREMENT_PERCENTAGE: u64 = 110;
 
 #[program]
 pub mod qwami_token {

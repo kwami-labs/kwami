@@ -3,30 +3,22 @@ import './components/welcome-layer.css';
 import './accessibility.css';
 import './loading.css';
 import './mobile.css';
+
 import { t, getCurrentLanguage, updatePageTranslations, createLanguageSwitcher } from './i18n';
-import { WelcomeLayer } from './components/WelcomeLayer';
-import { BackgroundRings } from './components/BackgroundRings';
 import i18next from './i18n';
+
 import { initAnalytics, trackTiming } from './analytics';
 import { initErrorHandler } from './error-handler';
 import { initKeyboardNavigation } from './keyboard-navigation';
 import { initLoadingStates } from './loading';
 import { initMobileUX } from './mobile';
 import { initPerformanceOptimizer } from './performance';
-import { ScrollManager } from './managers/ScrollManager';
-import { ModeSwitcher } from './managers/ModeSwitcher';
-import { ActionButtonManager } from './managers/ActionButtonManager';
-import { HeaderMenuManager } from './managers/HeaderMenuManager';
-import { playRandomMusic } from './media/MusicPlayer';
-import { playRandomVoiceClip, toggleVoicePlayback, stopVoicePlayback } from './media/VoicePlayer';
-import { playRandomVideo, stopVideoPlayback, toggleVideoPresentation } from './media/VideoPlayer';
-import { stopKwamiAudio } from './media/AudioController';
+
 import { generateRandomColor } from './config/colors';
 import { isRTLLanguage } from './utils/languageUtils';
-import { getPageAudioManager } from './media/PageAudioManager';
-import { getThemeModeManager } from './managers/ThemeModeManager';
-import { initPageTextAnimations, refreshPageTextAnimations } from './utils/pageTextAnimation';
 import { ENABLE_SERVICE_WORKER, ENABLE_ANALYTICS } from './config/app';
+
+import type { ScrollManager } from './managers/ScrollManager';
 
 let scrollManager: ScrollManager | null = null;
 
@@ -45,7 +37,8 @@ function initLanguageSwitcher() {
   console.log('🌐 Language switcher initialized');
 }
 
-function initThemeToggle() {
+async function initThemeToggle() {
+  const { getThemeModeManager } = await import('./managers/ThemeModeManager');
   const themeManager = getThemeModeManager();
   const themeToggle = themeManager.createThemeToggleButton('header-theme-toggle');
   const rightHeader = document.querySelector('.right-header');
@@ -72,16 +65,27 @@ function initTabs() {
       this.classList.add('active');
       triggerTabAnimation(this, tabType);
 
+      const { getPageAudioManager } = await import('./media/PageAudioManager');
       const pageAudioManager = getPageAudioManager();
 
       if (tabType === 'music') {
         pageAudioManager.stopPageAudio();
+
+        const { stopVoicePlayback } = await import('./media/VoicePlayer');
         stopVoicePlayback();
+
+        const { stopVideoPlayback } = await import('./media/VideoPlayer');
         stopVideoPlayback(undefined, { preserveUrl: true });
+
+        const { playRandomMusic } = await import('./media/MusicPlayer');
         await playRandomMusic();
       } else if (tabType === 'voice') {
         pageAudioManager.stopPageAudio();
+
+        const { stopVideoPlayback } = await import('./media/VideoPlayer');
         stopVideoPlayback(undefined, { preserveUrl: true });
+
+        const { toggleVoicePlayback, playRandomVoiceClip } = await import('./media/VoicePlayer');
         if (alreadyActive) {
           await toggleVoicePlayback();
         } else {
@@ -89,7 +93,11 @@ function initTabs() {
         }
       } else if (tabType === 'video') {
         pageAudioManager.stopPageAudio();
+
+        const { stopKwamiAudio } = await import('./media/AudioController');
         stopKwamiAudio();
+
+        const { toggleVideoPresentation, playRandomVideo } = await import('./media/VideoPlayer');
         if (alreadyActive) {
           await toggleVideoPresentation();
         } else {
@@ -159,16 +167,57 @@ function initScrollIndicator() {
   });
 }
 
-document.addEventListener('DOMContentLoaded', () => {
+async function bootstrapMainApp() {
+  console.log('🎬 Welcome layer complete, initializing main app');
+
+  const [
+    scrollManagerMod,
+    modeSwitcherMod,
+    actionButtonMod,
+    headerMenuMod,
+    backgroundRingsMod,
+    textAnimMod,
+  ] = await Promise.all([
+    import('./managers/ScrollManager'),
+    import('./managers/ModeSwitcher'),
+    import('./managers/ActionButtonManager'),
+    import('./managers/HeaderMenuManager'),
+    import('./components/BackgroundRings'),
+    import('./utils/pageTextAnimation'),
+  ]);
+
+  scrollManager = new scrollManagerMod.ScrollManager();
+  new modeSwitcherMod.ModeSwitcher();
+  new actionButtonMod.ActionButtonManager();
+  new headerMenuMod.HeaderMenuManager();
+  (window as any).scrollManager = scrollManager;
+
+  // Initialize background rings after welcome layer
+  const backgroundRings = new backgroundRingsMod.BackgroundRings();
+  backgroundRings.setOpacity(0);
+  setTimeout(() => {
+    backgroundRings.show();
+  }, 500);
+  (window as any).backgroundRings = backgroundRings;
+
+  // Initialize text animations after content is loaded
+  setTimeout(() => {
+    textAnimMod.initPageTextAnimations();
+  }, 100);
+
+  console.log('✅ Main app initialized');
+}
+
+document.addEventListener('DOMContentLoaded', async () => {
   const startTime = performance.now();
-  
+
   // Initialize analytics only if enabled
   if (ENABLE_ANALYTICS) {
     initAnalytics();
   } else {
     console.log('📊 Analytics disabled by configuration');
   }
-  
+
   initErrorHandler();
   initKeyboardNavigation();
   initLoadingStates();
@@ -176,36 +225,18 @@ document.addEventListener('DOMContentLoaded', () => {
   initPerformanceOptimizer();
   initTabs();
 
+  // Welcome layer (lazy-loaded so we don't pull the whole app graph up-front)
+  const { WelcomeLayer } = await import('./components/WelcomeLayer');
   new WelcomeLayer(() => {
-    console.log('🎬 Welcome layer complete, initializing main app');
-    scrollManager = new ScrollManager();
-    new ModeSwitcher();
-    new ActionButtonManager();
-    (window as any).scrollManager = scrollManager;
-    
-    // Initialize background rings after welcome layer
-    const backgroundRings = new BackgroundRings();
-    backgroundRings.setOpacity(0);
-    setTimeout(() => {
-      backgroundRings.show();
-    }, 500);
-    (window as any).backgroundRings = backgroundRings;
-    
-    // Initialize text animations after content is loaded
-    setTimeout(() => {
-      initPageTextAnimations();
-    }, 100);
-    
-    console.log('✅ Main app initialized');
+    void bootstrapMainApp();
   });
 
   initLanguageSwitcher();
-  initThemeToggle();
-  new HeaderMenuManager();
+  void initThemeToggle();
   updatePageTranslations();
 
   const loadTime = performance.now() - startTime;
-  
+
   // Track timing only if analytics is enabled
   if (ENABLE_ANALYTICS) {
     trackTiming('page', 'dom_loaded', Math.round(loadTime));
@@ -241,13 +272,13 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 
-  i18next.on('languageChanged', (lng: string) => {
+  i18next.on('languageChanged', async (lng: string) => {
     console.log(`🌐 Language changed to: ${lng}`);
     scrollManager?.syncLanguageDirection(lng);
-    setTimeout(() => {
+    setTimeout(async () => {
       scrollManager?.updateBlobPosition(true);
-      // Refresh text animations when language changes
       const currentSection = scrollManager?.getCurrentSection() || 0;
+      const { refreshPageTextAnimations } = await import('./utils/pageTextAnimation');
       refreshPageTextAnimations(currentSection);
     }, 50);
   });

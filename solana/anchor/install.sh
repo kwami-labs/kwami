@@ -55,6 +55,28 @@ else
     echo "Solana CLI is already installed."
 fi
 
+# Install Node.js
+if ! command -v node &> /dev/null; then
+    echo "Installing Node.js..."
+    curl -fsSL https://deb.nodesource.com/setup_20.x | sudo -E bash -
+    sudo apt-get install -y nodejs
+else
+    echo "Node.js is already installed."
+fi
+
+# Install project dependencies
+echo "Installing project dependencies..."
+
+if [ -d "qwami" ]; then
+    echo "Installing dependencies for qwami..."
+    cd qwami && npm install && cd ..
+fi
+
+if [ -d "kwami" ]; then
+    echo "Installing dependencies for kwami..."
+    cd kwami && npm install && cd ..
+fi
+
 # Install Anchor via AVM
 if ! command -v avm &> /dev/null; then
     echo "Installing AVM (Anchor Version Manager)..."

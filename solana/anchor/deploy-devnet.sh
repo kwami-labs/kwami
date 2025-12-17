@@ -5,6 +5,9 @@
 
 set -e  # Exit on error
 
+# Get script directory
+SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )"
+
 # Colors for output
 RED='\033[0;31m'
 GREEN='\033[0;32m'
@@ -64,7 +67,7 @@ echo -e "${GREEN}✅ Configured for devnet${NC}"
 echo -e "\n${YELLOW}Step 3: Checking wallet balance...${NC}"
 
 # Configurable funding behavior (override via env vars)
-MIN_SOL_BALANCE="${MIN_SOL_BALANCE:-5}"
+MIN_SOL_BALANCE="${MIN_SOL_BALANCE:-4}"
 AIRDROP_AMOUNT="${AIRDROP_AMOUNT:-2}"
 MAX_AIRDROP_ATTEMPTS="${MAX_AIRDROP_ATTEMPTS:-2}"
 
@@ -123,6 +126,8 @@ echo -e "QWAMI Program ID: ${BLUE}${QWAMI_PROGRAM_ID}${NC}"
 
 # Step 5: Deploy QWAMI Token program
 echo -e "\n${YELLOW}Step 5: Deploying QWAMI Token to devnet...${NC}"
+
+
 anchor deploy --provider.cluster devnet
 echo -e "${GREEN}✅ QWAMI Token deployed to devnet${NC}"
 echo -e "Explorer: ${BLUE}https://explorer.solana.com/address/${QWAMI_PROGRAM_ID}?cluster=devnet${NC}"
@@ -140,18 +145,105 @@ echo -e "KWAMI NFT Program ID: ${BLUE}${KWAMI_PROGRAM_ID}${NC}"
 
 # Step 7: Deploy KWAMI NFT program
 echo -e "\n${YELLOW}Step 7: Deploying KWAMI NFT to devnet...${NC}"
+
+
 anchor deploy --provider.cluster devnet
 echo -e "${GREEN}✅ KWAMI NFT deployed to devnet${NC}"
 echo -e "Explorer: ${BLUE}https://explorer.solana.com/address/${KWAMI_PROGRAM_ID}?cluster=devnet${NC}"
 
-# Step 8: Create deployment record
-# Keep deployment records out of the repo root (avoid untracked artifacts).
-echo -e "\n${YELLOW}Step 8: Creating deployment record...${NC}"
+# Step 8: Update program IDs in source code and redeploy
+echo -e "\n${YELLOW}Step 8: Updating program IDs in source code...${NC}"
 cd ..
 
-RECORD_DIR="target/deploy"
-RECORD_FILE="$RECORD_DIR/DEVNET_DEPLOYMENT_RECORD.md"
-mkdir -p "$RECORD_DIR"
+# Update QWAMI program ID
+QWAMI_LIB_RS="qwami/programs/qwami-token/src/lib.rs"
+if [ -f "$QWAMI_LIB_RS" ]; then
+    sed -i "s/declare_id!(\"[^\"]*\");/declare_id!(\"${QWAMI_PROGRAM_ID}\");/" "$QWAMI_LIB_RS"
+    echo -e "${GREEN}✅ Updated QWAMI program ID in source${NC}"
+else
+    echo -e "${RED}❌ Could not find ${QWAMI_LIB_RS}${NC}"
+fi
+
+# Update KWAMI program ID
+KWAMI_LIB_RS="kwami/programs/kwami-nft/src/lib.rs"
+if [ -f "$KWAMI_LIB_RS" ]; then
+    sed -i "s/declare_id!(\"[^\"]*\");/declare_id!(\"${KWAMI_PROGRAM_ID}\");/" "$KWAMI_LIB_RS"
+    echo -e "${GREEN}✅ Updated KWAMI program ID in source${NC}"
+else
+    echo -e "${RED}❌ Could not find ${KWAMI_LIB_RS}${NC}"
+fi
+
+# Step 9: Rebuild and redeploy with correct IDs
+echo -e "\n${YELLOW}Step 9: Rebuilding with correct program IDs...${NC}"
+
+echo -e "${YELLOW}Rebuilding QWAMI...${NC}"
+cd qwami
+anchor build --no-idl
+
+
+anchor deploy --provider.cluster devnet
+echo -e "${GREEN}✅ QWAMI redeployed with correct ID${NC}"
+
+echo -e "\n${YELLOW}Rebuilding KWAMI...${NC}"
+cd ../kwami
+anchor build --no-idl
+
+
+anchor deploy --provider.cluster devnet
+echo -e "${GREEN}✅ KWAMI redeployed with correct ID${NC}"
+
+cd ..
+
+# Step 10: Initialize programs
+echo -e "\n${YELLOW}Step 10: Initializing programs...${NC}"
+
+# Check if Node.js/npm is available
+if ! command -v node &> /dev/null || ! command -v npm &> /dev/null; then
+    echo -e "${YELLOW}⚠️  Node.js/npm not found. Skipping initialization.${NC}"
+    echo -e "${YELLOW}   Run initialization scripts manually:${NC}"
+    echo -e "   cd qwami && npm run initialize"
+    echo -e "   cd kwami && npm run initialize"
+    INIT_SKIPPED=true
+else
+    # Initialize QWAMI
+    echo -e "\n${YELLOW}Initializing QWAMI Token...${NC}"
+    cd qwami
+    if npm run initialize; then
+        echo -e "${GREEN}✅ QWAMI Token initialized${NC}"
+        QWAMI_INITIALIZED=true
+    else
+        echo -e "${YELLOW}⚠️  QWAMI initialization failed. You may need to run it manually.${NC}"
+        QWAMI_INITIALIZED=false
+    fi
+
+    # Initialize KWAMI
+    echo -e "\n${YELLOW}Initializing KWAMI NFT...${NC}"
+    cd ../kwami
+    
+    # Update QWAMI mint address in initialization script
+    if [ -f "devnet-addresses.json" ] && [ -f "../qwami/devnet-addresses.json" ]; then
+        QWAMI_MINT=$(cat ../qwami/devnet-addresses.json | grep -o '"qwamiMint": "[^"]*"' | cut -d'"' -f4)
+        if [ -n "$QWAMI_MINT" ]; then
+            sed -i "s/const QWAMI_MINT_ADDRESS = \"[^\"]*\";/const QWAMI_MINT_ADDRESS = \"${QWAMI_MINT}\";/" scripts/initialize-kwami.ts
+        fi
+    fi
+    
+    if npm run initialize; then
+        echo -e "${GREEN}✅ KWAMI NFT initialized${NC}"
+        KWAMI_INITIALIZED=true
+    else
+        echo -e "${YELLOW}⚠️  KWAMI initialization failed. You may need to run it manually.${NC}"
+        KWAMI_INITIALIZED=false
+    fi
+    
+    cd ..
+    INIT_SKIPPED=false
+fi
+
+# Step 11: Create deployment record
+echo -e "\n${YELLOW}Step 11: Creating deployment record...${NC}"
+
+RECORD_FILE="$SCRIPT_DIR/DEPLOY_DEVNET_RECORD.md"
 
 cat > "$RECORD_FILE" << EOF
 # 🚀 Devnet Deployment Record
@@ -195,33 +287,12 @@ Balance: ${BALANCE} SOL
 
 ## ⚠️ Next Steps
 
-1. **Update Program IDs in Code**
-   - Update \`qwami/programs/qwami-token/src/lib.rs\` line 4
-   - Update \`kwami/programs/kwami-nft/src/lib.rs\` line 17
-
-2. **Rebuild with Correct IDs**
-   \`\`\`bash
-   cd qwami && anchor build && anchor deploy --provider.cluster devnet
-   cd ../kwami && anchor build && anchor deploy --provider.cluster devnet
-   \`\`\`
-
-3. **Initialize Programs**
-   \`\`\`bash
-   # Initialize QWAMI Token
-   cd qwami
-   npx ts-node scripts/initialize-qwami.ts
-   
-   # Initialize KWAMI NFT
-   cd ../kwami
-   npx ts-node scripts/initialize-kwami.ts
-   \`\`\`
-
-4. **Test on Devnet**
+1. **Test on Devnet**
    - Run test scripts
    - Verify all operations work
    - Check treasury accounting
 
-5. **Monitor for 24 Hours**
+2. **Monitor for 24 Hours**
    - Watch for errors
    - Check transaction success rate
    - Verify economic model
@@ -236,8 +307,24 @@ Balance: ${BALANCE} SOL
 
 ---
 
-**Deployment Status:** ✅ Programs Deployed (Initialization Pending)
+**Deployment Status:** ✅ Programs Deployed and Initialized
 EOF
+
+if [ "$INIT_SKIPPED" = true ]; then
+    echo "\n## ⚠️ Manual Initialization Required\n" >> "$RECORD_FILE"
+    echo "Node.js was not available during deployment. Run:\n" >> "$RECORD_FILE"
+    echo "\`\`\`bash" >> "$RECORD_FILE"
+    echo "cd qwami && npm run initialize" >> "$RECORD_FILE"
+    echo "cd ../kwami && npm run initialize" >> "$RECORD_FILE"
+    echo "\`\`\`" >> "$RECORD_FILE"
+elif [ "$QWAMI_INITIALIZED" = false ] || [ "$KWAMI_INITIALIZED" = false ]; then
+    echo "\n## ⚠️ Initialization Issues\n" >> "$RECORD_FILE"
+    [ "$QWAMI_INITIALIZED" = false ] && echo "- QWAMI: Failed (run manually)\n" >> "$RECORD_FILE"
+    [ "$KWAMI_INITIALIZED" = false ] && echo "- KWAMI: Failed (run manually)\n" >> "$RECORD_FILE"
+else
+    echo "\n## ✅ Initialization Complete\n" >> "$RECORD_FILE"
+    echo "Both programs are fully initialized and ready to use.\n" >> "$RECORD_FILE"
+fi
 
 echo -e "${GREEN}✅ Deployment record created: ${RECORD_FILE}${NC}"
 
@@ -256,12 +343,20 @@ echo -e "\n${YELLOW}🔗 Explorer Links:${NC}"
 echo -e "QWAMI: ${BLUE}https://explorer.solana.com/address/${QWAMI_PROGRAM_ID}?cluster=devnet${NC}"
 echo -e "KWAMI: ${BLUE}https://explorer.solana.com/address/${KWAMI_PROGRAM_ID}?cluster=devnet${NC}"
 
-echo -e "\n${YELLOW}⚠️  Next Steps:${NC}"
-echo -e "1. Update program IDs in lib.rs files"
-echo -e "2. Rebuild and redeploy with correct IDs"
-echo -e "3. Run initialization scripts"
-echo -e "4. Test all operations on devnet"
-echo -e "5. Monitor for 24-48 hours"
+if [ "$INIT_SKIPPED" = true ] || [ "$QWAMI_INITIALIZED" = false ] || [ "$KWAMI_INITIALIZED" = false ]; then
+    echo -e "\n${YELLOW}⚠️  Next Steps:${NC}"
+    [ "$INIT_SKIPPED" = true ] && echo -e "1. Install Node.js if needed"
+    [ "$QWAMI_INITIALIZED" = false ] && echo -e "2. Run: cd qwami && npm run initialize"
+    [ "$KWAMI_INITIALIZED" = false ] && echo -e "3. Run: cd kwami && npm run initialize"
+    echo -e "4. Test all operations on devnet"
+    echo -e "5. Monitor for 24-48 hours"
+else
+    echo -e "\n${GREEN}🎊 All Done! Programs are deployed and initialized!${NC}"
+    echo -e "\n${YELLOW}📋 Next Steps:${NC}"
+    echo -e "1. Test all operations on devnet"
+    echo -e "2. Monitor for 24-48 hours"
+    echo -e "3. Review treasury accounting"
+fi
 
 echo -e "\n${YELLOW}📖 Full guide: ./DEVNET_DEPLOYMENT_GUIDE.md${NC}"
 
