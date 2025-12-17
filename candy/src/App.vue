@@ -1,7 +1,7 @@
 <template>
   <div
     id="app"
-    class="relative min-h-screen bg-gray-50 dark:bg-gray-950 text-gray-900 dark:text-white transition-colors duration-300"
+    class="relative h-screen overflow-hidden bg-gray-50 dark:bg-gray-950 text-gray-900 dark:text-white transition-colors duration-300"
   >
     <BackgroundRings />
 
@@ -17,8 +17,16 @@ import BackgroundRings from './components/BackgroundRings.vue'
 
 <style>
 /* Global styles */
+html,
 body {
   margin: 0;
   padding: 0;
+  height: 100%;
+  overflow: hidden;
+}
+
+#app {
+  height: 100%;
+  overflow: hidden;
 }
 </style>

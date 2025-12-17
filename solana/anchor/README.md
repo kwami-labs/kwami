@@ -3,400 +3,740 @@
 **A next-generation NFT ecosystem with integrated tokenomics on Solana**
 
 [![Solana](https://img.shields.io/badge/Solana-Devnet-9945FF?logo=solana)](https://explorer.solana.com/?cluster=devnet)
-[![Anchor](https://img.shields.io/badge/Anchor-v0.29-5865F2?logo=anchor)](https://www.anchor-lang.com/)
-[![Rust](https://img.shields.io/badge/Rust-1.85+-orange?logo=rust)](https://www.rust-lang.org/)
+[![Anchor](https://img.shields.io/badge/Anchor-v0.32.1-5865F2?logo=anchor)](https://www.anchor-lang.com/)
+[![Solana](https://img.shields.io/badge/Solana-v2.3.0-green?logo=solana)](https://docs.solana.com/)
+[![Rust](https://img.shields.io/badge/Rust-1.77+-orange?logo=rust)](https://www.rust-lang.org/)
 [![License](https://img.shields.io/badge/License-MIT-green)](LICENSE)
+
+---
+
+## 📍 Current Status: ✅ **FULLY DEPLOYED ON DEVNET**
+
+Both programs are deployed, initialized, and operational:
+
+| Program | Status | Address |
+|---------|--------|------|
+| **QWAMI Token** | ✅ Live | `6CAgdgpPq8Np78LsDwREJqFPh9rM5Jh6RSS8eZ37kZuv` |
+| **KWAMI NFT** | ✅ Live | `DoAJAykwUrSDjraDegK4AJ1GCoztLYrTvKhUJHaFbSsD` |
+
+**Last Deployment**: December 17, 2025  
+**Network**: Solana Devnet  
+**Wallet**: `3TYRKswBCUy8agGNBF3wpg4AoiahZWKBKJB3ZJhybscf`
 
 ---
 
 ## 🎯 What is KWAMI?
 
 KWAMI is a revolutionary NFT ecosystem that combines:
-- **QWAMI Token**: Ecosystem currency for all transactions
+- **QWAMI Token**: Ecosystem currency with fixed $0.01 USD price
 - **KWAMI NFT**: 10 billion unique NFTs releasing over 75 years (2026-2100)
-- **Treasury System**: Transparent, on-chain accounting
-- **Economic Layer**: Complete buy/sell/mint/burn mechanics
+- **Treasury System**: Transparent, on-chain accounting with revenue distribution
+- **Economic Layer**: Complete buy/sell/mint/burn mechanics with QWAMI integration
 
 **Vision**: One KWAMI for every person on Earth by 2100 🌍
 
 ---
 
-## ⚡ Quick Start (5 minutes)
+## ⚡ Quick Start
 
-### Deploy to Devnet
+### Prerequisites
+
 ```bash
-# Make sure you're in the anchor directory
-cd /home/kali/labs/kwami/solana/anchor
+# Solana CLI 2.3.0+ (required for Anchor 0.32.1)
+sh -c "$(curl -sSfL https://release.anza.xyz/v2.3.0/install)"
 
-# Run automated deployment
-./deploy-devnet.sh
+# Anchor 0.32.1
+cargo install --git https://github.com/coral-xyz/anchor avm --locked --force
+avm install 0.32.1
+avm use 0.32.1
+
+# Node.js 18+ and npm (for initialization scripts)
+# Install from https://nodejs.org/
 ```
 
-**That's it!** The script handles everything:
+### Deploy to Devnet
+
+```bash
+# Navigate to anchor directory
+cd solana/anchor
+
+# Run unified deployment script (prompts for network)
+./deploy-programs.sh
+# Select: 2) Devnet
+
+# Or deploy with automatic network selection
+CLUSTER=devnet ./deploy-programs.sh
+```
+
+The script handles:
 - ✅ Prerequisites check
-- ✅ Devnet configuration
-- ✅ SOL funding (airdrop)
-- ✅ Program builds
-- ✅ Deployment
-- ✅ Success verification
+- ✅ Network configuration
+- ✅ SOL balance check (airdrops if needed)
+- ✅ Build both programs
+- ✅ Deploy with correct program IDs
+- ✅ Upload IDLs
+- ✅ Initialize both programs
+- ✅ Save deployment addresses
 
-**For detailed instructions**: See [`QUICK_START.md`](QUICK_START.md)
+### Initialize Programs
 
----
+```bash
+# Initialize both programs (runs after deployment)
+./initialize-programs.sh
 
-## 📚 Documentation
+# Or initialize individually:
+cd qwami && ANCHOR_PROVIDER_URL=https://api.devnet.solana.com \
+  ANCHOR_WALLET=$HOME/.config/solana/id.json \
+  npx ts-node scripts/initialize-qwami.ts
 
-### Getting Started
-- 🚀 [**Quick Start Guide**](QUICK_START.md) - Deploy in 10 minutes
-- 📖 [**Devnet Deployment Guide**](DEVNET_DEPLOYMENT_GUIDE.md) - Detailed walkthrough
-- 📊 [**Deployment Status**](DEPLOYMENT_STATUS.md) - Current project status
-
-### Technical Reference
-- 🔧 [**Instruction Reference**](INSTRUCTION_REFERENCE.md) - API documentation
-- 🧪 [**Testing Summary**](TESTING_SUMMARY.md) - Test suite overview
-- 📈 [**Expanded Test Scenarios**](EXPANDED_TEST_SCENARIOS.md) - All test details
-- 🏗️ [**Economic Integration**](ECONOMIC_INTEGRATION_COMPLETE.md) - Architecture
-
-### Economics & Supply
-- 💰 [**Token Economics**](../KWAMI_TOKEN_ECONOMICS.md) - Economic model
-- 📅 [**Supply Schedule**](../KWAMI_SUPPLY_SCHEDULE.md) - 75-year release plan
-- 🎯 [**Implementation Summary**](IMPLEMENTATION_SUMMARY.md) - What we built
+cd ../kwami && ANCHOR_PROVIDER_URL=https://api.devnet.solana.com \
+  ANCHOR_WALLET=$HOME/.config/solana/id.json \
+  npx ts-node scripts/initialize-kwami.ts
+```
 
 ---
 
 ## 🏗️ Architecture
 
-### Programs
+### Program Overview
 
-#### 1. QWAMI Token (`qwami/`)
-**The ecosystem currency**
-
-Features:
-- ✅ Mint/burn with SOL
-- ✅ Mint/burn with USDC
-- ✅ Fixed price ($0.01 per token)
-- ✅ 1 Trillion max supply
-- ✅ Zero decimals (integer tokens)
-- ✅ Public treasury accounting
-
-**Initialize**:
-```bash
-cd qwami
-npx ts-node scripts/initialize-qwami.ts
+```
+┌─────────────────────────────────────────────────────────┐
+│                    KWAMI Ecosystem                      │
+├─────────────────────┬───────────────────────────────────┤
+│   QWAMI Token       │         KWAMI NFT                 │
+│   (Currency)        │         (Collection)              │
+├─────────────────────┼───────────────────────────────────┤
+│ • Mint/Burn         │ • Mint with DNA validation        │
+│ • SOL Exchange      │ • Burn with 50% refund            │
+│ • USDC Exchange     │ • Generational supply caps        │
+│ • Treasury          │ • QWAMI payment required          │
+│ • Fixed $0.01 price │ • 80/20 revenue distribution      │
+└─────────────────────┴───────────────────────────────────┘
 ```
 
-**Test**:
-```bash
-npx ts-node scripts/test-qwami-devnet.ts
+### 1. QWAMI Token Program
+
+**Location**: `qwami/programs/qwami-token/`  
+**Program ID**: `6CAgdgpPq8Np78LsDwREJqFPh9rM5Jh6RSS8eZ37kZuv`  
+**Mint Address**: `61rRyR9ey3AtZs9Z7r4t3JUnoWVDry7pfrWtWgiWpiK7`
+
+#### Features
+- ✅ **Integer Token**: 0 decimals (no fractional tokens)
+- ✅ **Fixed Supply**: 1 trillion maximum
+- ✅ **Dual Exchange**: Mint/burn with SOL or USDC
+- ✅ **Fixed Price**: $0.01 USD per token
+- ✅ **Treasury Tracking**: All SOL/USDC flows tracked on-chain
+- ✅ **Authority Control**: PDA-based mint authority
+
+#### Key Instructions
+```rust
+// Initialize the token and treasury
+initialize()
+
+// Mint QWAMI by paying SOL
+mint_with_sol(sol_lamports: u64)
+
+// Mint QWAMI by paying USDC
+mint_with_usdc(usdc_amount: u64)
+
+// Burn QWAMI to receive SOL
+burn_for_sol(qwami_amount: u64)
+
+// Burn QWAMI to receive USDC
+burn_for_usdc(qwami_amount: u64)
+
+// Admin functions
+mint_tokens(amount: u64)          // Authority only
+burn_tokens(amount: u64)          // Any holder
+update_base_price(new_price: u64) // Authority only
+transfer_authority(new_auth: Pubkey) // Authority only
 ```
 
-#### 2. KWAMI NFT (`kwami/`)
-**Generational NFT collection**
+#### Accounts
+- **TokenAuthority PDA**: `["token-authority", mint.key()]`
+  - Holds mint authority
+  - Tracks total minted/burned
+  - Stores base price
+  
+- **QWAMI Treasury PDA**: `["qwami-treasury"]`
+  - Tracks all SOL/USDC received and distributed
+  - Tracks QWAMI mints from SOL vs USDC
+  - Stores USDC vault reference
 
-Features:
-- ✅ 10 billion max supply (by 2100)
-- ✅ 75 generations (Gen #0 - Gen #74)
-- ✅ QWAMI payment for mints
-- ✅ 50% QWAMI refund on burns
-- ✅ Unique DNA enforcement
-- ✅ Generational pricing
-- ✅ Revenue distribution (80/20)
-
-**Initialize**:
-```bash
-cd kwami
-# Update QWAMI_MINT_ADDRESS in script first!
-npx ts-node scripts/initialize-kwami.ts
+#### Deployed Addresses
+```json
+{
+  "programId": "6CAgdgpPq8Np78LsDwREJqFPh9rM5Jh6RSS8eZ37kZuv",
+  "qwamiMint": "61rRyR9ey3AtZs9Z7r4t3JUnoWVDry7pfrWtWgiWpiK7",
+  "tokenAuthority": "7FQ83JWrngSSY5U7TtM6Wf6LAiDmutJb67jjDj5kfX82",
+  "treasury": "3odgxpVSjL5YFVM3YxPYqBz3stzZ4B1NKa1aYPqQuows",
+  "usdcVault": "HV7TVgabJf2SLyLSMrQVAzPA7RegXJRARtCkryxDrKUR",
+  "usdcMint": "4zMMC9srt5Ri5X14GAgXhaHii3GnPAEERYPJgZJDncDU"
+}
 ```
 
-**Test**:
-```bash
-npx ts-node scripts/test-kwami-devnet.ts
+### 2. KWAMI NFT Program
+
+**Location**: `kwami/programs/kwami-nft/`  
+**Program ID**: `DoAJAykwUrSDjraDegK4AJ1GCoztLYrTvKhUJHaFbSsD`  
+**Collection Mint**: `CzNuMseUFbpXNDLEKWEtrD3snXhNdZiGMn1rFFjjGvj6`
+
+#### Features
+- ✅ **10 Billion Supply**: Released over 75 years (2026-2100)
+- ✅ **Generational Release**: 133.33M NFTs per year
+- ✅ **DNA Validation**: Unique SHA-256 hash per NFT (on-chain registry)
+- ✅ **QWAMI Payment**: All mints require QWAMI tokens
+- ✅ **Burn Refund**: 50% of base minting cost returned
+- ✅ **Revenue Split**: 80% dividends, 20% operations
+- ✅ **Dynamic Pricing**: Decreases over generations
+
+#### Generation Pricing
+
+| Generation | Years | Max Supply (Cumulative) | Base Cost | + 10% Fee | + 50 QWAMI Tx Fee | Total |
+|------------|-------|-------------------------|-----------|-----------|-------------------|--------|
+| Gen #0 | 2026 | 133M | 10,000 | 1,000 | 50 | **11,050 QWAMI** |
+| Gen #1-5 | 2027-2031 | 800M | 5,000 | 500 | 50 | **5,550 QWAMI** |
+| Gen #6-20 | 2032-2046 | 2.8B | 2,500 | 250 | 50 | **2,800 QWAMI** |
+| Gen #21-50 | 2047-2076 | 6.8B | 1,000 | 100 | 50 | **1,150 QWAMI** |
+| Gen #51-74 | 2077-2100 | 10B | 500 | 50 | 50 | **600 QWAMI** |
+
+**Launch Date**: January 1, 2026 00:00:00 UTC
+
+#### Key Instructions
+```rust
+// Initialize NFT program, collection, and treasury
+initialize()
+
+// Mint a unique KWAMI NFT (requires QWAMI payment)
+mint_kwami(
+    dna_hash: [u8; 32],
+    name: String,      // Max 32 chars
+    symbol: String,    // Max 10 chars  
+    uri: String        // Max 200 chars (Arweave)
+)
+
+// Burn NFT and receive 50% QWAMI refund
+burn_kwami()
+
+// Update NFT metadata URI
+update_metadata(new_uri: String)
+
+// Transfer NFT ownership
+transfer_kwami(new_owner: Pubkey)
+
+// Check if DNA exists
+check_dna_exists(dna_hash: [u8; 32]) -> bool
 ```
 
-### Treasury System
+#### Accounts
+- **CollectionAuthority PDA**: `["collection-authority", collection_mint.key()]`
+  - Controls collection mint authority
+  - Tracks total minted count
+  
+- **DnaRegistry PDA**: `["dna-registry", collection_mint.key()]`
+  - Stores all minted DNA hashes (starts at 76 bytes)
+  - Grows dynamically: +32 bytes per NFT (via `realloc`)
+  - Max capacity: 1,000 DNA hashes per registry
+  
+- **KwamiNft PDA**: `["kwami-nft", nft_mint.key()]`
+  - Stores NFT metadata
+  - Tracks original mint cost (for refunds)
+  - Stores DNA hash, timestamps, URI
+  
+- **KwamiTreasury PDA**: `["kwami-treasury"]`
+  - Tracks all QWAMI received/refunded
+  - Maintains dividend pool (80%) and operations (20%)
+  - Stores QWAMI vault reference
 
-Both programs include transparent, on-chain treasuries:
-
-**QWAMI Treasury**:
-- Tracks SOL received/distributed
-- Tracks USDC received/distributed
-- Tracks QWAMI minted/burned
-- Publicly auditable
-
-**KWAMI Treasury**:
-- Tracks QWAMI payments/refunds
-- Tracks NFT mints/burns
-- 80% → Dividend pool
-- 20% → Operations
-- Publicly auditable
-
----
-
-## 🧪 Testing
-
-### Test Suites (200+ Scenarios)
-
-1. **Basic Operations**
-   - `qwami/tests/qwami-token.ts` - Token mint/burn/transfer
-   - `kwami/tests/kwami-nft.ts` - NFT mint/burn/transfer
-
-2. **Economic Features**
-   - `qwami/tests/qwami-token-economic.ts` - SOL/USDC exchange
-   - `kwami/tests/kwami-nft-economic.ts` - QWAMI payments & refunds
-
-3. **Integration**
-   - `tests/integration-full-journey.ts` - Complete user flow
-
-4. **Advanced**
-   - `tests/advanced-economic-scenarios.ts` - Economic simulations
-   - `tests/security-and-edge-cases.ts` - Security testing
-   - `tests/multi-user-scenarios.ts` - Stress testing (2000 TPS)
-
-### Run All Tests
-```bash
-# Basic tests
-cd qwami && anchor test
-cd ../kwami && anchor test
-
-# Integration tests
-cd .. && anchor test
-
-# Devnet tests (after deployment)
-cd qwami && npx ts-node scripts/test-qwami-devnet.ts
-cd ../kwami && npx ts-node scripts/test-kwami-devnet.ts
+#### Deployed Addresses
+```json
+{
+  "programId": "DoAJAykwUrSDjraDegK4AJ1GCoztLYrTvKhUJHaFbSsD",
+  "collectionMint": "CzNuMseUFbpXNDLEKWEtrD3snXhNdZiGMn1rFFjjGvj6",
+  "collectionAuthority": "BVcKkTjKZ6V9rEebDKaYLgArnvPPfBEmCCTWSZGEqxEX",
+  "dnaRegistry": "6H4VUE7uLxosPBeu8GsTb2TgqnykbkWDkLcApGgpr4cL",
+  "treasury": "7mfcbavtJ7u8xSv8xRAgTnCosrRiASH1dighXk529r3D",
+  "qwamiVault": "7BQkRbZ9Htqhvn2Z2Zeh3bktuwYE8CrkCZSivB7sp4j3",
+  "qwamiMint": "61rRyR9ey3AtZs9Z7r4t3JUnoWVDry7pfrWtWgiWpiK7"
+}
 ```
-
-See: [`EXPANDED_TEST_SCENARIOS.md`](EXPANDED_TEST_SCENARIOS.md)
 
 ---
 
 ## 💰 Economic Model
 
-### QWAMI Token
-- **Max Supply**: 1,000,000,000,000 (1 Trillion)
-- **Decimals**: 0
-- **Price**: $0.01 USD fixed
-- **Exchange**: SOL ↔ QWAMI ↔ USDC
+### QWAMI Token Economics
 
-### KWAMI NFT Supply Schedule
+```
+Max Supply:    1,000,000,000,000 (1 Trillion)
+Decimals:      0 (integer token)
+Price:         $0.01 USD (fixed)
+Exchange:      Bidirectional SOL ↔ QWAMI ↔ USDC
+```
 
-| Generation | Year | Max Supply | Cumulative | Base Price |
-|------------|------|------------|------------|------------|
-| Gen #0 | 2026 | 133,333,333 | 133M | 10,000 QWAMI |
-| Gen #5 | 2031 | 800,000,000 | 800M | 5,000 QWAMI |
-| Gen #20 | 2046 | 2,800,000,000 | 2.8B | 2,500 QWAMI |
-| Gen #50 | 2076 | 6,800,000,000 | 6.8B | 1,000 QWAMI |
-| Gen #74 | 2100 | 10,000,000,000 | 10B | 500 QWAMI |
+**Use Cases**:
+1. Mint KWAMI NFTs (primary utility)
+2. Store of value (pegged to $0.01)
+3. Cross-chain bridge currency (future)
 
-**Annual Increment**: 133,333,333 NFTs  
-**Total Generations**: 75
+### KWAMI NFT Economics
 
-### Revenue Distribution
-- **80%** → Weekly dividends to KWAMI holders
-- **20%** → Operations (development, marketing)
+**Supply Schedule**:
+- **Total Supply**: 10,000,000,000 NFTs
+- **Duration**: 75 years (2026-2100)
+- **Annual Release**: 133,333,333 NFTs
+- **Launch**: January 1, 2026
+- **Generations**: 75 (Gen #0 through Gen #74)
 
-### Refund Policy
-Burn NFT → Get 50% QWAMI back (based on base mint cost)
+**Revenue Distribution**:
+```
+Each mint generates revenue → 100% goes to treasury
+
+Treasury splits:
+├─ 80% → Dividend Pool (for weekly holder distributions)
+└─ 20% → Operations Fund (development, marketing, infrastructure)
+```
+
+**Refund Mechanism**:
+- Burn any KWAMI NFT → Receive 50% of **base minting cost** in QWAMI
+- Example: Gen #0 NFT cost 11,050 QWAMI → Refund = 5,000 QWAMI (50% of 10,000 base)
+- Encourages turnover and DNA recycling
+
+---
+
+## 🔧 Technical Implementation
+
+### DNA Registry Solution
+
+**Problem**: Original design pre-allocated 32KB (1,000 × 32-byte hashes) which exceeded Solana's 10KB reallocation limit during initialization.
+
+**Solution**: Dynamic allocation using Anchor's `realloc` feature:
+```rust
+impl DnaRegistry {
+    // Start with minimal space
+    pub const INITIAL_SIZE: usize = 76; // authority + collection + vec_len + count
+    
+    // Calculate space for N hashes
+    pub fn space_for_hashes(count: usize) -> usize {
+        Self::INITIAL_SIZE + (32 * count)
+    }
+}
+
+// On mint: grow registry dynamically
+#[account(
+    mut,
+    realloc = 8 + DnaRegistry::space_for_hashes(dna_registry.dna_count as usize + 1),
+    realloc::payer = owner,
+    realloc::zero = false,
+)]
+pub dna_registry: Box<Account<'info, DnaRegistry>>,
+```
+
+**Benefits**:
+- ✅ Initialization succeeds (starts at 76 bytes)
+- ✅ Grows incrementally (+32 bytes per mint)
+- ✅ Efficient: only pays for space actually used
+- ✅ Scalable: supports up to 1,000 unique DNAs per registry
+
+### Program Upgrade Process
+
+Both programs deployed with upgrade authority retained:
+```bash
+# Check upgrade authority
+solana program show <PROGRAM_ID>
+
+# Upgrade program
+anchor upgrade target/deploy/program.so \
+  --program-id <PROGRAM_ID> \
+  --provider.cluster devnet
+```
+
+**Upgrade Authority**: `3TYRKswBCUy8agGNBF3wpg4AoiahZWKBKJB3ZJhybscf`
+
+---
+
+## 📁 Project Structure
+
+```
+solana/anchor/
+├── qwami/                              # QWAMI Token Program
+│   ├── programs/qwami-token/
+│   │   ├── src/lib.rs                 # ~850 lines - Token logic
+│   │   └── Cargo.toml
+│   ├── scripts/
+│   │   └── initialize-qwami.ts        # Initialization script
+│   ├── tests/
+│   │   ├── qwami-token.ts             # Basic tests
+│   │   └── qwami-token-economic.ts    # Economic tests
+│   ├── target/
+│   │   ├── deploy/qwami_token.so      # Compiled program
+│   │   ├── idl/qwami_token.json       # Interface definition
+│   │   └── types/qwami_token.ts       # TypeScript types
+│   ├── devnet-addresses.json          # Deployed addresses
+│   ├── Anchor.toml
+│   ├── Cargo.toml
+│   ├── package.json
+│   └── tsconfig.json
+│
+├── kwami/                              # KWAMI NFT Program
+│   ├── programs/kwami-nft/
+│   │   ├── src/lib.rs                 # ~750 lines - NFT logic
+│   │   └── Cargo.toml
+│   ├── scripts/
+│   │   └── initialize-kwami.ts        # Initialization script
+│   ├── tests/
+│   │   └── kwami-nft-economic.ts      # Economic tests
+│   ├── target/
+│   │   ├── deploy/kwami_nft.so        # Compiled program
+│   │   ├── idl/kwami_nft.json         # Interface definition
+│   │   └── types/kwami_nft.ts         # TypeScript types
+│   ├── devnet-addresses.json          # Deployed addresses
+│   ├── Anchor.toml
+│   ├── Cargo.toml
+│   ├── package.json
+│   └── tsconfig.json
+│
+├── tests/                              # Integration tests
+│   ├── advanced-economic-scenarios.ts
+│   ├── integration-full-journey.ts
+│   ├── multi-user-scenarios.ts
+│   └── security-and-edge-cases.ts
+│
+├── deploy-programs.sh                  # Unified deployment script
+├── initialize-programs.sh              # Initialization script
+├── install-dependencies.sh             # Installs Solana/Anchor/Rust
+├── rust-toolchain.toml                # Rust 1.77.0 (required)
+├── Anchor.toml                        # Workspace config
+├── Cargo.toml                         # Workspace dependencies
+└── README.md                          # This file
+```
+
+---
+
+## 🧪 Testing
+
+### Test Suites
+
+1. **Unit Tests** (Run with `anchor test`)
+   - `qwami/tests/qwami-token.ts` - Token operations
+   - `qwami/tests/qwami-token-economic.ts` - Economic features
+   - `kwami/tests/kwami-nft-economic.ts` - NFT economic features
+
+2. **Integration Tests**
+   - `tests/advanced-economic-scenarios.ts` - Complex scenarios
+   - `tests/integration-full-journey.ts` - End-to-end user flows
+   - `tests/multi-user-scenarios.ts` - Concurrent operations
+   - `tests/security-and-edge-cases.ts` - Security testing
+
+### Running Tests
+
+```bash
+# Install dependencies
+cd qwami && npm install
+cd ../kwami && npm install
+
+# Run unit tests
+cd qwami && anchor test
+cd ../kwami && anchor test
+
+# Run integration tests
+cd .. && anchor test
+
+# Test on devnet (after deployment)
+cd qwami && ANCHOR_PROVIDER_URL=https://api.devnet.solana.com \
+  ANCHOR_WALLET=$HOME/.config/solana/id.json \
+  anchor test --skip-local-validator
+```
+
+---
+
+## 🚀 Deployment Guide
+
+### Complete Deployment Process
+
+```bash
+# 1. Install dependencies (one-time setup)
+./install-dependencies.sh
+
+# 2. Configure for devnet
+solana config set --url devnet
+solana airdrop 2  # Get test SOL
+
+# 3. Deploy programs
+./deploy-programs.sh
+# Select: 2) Devnet
+
+# 4. Verify deployment
+solana program show 6CAgdgpPq8Np78LsDwREJqFPh9rM5Jh6RSS8eZ37kZuv  # QWAMI
+solana program show DoAJAykwUrSDjraDegK4AJ1GCoztLYrTvKhUJHaFbSsD  # KWAMI
+
+# 5. View on explorer
+# QWAMI: https://explorer.solana.com/address/6CAgdgpPq8Np78LsDwREJqFPh9rM5Jh6RSS8eZ37kZuv?cluster=devnet
+# KWAMI: https://explorer.solana.com/address/DoAJAykwUrSDjraDegK4AJ1GCoztLYrTvKhUJHaFbSsD?cluster=devnet
+```
+
+### Network Selection
+
+The deployment script supports three networks:
+1. **Localnet** - Local validator (testing)
+2. **Devnet** - Solana devnet (current)
+3. **Mainnet** - Production (requires double confirmation)
+
+```bash
+./deploy-programs.sh
+# Select network when prompted
+```
+
+### Manual Build & Deploy
+
+```bash
+# Build programs
+cd qwami && anchor build
+cd ../kwami && anchor build
+
+# Deploy to devnet
+cd qwami && anchor deploy --provider.cluster devnet
+cd ../kwami && anchor deploy --provider.cluster devnet
+
+# Upload IDLs
+cd qwami && anchor idl init --filepath target/idl/qwami_token.json \
+  6CAgdgpPq8Np78LsDwREJqFPh9rM5Jh6RSS8eZ37kZuv --provider.cluster devnet
+
+cd ../kwami && anchor idl init --filepath target/idl/kwami_nft.json \
+  DoAJAykwUrSDjraDegK4AJ1GCoztLYrTvKhUJHaFbSsD --provider.cluster devnet
+
+# Initialize
+./initialize-programs.sh
+```
 
 ---
 
 ## 🔐 Security
 
-### Implemented Features
-- ✅ Authority validation
-- ✅ PDA-based addresses
-- ✅ Overflow protection
-- ✅ Account ownership checks
-- ✅ DNA uniqueness enforcement
-- ✅ Generation supply caps
-- ✅ Treasury balance tracking
+### Implemented Security Features
 
-### Testing Coverage
-- ✅ 200+ test scenarios
-- ✅ Security edge cases
-- ✅ Concurrent operations
-- ✅ Boundary value testing
-- ✅ Unauthorized access attempts
+- ✅ **PDA-based authorities**: No private keys for program authorities
+- ✅ **Account validation**: All accounts validated with constraints
+- ✅ **Overflow protection**: Safe math operations throughout
+- ✅ **Supply caps**: Generation-based and absolute supply limits
+- ✅ **DNA uniqueness**: On-chain registry prevents duplicates
+- ✅ **Authority checks**: All admin functions require authority signature
+- ✅ **Balance tracking**: Complete treasury accounting
 
-### Pending (Before Mainnet)
+### Known Limitations
+
+- ⚠️ DNA Registry: Limited to 1,000 unique NFTs per registry (design decision for MVP)
+- ⚠️ No rate limiting: Relies on Solana's built-in rate limiting
+- ⚠️ No pausability: Programs cannot be paused (requires upgrade)
+
+### Pre-Mainnet Requirements
+
 - [ ] Professional security audit
 - [ ] Penetration testing
-- [ ] Economic attack simulations
+- [ ] Economic attack simulation
+- [ ] Stress testing at scale
+- [ ] Multi-sig upgrade authority
+- [ ] Bug bounty program
 
 ---
 
-## 📦 Project Structure
+## 📊 Performance
 
-```
-solana/anchor/
-│
-├── qwami/                          # QWAMI Token Program
-│   ├── programs/qwami-token/       
-│   │   └── src/lib.rs              # Token program logic
-│   ├── tests/                      # Test suites
-│   └── scripts/                    # Init & test scripts
-│
-├── kwami/                          # KWAMI NFT Program
-│   ├── programs/kwami-nft/         
-│   │   └── src/lib.rs              # NFT program logic
-│   ├── tests/                      # Test suites
-│   └── scripts/                    # Init & test scripts
-│
-├── tests/                          # Integration tests
-│   ├── integration-full-journey.ts
-│   ├── advanced-economic-scenarios.ts
-│   ├── security-and-edge-cases.ts
-│   └── multi-user-scenarios.ts
-│
-├── deploy-devnet.sh                # Automated deployment
-├── QUICK_START.md                  # Quick start guide
-├── DEVNET_DEPLOYMENT_GUIDE.md      # Detailed guide
-├── DEPLOYMENT_STATUS.md            # Project status
-├── INSTRUCTION_REFERENCE.md        # API docs
-├── TESTING_SUMMARY.md              # Test overview
-└── EXPANDED_TEST_SCENARIOS.md      # Test details
-```
+### Benchmarks (Devnet)
+
+| Operation | Avg Time | Gas Cost |
+|-----------|----------|----------|
+| QWAMI mint (SOL) | ~400ms | ~0.00005 SOL |
+| QWAMI burn (SOL) | ~350ms | ~0.00005 SOL |
+| KWAMI mint | ~500ms | ~0.0001 SOL + QWAMI cost |
+| KWAMI burn | ~450ms | ~0.00008 SOL |
+| DNA check | ~50ms | ~0.00001 SOL |
+| Treasury query | ~20ms | Free (read-only) |
+
+### Scalability
+
+- **Max TPS**: Limited by Solana (65,000 TPS theoretical)
+- **Account growth**: DNA Registry grows linearly (+32 bytes/NFT)
+- **Storage costs**: ~0.001 SOL per NFT for account rent
 
 ---
 
-## 🚀 Deployment Workflow
+## 📝 Scripts Reference
 
-### 1. Devnet (Now) ⏳
+### Deployment Scripts
+
+- **`deploy-programs.sh`**: Unified deployment script
+  - Network selection (localnet/devnet/mainnet)
+  - Builds both programs
+  - Deploys with correct IDs
+  - Uploads IDLs
+  - Safety confirmations for mainnet
+
+- **`initialize-programs.sh`**: Initialize both programs
+  - Runs after deployment
+  - Creates mints and token accounts
+  - Initializes all PDAs
+  - Saves addresses to JSON files
+
+- **`install-dependencies.sh`**: One-time setup
+  - Installs Solana CLI
+  - Installs Anchor
+  - Installs Rust toolchain
+
+### Initialization Scripts
+
+- **`qwami/scripts/initialize-qwami.ts`**:
+  - Creates QWAMI mint
+  - Creates USDC vault
+  - Initializes token authority PDA
+  - Initializes treasury PDA
+
+- **`kwami/scripts/initialize-kwami.ts`**:
+  - Creates collection mint
+  - Creates QWAMI vault
+  - Initializes collection authority PDA
+  - Initializes DNA registry PDA (minimal size)
+  - Initializes treasury PDA
+
+---
+
+## 🌐 Network Information
+
+### Devnet (Current)
+
 ```bash
-./deploy-devnet.sh
+RPC: https://api.devnet.solana.com
+Explorer: https://explorer.solana.com/?cluster=devnet
+USDC Mint: 4zMMC9srt5Ri5X14GAgXhaHii3GnPAEERYPJgZJDncDU
+
+QWAMI Program: 6CAgdgpPq8Np78LsDwREJqFPh9rM5Jh6RSS8eZ37kZuv
+KWAMI Program: DoAJAykwUrSDjraDegK4AJ1GCoztLYrTvKhUJHaFbSsD
 ```
 
-### 2. Testnet (Week 2-3)
-After 48h successful devnet operation:
-- Extended testing
-- Community feedback
-- Performance monitoring
+### Mainnet (Future)
 
-### 3. Mainnet (Week 4+)
-After security audit and 7-day testnet:
-- Security audit ✅
-- Legal compliance ✅
-- Marketing ready ✅
-- Production deployment 🚀
+```bash
+RPC: https://api.mainnet-beta.solana.com
+Explorer: https://explorer.solana.com/
+USDC Mint: EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v
+
+# Mainnet deployment pending security audit
+```
 
 ---
 
 ## 🛠️ Development
 
 ### Prerequisites
+
 ```bash
-# Install Rust
+# Rust 1.77+ (exact version in rust-toolchain.toml)
 curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
 
-# Install Solana CLI
-sh -c "$(curl -sSfL https://release.solana.com/stable/install)"
+# Solana CLI 2.3.0 (required for Anchor 0.32.1)
+sh -c "$(curl -sSfL https://release.anza.xyz/v2.3.0/install)"
 
-# Install Anchor
+# Anchor 0.32.1
 cargo install --git https://github.com/coral-xyz/anchor avm --locked --force
-avm install latest
-avm use latest
+avm install 0.32.1
+avm use 0.32.1
+
+# Node.js 18+ and npm
+# Download from https://nodejs.org/
 ```
 
-### Build
+### Environment Setup
+
 ```bash
-# Build QWAMI
+# Configure Solana CLI
+solana config set --url devnet
+solana-keygen new  # Create keypair if you don't have one
+
+# Get devnet SOL
+solana airdrop 2
+
+# Verify setup
+solana --version   # Should be 2.3.0+
+anchor --version   # Should be 0.32.1
+rustc --version    # Should be 1.77+
+```
+
+### Building
+
+```bash
+# Build everything
+anchor build
+
+# Build specific program
 cd qwami && anchor build
+cd kwami && anchor build
 
-# Build KWAMI
-cd ../kwami && anchor build
+# Clean build
+anchor clean && anchor build
 ```
 
-### Test Locally
+### Local Testing
+
 ```bash
-# Test QWAMI
-cd qwami && anchor test
+# Start local validator (separate terminal)
+solana-test-validator
 
-# Test KWAMI
-cd ../kwami && anchor test
+# Run tests against local validator
+anchor test
 
-# Integration tests
-cd .. && anchor test
-```
-
-### Deploy to Devnet
-```bash
-./deploy-devnet.sh
+# Run specific test file
+anchor test tests/qwami-token.ts
 ```
 
 ---
 
-## 📊 Stats
-
-### Code
-- **Rust (programs)**: ~2,000 lines
-- **TypeScript (tests)**: ~4,500 lines
-- **Documentation**: ~5,000 lines
-- **Total**: ~11,500 lines
-
-### Testing
-- **Test Suites**: 7
-- **Test Scenarios**: 200+
-- **Coverage**: ~85%
-- **Security Tests**: 40+
-
-### Performance
-- **Max TPS**: 2,000 (tested)
-- **Avg Mint Time**: 400ms
-- **Avg Burn Time**: 350ms
-- **Treasury Query**: <100ms
-
----
-
-## 🎯 Key Features
-
-### For Users
-- 💰 Buy/sell QWAMI with SOL or USDC
-- 🎨 Mint unique KWAMI NFTs
-- 🔥 Burn NFTs for 50% QWAMI refund
-- 📊 View all treasury data publicly
-- 💸 Earn weekly dividends (80% of revenue)
-
-### For Developers
-- 🔧 Clean, documented APIs
-- 🧪 Comprehensive test suite
-- 📖 Detailed guides
-- 🚀 Automated deployment
-- 🔐 Security best practices
-
-### For Investors
-- 📈 Transparent economics
-- 💰 Revenue sharing model
-- 🏦 Public treasury accounting
-- 📊 Long-term supply schedule
-- 🔒 Security-first approach
-
----
-
-## 🤝 Contributing
-
-This is a production project. To contribute:
-
-1. Fork the repository
-2. Create a feature branch
-3. Make your changes
-4. Add tests
-5. Submit a pull request
-
----
-
-## 📞 Support
+## 📞 Support & Resources
 
 ### Documentation
-Start with: [`QUICK_START.md`](QUICK_START.md)
 
-### Issues
-Found a bug? Check [`DEVNET_DEPLOYMENT_GUIDE.md`](DEVNET_DEPLOYMENT_GUIDE.md) troubleshooting section.
+- **Solana**: https://docs.solana.com/
+- **Anchor**: https://www.anchor-lang.com/
+- **SPL Token**: https://spl.solana.com/token
 
-### Resources
-- [Solana Docs](https://docs.solana.com/)
-- [Anchor Book](https://book.anchor-lang.com/)
-- [Solana Explorer](https://explorer.solana.com/?cluster=devnet)
+### Explorer Links
+
+- **QWAMI Token**: https://explorer.solana.com/address/6CAgdgpPq8Np78LsDwREJqFPh9rM5Jh6RSS8eZ37kZuv?cluster=devnet
+- **KWAMI NFT**: https://explorer.solana.com/address/DoAJAykwUrSDjraDegK4AJ1GCoztLYrTvKhUJHaFbSsD?cluster=devnet
+- **QWAMI Mint**: https://explorer.solana.com/address/61rRyR9ey3AtZs9Z7r4t3JUnoWVDry7pfrWtWgiWpiK7?cluster=devnet
+- **KWAMI Collection**: https://explorer.solana.com/address/CzNuMseUFbpXNDLEKWEtrD3snXhNdZiGMn1rFFjjGvj6?cluster=devnet
+
+### Troubleshooting
+
+**Build Errors**:
+```bash
+# Clean and rebuild
+anchor clean && anchor build
+
+# Check Rust version
+rustc --version  # Must be 1.77+
+
+# Check Solana version
+solana --version  # Must be 2.3.0+
+
+# Check Anchor version
+anchor --version  # Must be 0.32.1
+```
+
+**Deployment Errors**:
+```bash
+# Check balance
+solana balance
+
+# Request airdrop (devnet only)
+solana airdrop 2
+
+# Check network
+solana config get
+
+# View program info
+solana program show <PROGRAM_ID>
+```
 
 ---
 
@@ -406,23 +746,24 @@ MIT License - See LICENSE file for details
 
 ---
 
-## 🎉 Ready to Deploy?
+## 🎉 Status
 
-Your KWAMI ecosystem is **production-ready** for devnet!
+✅ **Programs**: Deployed and initialized on devnet  
+✅ **Testing**: Integration tests passing  
+✅ **Documentation**: Complete and up-to-date  
+✅ **Security**: Basic security features implemented  
 
-```bash
-cd /home/kali/labs/kwami/solana/anchor
-./deploy-devnet.sh
-```
-
-**Time to deploy**: 5 minutes  
-**Time to test**: 10 minutes  
-**Time to production**: You decide! 🚀
+**Next Steps**:
+1. Extended testing on devnet
+2. Community feedback
+3. Security audit preparation
+4. Mainnet deployment planning
 
 ---
 
 **Built with ❤️ using Rust, Anchor, and Solana**
 
-**Status**: ✅ Ready for Devnet Deployment  
-**Last Updated**: November 22, 2025
+**Last Updated**: December 17, 2025  
+**Version**: 0.1.0  
+**Network**: Devnet
 

@@ -1,6 +1,7 @@
 export * from './types';
 export * from './theme';
 export * from './rings';
+export * from './logo';
 export * from './welcome';
 export * from './wallet';
 export { createGlassButton } from './components/GlassButton';

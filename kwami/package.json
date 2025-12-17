@@ -82,6 +82,10 @@
       "import": "./dist/src/ui/rings/index.js",
       "types": "./dist/src/ui/rings/index.d.ts"
     },
+    "./ui/logo": {
+      "import": "./dist/src/ui/logo/index.js",
+      "types": "./dist/src/ui/logo/index.d.ts"
+    },
     "./ui/welcome": {
       "import": "./dist/src/ui/welcome/index.js",
       "types": "./dist/src/ui/welcome/index.d.ts"

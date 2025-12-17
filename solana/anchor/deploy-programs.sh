@@ -48,7 +48,7 @@ case $network_choice in
         USDC_MINT="4zMMC9srt5Ri5X14GAgXhaHii3GnPAEERYPJgZJDncDU"  # Devnet USDC
         ;;
     3)
-        CLUSTER="mainnet-beta"
+        CLUSTER="mainnet"
         CLUSTER_URL="https://api.mainnet-beta.solana.com"
         USDC_MINT="EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v"  # Mainnet USDC
         
@@ -80,6 +80,21 @@ case $network_choice in
 esac
 
 echo -e "${GREEN}✅ Selected network: ${CLUSTER}${NC}"
+
+# Setup logging (after cluster is selected)
+LOG_DIR="$SCRIPT_DIR/logs"
+mkdir -p "$LOG_DIR"
+LOG_FILE="$LOG_DIR/deployment-${CLUSTER}-$(date +%Y%m%d-%H%M%S).log"
+
+# Function to log messages to both console and file
+log() {
+    echo -e "$@" | tee -a "$LOG_FILE"
+}
+
+# Redirect all output to log file while keeping console output
+exec > >(tee -a "$LOG_FILE") 2>&1
+
+log "[$(date)] Deployment script started for ${CLUSTER}"
 
 # Step 2: Check prerequisites
 echo -e "\n${YELLOW}Step 2: Checking prerequisites...${NC}"
@@ -292,9 +307,10 @@ else
     echo -e "\n${YELLOW}Initializing KWAMI NFT...${NC}"
     cd ../kwami
     
-    # Update QWAMI mint address in initialization script
-    if [ -f "../qwami/devnet-addresses.json" ]; then
-        QWAMI_MINT=$(cat ../qwami/devnet-addresses.json | grep -o '"qwamiMint": "[^"]*"' | cut -d'"' -f4)
+    # Update QWAMI mint address in initialization script (cluster-specific)
+    CLUSTER_ADDRESSES="../qwami/${CLUSTER}-addresses.json"
+    if [ -f "$CLUSTER_ADDRESSES" ]; then
+        QWAMI_MINT=$(cat "$CLUSTER_ADDRESSES" | grep -o '"qwamiMint": "[^"]*"' | cut -d'"' -f4)
         if [ -n "$QWAMI_MINT" ]; then
             sed -i "s/const QWAMI_MINT_ADDRESS = \"[^\"]*\";/const QWAMI_MINT_ADDRESS = \"${QWAMI_MINT}\";/" scripts/initialize-kwami.ts
         fi
@@ -312,94 +328,48 @@ else
     INIT_SKIPPED=false
 fi
 
-# Step 12: Create deployment record
-echo -e "\n${YELLOW}Step 12: Creating deployment record...${NC}"
+# Step 12: Create deployment summary
+echo -e "\n${YELLOW}Step 12: Creating deployment summary...${NC}"
 
-RECORD_FILE="$SCRIPT_DIR/DEPLOY_${CLUSTER^^}_RECORD.md"
+# Create deployment summary JSON
+SUMMARY_FILE="$SCRIPT_DIR/deployments/${CLUSTER}-deployment-$(date +%Y%m%d-%H%M%S).json"
+mkdir -p "$SCRIPT_DIR/deployments"
 
-cat > "$RECORD_FILE" << EOF
-# 🚀 ${CLUSTER^} Deployment Record
-
-**Date:** $(date)
-**Deployer:** ${WALLET_ADDRESS}
-**Cluster:** ${CLUSTER}
-
----
-
-## 📝 Program IDs
-
-### QWAMI Token Program
-\`\`\`
-Program ID: ${QWAMI_PROGRAM_ID}
-Explorer: https://explorer.solana.com/address/${QWAMI_PROGRAM_ID}?cluster=${CLUSTER}
-\`\`\`
-
-### KWAMI NFT Program
-\`\`\`
-Program ID: ${KWAMI_PROGRAM_ID}
-Explorer: https://explorer.solana.com/address/${KWAMI_PROGRAM_ID}?cluster=${CLUSTER}
-\`\`\`
-
----
-
-## 🔑 Configuration
-
-### USDC Mint
-\`\`\`
-USDC Mint: ${USDC_MINT}
-\`\`\`
-
-### Wallet
-\`\`\`
-Address: ${WALLET_ADDRESS}
-Balance: ${BALANCE} SOL
-\`\`\`
-
----
-
-## ⚠️ Next Steps
-
-1. **Test on ${CLUSTER^}**
-   - Run test scripts
-   - Verify all operations work
-   - Check treasury accounting
-
-2. **Monitor for 24 Hours**
-   - Watch for errors
-   - Check transaction success rate
-   - Verify economic model
-
----
-
-## 📚 Resources
-
-- [Solana Explorer](https://explorer.solana.com/?cluster=${CLUSTER})
-- [Anchor Docs](https://www.anchor-lang.com/)
-
----
-
-**Deployment Status:** ✅ Programs Deployed and Initialized
+cat > "$SUMMARY_FILE" << EOF
+{
+  "cluster": "${CLUSTER}",
+  "timestamp": "$(date -u +%Y-%m-%dT%H:%M:%SZ)",
+  "deployer": "${WALLET_ADDRESS}",
+  "balance": "${BALANCE}",
+  "programs": {
+    "qwami": {
+      "programId": "${QWAMI_PROGRAM_ID}",
+      "explorer": "https://explorer.solana.com/address/${QWAMI_PROGRAM_ID}?cluster=${CLUSTER}",
+      "initialized": ${QWAMI_INITIALIZED:-false}
+    },
+    "kwami": {
+      "programId": "${KWAMI_PROGRAM_ID}",
+      "explorer": "https://explorer.solana.com/address/${KWAMI_PROGRAM_ID}?cluster=${CLUSTER}",
+      "initialized": ${KWAMI_INITIALIZED:-false}
+    }
+  },
+  "configuration": {
+    "usdcMint": "${USDC_MINT}",
+    "clusterUrl": "${CLUSTER_URL}"
+  }
+}
 EOF
 
-if [ "$INIT_SKIPPED" = true ]; then
-    echo "\n## ⚠️ Manual Initialization Required\n" >> "$RECORD_FILE"
-    echo "Node.js was not available during deployment. Run:\n" >> "$RECORD_FILE"
-    echo "\`\`\`bash" >> "$RECORD_FILE"
-    echo "cd qwami && npm run initialize" >> "$RECORD_FILE"
-    echo "cd ../kwami && npm run initialize" >> "$RECORD_FILE"
-    echo "\`\`\`" >> "$RECORD_FILE"
-elif [ "$QWAMI_INITIALIZED" = false ] || [ "$KWAMI_INITIALIZED" = false ]; then
-    echo "\n## ⚠️ Initialization Issues\n" >> "$RECORD_FILE"
-    [ "$QWAMI_INITIALIZED" = false ] && echo "- QWAMI: Failed (run manually)\n" >> "$RECORD_FILE"
-    [ "$KWAMI_INITIALIZED" = false ] && echo "- KWAMI: Failed (run manually)\n" >> "$RECORD_FILE"
-else
-    echo "\n## ✅ Initialization Complete\n" >> "$RECORD_FILE"
-    echo "Both programs are fully initialized and ready to use.\n" >> "$RECORD_FILE"
-fi
+echo -e "${GREEN}✅ Deployment summary: ${SUMMARY_FILE}${NC}"
 
-echo -e "${GREEN}✅ Deployment record created: ${RECORD_FILE}${NC}"
+# Create symlink to latest deployment
+ln -sf "$(basename $SUMMARY_FILE)" "$SCRIPT_DIR/deployments/${CLUSTER}-latest.json"
+
+echo -e "${GREEN}✅ Symlink created: deployments/${CLUSTER}-latest.json${NC}"
 
 # Final summary
+log "\n[$(date)] Deployment completed successfully"
+
 echo -e "\n${GREEN}"
 echo "═══════════════════════════════════════════════════════════"
 echo "  ✅ Deployment Complete!"
@@ -413,6 +383,13 @@ echo -e "KWAMI NFT:   ${BLUE}${KWAMI_PROGRAM_ID}${NC}"
 echo -e "\n${YELLOW}🔗 Explorer Links:${NC}"
 echo -e "QWAMI: ${BLUE}https://explorer.solana.com/address/${QWAMI_PROGRAM_ID}?cluster=${CLUSTER}${NC}"
 echo -e "KWAMI: ${BLUE}https://explorer.solana.com/address/${KWAMI_PROGRAM_ID}?cluster=${CLUSTER}${NC}"
+
+echo -e "\n${YELLOW}📊 Deployment Artifacts:${NC}"
+echo -e "Summary JSON: ${BLUE}${SUMMARY_FILE}${NC}"
+echo -e "Latest link:  ${BLUE}deployments/${CLUSTER}-latest.json${NC}"
+echo -e "Full log:     ${BLUE}${LOG_FILE}${NC}"
+echo -e "QWAMI details: ${BLUE}qwami/${CLUSTER}-addresses.json${NC}"
+echo -e "KWAMI details: ${BLUE}kwami/${CLUSTER}-addresses.json${NC}"
 
 if [ "$INIT_SKIPPED" = true ] || [ "$QWAMI_INITIALIZED" = false ] || [ "$KWAMI_INITIALIZED" = false ]; then
     echo -e "\n${YELLOW}⚠️  Next Steps:${NC}"
