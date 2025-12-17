@@ -2,7 +2,7 @@ use anchor_lang::prelude::*;
 use anchor_lang::solana_program::program_option::COption;
 use anchor_spl::token::{self, Mint, Token, TokenAccount, Transfer};
 
-declare_id!("BTpKTZUyyAgiKsLrJfzFCYAyAFVx1Jd8xsbE11dTTswL"); // Will be updated after deployment
+declare_id!("DoAJAykwUrSDjraDegK4AJ1GCoztLYrTvKhUJHaFbSsD"); // Will be updated after deployment
 
 /// Maximum total KWAMIs by 2100 - One for every human on Earth (10 billion)
 /// Based on UN World Population Prospects 2022 - Medium Variant: ~10.4B by 2100

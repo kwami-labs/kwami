@@ -6,13 +6,7 @@
   top: 0;
   left: 0;
   z-index: 100;
-  background-color: #000000;
-  background: radial-gradient(
-      circle at center,
-      #0a0a0a 0%,
-      #050505 45%,
-      #000000 100%
-    );
+  background: transparent;
   overflow: visible;
   text-align: center;
   display: flex;
@@ -23,6 +17,33 @@
   margin: 0;
   padding: 0;
   transition: opacity 3s ease;
+  isolation: isolate;
+}
+
+/* Background layer (separate opacity so we can fade it during the transition) */
+.loader-container::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  background: radial-gradient(
+    circle at center,
+    #0a0a0a 0%,
+    #050505 45%,
+    #000000 100%
+  );
+  opacity: 1;
+  /* Fade after rings complete (triggered in JS); keep this fairly short for a clean handoff */
+  transition: opacity 1.4s ease-out;
+}
+
+.loader-container.bg-fade::before {
+  opacity: 0;
+}
+
+/* When exiting, let interactions go through to the main app while the rings animation plays */
+.loader-container.exiting {
+  pointer-events: none;
 }
 
 .welcome-kwami-container {
@@ -678,14 +699,13 @@
 }
 
 /* Light Mode Styles */
-body.light-mode .loader-container {
-  background-color: #ffffff;
+body.light-mode .loader-container::before {
   background: radial-gradient(
-      circle at center,
-      #f5f5f5 0%,
-      #fafafa 45%,
-      #ffffff 100%
-    );
+    circle at center,
+    #f5f5f5 0%,
+    #fafafa 45%,
+    #ffffff 100%
+  );
 }
 
 body.light-mode .info-line {

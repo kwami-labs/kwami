@@ -84,9 +84,12 @@ export class WelcomeLayer {
   private sidebarNav: HTMLElement | null = null;
   private sidebarPlaceholder: Comment | null = null;
   private onCompleteCallback: (() => void) | null = null;
+  private onExitStartCallback: (() => void) | null = null;
+  private hasSignaledExitStart = false;
   private themeToggleButton: HTMLElement | null = null;
 
-  constructor(onComplete?: () => void) {
+  constructor(onComplete?: () => void, onExitStart?: () => void) {
+    this.onExitStartCallback = onExitStart || null;
     this.onCompleteCallback = onComplete || null;
     this.secondsContainer = this.secondsLoader + 2;
     
@@ -333,10 +336,6 @@ export class WelcomeLayer {
     nav.classList.add('inside-welcome-layer');
     this.sidebarNav = nav;
 
-    // Trigger wave animation after a short delay to ensure DOM is ready
-    setTimeout(() => {
-      this.triggerSidebarWave();
-    }, 100);
   }
 
   private triggerSidebarWave() {
@@ -370,6 +369,10 @@ export class WelcomeLayer {
 
   private detachSidebarNavigation() {
     if (!this.sidebarNav) return;
+
+    // Ensure no leftover wave class is present when the nav becomes visible in the main app.
+    const sphereContainer = this.sidebarNav.querySelector('.sphere-container');
+    sphereContainer?.classList.remove('wave-enter');
 
     if (this.sidebarPlaceholder && this.sidebarPlaceholder.parentNode) {
       this.sidebarPlaceholder.parentNode.replaceChild(this.sidebarNav, this.sidebarPlaceholder);
@@ -772,6 +775,33 @@ export class WelcomeLayer {
 
     if (kwamiContainer && svg && this.kwami) {
       this.showButton = false;
+
+      // Signal exit start (so the main app can prewarm its blob while this layer fades out)
+      if (!this.hasSignaledExitStart) {
+        this.hasSignaledExitStart = true;
+
+        // Start fading the welcome background only AFTER the rings animation finishes.
+        // Rings are revealed ~700ms after click. Visually they fade out around `secondsLoader - 2` seconds.
+        const ringsRevealDelayMs = 700;
+        const ringsDurationMs = Math.max(0, (this.secondsLoader - 2) * 1000);
+        const fadeStartMs = ringsRevealDelayMs + ringsDurationMs;
+
+        window.setTimeout(() => {
+          this.container?.classList.add('bg-fade');
+        }, fadeStartMs);
+
+        // Don't make the layer click-through until the fade starts (prevents accidental interactions).
+        window.setTimeout(() => {
+          this.container?.classList.add('exiting');
+        }, fadeStartMs);
+
+        try {
+          this.onExitStartCallback?.();
+        } catch (error) {
+          console.warn('⚠️ onExitStart callback failed:', error);
+        }
+      }
+
       window.scrollTo({ top: 0, behavior: 'smooth' });
       
       // Trigger sidebar exit animation (bottom to top)

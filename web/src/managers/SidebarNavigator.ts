@@ -8,6 +8,12 @@ export interface SidebarNavigatorOptions {
   onNavigate?: (sectionIndex: number) => void;
   getCurrentSection?: () => number;
   colorPalettes?: ColorPalette[];
+
+  /**
+   * When false, do not play the initial wave animation on construction.
+   * (Useful when the UI is still hidden behind the welcome intro lock.)
+   */
+  initialWave?: boolean;
 }
 
 /**
@@ -43,7 +49,10 @@ export class SidebarNavigator {
       this.container.style.setProperty('--sphere-count', `${this.totalSections}`);
       this.generateSpheres();
       this.applyWaveDelays();
-      this.triggerWaveAnimation();
+
+      if (options.initialWave !== false) {
+        this.triggerWaveAnimation();
+      }
     }
   }
 

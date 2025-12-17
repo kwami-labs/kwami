@@ -1,6 +1,6 @@
 import { defineStore } from 'pinia'
 import { computed, ref, watch } from 'vue'
-import { WalletReadyState } from '@solana/wallet-adapter-base'
+import { getWalletConnector } from 'kwami/apps/wallet'
 import { useSolanaWallet } from '../composables/useSolanaWallet'
 
 export const useWalletStore = defineStore('wallet', () => {
@@ -68,18 +68,21 @@ export const useWalletStore = defineStore('wallet', () => {
 
   // Connector-style helpers (used by Kwami wallet UI widget)
   const detectWallets = async () => {
-    return walletOptions.value.map((w) => ({
+    // Use Kwami's connector for consistent wallet detection + install URLs.
+    // (Candy still uses wallet-adapter for the actual connect/sign flow.)
+    const network = (import.meta.env.VITE_SOLANA_NETWORK || 'devnet') as any
+    const rpcEndpoint = import.meta.env.VITE_SOLANA_RPC_URL || undefined
+
+    const connector = getWalletConnector({ network, rpcEndpoint })
+    const wallets = await connector.detectWallets()
+
+    return wallets.map((w) => ({
       name: w.name,
-      installed: w.readyState !== WalletReadyState.NotDetected,
-      readyState:
-        w.readyState === WalletReadyState.Installed
-          ? 'installed'
-          : w.readyState === WalletReadyState.Loadable
-            ? 'loadable'
-            : w.readyState === WalletReadyState.NotDetected
-              ? 'not detected'
-              : 'unsupported',
+      kind: w.kind,
+      installed: w.installed,
+      readyState: w.readyState,
       url: w.url,
+      icon: (w as any).icon,
     }))
   }
 

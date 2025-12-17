@@ -116,23 +116,6 @@ export class KeyboardNavigation {
         trackEvent('keyboard_shortcut', 'media', 'toggle_play_pause');
       }
 
-      // V: Switch to voice tab
-      if (e.key === 'v' || e.key === 'V') {
-        this.switchTab('voice');
-        trackEvent('keyboard_shortcut', 'tab', 'voice');
-      }
-
-      // M: Switch to music tab
-      if (e.key === 'm' || e.key === 'M') {
-        this.switchTab('music');
-        trackEvent('keyboard_shortcut', 'tab', 'music');
-      }
-
-      // D: Switch to video tab (D for video/Display)
-      if (e.key === 'd' || e.key === 'D') {
-        this.switchTab('video');
-        trackEvent('keyboard_shortcut', 'tab', 'video');
-      }
 
       // R: Randomize blob
       if (e.key === 'r' || e.key === 'R') {
@@ -169,14 +152,6 @@ export class KeyboardNavigation {
         trackEvent('keyboard_navigation', 'arrow', 'down');
       }
 
-      // Left/Right arrows: Navigate tabs
-      if (e.key === 'ArrowLeft') {
-        this.navigateTab('prev');
-        trackEvent('keyboard_navigation', 'arrow', 'left_tab');
-      } else if (e.key === 'ArrowRight') {
-        this.navigateTab('next');
-        trackEvent('keyboard_navigation', 'arrow', 'right_tab');
-      }
     });
   }
 
@@ -238,35 +213,6 @@ export class KeyboardNavigation {
     this.announce(`Navigated to: ${title}`);
   }
 
-  /**
-   * Navigate between tabs
-   */
-  private navigateTab(direction: 'prev' | 'next'): void {
-    const tabs = ['voice', 'music', 'video'];
-    const activeTab = document.querySelector('.tab-btn.active');
-    const currentIndex = activeTab ? tabs.indexOf(activeTab.getAttribute('data-tab')!) : 0;
-    
-    let newIndex = currentIndex;
-    if (direction === 'prev') {
-      newIndex = (currentIndex - 1 + tabs.length) % tabs.length;
-    } else {
-      newIndex = (currentIndex + 1) % tabs.length;
-    }
-
-    this.switchTab(tabs[newIndex]);
-  }
-
-  /**
-   * Switch tab
-   */
-  private switchTab(tab: string): void {
-    const tabButton = document.querySelector(`.tab-btn[data-tab="${tab}"]`) as HTMLButtonElement;
-    if (tabButton) {
-      tabButton.click();
-      tabButton.focus();
-      this.announce(`Switched to ${tab} mode`);
-    }
-  }
 
   /**
    * Toggle media playback

@@ -20,6 +20,10 @@ export type WalletDetectedWallet = {
    */
   kind?: 'browser' | 'hardware';
   /**
+   * Optional icon (usually a data URI from Wallet Standard).
+   */
+  icon?: string;
+  /**
    * Optional freeform ready state label (e.g. "installed", "loadable", "not detected").
    */
   readyState?: string;
@@ -81,6 +85,7 @@ export interface WalletConnectWidgetState {
     installed: boolean;
     url?: string;
     kind?: 'browser' | 'hardware';
+    icon?: string;
     readyState?: string;
   }>;
   errorMessage?: string;

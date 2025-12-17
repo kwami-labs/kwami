@@ -173,9 +173,6 @@
   background: var(--theme-gradient) !important;
 }
 
-.tab-btn.active {
-  background: var(--theme-primary) !important;
-}
 
 .loading-spinner,
 .progress-bar {

@@ -3,7 +3,7 @@ use anchor_lang::system_program::{Transfer as SystemTransfer, transfer as system
 use anchor_spl::token::{self, Mint, Token, TokenAccount, MintTo, Burn, Transfer};
 use anchor_lang::solana_program::program_option::COption;
 
-declare_id!("4GCAV5a3UfEAa3Zer3Bmuti7DFe9mN4Znrjok8AUyNG2"); // Will be updated after deployment
+declare_id!("6CAgdgpPq8Np78LsDwREJqFPh9rM5Jh6RSS8eZ37kZuv"); // Will be updated after deployment
 
 /// Maximum supply: 1 trillion tokens (0 decimals - integer token)
 const MAX_SUPPLY: u64 = 1_000_000_000_000; // 1 trillion whole tokens

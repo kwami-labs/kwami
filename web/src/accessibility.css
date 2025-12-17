@@ -61,17 +61,6 @@ textarea:focus,
   box-shadow: 0 0 20px rgba(99, 102, 241, 0.6);
 }
 
-/* Focus for tabs */
-.tab-btn:focus {
-  outline: 3px solid #6366f1;
-  outline-offset: 2px;
-  background: rgba(99, 102, 241, 0.2);
-}
-
-.tab-btn.active:focus {
-  outline-color: white;
-  background: rgba(255, 255, 255, 0.2);
-}
 
 /* Focus for action buttons */
 .action-button:focus {
@@ -169,9 +158,8 @@ body:not(.keyboard-navigation) *:focus:not(:focus-visible) {
    ======================================== */
 
 @media (prefers-contrast: high) {
-  .skip-link,
-  .action-button,
-  .tab-btn {
+.skip-link,
+  .action-button {
     border: 2px solid currentColor;
   }
 
@@ -200,7 +188,6 @@ body:not(.keyboard-navigation) *:focus:not(:focus-visible) {
 
   .skip-link,
   .action-button,
-  .tab-btn,
   .sphere {
     transition: none;
   }
@@ -239,7 +226,6 @@ body:not(.keyboard-navigation) *:focus:not(:focus-visible) {
   /* Ensure minimum 44x44px touch targets */
   button,
   a,
-  .tab-btn,
   .action-button,
   .sphere {
     min-width: 44px;

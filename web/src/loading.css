@@ -519,11 +519,6 @@ canvas.loaded {
   animation: fade-in 0.5s ease-out;
 }
 
-/* Tab loading */
-.tab-btn.loading {
-  opacity: 0.5;
-  cursor: wait;
-}
 
 /* ========================================
    Mobile Optimizations

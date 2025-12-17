@@ -12,7 +12,6 @@
   /* Minimum 44x44px touch targets (iOS/Android guideline) */
   button,
   a,
-  .tab-btn,
   .action-button,
   .sphere,
   .header-btn {
@@ -21,11 +20,6 @@
     touch-action: manipulation; /* Disable double-tap zoom */
   }
 
-  /* Larger spacing between interactive elements */
-  .bottom-tabs {
-    gap: 16px;
-    padding: 16px;
-  }
 
   .right-header {
     gap: 16px;
@@ -39,10 +33,6 @@
     min-height: 52px;
   }
 
-  .tab-btn {
-    padding: 12px 20px;
-    font-size: 16px;
-  }
 }
 
 /* ========================================
@@ -79,7 +69,6 @@
 @media (max-width: 768px) {
   button,
   .action-button,
-  .tab-btn,
   .sphere {
     position: relative;
     overflow: hidden;
@@ -87,7 +76,6 @@
 
   button:active,
   .action-button:active,
-  .tab-btn:active,
   .sphere:active {
     transform: scale(0.95);
     transition: transform 0.1s ease;
@@ -212,45 +200,16 @@ body.interacted .swipe-indicator {
 
   .content-left {
     padding: 20px;
-    padding-bottom: 160px; /* Space for bottom nav + tabs */
+    padding-bottom: 120px; /* Space for bottom nav */
   }
 
   .content-right {
     height: 50vh;
     position: fixed;
-    bottom: 140px;
+    bottom: 100px;
     left: 0;
     right: 0;
     z-index: 1;
-  }
-
-  /* Bottom tabs */
-  .bottom-tabs {
-    position: fixed;
-    bottom: 0;
-    left: 0;
-    right: 0;
-    z-index: 100;
-    background: rgba(10, 10, 10, 0.95);
-    backdrop-filter: blur(10px);
-    border-top: 1px solid rgba(255, 255, 255, 0.1);
-    display: flex;
-    justify-content: space-around;
-    padding: 12px 8px;
-    padding-bottom: calc(12px + env(safe-area-inset-bottom));
-  }
-
-  .tab-btn {
-    flex: 1;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 4px;
-    font-size: 14px;
-  }
-
-  .tab-btn span:first-child {
-    font-size: 24px;
   }
 }
 
@@ -260,20 +219,16 @@ body.interacted .swipe-indicator {
 
 @supports (padding: env(safe-area-inset-bottom)) {
   @media (max-width: 768px) {
-    .bottom-tabs {
-      padding-bottom: calc(12px + env(safe-area-inset-bottom));
-    }
-
     .sidebar-navigation {
       bottom: calc(80px + env(safe-area-inset-bottom));
     }
 
     .content-right {
-      bottom: calc(140px + env(safe-area-inset-bottom));
+      bottom: calc(100px + env(safe-area-inset-bottom));
     }
 
     .content-left {
-      padding-bottom: calc(160px + env(safe-area-inset-bottom));
+      padding-bottom: calc(120px + env(safe-area-inset-bottom));
     }
   }
 }
@@ -374,8 +329,7 @@ body.interacted .swipe-indicator {
    ======================================== */
 
 button[data-haptic],
-.action-button[data-haptic],
-.tab-btn[data-haptic] {
+.action-button[data-haptic] {
   /* Haptic feedback handled via JavaScript */
 }
 
@@ -433,14 +387,6 @@ button[data-haptic],
     flex-direction: column !important;
   }
 
-  .bottom-tabs {
-    left: auto;
-    right: 0;
-    width: 60px;
-    flex-direction: column;
-    height: 100%;
-    padding: 12px 8px;
-  }
 }
 
 /* ========================================
@@ -460,8 +406,7 @@ button[data-haptic],
 @media (max-width: 768px) {
   /* Disable context menu on long press for certain elements */
   canvas,
-  .action-button,
-  .tab-btn {
+  .action-button {
     -webkit-touch-callout: none;
     -webkit-user-select: none;
     user-select: none;
@@ -477,9 +422,8 @@ button[data-haptic],
 }
 
 button,
-a,
-.action-button,
-.tab-btn {
+ a,
+ .action-button {
   -webkit-tap-highlight-color: rgba(99, 102, 241, 0.5);
 }
 
@@ -552,7 +496,6 @@ a,
 @media (max-width: 768px) {
   /* Use GPU acceleration for smooth animations */
   .sphere,
-  .tab-btn,
   .action-button,
   canvas {
     will-change: transform;

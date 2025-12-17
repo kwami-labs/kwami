@@ -66,7 +66,7 @@ export class MobileUX {
    */
   private setupTouchFeedback(): void {
     const interactiveElements = document.querySelectorAll(
-      'button, .action-button, .tab-btn, .sphere, .header-btn, a'
+      'button, .action-button, .sphere, .header-btn, a'
     );
 
     interactiveElements.forEach((element) => {
@@ -131,18 +131,6 @@ export class MobileUX {
       }
     }
 
-    // Horizontal swipe (left/right) for tab navigation
-    if (absDeltaX > this.minSwipeDistance && absDeltaX > absDeltaY) {
-      if (deltaX > 0) {
-        // Swipe right - previous tab
-        this.navigateTab('prev');
-        trackEvent('swipe', 'tab', 'right');
-      } else {
-        // Swipe left - next tab
-        this.navigateTab('next');
-        trackEvent('swipe', 'tab', 'left');
-      }
-    }
   }
 
   /**
@@ -161,25 +149,6 @@ export class MobileUX {
     }
   }
 
-  /**
-   * Navigate to previous/next tab
-   */
-  private navigateTab(direction: 'prev' | 'next'): void {
-    const tabs = ['voice', 'music', 'video'];
-    const activeTab = document.querySelector('.tab-btn.active');
-    if (!activeTab) return;
-
-    const currentIndex = tabs.indexOf(activeTab.getAttribute('data-tab')!);
-    const newIndex = direction === 'prev' 
-      ? (currentIndex - 1 + tabs.length) % tabs.length
-      : (currentIndex + 1) % tabs.length;
-
-    const newTab = document.querySelector(`.tab-btn[data-tab="${tabs[newIndex]}"]`) as HTMLButtonElement;
-    if (newTab) {
-      newTab.click();
-      this.triggerHaptic('medium');
-    }
-  }
 
   /**
    * Setup haptic feedback
@@ -192,7 +161,7 @@ export class MobileUX {
     }
 
     // Add haptic to buttons
-    const buttons = document.querySelectorAll('button, .action-button, .tab-btn');
+    const buttons = document.querySelectorAll('button, .action-button');
     buttons.forEach((button) => {
       button.setAttribute('data-haptic', 'light');
       button.addEventListener('click', () => {
@@ -478,7 +447,7 @@ export class MobileUX {
   private optimizePerformance(): void {
     // Enable GPU acceleration for animations
     const animatedElements = document.querySelectorAll(
-      '.sphere, .tab-btn, .action-button, canvas, .text-section'
+      '.sphere, .action-button, canvas, .text-section'
     );
 
     animatedElements.forEach((element) => {

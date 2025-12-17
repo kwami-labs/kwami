@@ -1,8 +1,8 @@
 #!/bin/bash
 
-# 🚀 Manual Program Initialization Script for KWAMI Ecosystem
-# This script initializes both QWAMI Token and KWAMI NFT programs on devnet
-# Use this when TypeScript initialization scripts can't run due to missing IDL
+# 🚀 KWAMI Ecosystem Program Initialization Script
+# Initializes both QWAMI Token and KWAMI NFT programs
+# Note: KWAMI NFT has a known issue with DNA Registry initialization
 
 set -e
 
@@ -15,29 +15,25 @@ NC='\033[0m'
 
 echo -e "${BLUE}"
 echo "═══════════════════════════════════════════════════════════"
-echo "  🚀 KWAMI Ecosystem Manual Initialization"
+echo "  🚀 KWAMI Ecosystem Program Initialization"
 echo "═══════════════════════════════════════════════════════════"
 echo -e "${NC}"
 
-# Program IDs from deployment
-QWAMI_PROGRAM_ID="4GCAV5a3UfEAa3Zer3Bmuti7DFe9mN4Znrjok8AUyNG2"
-KWAMI_PROGRAM_ID="BTpKTZUyyAgiKsLrJfzFCYAyAFVx1Jd8xsbE11dTTswL"
-
-# Devnet USDC
-USDC_MINT="4zMMC9srt5Ri5X14GAgXhaHii3GnPAEERYPJgZJDncDU"
-
-# Configure for devnet
-echo -e "${YELLOW}Configuring for devnet...${NC}"
-solana config set --url devnet
+# Check current configuration
+CLUSTER=$(solana config get | grep "RPC URL" | awk '{print $3}')
+WALLET_PATH=$(solana config get | grep "Keypair Path" | awk '{print $3}')
 WALLET=$(solana address)
-echo -e "${GREEN}✅ Wallet: ${WALLET}${NC}"
+
+echo -e "${GREEN}✅ Current Configuration:${NC}"
+echo -e "  Cluster: ${BLUE}${CLUSTER}${NC}"
+echo -e "  Wallet: ${BLUE}${WALLET}${NC}"
 
 # Check balance
 BALANCE=$(solana balance | awk '{print $1}')
-echo -e "${GREEN}✅ Balance: ${BALANCE} SOL${NC}"
+echo -e "  Balance: ${BLUE}${BALANCE} SOL${NC}"
 
-if [ "$(echo "$BALANCE < 1" | bc)" -eq 1 ]; then
-    echo -e "${RED}❌ Insufficient balance. Need at least 1 SOL${NC}"
+if (( $(echo "$BALANCE < 0.5" | bc -l) )); then
+    echo -e "${RED}❌ Insufficient balance. Need at least 0.5 SOL${NC}"
     exit 1
 fi
 
@@ -45,52 +41,57 @@ echo -e "\n${YELLOW}════════════════════
 echo -e "${YELLOW}  Step 1: Initialize QWAMI Token Program${NC}"
 echo -e "${YELLOW}═══════════════════════════════════════════════════════════${NC}\n"
 
-# Generate QWAMI mint keypair
-QWAMI_MINT_KEYPAIR=$(mktemp)
-solana-keygen new --no-bip39-passphrase --silent --outfile "$QWAMI_MINT_KEYPAIR"
-QWAMI_MINT=$(solana-keygen pubkey "$QWAMI_MINT_KEYPAIR")
-echo -e "${GREEN}✅ QWAMI Mint: ${QWAMI_MINT}${NC}"
-
-# Derive QWAMI PDAs
-# Note: We'll need to use a tool or calculate these manually
-# For now, let's use anchor CLI if available
-
 cd qwami
 
-# Try to initialize using anchor
-echo -e "${YELLOW}Attempting to initialize QWAMI Token...${NC}"
-echo -e "${YELLOW}Note: This requires the IDL to be present${NC}"
+echo -e "${YELLOW}Running QWAMI initialization...${NC}"
 
-# Check if we can build to get IDL
-if anchor build --no-idl 2>&1 | grep -q "error"; then
-    echo -e "${RED}❌ Cannot build QWAMI due to dependency issues${NC}"
-    echo -e "${YELLOW}Manual initialization required using Anchor CLI with correct accounts${NC}"
+if ! command -v npx &> /dev/null; then
+    echo -e "${RED}❌ Node.js/npx not found. Cannot run initialization.${NC}"
+    exit 1
+fi
+
+if ANCHOR_PROVIDER_URL="$CLUSTER" ANCHOR_WALLET="$WALLET_PATH" npx ts-node scripts/initialize-simple.ts; then
+    echo -e "${GREEN}✅ QWAMI Token initialized successfully!${NC}"
+    
+    if [ -f "devnet-addresses.json" ]; then
+        QWAMI_MINT=$(grep -o '"qwamiMint": "[^"]*"' devnet-addresses.json | cut -d'"' -f4)
+        echo -e "${GREEN}  Mint: ${QWAMI_MINT}${NC}"
+    fi
+else
+    echo -e "${RED}❌ QWAMI initialization failed${NC}"
     cd ..
-    
-    echo -e "\n${YELLOW}═══════════════════════════════════════════════════════════${NC}"
-    echo -e "${YELLOW}  Alternative: Initialize using deployed program${NC}"
-    echo -e "${YELLOW}═══════════════════════════════════════════════════════════${NC}\n"
-    
-    echo -e "${BLUE}To initialize manually, you need to:${NC}"
-    echo -e "1. Generate mint keypairs"
-    echo -e "2. Create mints with correct authorities (PDAs)"
-    echo -e "3. Create token accounts with correct owners (PDAs)"
-    echo -e "4. Call initialize instruction with correct accounts"
-    echo -e ""
-    echo -e "${YELLOW}Program IDs:${NC}"
-    echo -e "QWAMI: ${QWAMI_PROGRAM_ID}"
-    echo -e "KWAMI: ${KWAMI_PROGRAM_ID}"
-    echo -e ""
-    echo -e "${YELLOW}Devnet USDC: ${USDC_MINT}${NC}"
-    echo -e ""
-    echo -e "${BLUE}Recommended: Fix build issues first by upgrading Solana platform tools${NC}"
-    echo -e "Then run: cd qwami && npm run initialize"
-    echo -e "          cd ../kwami && npm run initialize"
-    
     exit 1
 fi
 
 cd ..
 
-echo -e "\n${GREEN}🎉 Script would continue with initialization...${NC}"
-echo -e "${YELLOW}However, this requires IDL to be available${NC}"
+echo -e "\n${YELLOW}═══════════════════════════════════════════════════════════${NC}"
+echo -e "${YELLOW}  Step 2: Initialize KWAMI NFT Program${NC}"
+echo -e "${YELLOW}═══════════════════════════════════════════════════════════${NC}\n"
+
+echo -e "${RED}⚠️  KWAMI NFT Initialization Blocked${NC}"
+echo -e "${YELLOW}Known Issue: DNA Registry account size exceeds Solana's 10KB reallocation limit${NC}"
+echo -e ""
+echo -e "${YELLOW}The DNA Registry tries to allocate 32KB upfront for 1000 DNA hashes.${NC}"
+echo -e "${YELLOW}Solana limits account reallocation to 10KB in init instructions.${NC}"
+echo -e ""
+echo -e "${BLUE}Required Fix:${NC}"
+echo -e "  1. Modify DnaRegistry to initialize with empty Vec"
+echo -e "  2. OR use multiple registry accounts"
+echo -e "  3. OR use PDA-per-DNA-hash storage pattern"
+echo -e ""
+echo -e "${YELLOW}Skipping KWAMI initialization for now.${NC}"
+
+echo -e "\n${BLUE}═══════════════════════════════════════════════════════════${NC}"
+echo -e "${GREEN}✅ Initialization Complete (Partial)${NC}"
+echo -e "${BLUE}═══════════════════════════════════════════════════════════${NC}\n"
+
+echo -e "${YELLOW}Status:${NC}"
+echo -e "  ✅ QWAMI Token: Initialized"
+echo -e "  ❌ KWAMI NFT: Blocked (needs code fix)"
+echo -e ""
+echo -e "${YELLOW}Next Steps:${NC}"
+echo -e "  1. Fix KWAMI DNA Registry storage design"
+echo -e "  2. Rebuild and redeploy KWAMI program"
+echo -e "  3. Run KWAMI initialization"
+echo ""

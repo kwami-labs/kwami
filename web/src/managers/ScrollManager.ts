@@ -1,3 +1,4 @@
+import { gsap } from 'gsap';
 import type { Kwami, KwamiConfig } from 'kwami';
 import { COLOR_PALETTES } from '../config/colors';
 import type { ColorPalette } from '../config/colors';
@@ -21,6 +22,19 @@ import { getKwamiAppsConfig } from '../config/env';
 const blobConfigs = BLOB_CONFIGS;
 const colorPalettes = COLOR_PALETTES;
 
+export interface ScrollManagerOptions {
+  /**
+   * When true, start the blob as a tiny sphere and animate it to its configured page-00 state.
+   * This is intended for the transition after the WelcomeLayer.
+   */
+  intro?: boolean;
+
+  /**
+   * When false, do not start playing page 00 audio on init (useful when prewarming behind the welcome layer).
+   */
+  autoplayPageAudio?: boolean;
+}
+
 export class ScrollManager {
   private sections: NodeListOf<Element>;
   private currentSection = 0;
@@ -33,16 +47,33 @@ export class ScrollManager {
   private clickCount = 0;
   private clickTimer: number | null = null;
 
-  constructor() {
+  private readonly enableIntro: boolean;
+  private readonly autoplayPageAudio: boolean;
+  private introPlayed = false;
+  private readyResolve: (() => void) | null = null;
+  private readonly readyPromise: Promise<void>;
+
+  constructor(options: ScrollManagerOptions = {}) {
+    this.enableIntro = options.intro ?? true;
+    this.autoplayPageAudio = options.autoplayPageAudio ?? true;
+    this.readyPromise = new Promise((resolve) => {
+      this.readyResolve = resolve;
+    });
+
     this.sections = document.querySelectorAll('.text-section');
     this.root = document.documentElement;
     this.root.style.setProperty('--section-count', this.sections.length.toString());
     this.sidebarNav = new SidebarNavigator(this.sections.length, {
       getCurrentSection: () => this.currentSection,
+      initialWave: !document.body.classList.contains('app-intro'),
     });
     this.cursorLight = new CursorLight();
 
-    this.init();
+    void this.init().finally(() => {
+      this.readyResolve?.();
+      this.readyResolve = null;
+    });
+
     // Use RAF-throttled scroll handler for better performance
     const throttledScroll = rafThrottle(this.handleScroll.bind(this));
     window.addEventListener('scroll', throttledScroll, getPassiveEventOptions());
@@ -55,6 +86,74 @@ export class ScrollManager {
 
   public getKwami(): Kwami | null {
     return this.kwami;
+  }
+
+  public whenReady(): Promise<void> {
+    return this.readyPromise;
+  }
+
+  /**
+   * Plays the main-app intro blob animation (tiny sphere -> configured page state).
+   * Safe to call multiple times.
+   */
+  public async playIntroAnimation(): Promise<void> {
+    if (!this.enableIntro || this.introPlayed) {
+      return;
+    }
+
+    await this.whenReady();
+
+    if (!this.kwami) {
+      return;
+    }
+
+    this.introPlayed = true;
+
+    const isMobile = window.innerWidth <= MOBILE_BREAKPOINT;
+    const finalScale = isMobile ? BLOB_SCALE_MOBILE : BLOB_SCALE_DESKTOP;
+
+    // Animate to the currently configured section (normally 0 on first load).
+    const section = this.currentSection;
+    const config = blobConfigs[section % blobConfigs.length];
+
+    const blobRef = this.kwami.body.blob;
+
+    // Ensure we're starting from a spherical state that matches the welcome end scale (~50%).
+    const initialScale = Math.max(finalScale * 0.5, 0.5);
+    blobRef.setScale(initialScale);
+    blobRef.setSpikes(0, 0, 0);
+
+    const currentSpikes = { x: 0, y: 0, z: 0 };
+    const targetSpikes = { x: config.spikeX, y: config.spikeY, z: config.spikeZ };
+
+    const scaleState = { value: initialScale };
+
+    await new Promise<void>((resolve) => {
+      const tl = gsap.timeline({
+        defaults: { ease: 'power2.out' },
+        onComplete: () => resolve(),
+      });
+
+      // Spikes emerge a bit faster, scale continues a touch longer.
+      tl.to(currentSpikes, {
+        duration: 1.25,
+        x: targetSpikes.x,
+        y: targetSpikes.y,
+        z: targetSpikes.z,
+        ease: 'power2.inOut',
+        onUpdate: () => {
+          blobRef.setSpikes(currentSpikes.x, currentSpikes.y, currentSpikes.z);
+        },
+      }, 0);
+
+      tl.to(scaleState, {
+        duration: 2.2,
+        value: finalScale,
+        onUpdate: () => {
+          blobRef.setScale(scaleState.value);
+        },
+      }, 0);
+    });
   }
 
   public syncLanguageDirection(language: string, animate = true) {
@@ -168,9 +267,17 @@ export class ScrollManager {
       this.kwami = new Kwami(canvas, kwamiConfig);
 
       const isMobile = window.innerWidth <= MOBILE_BREAKPOINT;
-      const blobScale = isMobile ? BLOB_SCALE_MOBILE : BLOB_SCALE_DESKTOP;
-      this.kwami.body.blob.setScale(blobScale);
+      const finalScale = isMobile ? BLOB_SCALE_MOBILE : BLOB_SCALE_DESKTOP;
+
+      // Start spherical for the intro (blob reveal). Match the welcome end scale (~50%).
+      // If intro is disabled, fall back to immediate final scale.
+      const initialScale = this.enableIntro ? Math.max(finalScale * 0.5, 0.5) : finalScale;
+      this.kwami.body.blob.setScale(initialScale);
       this.kwami.body.blob.setWireframe(config.wireframe ?? false);
+
+      if (this.enableIntro) {
+        this.kwami.body.blob.setSpikes(0, 0, 0);
+      }
 
       if (isMobile) {
         this.kwami.body.blob.setOpacity(BLOB_OPACITY_MOBILE);
@@ -203,9 +310,11 @@ export class ScrollManager {
       this.kwami?.body.blob.enableClickInteraction();
       this.setupInteractions(canvas);
 
-      // Load page 00 audio immediately
-      console.log('🎤 Loading page 00 audio on initialization');
-      await this.pageAudioManager.loadAndPlayPageAudio(0);
+      // Load page 00 audio immediately (unless we're prewarming behind the welcome layer)
+      if (this.autoplayPageAudio) {
+        console.log('🎤 Loading page 00 audio on initialization');
+        await this.pageAudioManager.loadAndPlayPageAudio(0);
+      }
     } catch (error) {
       console.error('❌ Failed to initialize Kwami:', error);
       const container = document.getElementById('kwami-container');
@@ -237,6 +346,17 @@ export class ScrollManager {
     this.updateActiveSection(section);
     this.sidebarNav.updateActiveSphere(section);
 
+    // Keep layout classes in sync even on initial load (when currentSection already equals section).
+    const contentRight = document.querySelector('.content-right');
+    if (contentRight) {
+      contentRight.classList.toggle('page-00', section === 0);
+    }
+
+    const contentLeft = document.querySelector('.content-left');
+    if (contentLeft) {
+      contentLeft.classList.toggle('page-00', section === 0);
+    }
+
     if (section !== this.currentSection && !this.isTransitioning) {
       this.currentSection = section;
       const palette = this.getPaletteForSection(section);
@@ -244,23 +364,13 @@ export class ScrollManager {
       this.updateKwamiConfig(section);
       this.sidebarNav.updateSphereColors(section);
       this.cursorLight.updateColors(palette);
-      
-      // Update content-right class based on section
-      const contentRight = document.querySelector('.content-right');
-      if (contentRight) {
-        if (section === 0) {
-          contentRight.classList.add('page-00');
-        } else {
-          contentRight.classList.remove('page-00');
-        }
-      }
-      
+
       // Update blob position (center on page 0)
       this.updateBlobPosition(true);
-      
+
       // Load and play audio for the new page
       this.pageAudioManager.loadAndPlayPageAudio(section);
-      
+
       // Trigger text animation for the new page (skip page 0 - no text)
       if (section !== 0) {
         animatePageSection(section);
@@ -376,37 +486,8 @@ export class ScrollManager {
     });
   }
 
-  private async handleSingleClick(e: MouseEvent) {
-    const activeTab = document.querySelector('.tab-btn.active');
-    const activeTabType = activeTab?.getAttribute('data-tab');
-
-    if (activeTabType === 'video') {
-      const { getVideoState, playRandomVideo, toggleVideoPresentation } = await import('../media/VideoPlayer');
-      const { currentVideoMode, currentVideoUrl, isVideoLoading } = getVideoState();
-      if (currentVideoUrl && currentVideoMode !== 'none' && !isVideoLoading) {
-        await toggleVideoPresentation();
-      } else if (!isVideoLoading && !currentVideoUrl) {
-        await playRandomVideo({ mode: 'background' });
-      }
-      return;
-    }
-
-    if (activeTabType === 'music') {
-      const kwami = (window as any).scrollManager?.getKwami?.();
-      if (kwami?.body?.audio?.isPlaying()) {
-        const { toggleMusicLowpass } = await import('../media/MusicPlayer');
-        await toggleMusicLowpass();
-      }
-      return;
-    }
-
-    if (activeTabType === 'voice') {
-      const { toggleVoicePlayback } = await import('../media/VoicePlayer');
-      await toggleVoicePlayback();
-      return;
-    }
-
-    // Default behavior: toggle page audio (no tab selected or other tab)
+  private async handleSingleClick(_e: MouseEvent) {
+    // Bottom media tabs were removed; default behavior is to toggle the current page audio.
     this.pageAudioManager.togglePageAudio();
   }
 

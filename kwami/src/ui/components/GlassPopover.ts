@@ -61,9 +61,9 @@ export function createGlassPopover(options: GlassPopoverOptions = {}): GlassPopo
 
   const headerSlot = document.createElement('div');
   headerSlot.style.fontSize = '1.05rem';
-  headerSlot.style.fontWeight = '600';
-  headerSlot.style.letterSpacing = '0.05em';
-  headerSlot.style.textTransform = 'uppercase';
+  headerSlot.style.fontWeight = '650';
+  headerSlot.style.letterSpacing = '0.01em';
+  headerSlot.style.textTransform = 'none';
   headerSlot.style.color = resolvedTheme.palette.muted;
 
   const contentSlot = document.createElement('div');

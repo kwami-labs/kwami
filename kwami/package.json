@@ -40,6 +40,9 @@
     "@distube/ytdl-core": "^4.14.4",
     "@elevenlabs/elevenlabs-js": "^2.20.1",
     "@solana/web3.js": "^1.95.8",
+    "@solana/wallet-adapter-base": "^0.9.27",
+    "@solana/wallet-standard-wallet-adapter-base": "^1.1.0",
+    "@wallet-standard/app": "^1.1.0",
     "js-yaml": "^4.1.1",
     "simplex-noise": "^4.0.1",
     "three": ">=0.150.0"
@@ -86,6 +89,10 @@
     "./ui/wallet": {
       "import": "./dist/src/ui/wallet/index.js",
       "types": "./dist/src/ui/wallet/index.d.ts"
+    },
+    "./apps/wallet": {
+      "import": "./dist/src/apps/wallet/index.js",
+      "types": "./dist/src/apps/wallet/index.d.ts"
     },
     "./utils": {
       "import": "./dist/src/utils/randoms.js",

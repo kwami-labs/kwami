@@ -285,10 +285,14 @@ html[dir="rtl"] .right-header {
   will-change: transform, opacity;
 }
 
-/* Page 00 - Empty section, blob takes full screen */
-.text-section.text-section-empty {
-  opacity: 1;
+/* Page 00 - No left text container (blob takes full screen) */
+.content-left.page-00 {
+  opacity: 0;
   pointer-events: none;
+}
+
+.text-section.text-section-empty {
+  display: none;
 }
 
 .text-section.active {
@@ -601,6 +605,26 @@ html[dir="rtl"] .right-header {
   transition: stop-color 0.8s ease;
 }
 
+/* Intro lock (welcome -> first page): keep UI hidden until we reveal it */
+body.app-intro #kwami-container {
+  opacity: 0;
+  pointer-events: none;
+}
+
+/* Allow the main blob to be visible behind the welcome layer during the transition. */
+body.app-intro.peek-main-blob #kwami-container {
+  opacity: 1;
+}
+
+/* blob-ready is used as a marker; visibility is controlled by the JS reveal timeline */
+
+body.app-intro .kwami-label,
+body.app-intro .right-header,
+body.app-intro .sidebar-navigation:not(.inside-welcome-layer) {
+  opacity: 0;
+  pointer-events: none;
+}
+
 /* Right half - Real Kwami visualization (now full background) */
 .content-right {
   position: fixed;
@@ -801,108 +825,6 @@ html[dir="rtl"] .right-header {
   transition-delay: 0.2s;
 }
 
-/* Bottom Tabs (Voice, Music, Video) */
-.bottom-tabs {
-  position: fixed;
-  bottom: 32px;
-  left: 50%;
-  transform: translateX(-50%);
-  display: flex;
-  gap: 0.5rem;
-  z-index: 9999;
-  pointer-events: auto;
-  background: rgba(10, 10, 10, 0.6);
-  backdrop-filter: blur(20px) saturate(180%);
-  -webkit-backdrop-filter: blur(20px) saturate(180%);
-  border-radius: 25px;
-  padding: 0.5rem;
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.5);
-  width: min(calc(100vw - 48px), 480px);
-  justify-content: space-between;
-  flex-wrap: nowrap;
-}
-
-.tab-btn {
-  padding: 0.6rem 1.2rem;
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  font-size: 0.9rem;
-  font-weight: 600;
-  background: transparent;
-  color: rgba(255, 255, 255, 0.7);
-  border: none;
-  border-radius: 20px;
-  cursor: pointer;
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-  text-decoration: none;
-}
-
-.tab-btn:hover {
-  background: rgba(255, 255, 255, 0.1);
-  color: rgba(255, 255, 255, 1);
-  transform: translateY(-2px);
-}
-
-.tab-btn.active {
-  background: linear-gradient(135deg, var(--color-primary), var(--color-secondary));
-  color: white;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
-}
-
-.tab-anim-voice {
-  animation: voicePulse 0.45s ease;
-}
-
-.tab-anim-music {
-  animation: musicTwist 0.55s ease;
-}
-
-.tab-anim-video {
-  animation: videoFlip 0.5s ease;
-}
-
-@keyframes voicePulse {
-  0% { transform: scale(1); box-shadow: 0 0 0 rgba(255,255,255,0.4); }
-  40% { transform: scale(1.08); box-shadow: 0 0 18px rgba(255,255,255,0.35); }
-  100% { transform: scale(1); box-shadow: 0 0 0 rgba(255,255,255,0); }
-}
-
-@keyframes musicTwist {
-  0% { transform: rotate(0deg) scale(1); }
-  30% { transform: rotate(-6deg) scale(0.98); }
-  60% { transform: rotate(8deg) scale(1.03); }
-  100% { transform: rotate(0deg) scale(1); }
-}
-
-@keyframes videoFlip {
-  0% { transform: perspective(400px) rotateX(0deg); }
-  40% { transform: perspective(400px) rotateX(-18deg); }
-  70% { transform: perspective(400px) rotateX(12deg); }
-  100% { transform: perspective(400px) rotateX(0deg); }
-}
-
-@media (max-width: 900px) {
-  .bottom-tabs {
-    width: calc(100vw - 32px);
-    bottom: 16px;
-  }
-}
-
-@media (max-width: 640px) {
-  .bottom-tabs {
-    flex-wrap: wrap;
-    gap: 0.4rem;
-    padding: 0.4rem;
-    bottom: 12px;
-  }
-
-  .tab-btn {
-    flex: 1 1 calc(33% - 0.5rem);
-    justify-content: center;
-  }
-}
 
 #kwami-container {
   width: 100%;
@@ -1132,19 +1054,6 @@ html[dir="rtl"] .right-header {
     border-radius: 10px;
     background: rgba(10, 10, 10, 0.7);
   }
-  
-  .bottom-tabs {
-    bottom: 8px !important;
-    left: 50% !important;
-    right: auto;
-    transform: translateX(-50%) !important;
-    padding: 0.4rem;
-  }
-  
-  .tab-btn {
-    padding: 0.5rem 1rem;
-    font-size: 0.85rem;
-  }
 }
 
 /* Sidebar Navigation */
@@ -1165,6 +1074,11 @@ html[dir="rtl"] .right-header {
 .sidebar-navigation.inside-welcome-layer {
   z-index: 150;
   filter: drop-shadow(0 0 20px rgba(0, 0, 0, 0.4));
+
+  /* Hide the colored page spheres while the welcome layer is showing.
+     They will be revealed later by the main-app intro sequence. */
+  opacity: 0;
+  pointer-events: none;
 }
 
 .sidebar-navigation[data-side="rtl"] {
@@ -1762,24 +1676,6 @@ body.light-mode .mode-btn.active {
   color: rgba(0, 0, 0, 1);
 }
 
-body.light-mode .bottom-tabs {
-  background: rgba(245, 245, 245, 0.5);
-  border: 1px solid rgba(0, 0, 0, 0.08);
-}
-
-body.light-mode .tab-btn {
-  color: rgba(0, 0, 0, 0.6);
-}
-
-body.light-mode .tab-btn:hover {
-  background: rgba(0, 0, 0, 0.05);
-  color: rgba(0, 0, 0, 0.9);
-}
-
-body.light-mode .tab-btn.active {
-  color: rgba(0, 0, 0, 1);
-  background: rgba(255, 255, 255, 0.5);
-}
 
 body.light-mode .action-button {
   background: linear-gradient(135deg, var(--color-primary), var(--color-secondary));

@@ -1,3 +1,5 @@
+import { gsap } from 'gsap';
+
 import './style.css';
 import './components/welcome-layer.css';
 import './accessibility.css';
@@ -21,6 +23,99 @@ import { ENABLE_SERVICE_WORKER, ENABLE_ANALYTICS } from './config/app';
 import type { ScrollManager } from './managers/ScrollManager';
 
 let scrollManager: ScrollManager | null = null;
+
+let themeToggleInitPromise: Promise<void> | null = null;
+
+let prewarmStarted = false;
+
+type MainAppState = {
+  scrollManager: ScrollManager;
+  backgroundRings: any;
+};
+
+let mainAppStatePromise: Promise<MainAppState> | null = null;
+
+async function ensureMainAppState(): Promise<MainAppState> {
+  if (mainAppStatePromise) {
+    return mainAppStatePromise;
+  }
+
+  mainAppStatePromise = (async () => {
+    const [
+      scrollManagerMod,
+      modeSwitcherMod,
+      actionButtonMod,
+      headerMenuMod,
+      ringsMod,
+    ] = await Promise.all([
+      import('./managers/ScrollManager'),
+      import('./managers/ModeSwitcher'),
+      import('./managers/ActionButtonManager'),
+      import('./managers/HeaderMenuManager'),
+      import('kwami/ui/rings'),
+    ]);
+
+    const sm = new scrollManagerMod.ScrollManager({
+      intro: true,
+      autoplayPageAudio: false, // we'll start audio after the welcome layer is gone
+    });
+    scrollManager = sm;
+    (window as any).scrollManager = sm;
+
+    new modeSwitcherMod.ModeSwitcher();
+    new actionButtonMod.ActionButtonManager();
+
+    // Make sure theme toggle exists before we create the hamburger manager (so it can hide/show it)
+    if (themeToggleInitPromise) {
+      try {
+        await themeToggleInitPromise;
+      } catch {
+        // ignore
+      }
+    }
+    new headerMenuMod.HeaderMenuManager();
+
+    const contentRight = document.querySelector('.content-right') as HTMLElement | null;
+    const backgroundRings = ringsMod.createBackgroundRings({
+      mount: contentRight ?? document.body,
+      insert: 'first',
+      zIndex: '0',
+      sizeSource: 'mount',
+      resize: 'auto',
+      initialOpacity: 0,
+    });
+    (window as any).backgroundRings = backgroundRings;
+
+    return { scrollManager: sm, backgroundRings };
+  })();
+
+  return mainAppStatePromise;
+}
+
+async function prewarmMainBlob(): Promise<void> {
+  if (prewarmStarted) {
+    return;
+  }
+  prewarmStarted = true;
+
+  // Keep the main blob hidden until it's initialized.
+  const kwamiContainer = document.getElementById('kwami-container') as HTMLElement | null;
+  if (kwamiContainer) {
+    gsap.set(kwamiContainer, { autoAlpha: 0 });
+  }
+
+  const state = await ensureMainAppState();
+  await state.scrollManager.whenReady();
+
+  // Mark that the blob is ready (no visual effect by itself).
+  document.body.classList.add('blob-ready');
+
+  // Let the main blob be visible behind the welcome layer (while keeping other UI locked).
+  document.body.classList.add('peek-main-blob');
+  if (kwamiContainer) {
+    gsap.set(kwamiContainer, { autoAlpha: 1 });
+  }
+}
 
 function initLanguageSwitcher() {
   const langSwitcher = createLanguageSwitcher('language-switcher');
@@ -52,71 +147,6 @@ async function initThemeToggle() {
   console.log('🌓 Theme toggle initialized');
 }
 
-function initTabs() {
-  document.querySelectorAll('.tab-btn').forEach(button => {
-    button.addEventListener('click', async function(this: HTMLButtonElement) {
-      const alreadyActive = this.classList.contains('active');
-      const tabType = this.getAttribute('data-tab');
-      if (!tabType) {
-        return;
-      }
-
-      document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
-      this.classList.add('active');
-      triggerTabAnimation(this, tabType);
-
-      const { getPageAudioManager } = await import('./media/PageAudioManager');
-      const pageAudioManager = getPageAudioManager();
-
-      if (tabType === 'music') {
-        pageAudioManager.stopPageAudio();
-
-        const { stopVoicePlayback } = await import('./media/VoicePlayer');
-        stopVoicePlayback();
-
-        const { stopVideoPlayback } = await import('./media/VideoPlayer');
-        stopVideoPlayback(undefined, { preserveUrl: true });
-
-        const { playRandomMusic } = await import('./media/MusicPlayer');
-        await playRandomMusic();
-      } else if (tabType === 'voice') {
-        pageAudioManager.stopPageAudio();
-
-        const { stopVideoPlayback } = await import('./media/VideoPlayer');
-        stopVideoPlayback(undefined, { preserveUrl: true });
-
-        const { toggleVoicePlayback, playRandomVoiceClip } = await import('./media/VoicePlayer');
-        if (alreadyActive) {
-          await toggleVoicePlayback();
-        } else {
-          await playRandomVoiceClip();
-        }
-      } else if (tabType === 'video') {
-        pageAudioManager.stopPageAudio();
-
-        const { stopKwamiAudio } = await import('./media/AudioController');
-        stopKwamiAudio();
-
-        const { toggleVideoPresentation, playRandomVideo } = await import('./media/VideoPlayer');
-        if (alreadyActive) {
-          await toggleVideoPresentation();
-        } else {
-          await playRandomVideo({ mode: 'background' });
-        }
-      }
-    });
-  });
-}
-
-function triggerTabAnimation(button: HTMLButtonElement, tabType: string) {
-  const animationClass = `tab-anim-${tabType}`;
-  button.classList.remove(animationClass);
-  void button.offsetWidth;
-  button.classList.add(animationClass);
-  button.addEventListener('animationend', () => {
-    button.classList.remove(animationClass);
-  }, { once: true });
-}
 
 function setupColorVariations() {
   let lastRandomUpdate = 0;
@@ -170,53 +200,89 @@ function initScrollIndicator() {
 async function bootstrapMainApp() {
   console.log('🎬 Welcome layer complete, initializing main app');
 
-  const [
-    scrollManagerMod,
-    modeSwitcherMod,
-    actionButtonMod,
-    headerMenuMod,
-    ringsMod,
-    textAnimMod,
-  ] = await Promise.all([
-    import('./managers/ScrollManager'),
-    import('./managers/ModeSwitcher'),
-    import('./managers/ActionButtonManager'),
-    import('./managers/HeaderMenuManager'),
-    import('kwami/ui/rings'),
-    import('./utils/pageTextAnimation'),
-  ]);
+  // Keep UI locked; we'll remove this and reveal quickly.
+  document.body.classList.add('app-intro');
 
-  scrollManager = new scrollManagerMod.ScrollManager();
-  new modeSwitcherMod.ModeSwitcher();
-  new actionButtonMod.ActionButtonManager();
-  new headerMenuMod.HeaderMenuManager();
-  (window as any).scrollManager = scrollManager;
+  const kwamiContainer = document.getElementById('kwami-container') as HTMLElement | null;
+  const logo = document.querySelector('.kwami-label') as HTMLElement | null;
+  const rightHeader = document.querySelector('.right-header') as HTMLElement | null;
+  const sidebarNav = document.getElementById('sidebar-nav') as HTMLElement | null;
 
-  // Initialize background rings after welcome layer
-  const contentRight = document.querySelector('.content-right') as HTMLElement | null;
-  const backgroundRings = ringsMod.createBackgroundRings({
-    mount: contentRight ?? document.body,
-    insert: 'first',
-    zIndex: '0',
-    sizeSource: 'mount',
-    resize: 'auto',
-    initialOpacity: 0,
-  });
+  // Hide everything except the blob (the blob may already be visible behind the welcome layer).
+  gsap.set([logo, rightHeader, sidebarNav].filter(Boolean) as HTMLElement[], { autoAlpha: 0 });
 
-  setTimeout(() => {
+  const { scrollManager, backgroundRings } = await ensureMainAppState();
+  await scrollManager.whenReady();
+
+  // Ensure the blob is ready; we will reveal everything (blob + UI) at the same time.
+  document.body.classList.add('blob-ready');
+
+  // Prep initial states (hidden + small motion offsets)
+  const revealTargets = [logo, rightHeader, sidebarNav].filter(Boolean) as HTMLElement[];
+  gsap.set(revealTargets, { autoAlpha: 0 });
+  if (logo) gsap.set(logo, { y: -8 });
+  if (rightHeader) gsap.set(rightHeader, { y: -8 });
+
+  if (kwamiContainer) {
+    gsap.set(kwamiContainer, { autoAlpha: 0 });
+  }
+
+  // Unlock CSS, then reveal *everything* together.
+  document.body.classList.remove('peek-main-blob');
+  document.body.classList.remove('app-intro');
+
+  const tl = gsap.timeline();
+  tl.to(revealTargets, { autoAlpha: 1, duration: 0.28, ease: 'power2.out' }, 0);
+
+  if (kwamiContainer) {
+    tl.to(kwamiContainer, { autoAlpha: 1, duration: 0.28, ease: 'power2.out' }, 0);
+  }
+
+  // Rings appear at the same moment.
+  tl.call(() => {
     backgroundRings.show();
-  }, 500);
-  (window as any).backgroundRings = backgroundRings;
+  }, [], 0);
 
-  // Initialize text animations after content is loaded
-  setTimeout(() => {
+  // Start blob intro at the same moment.
+  tl.call(() => {
+    void scrollManager.playIntroAnimation();
+  }, [], 0);
+
+  // Replay the wave so it happens right after reveal.
+  tl.call(() => {
+    const sphereContainer = document.getElementById('sphere-container');
+    if (sphereContainer) {
+      sphereContainer.classList.remove('wave-enter');
+      void sphereContainer.getBoundingClientRect();
+      sphereContainer.classList.add('wave-enter');
+    }
+  }, [], 0.02);
+
+  // Start page-00 audio after the welcome layer is gone.
+  setTimeout(async () => {
+    try {
+      const { getPageAudioManager } = await import('./media/PageAudioManager');
+      const mgr = getPageAudioManager();
+      await mgr.loadAndPlayPageAudio(scrollManager.getCurrentSection());
+    } catch (error) {
+      console.warn('⚠️ Could not start page audio after welcome:', error);
+    }
+  }, 120);
+
+  // Text animation can start shortly after.
+  setTimeout(async () => {
+    const textAnimMod = await import('./utils/pageTextAnimation');
     textAnimMod.initPageTextAnimations();
-  }, 100);
+  }, 150);
 
   console.log('✅ Main app initialized');
 }
 
 document.addEventListener('DOMContentLoaded', async () => {
+  // During the welcome layer, keep the main app UI visually locked.
+  // (Sidebar nav remains visible inside the welcome layer via CSS exception.)
+  document.body.classList.add('app-intro');
+
   const startTime = performance.now();
 
   // Initialize analytics only if enabled
@@ -231,16 +297,33 @@ document.addEventListener('DOMContentLoaded', async () => {
   initLoadingStates();
   initMobileUX();
   initPerformanceOptimizer();
-  initTabs();
+
+  let mainAppBootstrapped = false;
+  const startMainApp = () => {
+    if (mainAppBootstrapped) return;
+    mainAppBootstrapped = true;
+    void bootstrapMainApp();
+  };
 
   // Welcome layer (lazy-loaded so we don't pull the whole app graph up-front)
   const { WelcomeLayer } = await import('./components/WelcomeLayer');
-  new WelcomeLayer(() => {
-    void bootstrapMainApp();
-  });
+  new WelcomeLayer(
+    () => {
+      // Fallback: if the welcome is skipped, this is the only signal we get.
+      startMainApp();
+    },
+    () => {
+      // On click: start prewarming immediately, but start the main app right after the
+      // rings *visually* finish (they fade out around ~4s after reveal).
+      void prewarmMainBlob();
+      window.setTimeout(() => {
+        startMainApp();
+      }, 4700);
+    }
+  );
 
   initLanguageSwitcher();
-  void initThemeToggle();
+  themeToggleInitPromise = initThemeToggle();
   updatePageTranslations();
 
   const loadTime = performance.now() - startTime;

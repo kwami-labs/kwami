@@ -76,21 +76,6 @@ export function createWalletConnectWidget(options: WalletConnectWidgetOptions = 
   content.style.flexDirection = 'column';
   content.style.gap = '0.75rem';
 
-  const title = document.createElement('div');
-  title.style.display = 'flex';
-  title.style.flexDirection = 'column';
-  title.style.gap = '0.25rem';
-
-  const statusLine = createText('Disconnected', { muted: true });
-  statusLine.style.fontSize = '0.9rem';
-
-  const networkLine = createText('', { muted: true });
-  networkLine.style.fontSize = '0.75rem';
-  networkLine.style.textTransform = 'uppercase';
-  networkLine.style.letterSpacing = '0.12em';
-
-  title.appendChild(statusLine);
-  title.appendChild(networkLine);
 
   const walletsSection = document.createElement('div');
   walletsSection.style.display = 'flex';
@@ -117,17 +102,17 @@ export function createWalletConnectWidget(options: WalletConnectWidgetOptions = 
   errorBox.style.color = 'rgba(248,113,113,0.95)';
   errorBox.style.fontSize = '0.85rem';
 
-  content.appendChild(title);
   content.appendChild(errorBox);
   content.appendChild(createDivider());
   content.appendChild(walletsSection);
   content.appendChild(actionsSection);
 
   const popover = createGlassPopover({
-    header: 'Wallet',
+    header: 'Select your favorite Solana wallet',
     content,
     width: 420,
     closeOnBlur: true,
+    className: 'kwami-wallet-popover',
     theme: options.theme,
     appearance: {
       borderRadius: options.appearance?.borderRadius ?? '22px',
@@ -148,19 +133,6 @@ export function createWalletConnectWidget(options: WalletConnectWidgetOptions = 
     }
   }
 
-  function setStatus(text: string): void {
-    statusLine.textContent = text;
-  }
-
-  function updateNetworkLine(): void {
-    try {
-      networkLine.textContent = `Network: ${wallet.getNetwork()}`;
-      networkLine.style.display = '';
-    } catch {
-      networkLine.textContent = '';
-      networkLine.style.display = 'none';
-    }
-  }
 
   function setButtonLabelDisconnected(): void {
     if (typeof connectLabel === 'string') {
@@ -208,12 +180,9 @@ export function createWalletConnectWidget(options: WalletConnectWidgetOptions = 
       return;
     }
 
-    const prompt = createText('Choose a wallet', { muted: true });
-    prompt.style.fontSize = '0.85rem';
-    walletsSection.appendChild(prompt);
     walletsSection.appendChild(walletButtons);
 
-    state.availableWallets.forEach(({ name, installed, url, kind }) => {
+    const buildWalletOption = ({ name, installed, url, kind, icon: walletIcon }: (typeof state.availableWallets)[number]) => {
       const button = document.createElement('button');
       button.type = 'button';
       button.className = ['kwami-glass-surface', 'kwami-glass-wallet-option'].join(' ');
@@ -221,14 +190,26 @@ export function createWalletConnectWidget(options: WalletConnectWidgetOptions = 
       const icon = document.createElement('div');
       icon.className = 'kwami-wallet-option-icon';
 
-      const svg = getWalletLogoSvg(name);
-      if (svg) {
-        icon.innerHTML = svg;
+      if (walletIcon && walletIcon.startsWith('data:image/')) {
+        const img = document.createElement('img');
+        img.src = walletIcon;
+        img.alt = `${name} logo`;
+        img.loading = 'lazy';
+        img.decoding = 'async';
+        img.style.width = '20px';
+        img.style.height = '20px';
+        img.style.display = 'block';
+        icon.appendChild(img);
       } else {
-        icon.textContent = initials(name);
-        icon.style.fontWeight = '800';
-        icon.style.fontSize = '0.78rem';
-        icon.style.letterSpacing = '0.08em';
+        const svg = getWalletLogoSvg(name);
+        if (svg) {
+          icon.innerHTML = svg;
+        } else {
+          icon.textContent = initials(name);
+          icon.style.fontWeight = '800';
+          icon.style.fontSize = '0.78rem';
+          icon.style.letterSpacing = '0.08em';
+        }
       }
 
       const meta = document.createElement('div');
@@ -244,11 +225,13 @@ export function createWalletConnectWidget(options: WalletConnectWidgetOptions = 
       const subtitle = document.createElement('div');
       subtitle.className = 'kwami-wallet-option-subtitle';
 
-      const normalizedKind = kind ?? getWalletKindFallback(name);
-      const kindLabel = normalizedKind === 'hardware' ? 'Hardware' : 'Browser';
       const recommended = name.toLowerCase().includes('phantom');
-
-      subtitle.textContent = recommended ? `${kindLabel} • Recommended` : kindLabel;
+      if (recommended) {
+        subtitle.textContent = 'Recommended';
+      } else {
+        subtitle.textContent = '';
+        subtitle.style.display = 'none';
+      }
 
       meta.appendChild(nameLine);
       meta.appendChild(subtitle);
@@ -285,8 +268,32 @@ export function createWalletConnectWidget(options: WalletConnectWidgetOptions = 
         }
       });
 
-      walletButtons.appendChild(button);
+      return button;
+    };
+
+    const hotWallets: (typeof state.availableWallets) = [];
+    const coldWallets: (typeof state.availableWallets) = [];
+
+    state.availableWallets.forEach((w) => {
+      const normalizedKind = w.kind ?? getWalletKindFallback(w.name);
+      if (normalizedKind === 'hardware') {
+        coldWallets.push(w);
+      } else {
+        hotWallets.push(w);
+      }
     });
+
+    const renderSection = (title: string, wallets: (typeof state.availableWallets)) => {
+      if (wallets.length === 0) return;
+      const titleNode = createText(title, { muted: true });
+      titleNode.className = 'kwami-wallet-list-section-title';
+      walletButtons.appendChild(titleNode);
+      wallets.forEach((w) => walletButtons.appendChild(buildWalletOption(w)));
+    };
+
+    // Hot first (most common for connection), then Cold.
+    renderSection('Hot wallets', hotWallets);
+    renderSection('Cold wallets', coldWallets);
   }
 
   function rebuildActions(): void {
@@ -342,32 +349,23 @@ export function createWalletConnectWidget(options: WalletConnectWidgetOptions = 
       return;
     }
 
-    const hint = createText('Tip: make sure your wallet is unlocked before connecting.', { muted: true });
-    hint.style.fontSize = '0.85rem';
-    actionsSection.appendChild(hint);
   }
 
   function applyStateToUi(): void {
-    updateNetworkLine();
-
     switch (state.status) {
       case 'connecting':
-        setStatus('Connecting…');
         buttonHandle.setDisabled(true);
         break;
       case 'connected':
-        setStatus('Connected');
         buttonHandle.setDisabled(false);
         setButtonLabelConnected();
         break;
       case 'error':
-        setStatus('Error');
         buttonHandle.setDisabled(false);
         setButtonLabelDisconnected();
         break;
       case 'disconnected':
       default:
-        setStatus('Disconnected');
         buttonHandle.setDisabled(false);
         setButtonLabelDisconnected();
         break;
@@ -386,11 +384,27 @@ export function createWalletConnectWidget(options: WalletConnectWidgetOptions = 
       installed: w.installed ?? true,
       url: w.url,
       kind: w.kind,
+      icon: w.icon,
       readyState: w.readyState,
     }));
 
     // Ranked wallets (most common first)
-    const rank = ['Phantom', 'Solflare', 'Backpack', 'Glow', 'Slope', 'Ledger', 'Trezor'];
+    const rank = [
+      'Phantom',
+      'Solflare',
+      'Backpack',
+      'Glow',
+      'Coinbase Wallet',
+      'Trust Wallet',
+      'Coin98',
+      'TokenPocket',
+      'MathWallet',
+      'SafePal',
+      'Coinhub',
+      'Slope',
+      'Ledger',
+      'Trezor',
+    ];
 
     const byName = new Map(normalizedDetected.map((w) => [w.name.toLowerCase(), w] as const));
 
@@ -403,6 +417,7 @@ export function createWalletConnectWidget(options: WalletConnectWidgetOptions = 
             installed: false,
             url: undefined,
             kind: getWalletKindFallback(name),
+            icon: undefined,
             readyState: 'not detected',
           }
         );
@@ -415,15 +430,15 @@ export function createWalletConnectWidget(options: WalletConnectWidgetOptions = 
       return idx === -1 ? 999 : idx;
     };
 
-    // Sort by ranking first, then installed, then alphabetically
+    // Sort: detected/installed wallets first, then by popularity ranking, then alphabetically
     combined.sort((a, b) => {
-      const ra = rankIndex(a.name);
-      const rb = rankIndex(b.name);
-      if (ra !== rb) return ra - rb;
-
       const ai = a.installed ? 0 : 1;
       const bi = b.installed ? 0 : 1;
       if (ai !== bi) return ai - bi;
+
+      const ra = rankIndex(a.name);
+      const rb = rankIndex(b.name);
+      if (ra !== rb) return ra - rb;
 
       return a.name.localeCompare(b.name);
     });
@@ -433,6 +448,7 @@ export function createWalletConnectWidget(options: WalletConnectWidgetOptions = 
       installed: w.installed,
       url: w.url,
       kind: w.kind ?? getWalletKindFallback(w.name),
+      icon: w.icon,
       readyState: w.readyState,
     }));
   }

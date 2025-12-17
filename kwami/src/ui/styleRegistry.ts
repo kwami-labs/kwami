@@ -125,14 +125,41 @@ export function ensureGlassBaseStyles(): void {
       gap: 1rem;
     }
 
+    /* Wallet popover: no bottom padding */
+    .kwami-wallet-popover {
+      padding-bottom: 0 !important;
+    }
+
     /* Wallet list */
     .kwami-wallet-list {
-      max-height: 320px;
+      /* Taller popover list; still capped by viewport */
+      max-height: min(620px, calc(100vh - 220px));
       overflow: auto;
       padding-right: 6px;
       display: flex;
       flex-direction: column;
       gap: 0.55rem;
+
+
+      background: transparent;
+      border: none;
+      border-radius: 0;
+      padding: 0;
+
+      scrollbar-color: var(--kwami-scrollbar-thumb) transparent;
+    }
+
+    .kwami-wallet-list::-webkit-scrollbar-track {
+      background: transparent;
+    }
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      opacity: 0.65;
+      padding: 0.35rem 0.1rem 0.15rem;
+    }
+
+    .kwami-wallet-list::-webkit-scrollbar-track {
+      background: transparent;
     }
 
     .kwami-glass-wallet-option {
@@ -153,7 +180,9 @@ export function ensureGlassBaseStyles(): void {
       appearance: none;
       -webkit-appearance: none;
       border: var(--glass-border-width, 1px) solid var(--glass-outline, rgba(148,163,184,0.2));
-      background: color-mix(in srgb, var(--glass-surface, rgba(255,255,255,0.75)) 82%, transparent);
+
+      /* keep options visually aligned with the popover surface (avoid darker tiles) */
+      background: color-mix(in srgb, var(--glass-surface, rgba(255,255,255,0.75)) 94%, transparent);
     }
 
     .kwami-glass-wallet-option:focus {

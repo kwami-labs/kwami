@@ -122,7 +122,7 @@ echo -e "\n${YELLOW}Step 4: Checking wallet balance...${NC}"
 
 # Configurable funding behavior (override via env vars)
 MIN_SOL_BALANCE="${MIN_SOL_BALANCE:-4}"
-AIRDROP_AMOUNT="${AIRDROP_AMOUNT:-2}"
+AIRDROP_AMOUNT="${AIRDROP_AMOUNT:-4}"
 MAX_AIRDROP_ATTEMPTS="${MAX_AIRDROP_ATTEMPTS:-2}"
 
 WALLET_ADDRESS=$(solana address)
