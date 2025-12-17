@@ -157,13 +157,11 @@ export function prefetchResource(url: string, type: 'script' | 'style' | 'image'
  * Checks if device has low memory
  */
 export function isLowEndDevice(): boolean {
-  // @ts-ignore - navigator.deviceMemory is experimental
-  const memory = navigator.deviceMemory;
-  // @ts-ignore - navigator.hardwareConcurrency
+  const memory = (navigator as any).deviceMemory as number | undefined;
   const cores = navigator.hardwareConcurrency;
-  
+
   // Consider low-end if < 4GB RAM or < 4 cores
-  return (memory && memory < 4) || (cores && cores < 4);
+  return (typeof memory === 'number' && memory < 4) || (typeof cores === 'number' && cores < 4);
 }
 
 

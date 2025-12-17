@@ -28,7 +28,7 @@
     "three": "^0.169.0",
     "vue": "^3.5.24",
     "vue-router": "^4.6.3",
-    "kwami": "file:../../dist",
+    "kwami": "^1.5.11",
     "@iconify/vue": "^4.1.1"
   },
   "devDependencies": {

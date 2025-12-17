@@ -18,8 +18,22 @@ export interface BlobConfig {
   colorPalette?: string[];
 }
 
+function normalizeColorPalette(value: unknown): string[] | undefined {
+  if (Array.isArray(value)) {
+    const arr = value.filter((v): v is string => typeof v === 'string');
+    return arr.length ? arr : undefined;
+  }
+
+  if (typeof value === 'string') {
+    const trimmed = value.trim();
+    return trimmed ? [trimmed] : undefined;
+  }
+
+  return undefined;
+}
+
 // Load blob configurations from kwamis.json
-export const BLOB_CONFIGS: BlobConfig[] = kwamiConfigs.map(config => ({
+export const BLOB_CONFIGS: BlobConfig[] = kwamiConfigs.map((config) => ({
   spikeX: config.spikes.x,
   spikeY: config.spikes.y,
   spikeZ: config.spikes.z,
@@ -28,7 +42,7 @@ export const BLOB_CONFIGS: BlobConfig[] = kwamiConfigs.map(config => ({
   timeZ: config.time.z,
   skin: config.skin,
   resolution: config.resolution,
-  wireframe: config.wireframe,
-  colorPalette: config.colorPalette
+  wireframe: typeof config.wireframe === 'boolean' ? config.wireframe : undefined,
+  colorPalette: normalizeColorPalette(config.colorPalette),
 }));
 

@@ -4,6 +4,15 @@ members = [
     "programs/*"
 ]
 
+[workspace.dependencies]
+solana-instruction = "=2.2.1"
+solana-instructions-sysvar = "=2.2.1"
+solana-define-syscall = "=2.2.1"
+solana-curve25519 = "=2.2.1"
+subtle = "=2.6.1"
+spl-token-confidential-transfer-proof-generation = "=0.3.0"
+spl-token-confidential-transfer-proof-extraction = "=0.3.0"
+
 [profile.release]
 overflow-checks = true
 lto = "fat"

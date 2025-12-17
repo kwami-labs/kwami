@@ -17,8 +17,15 @@ default = []
 idl-build = ["anchor-lang/idl-build", "anchor-spl/idl-build"]
 
 [dependencies]
-anchor-lang = "0.29.0"
-anchor-spl = "0.29.0"
+anchor-lang = "0.32.1"
+anchor-spl = "0.32.1"
+solana-instruction = { workspace = true }
+solana-instructions-sysvar = { workspace = true }
+solana-define-syscall = { workspace = true }
+solana-curve25519 = { workspace = true }
+subtle = { workspace = true }
+spl-token-confidential-transfer-proof-generation = { workspace = true }
+spl-token-confidential-transfer-proof-extraction = { workspace = true }
 
 #[dev-dependencies]
 #solana-program-test = "~1.17"

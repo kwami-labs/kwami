@@ -1,39 +1,42 @@
 /**
  * Global Application Configuration
- * 
+ *
  * This file contains global settings that control the behavior of the application.
  */
 
-/**
- * Service Worker Configuration
- * 
- * ENABLE_SERVICE_WORKER: Set to false to disable service worker registration and caching.
- * When disabled, the app will not use any service workers or browser caches.
- * 
- * Note: Service workers use browser caching, not cookies. However, disabling this
- * ensures no data is stored in the browser cache.
- */
-export const ENABLE_SERVICE_WORKER = false;
+function envBool(value: string | undefined, defaultValue: boolean): boolean {
+  if (value == null) return defaultValue;
 
-/**
- * Analytics Configuration
- * 
- * ENABLE_ANALYTICS: Set to false to disable Google Analytics tracking.
- * When disabled, no analytics data will be collected.
- */
-export const ENABLE_ANALYTICS = false;
+  const normalized = value.trim().toLowerCase();
+  if (['1', 'true', 'yes', 'on'].includes(normalized)) return true;
+  if (['0', 'false', 'no', 'off'].includes(normalized)) return false;
+
+  return defaultValue;
+}
 
 /**
  * Development Configuration
- * 
- * These settings are for development purposes.
  */
-export const DEV_MODE = import.meta.env.DEV || false;
+export const DEV_MODE = Boolean(import.meta.env.DEV);
+
+/**
+ * Service Worker Configuration
+ *
+ * Controlled via VITE_ENABLE_SERVICE_WORKER.
+ */
+export const ENABLE_SERVICE_WORKER = envBool(import.meta.env.VITE_ENABLE_SERVICE_WORKER, false);
+
+/**
+ * Analytics Configuration
+ *
+ * Controlled via VITE_ENABLE_ANALYTICS.
+ */
+export const ENABLE_ANALYTICS = envBool(import.meta.env.VITE_ENABLE_ANALYTICS, false);
 
 /**
  * Logging Configuration
  */
-export const ENABLE_DEBUG_LOGS = DEV_MODE;
+export const ENABLE_DEBUG_LOGS = envBool(import.meta.env.VITE_ENABLE_DEBUG_LOGS, DEV_MODE);
 
 /**
  * Export all configuration

@@ -1,6 +1,5 @@
 import { gsap } from 'gsap';
-import { Kwami } from 'kwami';
-import type { KwamiConfig } from 'kwami';
+import type { Kwami, KwamiConfig } from 'kwami';
 import i18next, { t, createLanguageSwitcher } from '../i18n';
 import { getThemeModeManager } from '../managers/ThemeModeManager';
 import { getKwamiAppsConfig } from '../config/env';
@@ -446,6 +445,7 @@ export class WelcomeLayer {
         kwamiConfig.apps = appsConfig;
       }
 
+      const { Kwami } = await import('kwami');
       this.kwami = new Kwami(canvas, kwamiConfig);
 
       // Enable blob interaction WITHOUT conversation callback (disables double-click microphone)
@@ -953,8 +953,7 @@ export class WelcomeLayer {
 
   private initAnimationSkipped() {
     // Faster version for skipped welcome (3 seconds total)
-    // @ts-ignore - gsap trialWarn config
-    gsap.config({ trialWarn: false });
+    (gsap as any).config({ trialWarn: false });
 
     const mainSVG = document.querySelector('#mainSVG') as SVGSVGElement;
     const allEll = Array.from(document.querySelectorAll('.ell'));
@@ -1072,8 +1071,7 @@ export class WelcomeLayer {
   }
 
   private initAnimation() {
-    // @ts-ignore - gsap trialWarn config
-    gsap.config({ trialWarn: false });
+    (gsap as any).config({ trialWarn: false });
 
     const mainSVG = document.querySelector('#mainSVG') as SVGSVGElement;
     const allEll = Array.from(document.querySelectorAll('.ell'));

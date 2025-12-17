@@ -71,6 +71,18 @@
       "import": "./dist/src/core/body/blob/Blob.js",
       "types": "./dist/src/core/body/blob/Blob.d.ts"
     },
+    "./ui": {
+      "import": "./dist/src/ui/index.js",
+      "types": "./dist/src/ui/index.d.ts"
+    },
+    "./ui/rings": {
+      "import": "./dist/src/ui/rings/index.js",
+      "types": "./dist/src/ui/rings/index.d.ts"
+    },
+    "./ui/welcome": {
+      "import": "./dist/src/ui/welcome/index.js",
+      "types": "./dist/src/ui/welcome/index.d.ts"
+    },
     "./utils": {
       "import": "./dist/src/utils/randoms.js",
       "types": "./dist/src/utils/randoms.d.ts"
