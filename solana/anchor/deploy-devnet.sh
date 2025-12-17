@@ -117,8 +117,8 @@ fi
 echo -e "\n${YELLOW}Step 4: Building QWAMI Token program...${NC}"
 cd qwami
 anchor clean
-anchor build --no-idl
-echo -e "${GREEN}✅ QWAMI Token program built${NC}"
+anchor build
+echo -e "${GREEN}✅ QWAMI Token program built (with IDL)${NC}"
 
 # Get QWAMI program ID
 QWAMI_PROGRAM_ID=$(anchor keys list | grep qwami_token | awk '{print $2}')
@@ -136,8 +136,8 @@ echo -e "Explorer: ${BLUE}https://explorer.solana.com/address/${QWAMI_PROGRAM_ID
 echo -e "\n${YELLOW}Step 6: Building KWAMI NFT program...${NC}"
 cd ../kwami
 anchor clean
-anchor build --no-idl
-echo -e "${GREEN}✅ KWAMI NFT program built${NC}"
+anchor build
+echo -e "${GREEN}✅ KWAMI NFT program built (with IDL)${NC}"
 
 # Get KWAMI program ID
 KWAMI_PROGRAM_ID=$(anchor keys list | grep kwami_nft | awk '{print $2}')
@@ -176,21 +176,33 @@ fi
 # Step 9: Rebuild and redeploy with correct IDs
 echo -e "\n${YELLOW}Step 9: Rebuilding with correct program IDs...${NC}"
 
-echo -e "${YELLOW}Rebuilding QWAMI...${NC}"
+echo -e "\n${YELLOW}Rebuilding QWAMI...${NC}"
 cd qwami
-anchor build --no-idl
+anchor build
 
 
 anchor deploy --provider.cluster devnet
 echo -e "${GREEN}✅ QWAMI redeployed with correct ID${NC}"
 
+# Upload QWAMI IDL
+echo -e "${YELLOW}Uploading QWAMI IDL...${NC}"
+anchor idl init --filepath target/idl/qwami_token.json "${QWAMI_PROGRAM_ID}" --provider.cluster devnet || \
+  anchor idl upgrade --filepath target/idl/qwami_token.json "${QWAMI_PROGRAM_ID}" --provider.cluster devnet
+echo -e "${GREEN}✅ QWAMI IDL uploaded${NC}"
+
 echo -e "\n${YELLOW}Rebuilding KWAMI...${NC}"
 cd ../kwami
-anchor build --no-idl
+anchor build
 
 
 anchor deploy --provider.cluster devnet
 echo -e "${GREEN}✅ KWAMI redeployed with correct ID${NC}"
+
+# Upload KWAMI IDL
+echo -e "${YELLOW}Uploading KWAMI IDL...${NC}"
+anchor idl init --filepath target/idl/kwami_nft.json "${KWAMI_PROGRAM_ID}" --provider.cluster devnet || \
+  anchor idl upgrade --filepath target/idl/kwami_nft.json "${KWAMI_PROGRAM_ID}" --provider.cluster devnet
+echo -e "${GREEN}✅ KWAMI IDL uploaded${NC}"
 
 cd ..
 
@@ -208,6 +220,11 @@ else
     # Initialize QWAMI
     echo -e "\n${YELLOW}Initializing QWAMI Token...${NC}"
     cd qwami
+    
+    # Set environment variables for Anchor provider
+    export ANCHOR_PROVIDER_URL="https://api.devnet.solana.com"
+    export ANCHOR_WALLET="${HOME}/.config/solana/id.json"
+    
     if npm run initialize; then
         echo -e "${GREEN}✅ QWAMI Token initialized${NC}"
         QWAMI_INITIALIZED=true
