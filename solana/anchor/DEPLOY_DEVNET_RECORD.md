@@ -59,7 +59,38 @@ Balance: 4.0857194 SOL
 
 ---
 
-**Deployment Status:** ✅ Programs Deployed and Initialized
-\n## ⚠️ Initialization Issues\n
-- QWAMI: Failed (run manually)\n
-- KWAMI: Failed (run manually)\n
+**Deployment Status:** ✅ Programs Deployed | 🚧 Initialization In Progress
+
+---
+
+## ✅ Completed Steps
+
+### Build Environment Fixed
+- ✅ Installed Solana 2.3.0 (compatible with Anchor 0.32.1)
+- ✅ Resolved all Rust/Cargo dependency conflicts
+- ✅ Successfully built both QWAMI and KWAMI programs
+- ✅ Generated IDL files for both programs
+- ✅ Uploaded IDLs to devnet
+
+### IDL Accounts Created
+```
+QWAMI IDL: 7nbwPUEJnvygBQ5AVHyms77Aoq3hPU7D69VoU53UGEhi
+KWAMI IDL: BydTjVWMTe5Q9W1ogGQ3LoZpxZ8p1rwmpedn5CuPNpWx
+```
+
+---
+
+## 🚧 Next: Initialize Programs
+
+The programs are deployed and ready to be initialized. Run:
+
+```bash
+cd qwami
+ANCHOR_PROVIDER_URL=https://api.devnet.solana.com ANCHOR_WALLET=~/.config/solana/id.json npm run initialize
+
+cd ../kwami
+# Update QWAMI_MINT_ADDRESS in scripts/initialize-kwami.ts with the QWAMI mint from previous step
+ANCHOR_PROVIDER_URL=https://api.devnet.solana.com ANCHOR_WALLET=~/.config/solana/id.json npm run initialize
+```
+
+---
