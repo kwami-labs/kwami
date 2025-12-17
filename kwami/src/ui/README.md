@@ -9,6 +9,7 @@ Reusable glassmorphic primitives that match Kwami’s futuristic aesthetic. The 
 | `createGlassButton` | Neon-inspired CTA button with optional icons and variants (primary, ghost, outline). |
 | `createGlassPopover` | Floating glass panel that can be positioned anywhere (used for dashboards / inspectors). |
 | `createGlassPanel` | Generic surface for grouping controls or stats. |
+| `createBackgroundRings` | SVG background rings effect (framework-agnostic), with manual or auto resize handling. |
 
 ### Usage
 
