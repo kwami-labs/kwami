@@ -1,6 +1,5 @@
 import * as anchor from "@coral-xyz/anchor";
-import { Program, AnchorProvider } from "@coral-xyz/anchor";
-import type { QwamiToken } from "../target/types/qwami_token";
+import { Program } from "@coral-xyz/anchor";
 import {
   TOKEN_PROGRAM_ID,
   createMint,
@@ -8,52 +7,45 @@ import {
 } from "@solana/spl-token";
 
 /**
- * Initialize QWAMI Token Program on Devnet
- * 
- * This script:
- * 1. Creates QWAMI mint
- * 2. Creates token authority PDA
- * 3. Creates treasury PDA
- * 4. Creates USDC vault
- * 5. Initializes the program
+ * Simplified QWAMI Token Initialization
+ * Uses raw transaction building to avoid IDL parsing issues
  */
 
 async function main() {
   console.log("\n🚀 Initializing QWAMI Token Program on Devnet...\n");
 
   // Configure provider
-  const provider = AnchorProvider.env();
+  const provider = anchor.AnchorProvider.env();
   anchor.setProvider(provider);
   
-  // Load program from IDL file
+  const payer = (provider.wallet as any).payer as anchor.web3.Keypair;
+  
+  // Load program ID from IDL
+  const fs = require('fs');
   const path = require('path');
   const idlPath = path.join(__dirname, '../target/idl/qwami_token.json');
-  const idl = JSON.parse(require('fs').readFileSync(idlPath, 'utf8'));
-  // Use the program ID from the IDL (deployed address)
-  const programId = new anchor.web3.PublicKey(idl.address);
-  const program = new Program(idl, programId, provider) as any;
+  const idl = JSON.parse(fs.readFileSync(idlPath, 'utf8'));
+  const programId = new anchor.web3.PublicKey(idl.address || idl.metadata.address);
   
-  console.log("Program ID:", program.programId.toString());
+  console.log("Program ID:", programId.toString());
   console.log("Wallet:", provider.wallet.publicKey.toString());
   console.log("Cluster:", provider.connection.rpcEndpoint);
   
-  const payer = (provider.wallet as any).payer as anchor.web3.Keypair;
-
   // Create mint keypair
   const mintKeypair = anchor.web3.Keypair.generate();
   console.log("\n📝 Generated Addresses:");
   console.log("QWAMI Mint:", mintKeypair.publicKey.toString());
   
   // Derive PDAs
-  const [tokenAuthority, tokenAuthorityBump] = anchor.web3.PublicKey.findProgramAddressSync(
+  const [tokenAuthority] = anchor.web3.PublicKey.findProgramAddressSync(
     [Buffer.from("token-authority"), mintKeypair.publicKey.toBuffer()],
-    program.programId
+    programId
   );
   console.log("Token Authority:", tokenAuthority.toString());
   
-  const [treasury, treasuryBump] = anchor.web3.PublicKey.findProgramAddressSync(
+  const [treasury] = anchor.web3.PublicKey.findProgramAddressSync(
     [Buffer.from("qwami-treasury")],
-    program.programId
+    programId
   );
   console.log("Treasury:", treasury.toString());
   
@@ -65,7 +57,7 @@ async function main() {
   const usdcVaultKeypair = anchor.web3.Keypair.generate();
   console.log("USDC Vault:", usdcVaultKeypair.publicKey.toString());
 
-  // Create the mint + vault off-chain (program Initialize no longer `init`s them to stay under SBF stack limit)
+  // Create the mint off-chain
   console.log("\n🏗️  Creating QWAMI mint off-chain...");
   await createMint(
     provider.connection,
@@ -89,50 +81,47 @@ async function main() {
     TOKEN_PROGRAM_ID
   );
   
-  // Initialize program
+  // Build initialize instruction manually
   console.log("\n⏳ Sending initialization transaction...");
   
+  // Get initialize discriminator from IDL
+  const initializeInstruction = idl.instructions.find((ix: any) => ix.name === "initialize");
+  if (!initializeInstruction) {
+    throw new Error("Initialize instruction not found in IDL");
+  }
+  
+  const discriminator = Buffer.from(initializeInstruction.discriminator);
+  
+  // Build accounts
+  const keys = [
+    { pubkey: mintKeypair.publicKey, isSigner: false, isWritable: true },
+    { pubkey: tokenAuthority, isSigner: false, isWritable: true },
+    { pubkey: treasury, isSigner: false, isWritable: true },
+    { pubkey: usdcVaultKeypair.publicKey, isSigner: false, isWritable: true }, // Must be writable
+    { pubkey: usdcMint, isSigner: false, isWritable: false },
+    { pubkey: provider.wallet.publicKey, isSigner: true, isWritable: true },
+    { pubkey: anchor.web3.SystemProgram.programId, isSigner: false, isWritable: false },
+    { pubkey: TOKEN_PROGRAM_ID, isSigner: false, isWritable: false },
+  ];
+  
+  const instruction = new anchor.web3.TransactionInstruction({
+    keys,
+    programId,
+    data: discriminator, // No additional data for initialize
+  });
+  
+  const tx = new anchor.web3.Transaction().add(instruction);
+  
   try {
-    const tx = await program.methods
-      .initialize()
-      .accounts({
-        mint: mintKeypair.publicKey,
-        tokenAuthority: tokenAuthority,
-        treasury: treasury,
-        usdcVault: usdcVaultKeypair.publicKey,
-        usdcMint: usdcMint,
-        payer: provider.wallet.publicKey,
-        systemProgram: anchor.web3.SystemProgram.programId,
-        tokenProgram: TOKEN_PROGRAM_ID,
-      })
-      .rpc();
+    const signature = await provider.sendAndConfirm(tx);
     
     console.log("\n✅ QWAMI Token Program Initialized!");
-    console.log("\nTransaction Signature:", tx);
-    console.log("Explorer:", `https://explorer.solana.com/tx/${tx}?cluster=devnet`);
-    
-    // Verify initialization
-    console.log("\n🔍 Verifying initialization...");
-    
-    const authorityData = await program.account.tokenAuthority.fetch(tokenAuthority) as any;
-    console.log("\n📊 Token Authority Data:");
-    console.log("  Authority:", authorityData.authority.toString());
-    console.log("  Mint:", authorityData.mint.toString());
-    console.log("  Total Minted:", authorityData.totalMinted.toString());
-    console.log("  Total Burned:", authorityData.totalBurned.toString());
-    console.log("  Base Price (USD cents):", authorityData.basePriceUsdCents.toString());
-    
-    const treasuryData = await program.account.qwamiTreasury.fetch(treasury) as any;
-    console.log("\n💰 Treasury Data:");
-    console.log("  Authority:", treasuryData.authority.toString());
-    console.log("  USDC Vault:", treasuryData.usdcVault.toString());
-    console.log("  Total SOL Received:", treasuryData.totalSolReceived.toString());
-    console.log("  Total USDC Received:", treasuryData.totalUsdcReceived.toString());
+    console.log("\nTransaction Signature:", signature);
+    console.log("Explorer:", `https://explorer.solana.com/tx/${signature}?cluster=devnet`);
     
     // Save addresses to file
-    const fs = require('fs');
     const addresses = {
-      programId: program.programId.toString(),
+      programId: programId.toString(),
       qwamiMint: mintKeypair.publicKey.toString(),
       tokenAuthority: tokenAuthority.toString(),
       treasury: treasury.toString(),
@@ -141,7 +130,7 @@ async function main() {
       wallet: provider.wallet.publicKey.toString(),
       cluster: "devnet",
       timestamp: new Date().toISOString(),
-      transaction: tx,
+      transaction: signature,
     };
     
     fs.writeFileSync(
@@ -172,7 +161,7 @@ async function main() {
       }
     }
     
-    process.exit(1);
+    throw error;
   }
 }
 
@@ -186,4 +175,3 @@ main()
     console.error(error);
     process.exit(1);
   });
-

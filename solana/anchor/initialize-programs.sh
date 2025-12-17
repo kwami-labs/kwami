@@ -50,7 +50,7 @@ if ! command -v npx &> /dev/null; then
     exit 1
 fi
 
-if ANCHOR_PROVIDER_URL="$CLUSTER" ANCHOR_WALLET="$WALLET_PATH" npx ts-node scripts/initialize-simple.ts; then
+if ANCHOR_PROVIDER_URL="$CLUSTER" ANCHOR_WALLET="$WALLET_PATH" npx ts-node scripts/initialize-qwami.ts; then
     echo -e "${GREEN}✅ QWAMI Token initialized successfully!${NC}"
     
     if [ -f "devnet-addresses.json" ]; then

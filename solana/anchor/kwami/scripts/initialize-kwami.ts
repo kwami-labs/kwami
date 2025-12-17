@@ -1,6 +1,5 @@
 import * as anchor from "@coral-xyz/anchor";
-import { Program, AnchorProvider } from "@coral-xyz/anchor";
-import type { KwamiNft } from "../target/types/kwami_nft";
+import { Program } from "@coral-xyz/anchor";
 import {
   TOKEN_PROGRAM_ID,
   createMint,
@@ -9,17 +8,8 @@ import {
 import * as fs from "fs";
 
 /**
- * Initialize KWAMI NFT Program on Devnet
- * 
- * This script:
- * 1. Creates collection mint
- * 2. Creates collection authority PDA
- * 3. Creates DNA registry PDA
- * 4. Creates treasury PDA
- * 5. Creates QWAMI vault
- * 6. Initializes the program
- * 
- * IMPORTANT: Update QWAMI_MINT_ADDRESS before running!
+ * Simplified KWAMI NFT Initialization
+ * Uses raw transaction building to avoid IDL parsing issues
  */
 
 async function main() {
@@ -39,23 +29,21 @@ async function main() {
   }
 
   // Configure provider
-  const provider = AnchorProvider.env();
+  const provider = anchor.AnchorProvider.env();
   anchor.setProvider(provider);
   
-  // Load program from IDL file
+  const payer = (provider.wallet as any).payer as anchor.web3.Keypair;
+  
+  // Load program ID from IDL
   const path = require('path');
   const idlPath = path.join(__dirname, '../target/idl/kwami_nft.json');
-  const idl = JSON.parse(require('fs').readFileSync(idlPath, 'utf8'));
-  // Use the program ID from the IDL (deployed address)
-  const programId = new anchor.web3.PublicKey(idl.address);
-  const program = new Program(idl, programId, provider) as any;
+  const idl = JSON.parse(fs.readFileSync(idlPath, 'utf8'));
+  const programId = new anchor.web3.PublicKey(idl.address || idl.metadata.address);
   
-  console.log("Program ID:", program.programId.toString());
+  console.log("Program ID:", programId.toString());
   console.log("Wallet:", provider.wallet.publicKey.toString());
   console.log("Cluster:", provider.connection.rpcEndpoint);
   
-  const payer = (provider.wallet as any).payer as anchor.web3.Keypair;
-
   // QWAMI mint from previous initialization
   const qwamiMint = new anchor.web3.PublicKey(QWAMI_MINT_ADDRESS);
   console.log("QWAMI Mint:", qwamiMint.toString());
@@ -66,21 +54,21 @@ async function main() {
   console.log("Collection Mint:", collectionMintKeypair.publicKey.toString());
   
   // Derive PDAs
-  const [collectionAuthority, collectionAuthorityBump] = anchor.web3.PublicKey.findProgramAddressSync(
+  const [collectionAuthority] = anchor.web3.PublicKey.findProgramAddressSync(
     [Buffer.from("collection-authority"), collectionMintKeypair.publicKey.toBuffer()],
-    program.programId
+    programId
   );
   console.log("Collection Authority:", collectionAuthority.toString());
   
-  const [dnaRegistry, dnaRegistryBump] = anchor.web3.PublicKey.findProgramAddressSync(
+  const [dnaRegistry] = anchor.web3.PublicKey.findProgramAddressSync(
     [Buffer.from("dna-registry"), collectionMintKeypair.publicKey.toBuffer()],
-    program.programId
+    programId
   );
   console.log("DNA Registry:", dnaRegistry.toString());
   
-  const [treasury, treasuryBump] = anchor.web3.PublicKey.findProgramAddressSync(
+  const [treasury] = anchor.web3.PublicKey.findProgramAddressSync(
     [Buffer.from("kwami-treasury")],
-    program.programId
+    programId
   );
   console.log("Treasury:", treasury.toString());
   
@@ -88,7 +76,7 @@ async function main() {
   const qwamiVaultKeypair = anchor.web3.Keypair.generate();
   console.log("QWAMI Vault:", qwamiVaultKeypair.publicKey.toString());
 
-  // Create collection mint + QWAMI vault off-chain (program Initialize no longer `init`s them)
+  // Create collection mint off-chain
   console.log("\n🏗️  Creating collection mint off-chain...");
   await createMint(
     provider.connection,
@@ -112,56 +100,48 @@ async function main() {
     TOKEN_PROGRAM_ID
   );
   
-  // Initialize program
+  // Build initialize instruction manually
   console.log("\n⏳ Sending initialization transaction...");
   
+  // Get initialize discriminator from IDL
+  const initializeInstruction = idl.instructions.find((ix: any) => ix.name === "initialize");
+  if (!initializeInstruction) {
+    throw new Error("Initialize instruction not found in IDL");
+  }
+  
+  const discriminator = Buffer.from(initializeInstruction.discriminator);
+  
+  // Build accounts
+  const keys = [
+    { pubkey: collectionMintKeypair.publicKey, isSigner: false, isWritable: true },
+    { pubkey: collectionAuthority, isSigner: false, isWritable: true },
+    { pubkey: dnaRegistry, isSigner: false, isWritable: true },
+    { pubkey: treasury, isSigner: false, isWritable: true },
+    { pubkey: qwamiVaultKeypair.publicKey, isSigner: false, isWritable: true }, // Must be writable
+    { pubkey: qwamiMint, isSigner: false, isWritable: false },
+    { pubkey: provider.wallet.publicKey, isSigner: true, isWritable: true },
+    { pubkey: anchor.web3.SystemProgram.programId, isSigner: false, isWritable: false },
+    { pubkey: TOKEN_PROGRAM_ID, isSigner: false, isWritable: false },
+  ];
+  
+  const instruction = new anchor.web3.TransactionInstruction({
+    keys,
+    programId,
+    data: discriminator, // No additional data for initialize
+  });
+  
+  const tx = new anchor.web3.Transaction().add(instruction);
+  
   try {
-    const tx = await program.methods
-      .initialize()
-      .accounts({
-        collectionMint: collectionMintKeypair.publicKey,
-        collectionAuthority: collectionAuthority,
-        dnaRegistry: dnaRegistry,
-        treasury: treasury,
-        qwamiVault: qwamiVaultKeypair.publicKey,
-        qwamiMint: qwamiMint,
-        payer: provider.wallet.publicKey,
-        systemProgram: anchor.web3.SystemProgram.programId,
-        tokenProgram: TOKEN_PROGRAM_ID,
-      })
-      .rpc();
+    const signature = await provider.sendAndConfirm(tx);
     
     console.log("\n✅ KWAMI NFT Program Initialized!");
-    console.log("\nTransaction Signature:", tx);
-    console.log("Explorer:", `https://explorer.solana.com/tx/${tx}?cluster=devnet`);
-    
-    // Verify initialization
-    console.log("\n🔍 Verifying initialization...");
-    
-    const authorityData = await program.account.collectionAuthority.fetch(collectionAuthority) as any;
-    console.log("\n📊 Collection Authority Data:");
-    console.log("  Authority:", authorityData.authority.toString());
-    console.log("  Collection Mint:", authorityData.collectionMint.toString());
-    console.log("  Total Minted:", authorityData.totalMinted.toString());
-    
-    const registryData = await program.account.dnaRegistry.fetch(dnaRegistry) as any;
-    console.log("\n🧬 DNA Registry Data:");
-    console.log("  Authority:", registryData.authority.toString());
-    console.log("  Collection:", registryData.collection.toString());
-    console.log("  DNA Count:", registryData.dnaCount.toString());
-    
-    const treasuryData = await program.account.kwamiTreasury.fetch(treasury) as any;
-    console.log("\n💰 Treasury Data:");
-    console.log("  Authority:", treasuryData.authority.toString());
-    console.log("  QWAMI Vault:", treasuryData.qwamiVault.toString());
-    console.log("  Total QWAMI Received:", treasuryData.totalQwamiReceived.toString());
-    console.log("  NFT Mints Count:", treasuryData.nftMintsCount.toString());
-    console.log("  Dividend Pool:", treasuryData.dividendPoolBalance.toString());
-    console.log("  Operations Balance:", treasuryData.operationsBalance.toString());
+    console.log("\nTransaction Signature:", signature);
+    console.log("Explorer:", `https://explorer.solana.com/tx/${signature}?cluster=devnet`);
     
     // Save addresses to file
     const addresses = {
-      programId: program.programId.toString(),
+      programId: programId.toString(),
       collectionMint: collectionMintKeypair.publicKey.toString(),
       collectionAuthority: collectionAuthority.toString(),
       dnaRegistry: dnaRegistry.toString(),
@@ -171,7 +151,7 @@ async function main() {
       wallet: provider.wallet.publicKey.toString(),
       cluster: "devnet",
       timestamp: new Date().toISOString(),
-      transaction: tx,
+      transaction: signature,
     };
     
     fs.writeFileSync(
@@ -208,7 +188,7 @@ async function main() {
       }
     }
     
-    process.exit(1);
+    throw error;
   }
 }
 
@@ -222,4 +202,3 @@ main()
     console.error(error);
     process.exit(1);
   });
-
