@@ -4,7 +4,7 @@ Kwami is an **independent, reusable** 3D interactive AI companion library (npm: 
 
 This repository is the **KWAMI ecosystem monorepo**: the core library plus playground + apps (Candy Machine, Marketplace, DAO, Website) and Solana programs that use it.
 
-> **Version 1.5.11** - [See what's new](#whats-new)
+> **Version 1.5.12** - [See what's new](#whats-new)
 
 [![npm version](https://img.shields.io/npm/v/kwami.svg)](https://www.npmjs.com/package/kwami)
 [![License](https://img.shields.io/badge/license-AGPL--3.0%20%7C%20Commercial-blue.svg)](./LICENSE)

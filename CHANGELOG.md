@@ -4,6 +4,14 @@ All notable changes to the KWAMI ecosystem will be documented in this file.
 
 For detailed core library changes, see [kwami/CHANGELOG.md](./kwami/CHANGELOG.md).
 
+## [1.5.12] - 2025-12-17
+
+### ✨ Added
+
+#### Added
+- **Candy UI**: Animated background rings (welcome-style) for the candy workspace UI
+- **Anchor**: Updated Anchor to 0.32.1 and added Solana dependency pins for workspace compatibility
+
 ## [1.5.11] - 2025-12-09
 
 ### 🔒 Security

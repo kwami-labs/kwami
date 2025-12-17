@@ -10,7 +10,7 @@ All components are built, tested, and ready for deployment.
 
 ### ✅ 1. Core Library (kwami)
 - **Status:** Published to npm
-- **Version:** 1.5.11
+- **Version:** 1.5.12
 - **Package:** `kwami`
 - **Action:** Already live on npm
 

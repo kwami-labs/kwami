@@ -7,6 +7,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [1.5.12] - 2025-12-17
+
+### ✨ Added
+
+- **UI**: New framework-agnostic UI exports for reuse across apps/workspaces
+  - `ui/rings`: background rings (SVG)
+  - `ui/welcome`: animated welcome rings + wordmark/logo utilities + welcome blob animator
+- **Exports**: Added subpath exports for better bundler compatibility (`kwami/ui`, `kwami/ui/rings`, `kwami/ui/welcome`)
+
 ## [1.5.11] - 2025-12-09
 
 ### 🔒 Security

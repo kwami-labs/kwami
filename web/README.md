@@ -160,5 +160,5 @@ Each section triggers unique blob shapes:
 
 ---
 
-**Version:** 1.5.11-dev  
+**Version:** 1.5.12-dev  
 **Status:** Under Active Development

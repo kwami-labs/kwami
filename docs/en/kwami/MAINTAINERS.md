@@ -184,7 +184,7 @@ npm run test:coverage
 
 ```bash
 # ⚠️ Use with extreme caution!
-npm unpublish kwami@1.5.11
+npm unpublish kwami@1.5.12
 
 # Then publish fixed version
 npm version patch
@@ -195,7 +195,7 @@ npm publish --access public
 
 ```bash
 # Better than unpublishing
-npm deprecate kwami@1.5.11 "Critical bug, please upgrade to 1.3.6"
+npm deprecate kwami@1.5.12 "Critical bug, please upgrade to 1.3.6"
 ```
 
 ### Revert a Release
@@ -211,7 +211,7 @@ git tag -d v1.3.5
 git push origin --delete v1.3.5
 
 # 3. Deprecate on npm
-npm deprecate kwami@1.5.11 "Version reverted, please use 1.3.4"
+npm deprecate kwami@1.5.12 "Version reverted, please use 1.3.4"
 ```
 
 ## 📊 Package Health Checks

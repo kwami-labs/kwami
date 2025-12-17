@@ -52,7 +52,7 @@ test.describe('Kwami Playground - Basic', () => {
   test('should display version info', async ({ page }) => {
     const versionDisplay = page.locator('#version-display');
     await expect(versionDisplay).toBeVisible();
-    await expect(versionDisplay).toContainText('1.5.11');
+    await expect(versionDisplay).toContainText('1.5.12');
   });
 
   test('should have working theme toggle', async ({ page }) => {

@@ -160,7 +160,7 @@ export class WelcomeLayer {
     const versionDiv = document.createElement('div');
     versionDiv.id = 'version';
     versionDiv.className = 'fixed bottom-10 text-sm text-gray-400 opacity-80';
-    versionDiv.textContent = 'KWAMI v.1.5.11';
+    versionDiv.textContent = 'KWAMI v.1.5.12';
 
     // Create welcome language switcher using shared function
     const welcomeLangSwitcher = createLanguageSwitcher('welcome-language-switcher');
@@ -288,7 +288,7 @@ export class WelcomeLayer {
     const versionDiv = document.createElement('div');
     versionDiv.id = 'version';
     versionDiv.className = 'fixed bottom-10 text-sm text-gray-400 opacity-80';
-    versionDiv.textContent = 'KWAMI v.1.5.11';
+    versionDiv.textContent = 'KWAMI v.1.5.12';
     versionDiv.style.visibility = 'hidden';
     versionDiv.style.opacity = '0';
 

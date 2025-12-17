@@ -378,5 +378,5 @@ Revenue from candy.kwami.io and market.kwami.io flows back to token holders as w
 ---
 
 **Status:** Ready for Devnet Deployment  
-**Version:** 1.5.11  
+**Version:** 1.5.12  
 **License:** See main project LICENSE

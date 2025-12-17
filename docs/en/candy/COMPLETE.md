@@ -1,6 +1,6 @@
 # 🎊 CANDY MACHINE - COMPLETE!
 
-**Version:** 1.5.11  
+**Version:** 1.5.12  
 **Date:** November 22, 2025  
 **Status:** ✅ **100% PRODUCTION READY**
 

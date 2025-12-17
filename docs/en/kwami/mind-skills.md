@@ -44,7 +44,7 @@ const mySkill: SkillDefinition = {
   id: "my-custom-skill",
   name: "My Custom Skill",
   description: "Does something cool",
-  version: "1.5.11",
+  version: "1.5.12",
   actions: [
     {
       type: "body.scale",

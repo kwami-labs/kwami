@@ -497,7 +497,7 @@ export function resetPluginManager(): void {
 export const performanceMonitorPlugin: Plugin = {
   metadata: {
     name: 'performance-monitor',
-    version: '1.5.11',
+    version: '1.5.12',
     author: 'Kwami Team',
     description: 'Monitors and displays performance metrics',
     tags: ['performance', 'monitoring', 'debug']
@@ -554,7 +554,7 @@ export const performanceMonitorPlugin: Plugin = {
 export const autoSavePlugin: Plugin = {
   metadata: {
     name: 'auto-save',
-    version: '1.5.11',
+    version: '1.5.12',
     author: 'Kwami Team',
     description: 'Automatically saves configuration every 5 minutes',
     tags: ['utility', 'backup']

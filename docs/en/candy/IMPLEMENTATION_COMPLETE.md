@@ -1,7 +1,7 @@
 # ✅ Candy Machine Implementation Complete
 
 **Date:** November 22, 2025  
-**Version:** 1.5.11  
+**Version:** 1.5.12  
 **Status:** 🎉 **PRODUCTION READY (Pending Deployment)**
 
 ---

@@ -79,7 +79,7 @@ export async function uploadImageToArweave(
       tags: [
         { name: 'Content-Type', value: contentType },
         { name: 'App-Name', value: 'kwami.io' },
-        { name: 'App-Version', value: '1.5.11' },
+        { name: 'App-Version', value: '1.5.12' },
         { name: 'Type', value: 'image' },
       ],
     })
@@ -140,7 +140,7 @@ export async function uploadMetadataToArweave(
       tags: [
         { name: 'Content-Type', value: 'application/json' },
         { name: 'App-Name', value: 'kwami.io' },
-        { name: 'App-Version', value: '1.5.11' },
+        { name: 'App-Version', value: '1.5.12' },
         { name: 'Type', value: 'metadata' },
       ],
     })
