@@ -402,7 +402,7 @@ pub struct Initialize<'info> {
     #[account(
         init,
         payer = payer,
-        space = 8 + DnaRegistry::LEN,
+        space = 8 + DnaRegistry::INITIAL_SIZE,
         seeds = [b"dna-registry", collection_mint.key().as_ref()],
         bump,
     )]
@@ -463,6 +463,9 @@ pub struct MintKwami<'info> {
 
     #[account(
         mut,
+        realloc = 8 + DnaRegistry::space_for_hashes(dna_registry.dna_count as usize + 1),
+        realloc::payer = owner,
+        realloc::zero = false,
         seeds = [b"dna-registry", collection_authority.collection_mint.as_ref()],
         bump,
     )]
@@ -614,10 +617,16 @@ pub struct DnaRegistry {
 }
 
 impl DnaRegistry {
-    pub const LEN: usize = 32 + // authority
+    // Minimal initial size - Vec will grow dynamically
+    pub const INITIAL_SIZE: usize = 32 + // authority
         32 + // collection
-        4 + (DNA_HASH_SIZE * MAX_DNA_PER_ACCOUNT) + // vec of hashes
+        4 +  // vec length (starts empty)
         8;   // dna_count
+    
+    // Calculate space needed for N DNA hashes
+    pub fn space_for_hashes(count: usize) -> usize {
+        Self::INITIAL_SIZE + (DNA_HASH_SIZE * count)
+    }
 }
 
 #[account]
