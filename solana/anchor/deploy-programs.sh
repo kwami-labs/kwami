@@ -29,37 +29,49 @@ fi
 
 # Step 1: Select Network
 echo -e "\n${YELLOW}Step 1: Select deployment network${NC}"
-echo -e "${BLUE}1)${NC} Devnet (testing)"
-echo -e "${BLUE}2)${NC} Mainnet-beta (production)"
-echo -e "${BLUE}3)${NC} Localnet (local development)"
+echo -e "${BLUE}1)${NC} Localnet (local development)"
+echo -e "${BLUE}2)${NC} Devnet (testing)"
+echo -e "${BLUE}3)${NC} Mainnet-beta (production)"
 echo ""
 
 read -p "Enter your choice (1-3): " network_choice
 
 case $network_choice in
     1)
+        CLUSTER="localnet"
+        CLUSTER_URL="http://localhost:8899"
+        USDC_MINT="11111111111111111111111111111111"  # Placeholder for localnet
+        ;;
+    2)
         CLUSTER="devnet"
         CLUSTER_URL="https://api.devnet.solana.com"
         USDC_MINT="4zMMC9srt5Ri5X14GAgXhaHii3GnPAEERYPJgZJDncDU"  # Devnet USDC
         ;;
-    2)
+    3)
         CLUSTER="mainnet-beta"
         CLUSTER_URL="https://api.mainnet-beta.solana.com"
         USDC_MINT="EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v"  # Mainnet USDC
         
         echo -e "\n${RED}⚠️  WARNING: You are about to deploy to MAINNET!${NC}"
-        echo -e "${YELLOW}This will use real SOL and the deployment is permanent.${NC}"
-        read -p "Are you sure you want to continue? (yes/no): " confirm
+        echo -e "${YELLOW}This will use REAL SOL and the deployment is PERMANENT.${NC}"
+        echo -e "${YELLOW}Your wallet balance will be used for deployment costs.${NC}"
+        echo -e "${RED}This action CANNOT be undone!${NC}"
+        echo ""
+        read -p "Type 'YES' in capital letters to confirm mainnet deployment: " confirm1
         
-        if [ "$confirm" != "yes" ]; then
+        if [ "$confirm1" != "YES" ]; then
             echo -e "${YELLOW}Deployment cancelled.${NC}"
             exit 0
         fi
-        ;;
-    3)
-        CLUSTER="localnet"
-        CLUSTER_URL="http://localhost:8899"
-        USDC_MINT="11111111111111111111111111111111"  # Placeholder for localnet
+        
+        echo -e "\n${RED}⚠️  SECOND CONFIRMATION REQUIRED${NC}"
+        echo -e "${YELLOW}Are you ABSOLUTELY SURE you want to deploy to mainnet-beta?${NC}"
+        read -p "Type 'I understand the risks' to proceed: " confirm2
+        
+        if [ "$confirm2" != "I understand the risks" ]; then
+            echo -e "${YELLOW}Deployment cancelled.${NC}"
+            exit 0
+        fi
         ;;
     *)
         echo -e "${RED}❌ Invalid choice. Exiting.${NC}"
