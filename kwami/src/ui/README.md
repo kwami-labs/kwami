@@ -8,7 +8,9 @@ Reusable glassmorphic primitives that match Kwami’s futuristic aesthetic. The 
 | --- | --- |
 | `createGlassButton` | Neon-inspired CTA button with optional icons and variants (primary, ghost, outline). |
 | `createGlassPopover` | Floating glass panel that can be positioned anywhere (used for dashboards / inspectors). |
+| `createGlassModal` | Centered animated modal dialog with glass surface and backdrop overlay. |
 | `createGlassPanel` | Generic surface for grouping controls or stats. |
+| `createWalletConnectWidget` | Connect/disconnect Solana wallets with a glass button + popover (wallet selection, address, SOL balance). |
 | `createBackgroundRings` | SVG background rings effect (framework-agnostic), with manual or auto resize handling. |
 
 ### Usage

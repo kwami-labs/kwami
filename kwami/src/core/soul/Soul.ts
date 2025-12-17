@@ -1,6 +1,5 @@
 import type { SoulConfig, EmotionalTraits } from '../../types/index';
 import * as yaml from 'js-yaml';
-import { personalityTemplates, type PersonalityTemplate } from './templates/loader';
 import { logger } from '../../utils/logger';
 import { ActionManager } from '../actions/ActionManager';
 
@@ -329,28 +328,20 @@ export class KwamiSoul {
   }
 
   /**
-   * Load a preset personality from templates
+   * Load a preset personality from a provided template registry.
    *
-   * @param preset - Preset name from available personality templates
-   * 
-   * Available templates:
-   * - Core: friendly, playful, professional
-   * - Creative & Inspiring: mentor, adventurer, coach, artistic, storyteller
-   * - Analytical & Thoughtful: scientist, detective, witty, mysterious
-   * - Calm & Supportive: zen, empathic
-   * - Bold & Unconventional: rebel
-   * - Challenging: grumpy, cynical, sarcastic, melancholic, angry
+   * This method intentionally does NOT import bundled templates internally.
+   * That keeps lightweight consumers (like the website) from pulling template assets.
    */
-  loadPresetPersonality(preset: PersonalityTemplate): void {
-    const templateYaml = personalityTemplates[preset];
-    
+  loadPresetPersonality(preset: string, templates: Record<string, string>): void {
+    const templateYaml = templates[preset];
+
     if (!templateYaml) {
       logger.error(`Personality template '${preset}' not found`);
       return;
     }
 
     try {
-      // Parse YAML template
       const config = yaml.load(templateYaml) as SoulConfig;
       this.setPersonality(config);
     } catch (error) {

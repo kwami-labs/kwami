@@ -31,7 +31,7 @@
     "test:ui": "vitest --ui",
     "test:coverage": "vitest run --coverage",
     "test:coverage:ui": "vitest --coverage --ui",
-    "build": "tsc",
+    "build": "tsc && node scripts/copy-assets.js",
     "dev": "tsc --watch",
     "prepublishOnly": "npm run build && npm test",
     "postpublish": "echo '✅ Successfully published kwami to npm!'"
@@ -82,6 +82,10 @@
     "./ui/welcome": {
       "import": "./dist/src/ui/welcome/index.js",
       "types": "./dist/src/ui/welcome/index.d.ts"
+    },
+    "./ui/wallet": {
+      "import": "./dist/src/ui/wallet/index.js",
+      "types": "./dist/src/ui/wallet/index.d.ts"
     },
     "./utils": {
       "import": "./dist/src/utils/randoms.js",

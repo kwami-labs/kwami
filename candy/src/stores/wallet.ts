@@ -1,5 +1,6 @@
 import { defineStore } from 'pinia'
 import { computed, ref, watch } from 'vue'
+import { WalletReadyState } from '@solana/wallet-adapter-base'
 import { useSolanaWallet } from '../composables/useSolanaWallet'
 
 export const useWalletStore = defineStore('wallet', () => {
@@ -28,23 +29,69 @@ export const useWalletStore = defineStore('wallet', () => {
     return `${address.value.slice(0, 4)}...${address.value.slice(-4)}`
   })
 
-  const connect = async () => {
-    await connectWallet()
-    await updateBalance()
-  }
-
-  const disconnect = async () => {
-    await disconnectWallet()
-    balance.value = 0
-  }
-
-  const updateBalance = async () => {
+  const updateBalance = async (): Promise<number> => {
     try {
       balance.value = await getBalance()
     } catch (error) {
       console.error('Failed to update balance:', error)
+      balance.value = 0
+    }
+    return balance.value
+  }
+
+  const connect = async (walletName?: string) => {
+    if (walletName) {
+      setSelectedWalletName(walletName)
+    }
+
+    const pk = await connectWallet()
+    await updateBalance()
+
+    if (!pk) return null
+
+    return {
+      publicKey: pk,
+      name: walletName || selectedWalletName.value,
     }
   }
+
+  const disconnect = async (): Promise<boolean> => {
+    try {
+      await disconnectWallet()
+      balance.value = 0
+      return true
+    } catch (error) {
+      console.error('Failed to disconnect wallet:', error)
+      return false
+    }
+  }
+
+  // Connector-style helpers (used by Kwami wallet UI widget)
+  const detectWallets = async () => {
+    return walletOptions.value.map((w) => ({
+      name: w.name,
+      installed: w.readyState !== WalletReadyState.NotDetected,
+      readyState:
+        w.readyState === WalletReadyState.Installed
+          ? 'installed'
+          : w.readyState === WalletReadyState.Loadable
+            ? 'loadable'
+            : w.readyState === WalletReadyState.NotDetected
+              ? 'not detected'
+              : 'unsupported',
+      url: w.url,
+    }))
+  }
+
+  const isWalletConnected = () => connected.value
+
+  const getPublicKey = () => publicKey.value
+
+  const getSolBalance = async () => {
+    return await updateBalance()
+  }
+
+  const getNetwork = () => String(network)
 
   let balanceInterval: NodeJS.Timeout | null = null
 
@@ -75,5 +122,12 @@ export const useWalletStore = defineStore('wallet', () => {
     connect,
     disconnect,
     updateBalance,
+
+    // Kwami wallet UI widget connector surface
+    detectWallets,
+    isWalletConnected,
+    getPublicKey,
+    getSolBalance,
+    getNetwork,
   }
 })

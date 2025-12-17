@@ -2,6 +2,8 @@ export * from './types';
 export * from './theme';
 export * from './rings';
 export * from './welcome';
+export * from './wallet';
 export { createGlassButton } from './components/GlassButton';
 export { createGlassPopover } from './components/GlassPopover';
+export { createGlassModal } from './components/GlassModal';
 export { createGlassPanel } from './components/GlassPanel';

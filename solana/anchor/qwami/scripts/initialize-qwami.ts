@@ -1,6 +1,6 @@
 import * as anchor from "@coral-xyz/anchor";
-import { Program } from "@coral-xyz/anchor";
-import { QwamiToken } from "../target/types/qwami_token";
+import { Program, AnchorProvider } from "@coral-xyz/anchor";
+import type { QwamiToken } from "../target/types/qwami_token";
 import {
   TOKEN_PROGRAM_ID,
   createMint,
@@ -22,10 +22,15 @@ async function main() {
   console.log("\n🚀 Initializing QWAMI Token Program on Devnet...\n");
 
   // Configure provider
-  const provider = anchor.AnchorProvider.env();
+  const provider = AnchorProvider.env();
   anchor.setProvider(provider);
   
-  const program = anchor.workspace.QwamiToken as Program<QwamiToken>;
+  // Load program from IDL file
+  const path = require('path');
+  const idlPath = path.join(__dirname, '../target/idl/qwami_token.json');
+  const idl = JSON.parse(require('fs').readFileSync(idlPath, 'utf8'));
+  const programId = new anchor.web3.PublicKey("4GCAV5a3UfEAa3Zer3Bmuti7DFe9mN4Znrjok8AUyNG2");
+  const program = new Program(idl, programId, provider) as any;
   
   console.log("Program ID:", program.programId.toString());
   console.log("Wallet:", provider.wallet.publicKey.toString());
@@ -108,7 +113,7 @@ async function main() {
     // Verify initialization
     console.log("\n🔍 Verifying initialization...");
     
-    const authorityData = await program.account.tokenAuthority.fetch(tokenAuthority);
+    const authorityData = await program.account.tokenAuthority.fetch(tokenAuthority) as any;
     console.log("\n📊 Token Authority Data:");
     console.log("  Authority:", authorityData.authority.toString());
     console.log("  Mint:", authorityData.mint.toString());
@@ -116,7 +121,7 @@ async function main() {
     console.log("  Total Burned:", authorityData.totalBurned.toString());
     console.log("  Base Price (USD cents):", authorityData.basePriceUsdCents.toString());
     
-    const treasuryData = await program.account.qwamiTreasury.fetch(treasury);
+    const treasuryData = await program.account.qwamiTreasury.fetch(treasury) as any;
     console.log("\n💰 Treasury Data:");
     console.log("  Authority:", treasuryData.authority.toString());
     console.log("  USDC Vault:", treasuryData.usdcVault.toString());
@@ -158,9 +163,12 @@ async function main() {
     console.error("\n❌ Initialization failed!");
     console.error("Error:", error);
     
-    if (error.logs) {
+    if (error && typeof error === 'object' && 'logs' in error) {
       console.error("\nProgram Logs:");
-      error.logs.forEach(log => console.error(log));
+      const logs = (error as any).logs;
+      if (Array.isArray(logs)) {
+        logs.forEach((log: string) => console.error(log));
+      }
     }
     
     process.exit(1);

@@ -47,7 +47,7 @@
     "build:docs": "npm run build -w docs",
     "preview:docs": "npm run preview -w docs",
     "sync-version": "node scripts/sync-version.js",
-    "publish:kwami": "npm run sync-version && npm publish -w kwami",
+    "publish:kwami": "npm whoami && npm run sync-version && npm publish -w kwami",
     "version:kwami": "npm view kwami"
   },
   "devDependencies": {

@@ -1,6 +1,6 @@
 import * as anchor from "@coral-xyz/anchor";
-import { Program } from "@coral-xyz/anchor";
-import { KwamiNft } from "../target/types/kwami_nft";
+import { Program, AnchorProvider } from "@coral-xyz/anchor";
+import type { KwamiNft } from "../target/types/kwami_nft";
 import {
   TOKEN_PROGRAM_ID,
   createMint,
@@ -36,10 +36,15 @@ async function main() {
   }
 
   // Configure provider
-  const provider = anchor.AnchorProvider.env();
+  const provider = AnchorProvider.env();
   anchor.setProvider(provider);
   
-  const program = anchor.workspace.KwamiNft as Program<KwamiNft>;
+  // Load program from IDL file
+  const path = require('path');
+  const idlPath = path.join(__dirname, '../target/idl/kwami_nft.json');
+  const idl = JSON.parse(require('fs').readFileSync(idlPath, 'utf8'));
+  const programId = new anchor.web3.PublicKey("BTpKTZUyyAgiKsLrJfzFCYAyAFVx1Jd8xsbE11dTTswL");
+  const program = new Program(idl, programId, provider) as any;
   
   console.log("Program ID:", program.programId.toString());
   console.log("Wallet:", provider.wallet.publicKey.toString());
@@ -129,19 +134,19 @@ async function main() {
     // Verify initialization
     console.log("\n🔍 Verifying initialization...");
     
-    const authorityData = await program.account.collectionAuthority.fetch(collectionAuthority);
+    const authorityData = await program.account.collectionAuthority.fetch(collectionAuthority) as any;
     console.log("\n📊 Collection Authority Data:");
     console.log("  Authority:", authorityData.authority.toString());
     console.log("  Collection Mint:", authorityData.collectionMint.toString());
     console.log("  Total Minted:", authorityData.totalMinted.toString());
     
-    const registryData = await program.account.dnaRegistry.fetch(dnaRegistry);
+    const registryData = await program.account.dnaRegistry.fetch(dnaRegistry) as any;
     console.log("\n🧬 DNA Registry Data:");
     console.log("  Authority:", registryData.authority.toString());
     console.log("  Collection:", registryData.collection.toString());
     console.log("  DNA Count:", registryData.dnaCount.toString());
     
-    const treasuryData = await program.account.kwamiTreasury.fetch(treasury);
+    const treasuryData = await program.account.kwamiTreasury.fetch(treasury) as any;
     console.log("\n💰 Treasury Data:");
     console.log("  Authority:", treasuryData.authority.toString());
     console.log("  QWAMI Vault:", treasuryData.qwamiVault.toString());
@@ -191,9 +196,12 @@ async function main() {
     console.error("\n❌ Initialization failed!");
     console.error("Error:", error);
     
-    if (error.logs) {
+    if (error && typeof error === 'object' && 'logs' in error) {
       console.error("\nProgram Logs:");
-      error.logs.forEach(log => console.error(log));
+      const logs = (error as any).logs;
+      if (Array.isArray(logs)) {
+        logs.forEach((log: string) => console.error(log));
+      }
     }
     
     process.exit(1);
