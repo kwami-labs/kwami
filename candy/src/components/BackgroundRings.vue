@@ -5,27 +5,27 @@
 
 <script setup lang="ts">
 import { onBeforeUnmount, onMounted, ref } from 'vue'
-import { createBackgroundRings } from 'kwami/ui'
-import type { BackgroundRingsHandle } from 'kwami/ui/rings'
+import { createWelcomeAnimatedRings } from 'kwami/ui/welcome'
+import type { WelcomeAnimatedRingsHandle } from 'kwami/ui/welcome'
 
 const host = ref<HTMLElement | null>(null)
-let rings: BackgroundRingsHandle | null = null
+let rings: WelcomeAnimatedRingsHandle | null = null
 
 onMounted(() => {
   if (!host.value) return
 
-  rings = createBackgroundRings({
+  rings = createWelcomeAnimatedRings({
     mount: host.value,
     resize: 'auto',
-    sizeSource: 'auto',
-    initialOpacity: 0,
-    maxRingOpacity: 0.22,
-    opacityTransitionMs: 1200,
-    opacityTransitionEasing: 'ease-in-out',
-  })
 
-  // Fade in after mount
-  requestAnimationFrame(() => rings?.show())
+    // Tuning for candy background (subtle + performant)
+    zIndex: '0',
+    opacity: 0.22,
+    includeWordmark: false,
+    ringCount: 90,
+    cycleSeconds: 8,
+    rotationDegreesPerSecond: 40,
+  })
 })
 
 onBeforeUnmount(() => {
