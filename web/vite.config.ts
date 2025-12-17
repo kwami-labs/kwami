@@ -1,5 +1,4 @@
 import { defineConfig, loadEnv } from 'vite';
-import { resolve } from 'path';
 import { visualizer } from 'rollup-plugin-visualizer';
 
 export default defineConfig(({ mode }) => {
@@ -11,14 +10,6 @@ export default defineConfig(({ mode }) => {
 
   return {
     assetsInclude: ['**/*.glsl', '**/*.yaml', '**/*.mp3', '**/*.mp4', '**/*.wav', '**/*.flac'],
-    resolve: {
-      alias: {
-        kwami: resolve(__dirname, '../kwami/index.ts'),
-      },
-    },
-    optimizeDeps: {
-      exclude: ['kwami'],
-    },
     publicDir: 'public',
     server: {
       fs: {
@@ -46,18 +37,6 @@ export default defineConfig(({ mode }) => {
             'vendor-three': ['three'],
             'vendor-gsap': ['gsap'],
             'vendor-i18n': ['i18next', 'i18next-browser-languagedetector'],
-            'media-players': [
-              './src/media/MusicPlayer.ts',
-              './src/media/VideoPlayer.ts',
-              './src/media/VoicePlayer.ts',
-            ],
-            managers: [
-              './src/managers/ScrollManager.ts',
-              './src/managers/SidebarNavigator.ts',
-              './src/managers/ModeSwitcher.ts',
-              './src/managers/ActionButtonManager.ts',
-              './src/managers/CursorLight.ts',
-            ],
           },
           chunkFileNames: 'assets/[name]-[hash].js',
           entryFileNames: 'assets/[name]-[hash].js',

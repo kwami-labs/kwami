@@ -175,14 +175,14 @@ async function bootstrapMainApp() {
     modeSwitcherMod,
     actionButtonMod,
     headerMenuMod,
-    backgroundRingsMod,
+    ringsMod,
     textAnimMod,
   ] = await Promise.all([
     import('./managers/ScrollManager'),
     import('./managers/ModeSwitcher'),
     import('./managers/ActionButtonManager'),
     import('./managers/HeaderMenuManager'),
-    import('./components/BackgroundRings'),
+    import('kwami/ui/rings'),
     import('./utils/pageTextAnimation'),
   ]);
 
@@ -193,8 +193,16 @@ async function bootstrapMainApp() {
   (window as any).scrollManager = scrollManager;
 
   // Initialize background rings after welcome layer
-  const backgroundRings = new backgroundRingsMod.BackgroundRings();
-  backgroundRings.setOpacity(0);
+  const contentRight = document.querySelector('.content-right') as HTMLElement | null;
+  const backgroundRings = ringsMod.createBackgroundRings({
+    mount: contentRight ?? document.body,
+    insert: 'first',
+    zIndex: '0',
+    sizeSource: 'mount',
+    resize: 'auto',
+    initialOpacity: 0,
+  });
+
   setTimeout(() => {
     backgroundRings.show();
   }, 500);
