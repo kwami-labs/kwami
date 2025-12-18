@@ -170,23 +170,26 @@
                     <div class="flex-1 text-center">
                       <div
                         class="h-8 rounded border border-gray-300 dark:border-gray-600 mb-1"
-                        :style="{ backgroundColor: `rgb(${getColorValue(nftStore.currentBlobConfig.colors?.x, 'r')}, 0, 0)` }"
+                        :style="{ backgroundColor: getColorValue(nftStore.currentBlobConfig.colors?.x) }"
                       />
-                      <div class="text-xs text-gray-600 dark:text-gray-400">{{ getColorValue(nftStore.currentBlobConfig.colors?.x, 'r') }}</div>
+                      <div class="text-xs text-gray-600 dark:text-gray-400 font-mono">{{ getColorValue(nftStore.currentBlobConfig.colors?.x) }}</div>
+                      <div class="text-xs text-gray-500 dark:text-gray-500">R:{{ getColorComponent(nftStore.currentBlobConfig.colors?.x, 'r') }}</div>
                     </div>
                     <div class="flex-1 text-center">
                       <div
                         class="h-8 rounded border border-gray-300 dark:border-gray-600 mb-1"
-                        :style="{ backgroundColor: `rgb(0, ${getColorValue(nftStore.currentBlobConfig.colors?.y, 'g')}, 0)` }"
+                        :style="{ backgroundColor: getColorValue(nftStore.currentBlobConfig.colors?.y) }"
                       />
-                      <div class="text-xs text-gray-600 dark:text-gray-400">{{ getColorValue(nftStore.currentBlobConfig.colors?.y, 'g') }}</div>
+                      <div class="text-xs text-gray-600 dark:text-gray-400 font-mono">{{ getColorValue(nftStore.currentBlobConfig.colors?.y) }}</div>
+                      <div class="text-xs text-gray-500 dark:text-gray-500">G:{{ getColorComponent(nftStore.currentBlobConfig.colors?.y, 'g') }}</div>
                     </div>
                     <div class="flex-1 text-center">
                       <div
                         class="h-8 rounded border border-gray-300 dark:border-gray-600 mb-1"
-                        :style="{ backgroundColor: `rgb(0, 0, ${getColorValue(nftStore.currentBlobConfig.colors?.z, 'b')})` }"
+                        :style="{ backgroundColor: getColorValue(nftStore.currentBlobConfig.colors?.z) }"
                       />
-                      <div class="text-xs text-gray-600 dark:text-gray-400">{{ getColorValue(nftStore.currentBlobConfig.colors?.z, 'b') }}</div>
+                      <div class="text-xs text-gray-600 dark:text-gray-400 font-mono">{{ getColorValue(nftStore.currentBlobConfig.colors?.z) }}</div>
+                      <div class="text-xs text-gray-500 dark:text-gray-500">B:{{ getColorComponent(nftStore.currentBlobConfig.colors?.z, 'b') }}</div>
                     </div>
                   </div>
                 </div>
@@ -409,10 +412,31 @@ const short = (value: string, left = 6, right = 6) => {
 
 const remainingCount = computed(() => 1_000_000_000_000 - nftStore.totalMinted)
 
-// Helper to get color value and handle NaN
-const getColorValue = (value: number | undefined, channel: 'r' | 'g' | 'b'): number => {
-  if (value === undefined || isNaN(value)) return 0
-  return Math.round(Math.max(0, Math.min(1, value)) * 255)
+// Helper to convert hex color to RGB value for display
+const getColorValue = (hexColor: string | undefined): string => {
+  if (!hexColor || typeof hexColor !== 'string') return '#808080'
+  // Hex colors are already in the right format
+  return hexColor
+}
+
+// Helper to extract RGB component from hex color
+const getColorComponent = (hexColor: string | undefined, component: 'r' | 'g' | 'b'): number => {
+  if (!hexColor || typeof hexColor !== 'string' || !hexColor.startsWith('#')) return 128
+  
+  const hex = hexColor.replace('#', '')
+  let r = 0, g = 0, b = 0
+  
+  if (hex.length === 3) {
+    r = parseInt(hex[0] + hex[0], 16)
+    g = parseInt(hex[1] + hex[1], 16)
+    b = parseInt(hex[2] + hex[2], 16)
+  } else if (hex.length === 6) {
+    r = parseInt(hex.substring(0, 2), 16)
+    g = parseInt(hex.substring(2, 4), 16)
+    b = parseInt(hex.substring(4, 6), 16)
+  }
+  
+  return component === 'r' ? r : component === 'g' ? g : b
 }
 
 // Helper to map skin type to subtype
