@@ -3,18 +3,19 @@ import type { GlassMode, GlassTheme } from './types';
 const lightTheme: GlassTheme = {
   mode: 'light',
   palette: {
-    surface: 'rgba(255, 255, 255, 0.75)',
-    surfaceSecondary: 'rgba(255, 255, 255, 0.55)',
-    outline: 'rgba(15, 23, 42, 0.12)',
+    // Whiter / cleaner light mode
+    surface: 'rgba(255, 255, 255, 0.90)',
+    surfaceSecondary: 'rgba(255, 255, 255, 0.82)',
+    outline: 'rgba(15, 23, 42, 0.09)',
     text: '#0f172a',
-    muted: 'rgba(15, 23, 42, 0.6)',
+    muted: 'rgba(15, 23, 42, 0.62)',
     accent: '#7c3aed',
     accentHover: '#a855f7',
     glow: 'rgba(124, 58, 237, 0.2)',
   },
   shadows: {
-    soft: '0 25px 60px rgba(15, 23, 42, 0.18)',
-    hard: '0 30px 80px rgba(15, 23, 42, 0.25)',
+    soft: '0 25px 60px rgba(15, 23, 42, 0.16)',
+    hard: '0 30px 80px rgba(15, 23, 42, 0.22)',
   },
 };
 

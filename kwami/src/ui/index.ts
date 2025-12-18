@@ -8,3 +8,4 @@ export { createGlassButton } from './components/GlassButton';
 export { createGlassPopover } from './components/GlassPopover';
 export { createGlassModal } from './components/GlassModal';
 export { createGlassPanel } from './components/GlassPanel';
+export { createGlassCard } from './components/GlassCard';

@@ -3,8 +3,9 @@ import { ref } from 'vue'
 import type { PublicKey } from '@solana/web3.js'
 import { uploadImageToArweave, uploadMetadataToArweave } from '@/utils/arweaveUpload'
 import { checkDnaExists as checkDnaOnChain, mintKwamiNft, fetchOwnedKwamis, getTotalMintedCount, burnKwamiNft } from '@/utils/solanaHelpers'
-import { prepareKwamiMetadata } from '@/utils/prepareKwamiMetadata'
+import { prepareKwamiMetadata, type SoulConfig } from '@/utils/prepareKwamiMetadata'
 import { calculateKwamiDNA } from '@/utils/calculateKwamiDNA'
+import { generateSoulFromDNA } from '@/utils/generateSoulFromDNA'
 import { useWalletStore } from './wallet'
 
 export interface KwamiNFT {
@@ -32,6 +33,7 @@ export const useNFTStore = defineStore('nft', () => {
   const currentDna = ref<string | null>(null)
   const currentMetadata = ref<any>(null)
   const currentBlobConfig = ref<any>(null)
+  const currentSoulConfig = ref<SoulConfig | null>(null)
   const currentImageBuffer = ref<Buffer | null>(null)
   
   // Fetch user's owned KWAMIs
@@ -77,6 +79,9 @@ export const useNFTStore = defineStore('nft', () => {
       // Calculate DNA from body configuration
       const dna = calculateKwamiDNA(config)
       currentDna.value = dna
+      
+      // Generate soul from DNA (deterministic)
+      currentSoulConfig.value = generateSoulFromDNA(dna)
       
       return dna
     } catch (err: any) {
@@ -250,6 +255,13 @@ export const useNFTStore = defineStore('nft', () => {
   // Update blob configuration
   const setBlobConfig = (config: any) => {
     currentBlobConfig.value = config
+    
+    // Generate DNA and soul if config changes
+    if (config) {
+      const dna = calculateKwamiDNA(config)
+      currentDna.value = dna
+      currentSoulConfig.value = generateSoulFromDNA(dna)
+    }
   }
   
   // Set current image buffer
@@ -263,6 +275,7 @@ export const useNFTStore = defineStore('nft', () => {
     error.value = null
     currentDna.value = null
     currentMetadata.value = null
+    currentSoulConfig.value = null
   }
   
   return {
@@ -274,6 +287,7 @@ export const useNFTStore = defineStore('nft', () => {
     currentDna,
     currentMetadata,
     currentBlobConfig,
+    currentSoulConfig,
     currentImageBuffer,
     fetchOwnedNfts,
     fetchStats,

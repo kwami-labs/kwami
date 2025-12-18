@@ -10,11 +10,36 @@
     />
     
     <!-- Users Icon -->
-    <UIcon 
-      name="i-heroicons-users" 
+    <span
       class="w-4 h-4"
       :class="socketStore.isConnected ? 'text-green-600 dark:text-green-400' : 'text-gray-500'"
-    />
+      aria-hidden="true"
+    >
+      <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <path
+          d="M16 18c0-2.2-1.8-4-4-4s-4 1.8-4 4"
+          stroke="currentColor"
+          stroke-width="2"
+          stroke-linecap="round"
+        />
+        <path
+          d="M12 12a3 3 0 1 0 0-6 3 3 0 0 0 0 6Z"
+          stroke="currentColor"
+          stroke-width="2"
+        />
+        <path
+          d="M20 18c0-1.6-.9-3-2.2-3.6"
+          stroke="currentColor"
+          stroke-width="2"
+          stroke-linecap="round"
+        />
+        <path
+          d="M18 10a2.5 2.5 0 1 0 0-5"
+          stroke="currentColor"
+          stroke-width="2"
+        />
+      </svg>
+    </span>
     
     <!-- User Count -->
     <span 

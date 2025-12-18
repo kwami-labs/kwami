@@ -60,9 +60,19 @@ export function ensureGlassBaseStyles(): void {
       border-radius: inherit;
       pointer-events: none;
       opacity: 0;
+      /* Default/fixed glow location (used by popovers, buttons, etc.) */
       background: radial-gradient(circle at 20% 20%, var(--glass-glow, rgba(124,58,237,0.18)), transparent 55%);
       transition: opacity 0.3s ease;
       z-index: 0;
+    }
+
+    /* GlassCard: cursor-follow glow (opt-in via class) */
+    .kwami-glass-card--cursorGlow::after {
+      background: radial-gradient(
+        circle at var(--glass-hover-x, 20%) var(--glass-hover-y, 20%),
+        var(--glass-glow, rgba(124,58,237,0.18)),
+        transparent 55%
+      );
     }
 
     .kwami-glass-surface:hover::after {
@@ -123,6 +133,55 @@ export function ensureGlassBaseStyles(): void {
       display: flex;
       flex-direction: column;
       gap: 1rem;
+    }
+
+    .kwami-glass-card {
+      display: flex;
+      flex-direction: column;
+      min-width: 0;
+    }
+
+    .kwami-glass-card__header {
+      display: flex;
+      align-items: baseline;
+      justify-content: space-between;
+      gap: 0.75rem;
+      padding: var(--glass-padding, 1.25rem);
+      padding-bottom: 0.95rem;
+    }
+
+    .kwami-glass-card__title {
+      font-size: 1.05rem;
+      font-weight: 750;
+      letter-spacing: 0.01em;
+      color: var(--glass-text, #0f172a);
+      min-width: 0;
+    }
+
+    .kwami-glass-card__headerRight {
+      font-size: 0.78rem;
+      font-weight: 650;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: color-mix(in srgb, var(--glass-text, #0f172a) 65%, transparent);
+      flex: 0 0 auto;
+      white-space: nowrap;
+    }
+
+    .kwami-glass-card__body {
+      padding: var(--glass-padding, 1.25rem);
+      padding-top: 0;
+      display: flex;
+      flex-direction: column;
+      gap: 0.85rem;
+      min-height: 0;
+    }
+
+    .kwami-glass-card__footer {
+      padding: var(--glass-padding, 1.25rem);
+      padding-top: 0;
+      font-size: 0.85rem;
+      color: color-mix(in srgb, var(--glass-text, #0f172a) 70%, transparent);
     }
 
     /* Wallet popover: no bottom padding */
@@ -253,5 +312,44 @@ export function ensureGlassBaseStyles(): void {
     }
   `;
   document.head.appendChild(style);
+
+  // Make the GlassCard hover glow follow the cursor position.
+  // (Other glass surfaces keep the fixed glow location.)
+  const updateHoverVars = (el: HTMLElement, clientX: number, clientY: number) => {
+    const rect = el.getBoundingClientRect();
+    const x = rect.width > 0 ? ((clientX - rect.left) / rect.width) * 100 : 20;
+    const y = rect.height > 0 ? ((clientY - rect.top) / rect.height) * 100 : 20;
+    const clamp = (n: number) => Math.max(0, Math.min(100, n));
+    el.style.setProperty('--glass-hover-x', `${clamp(x)}%`);
+    el.style.setProperty('--glass-hover-y', `${clamp(y)}%`);
+  };
+
+  document.addEventListener(
+    'pointermove',
+    (event) => {
+      const target = event.target as Element | null;
+      const card = target?.closest?.('.kwami-glass-card--cursorGlow') as HTMLElement | null;
+      if (!card) return;
+      updateHoverVars(card, event.clientX, event.clientY);
+    },
+    { passive: true },
+  );
+
+  document.addEventListener(
+    'pointerout',
+    (event) => {
+      const target = event.target as Element | null;
+      const card = target?.closest?.('.kwami-glass-card--cursorGlow') as HTMLElement | null;
+      if (!card) return;
+
+      // If we are moving to another child inside the same card, keep the glow.
+      const related = (event as PointerEvent).relatedTarget as Element | null;
+      if (related && card.contains(related)) return;
+
+      card.style.removeProperty('--glass-hover-x');
+      card.style.removeProperty('--glass-hover-y');
+    },
+    { passive: true },
+  );
 }
 

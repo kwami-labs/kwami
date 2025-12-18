@@ -22,137 +22,182 @@
     </header>
 
     <!-- Fullscreen (no page scroll) -->
-    <main class="h-screen pt-24 pb-12 overflow-hidden">
-      <div class="h-[calc(100vh-9rem)] px-6">
-        <div class="h-full grid grid-cols-1 lg:grid-cols-[380px_minmax(0,1fr)_380px] gap-8 items-start">
-          <!-- Left: Latest minted (mock for now) -->
-          <aside class="lg:pt-2">
-            <UCard class="bg-white/70 dark:bg-gray-950/60 backdrop-blur-xl border border-white/20 dark:border-white/10 shadow-2xl">
-              <template #header>
-                <div class="flex items-baseline justify-between">
-                  <h3 class="text-xl font-bold text-gray-900 dark:text-white">Latest Minted</h3>
-                  <div class="text-xs text-gray-500 dark:text-gray-400">Live soon</div>
+    <main class="h-screen overflow-hidden">
+      <!-- Left panel -->
+      <aside class="hidden lg:block fixed left-6 top-24 bottom-14 w-[380px] z-20">
+        <KwamiGlassCard class-name="h-full" :scroll-content="true">
+          <template #title>Latest Minted</template>
+          <template #headerRight>Live soon</template>
+
+          <div class="space-y-3">
+            <div
+              v-for="item in latestMinted"
+              :key="item.mint"
+              class="p-3 rounded-lg border border-gray-200/60 dark:border-gray-800/60 bg-transparent"
+            >
+              <div class="flex items-center justify-between gap-3">
+                <div class="min-w-0">
+                  <div class="text-sm font-semibold text-gray-900 dark:text-white truncate">
+                    {{ item.name }}
+                  </div>
+                  <div class="text-xs text-gray-500 dark:text-gray-400">
+                    {{ item.when }}
+                  </div>
                 </div>
-              </template>
+                <span class="px-2 py-1 text-[11px] font-semibold rounded-full border border-green-500/30 text-green-600 dark:text-green-400 bg-green-500/10">
+                  Minted
+                </span>
+              </div>
 
-              <div class="space-y-3 max-h-[calc(100vh-11.5rem)] overflow-auto pr-1">
-                <div
-                  v-for="item in latestMinted"
-                  :key="item.mint"
-                  class="p-3 rounded-lg border border-gray-200/60 dark:border-gray-800/60 bg-white/30 dark:bg-black/20"
-                >
-                  <div class="flex items-center justify-between gap-3">
-                    <div class="min-w-0">
-                      <div class="text-sm font-semibold text-gray-900 dark:text-white truncate">
-                        {{ item.name }}
-                      </div>
-                      <div class="text-xs text-gray-500 dark:text-gray-400">
-                        {{ item.when }}
-                      </div>
-                    </div>
-                    <UBadge color="green" variant="subtle">Minted</UBadge>
-                  </div>
-
-                  <div class="mt-2 space-y-1">
-                    <div class="text-[11px] text-gray-500 dark:text-gray-400">Mint</div>
-                    <div class="font-mono text-xs text-gray-700 dark:text-gray-200 break-all">
-                      {{ short(item.mint) }}
-                    </div>
-                  </div>
-
-                  <div class="mt-2 space-y-1">
-                    <div class="text-[11px] text-gray-500 dark:text-gray-400">DNA</div>
-                    <div class="font-mono text-xs text-gray-700 dark:text-gray-200 break-all">
-                      {{ short(item.dna) }}
-                    </div>
-                  </div>
+              <div class="mt-2 space-y-1">
+                <div class="text-[11px] text-gray-500 dark:text-gray-400">Mint</div>
+                <div class="font-mono text-xs text-gray-700 dark:text-gray-200 break-all">
+                  {{ short(item.mint) }}
                 </div>
               </div>
-            </UCard>
-          </aside>
 
-          <!-- Middle: keep the blob centered in the viewport -->
-          <div class="h-full grid grid-rows-[1fr_auto_1fr]">
-            <!-- Top row: supply (doesn't push the blob off-center) -->
-            <div class="self-end pb-4">
-              <div class="grid grid-cols-2 gap-4 w-full max-w-[640px] mx-auto">
-                <div class="p-4 rounded-lg border border-gray-200/60 dark:border-gray-800/60 bg-white/30 dark:bg-black/20">
-                  <div class="text-xs text-gray-500 dark:text-gray-400">Minted</div>
-                  <div class="text-2xl font-bold text-gray-900 dark:text-white">{{ nftStore.totalMinted.toLocaleString() }}</div>
-                </div>
-                <div class="p-4 rounded-lg border border-gray-200/60 dark:border-gray-800/60 bg-white/30 dark:bg-black/20">
-                  <div class="text-xs text-gray-500 dark:text-gray-400">Remaining</div>
-                  <div class="text-2xl font-bold text-gray-900 dark:text-white">{{ remainingCount.toLocaleString() }}</div>
+              <div class="mt-2 space-y-1">
+                <div class="text-[11px] text-gray-500 dark:text-gray-400">DNA</div>
+                <div class="font-mono text-xs text-gray-700 dark:text-gray-200 break-all">
+                  {{ short(item.dna) }}
                 </div>
               </div>
             </div>
+          </div>
+        </KwamiGlassCard>
+      </aside>
 
-            <!-- Middle row: blob (exact center) -->
-            <div class="flex items-center justify-center">
-              <div class="w-full max-w-[640px]">
-                <BlobPreview
-                  ref="blobPreviewRef"
-                  :show-dna="false"
-                  :show-randomize-button="false"
-                  container-class="h-[min(52vh,520px)]"
+      <!-- Right panel -->
+      <aside class="hidden lg:block fixed right-6 top-24 bottom-14 w-[380px] z-20">
+        <KwamiGlassCard class-name="h-full" :scroll-content="true">
+          <template #title>NFT Metadata</template>
+          <template #headerRight>Solana</template>
+
+          <div class="space-y-5">
+            <!-- DNA -->
+            <div class="p-4 rounded-lg border border-gray-200/60 dark:border-gray-800/60 bg-white/20 dark:bg-black/20">
+              <div class="flex items-center justify-between mb-2">
+                <span class="text-sm text-gray-500 dark:text-gray-400">DNA Hash</span>
+                <KwamiGlassButton
+                  :label="dnaCopied ? 'Copied!' : 'Copy'"
+                  mode="ghost"
+                  size="sm"
+                  :disabled="!nftStore.currentDna"
+                  @click="copyDna"
                 />
               </div>
+              <p class="font-mono text-xs break-all text-gray-700 dark:text-gray-200">
+                {{ nftStore.currentDna || '—' }}
+              </p>
             </div>
 
-            <!-- Bottom row: mint (doesn't push the blob off-center) -->
-            <div class="self-start pt-4">
-              <div class="w-full max-w-[640px] mx-auto">
-                <MintPanel :blob-preview-ref="blobPreviewRef" />
+            <!-- Soul Config -->
+            <div v-if="nftStore.currentSoulConfig" class="space-y-3">
+              <div class="flex items-center gap-2">
+                <span class="text-sm font-semibold text-gray-900 dark:text-white">✨ Soul</span>
               </div>
+              
+              <div class="space-y-3">
+                <div class="p-3 rounded-lg border border-gray-200/60 dark:border-gray-800/60 bg-white/10 dark:bg-black/10">
+                  <div class="text-xs text-gray-500 dark:text-gray-400 mb-1">Name</div>
+                  <div class="text-sm font-medium text-gray-900 dark:text-white">{{ nftStore.currentSoulConfig.name }}</div>
+                </div>
+
+                <div class="p-3 rounded-lg border border-gray-200/60 dark:border-gray-800/60 bg-white/10 dark:bg-black/10">
+                  <div class="text-xs text-gray-500 dark:text-gray-400 mb-1">Personality</div>
+                  <div class="text-sm text-gray-700 dark:text-gray-200">{{ nftStore.currentSoulConfig.personality }}</div>
+                </div>
+
+                <div class="p-3 rounded-lg border border-gray-200/60 dark:border-gray-800/60 bg-white/10 dark:bg-black/10">
+                  <div class="text-xs text-gray-500 dark:text-gray-400 mb-1">Traits</div>
+                  <div class="flex flex-wrap gap-1">
+                    <span
+                      v-for="trait in nftStore.currentSoulConfig.traits"
+                      :key="trait"
+                      class="px-2 py-0.5 text-xs rounded-full bg-primary-500/10 text-primary-700 dark:text-primary-300 border border-primary-500/20"
+                    >
+                      {{ trait }}
+                    </span>
+                  </div>
+                </div>
+
+                <div class="p-3 rounded-lg border border-gray-200/60 dark:border-gray-800/60 bg-white/10 dark:bg-black/10">
+                  <div class="text-xs text-gray-500 dark:text-gray-400 mb-2">Emotional Traits</div>
+                  <div class="space-y-1.5">
+                    <div v-for="(value, key) in nftStore.currentSoulConfig.emotionalTraits" :key="key" class="flex items-center justify-between text-xs">
+                      <span class="text-gray-600 dark:text-gray-400 capitalize">{{ key }}</span>
+                      <div class="flex items-center gap-2">
+                        <div class="w-16 h-1.5 bg-gray-200 dark:bg-gray-700 rounded-full overflow-hidden">
+                          <div
+                            class="h-full transition-all"
+                            :class="value >= 0 ? 'bg-green-500' : 'bg-red-500'"
+                            :style="{ width: `${Math.abs(value) / 2}%`, marginLeft: value < 0 ? 'auto' : '0' }"
+                          />
+                        </div>
+                        <span class="font-mono text-gray-700 dark:text-gray-300 w-8 text-right">{{ value }}</span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <div class="grid grid-cols-2 gap-2 text-xs">
+                  <div class="p-2 rounded bg-white/10 dark:bg-black/10">
+                    <div class="text-gray-500 dark:text-gray-400 mb-0.5">Style</div>
+                    <div class="text-gray-900 dark:text-white capitalize">{{ nftStore.currentSoulConfig.conversationStyle }}</div>
+                  </div>
+                  <div class="p-2 rounded bg-white/10 dark:bg-black/10">
+                    <div class="text-gray-500 dark:text-gray-400 mb-0.5">Tone</div>
+                    <div class="text-gray-900 dark:text-white capitalize">{{ nftStore.currentSoulConfig.emotionalTone }}</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Body Config -->
+            <div v-if="nftStore.currentBlobConfig" class="space-y-2">
+              <div class="text-sm font-semibold text-gray-900 dark:text-white">Body Config</div>
+              <div class="text-xs text-gray-600 dark:text-gray-300 font-mono whitespace-pre-wrap break-words">
+                {{ formatConfig(nftStore.currentBlobConfig) }}
+              </div>
+            </div>
+
+            <!-- Minting cost -->
+            <div class="text-sm text-gray-600 dark:text-gray-300">
+              Minting cost: ~0.01 SOL + network fees
             </div>
           </div>
+        </KwamiGlassCard>
+      </aside>
 
-          <!-- Right: NFT metadata -->
-          <div class="lg:pt-2">
-            <UCard class="bg-white/70 dark:bg-gray-950/60 backdrop-blur-xl border border-white/20 dark:border-white/10 shadow-2xl">
-              <template #header>
-                <div class="flex items-baseline justify-between">
-                  <h3 class="text-xl font-bold text-gray-900 dark:text-white">NFT Metadata</h3>
-                  <div class="text-xs text-gray-500 dark:text-gray-400">Solana</div>
-                </div>
-              </template>
-
-              <div class="space-y-5 max-h-[calc(100vh-11.5rem)] overflow-auto pr-1">
-                <!-- DNA -->
-                <div class="p-4 rounded-lg border border-gray-200/60 dark:border-gray-800/60 bg-white/30 dark:bg-black/20">
-                  <div class="flex items-center justify-between mb-2">
-                    <span class="text-sm text-gray-500 dark:text-gray-400">DNA Hash</span>
-                    <UButton
-                      size="xs"
-                      color="primary"
-                      variant="ghost"
-                      :disabled="!nftStore.currentDna"
-                      @click="copyDna"
-                    >
-                      {{ dnaCopied ? 'Copied!' : 'Copy' }}
-                    </UButton>
-                  </div>
-                  <p class="font-mono text-xs break-all text-gray-700 dark:text-gray-200">
-                    {{ nftStore.currentDna || '—' }}
-                  </p>
-                </div>
-
-                <!-- Config snapshot -->
-                <div v-if="nftStore.currentBlobConfig" class="space-y-2">
-                  <div class="text-sm font-semibold text-gray-900 dark:text-white">Body Config</div>
-                  <div class="text-xs text-gray-600 dark:text-gray-300 font-mono whitespace-pre-wrap break-words">
-                    {{ formatConfig(nftStore.currentBlobConfig) }}
-                  </div>
-                </div>
-
-                <!-- Minting cost -->
-                <div class="text-sm text-gray-600 dark:text-gray-300">
-                  Minting cost: ~0.01 SOL + network fees
-                </div>
-              </div>
-            </UCard>
+      <!-- Stats (top-center) -->
+      <div class="fixed left-1/2 top-24 -translate-x-1/2 z-20 w-[min(92vw,560px)]">
+        <div class="grid grid-cols-2 gap-4">
+          <div class="p-4 rounded-lg border border-gray-200/60 dark:border-gray-800/60 bg-white/30 dark:bg-black/20">
+            <div class="text-xs text-gray-500 dark:text-gray-400">Minted</div>
+            <div class="text-2xl font-bold text-gray-900 dark:text-white">{{ nftStore.totalMinted.toLocaleString() }}</div>
+          </div>
+          <div class="p-4 rounded-lg border border-gray-200/60 dark:border-gray-800/60 bg-white/30 dark:bg-black/20">
+            <div class="text-xs text-gray-500 dark:text-gray-400">Remaining</div>
+            <div class="text-2xl font-bold text-gray-900 dark:text-white">{{ remainingCount.toLocaleString() }}</div>
           </div>
         </div>
+      </div>
+
+      <!-- Blob preview (fixed center, square) -->
+      <div class="fixed inset-0 flex items-center justify-center z-10 pointer-events-none">
+        <div class="pointer-events-auto w-[min(60vmin,520px)]">
+          <BlobPreview
+            ref="blobPreviewRef"
+            :show-dna="false"
+            :show-randomize-button="false"
+            container-class="aspect-square"
+          />
+        </div>
+      </div>
+
+      <!-- Mint (bottom-center) -->
+      <div class="fixed left-1/2 bottom-14 -translate-x-1/2 z-20 w-[min(92vw,560px)]">
+        <MintPanel :blob-preview-ref="blobPreviewRef" />
       </div>
     </main>
 
@@ -175,6 +220,8 @@ import WalletConnect from '@/components/WalletConnect.vue'
 import BlobPreview from '@/components/BlobPreview.vue'
 import MintPanel from '@/components/MintPanel.vue'
 import ThemeToggle from '@/components/ThemeToggle.vue'
+import KwamiGlassCard from '@/components/KwamiGlassCard.vue'
+import KwamiGlassButton from '@/components/KwamiGlassButton.vue'
 import { createKwamiLogoSvg } from 'kwami/ui'
 
 const nftStore = useNFTStore()

@@ -9,10 +9,7 @@
         class="absolute inset-0 flex items-center justify-center bg-white/10 dark:bg-black/20 backdrop-blur-sm"
       >
         <div class="text-center">
-          <UIcon
-            name="i-heroicons-arrow-path"
-            class="w-10 h-10 animate-spin text-primary-500 dark:text-primary-400 mx-auto mb-3"
-          />
+          <div class="w-10 h-10 mx-auto mb-3 rounded-full border-2 border-primary-500/40 border-t-primary-500 animate-spin" />
           <p class="text-gray-700 dark:text-gray-200 font-medium">Rolling candy machine…</p>
         </div>
       </div>
@@ -23,42 +20,41 @@
         class="absolute inset-0 flex items-center justify-center bg-gray-50/80 dark:bg-gray-950/70"
       >
         <div class="text-center">
-          <UIcon
-            name="i-heroicons-arrow-path"
-            class="w-12 h-12 animate-spin text-primary-500 dark:text-primary-400 mx-auto mb-4"
-          />
+          <div class="w-12 h-12 mx-auto mb-4 rounded-full border-2 border-primary-500/40 border-t-primary-500 animate-spin" />
           <p class="text-gray-500 dark:text-gray-300">{{ loadingText }}</p>
         </div>
       </div>
     </div>
 
     <!-- DNA Display -->
-    <UCard v-if="props.showDna && dna">
+    <div
+      v-if="props.showDna && dna"
+      class="kwami-glass-surface rounded-lg border border-gray-200/60 dark:border-gray-800/60 bg-white/20 dark:bg-black/20 p-4"
+    >
       <div class="space-y-3">
         <div class="flex items-center justify-between">
           <span class="text-sm text-gray-500 dark:text-gray-400">DNA Hash</span>
-          <UButton size="xs" color="primary" variant="ghost" @click="copyDna">
-            {{ copied ? 'Copied!' : 'Copy' }}
-          </UButton>
+          <KwamiGlassButton
+            :label="copied ? 'Copied!' : 'Copy'"
+            mode="ghost"
+            size="sm"
+            @click="copyDna"
+          />
         </div>
         <p class="font-mono text-xs break-all text-gray-600 dark:text-gray-300">{{ dna }}</p>
       </div>
-    </UCard>
+    </div>
 
     <!-- Controls -->
-    <UButton
+    <KwamiGlassButton
       v-if="props.showRandomizeButton"
-      block
+      label="Randomize"
+      mode="outline"
       size="lg"
-      color="gray"
-      variant="soft"
-      :disabled="isRolling"
-      :loading="loading || isRolling"
+      :disabled="isRolling || loading"
+      :block="true"
       @click="onClickRandomize"
-      icon="i-heroicons-arrow-path"
-    >
-      Randomize
-    </UButton>
+    />
   </div>
 </template>
 
@@ -67,6 +63,7 @@ import * as THREE from 'three'
 import { computed, ref, reactive, onMounted, onUnmounted, nextTick } from 'vue'
 import { captureAndPrepareForUpload } from '@/utils/canvasCapture'
 import { useNFTStore } from '@/stores/nft'
+import KwamiGlassButton from '@/components/KwamiGlassButton.vue'
 
 type RollCandyMachineOptions = {
   minSpins?: number

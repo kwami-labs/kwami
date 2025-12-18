@@ -29,10 +29,11 @@ onMounted(() => {
     zIndex: '0',
     initialOpacity: 1,
 
-    ringCount: 120,
+    // Smaller / tighter
+    ringCount: 90,
     baseRadius: 2,
-    expansionFactor: 0.01,
-    maxRingOpacity: 0.22,
+    expansionFactor: 0.006,
+    maxRingOpacity: 0.26,
 
     centerOffset: {
       x: -0.5,
