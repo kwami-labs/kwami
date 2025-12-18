@@ -206,8 +206,8 @@
                     <div class="text-sm font-semibold text-gray-900 dark:text-white">{{ nftStore.currentBlobConfig.shininess }}</div>
                   </div>
                   <div class="p-2 rounded-lg border border-gray-200/60 dark:border-gray-800/60 bg-white/10 dark:bg-black/10">
-                    <div class="text-xs text-gray-500 dark:text-gray-400 mb-1">Scale</div>
-                    <div class="text-sm font-semibold text-gray-900 dark:text-white">{{ nftStore.currentBlobConfig.baseScale?.toFixed(2) }}</div>
+                    <div class="text-xs text-gray-500 dark:text-gray-400 mb-1">Wireframe</div>
+                    <div class="text-sm font-semibold text-gray-900 dark:text-white">{{ nftStore.currentBlobConfig.wireframe ? 'Yes' : 'No' }}</div>
                   </div>
                 </div>
 
