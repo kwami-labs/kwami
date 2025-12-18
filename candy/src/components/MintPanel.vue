@@ -1,12 +1,33 @@
 <template>
   <div class="mint-panel space-y-4">
+    <!-- Soul Config Modal/Panel (show when configuring) -->
+    <div v-if="showSoulConfig" class="p-4 rounded-lg border border-primary-500/30 bg-white/90 dark:bg-black/80">
+      <SoulConfigPanel v-model="soulConfig" />
+      <div class="mt-4 flex gap-2">
+        <KwamiGlassButton
+          label="Cancel"
+          mode="outline"
+          size="md"
+          :block="true"
+          @click="showSoulConfig = false"
+        />
+        <KwamiGlassButton
+          label="Save & Continue"
+          mode="primary"
+          size="md"
+          :block="true"
+          @click="saveSoulConfig"
+        />
+      </div>
+    </div>
+
     <!-- Minting Status -->
     <div
       v-if="nftStore.mintingStatus !== 'idle' && nftStore.mintingStatus !== 'success' && nftStore.mintingStatus !== 'error'"
-      class="p-4 bg-gray-50 dark:bg-gray-900 rounded-lg border border-primary-500/50"
+      class="p-4 rounded-lg border border-primary-500/30 bg-white/20 dark:bg-black/20"
     >
       <div class="flex items-center space-x-3">
-        <UIcon name="i-heroicons-arrow-path" class="w-5 h-5 animate-spin text-primary-500 dark:text-primary-400" />
+        <div class="w-4 h-4 rounded-full border-2 border-primary-500/40 border-t-primary-500 animate-spin" />
         <div>
           <p class="font-semibold text-gray-900 dark:text-white">{{ getMintingStatusText() }}</p>
           <p class="text-sm text-gray-500 dark:text-gray-400">Please wait...</p>
@@ -15,55 +36,76 @@
     </div>
 
     <!-- Error Display -->
-    <UAlert
-      v-if="nftStore.error"
-      color="red"
-      variant="subtle"
-      :title="nftStore.error"
-      @close="nftStore.error = null"
-    />
+    <div v-if="nftStore.error" class="p-4 rounded-lg border border-red-500/30 bg-red-500/10 text-red-700 dark:text-red-300">
+      <div class="flex items-start justify-between gap-3">
+        <div class="text-sm font-semibold">{{ nftStore.error }}</div>
+        <button
+          type="button"
+          class="text-xs opacity-70 hover:opacity-100"
+          @click="nftStore.error = null"
+        >
+          Close
+        </button>
+      </div>
+    </div>
 
     <!-- Success Message -->
-    <UAlert
+    <div
       v-if="nftStore.mintingStatus === 'success'"
-      color="green"
-      variant="subtle"
-      title="KWAMI Minted Successfully!"
-      description="Your unique KWAMI NFT has been created on the Solana blockchain."
-    />
+      class="p-4 rounded-lg border border-green-500/30 bg-green-500/10 text-green-700 dark:text-green-300"
+    >
+      <div class="text-sm font-semibold">KWAMI Minted Successfully!</div>
+      <div class="text-xs opacity-80 mt-1">Your unique KWAMI NFT has been created on Solana.</div>
+    </div>
 
     <!-- Mint Button -->
-    <UButton
+    <KwamiGlassButton
       v-if="!wallet.connected"
-      block
-      size="xl"
-      disabled
-      color="gray"
-    >
-      Connect Wallet to Roll & Mint
-    </UButton>
+      label="Connect Wallet"
+      mode="outline"
+      size="lg"
+      :disabled="true"
+      :block="true"
+    />
 
-    <UButton
+    <KwamiGlassButton
       v-else-if="nftStore.mintingStatus === 'success'"
-      block
-      size="xl"
-      color="green"
+      label="Mint Another KWAMI"
+      mode="outline"
+      size="lg"
+      :block="true"
       @click="handleReset"
-    >
-      Mint Another KWAMI
-    </UButton>
+    />
 
-    <UButton
+    <!-- Configure Soul Button -->
+    <KwamiGlassButton
+      v-else-if="!soulConfigured"
+      label="✨ Configure Soul (Optional)"
+      mode="outline"
+      size="lg"
+      :block="true"
+      @click="showSoulConfig = true"
+    />
+
+    <KwamiGlassButton
       v-else
-      block
-      size="xl"
-      color="primary"
-      :loading="nftStore.mintingStatus !== 'idle'"
+      :label="nftStore.mintingStatus !== 'idle' ? 'Rolling…' : '🍬 Roll & Mint KWAMI'"
+      mode="primary"
+      size="lg"
       :disabled="nftStore.mintingStatus !== 'idle'"
+      :block="true"
       @click="handleMint"
-    >
-      🍬 Roll & Mint KWAMI
-    </UButton>
+    />
+
+    <!-- Skip Soul Config Button (when configuring) -->
+    <KwamiGlassButton
+      v-if="!soulConfigured && !showSoulConfig && wallet.connected && nftStore.mintingStatus === 'idle'"
+      label="Skip Soul Config & Mint"
+      mode="ghost"
+      size="sm"
+      :block="true"
+      @click="skipSoulConfig"
+    />
 
     <!-- Cost Info -->
     <div class="text-center text-sm text-gray-500">
@@ -73,9 +115,12 @@
 </template>
 
 <script setup lang="ts">
-import { computed } from 'vue'
+import { ref, computed } from 'vue'
 import { useWalletStore } from '@/stores/wallet'
 import { useNFTStore } from '@/stores/nft'
+import KwamiGlassButton from '@/components/KwamiGlassButton.vue'
+import SoulConfigPanel from '@/components/SoulConfigPanel.vue'
+import { getDefaultSoulConfig, type SoulConfig } from '@/utils/prepareKwamiMetadata'
 
 const props = defineProps<{
   blobPreviewRef?: any
@@ -84,6 +129,11 @@ const props = defineProps<{
 const wallet = useWalletStore()
 const nftStore = useNFTStore()
 
+// Soul configuration state
+const showSoulConfig = ref(false)
+const soulConfigured = ref(false)
+const soulConfig = ref<SoulConfig>(getDefaultSoulConfig())
+
 const safeName = computed(() => {
   const dna = nftStore.currentDna
   if (dna && dna.length >= 10) {
@@ -91,6 +141,16 @@ const safeName = computed(() => {
   }
   return 'KWAMI'
 })
+
+const saveSoulConfig = () => {
+  soulConfigured.value = true
+  showSoulConfig.value = false
+}
+
+const skipSoulConfig = () => {
+  soulConfigured.value = true
+  soulConfig.value = getDefaultSoulConfig()
+}
 
 const handleMint = async () => {
   if (nftStore.mintingStatus !== 'idle') return
@@ -131,13 +191,14 @@ const handleMint = async () => {
     nftStore.setBlobConfig(config)
     nftStore.setImageBuffer(imageBuffer)
 
-    // Mint KWAMI (no user-entered name/description)
+    // Mint KWAMI with soul config
     await nftStore.mintKwami(
       config,
       {
         name: safeName.value,
         description: '',
       },
+      soulConfigured.value ? soulConfig.value : undefined,
       imageBuffer
     )
   } catch (error: any) {
@@ -147,6 +208,9 @@ const handleMint = async () => {
 
 const handleReset = () => {
   nftStore.resetMintingStatus()
+  soulConfigured.value = false
+  showSoulConfig.value = false
+  soulConfig.value = getDefaultSoulConfig()
 }
 
 const getMintingStatusText = () => {

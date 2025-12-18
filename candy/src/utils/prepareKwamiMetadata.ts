@@ -1,6 +1,37 @@
 import type { BodyConfig } from './calculateKwamiDNA'
 
 /**
+ * Emotional trait spectrum values (-100 to +100)
+ */
+export interface EmotionalTraits {
+  happiness: number      // -100 (deep sadness) to +100 (extreme joy)
+  energy: number         // -100 (exhausted) to +100 (hyper-energetic)
+  confidence: number     // -100 (anxious) to +100 (overly confident)
+  calmness: number       // -100 (rage-prone) to +100 (extremely calm)
+  optimism: number       // -100 (pessimistic) to +100 (blindly optimistic)
+  socialness: number     // -100 (shy) to +100 (extremely extroverted)
+  creativity: number     // -100 (rigid) to +100 (wildly creative)
+  patience: number       // -100 (impatient) to +100 (infinite patience)
+  empathy: number        // -100 (selfish) to +100 (extreme empathy)
+  curiosity: number      // -100 (indifferent) to +100 (insatiable curiosity)
+}
+
+/**
+ * Soul (personality) configuration
+ */
+export interface SoulConfig {
+  name?: string                                                // Kwami's identifier/name
+  personality?: string                                         // Overall personality description
+  systemPrompt?: string                                        // Base AI instructions for behavior
+  traits?: string[]                                           // Array of personality characteristics
+  emotionalTraits?: EmotionalTraits                           // Emotional trait spectrum values
+  language?: string                                           // Preferred communication language
+  conversationStyle?: string                                  // Tone and style (e.g., 'friendly', 'professional')
+  responseLength?: 'short' | 'medium' | 'long'              // Preferred response verbosity
+  emotionalTone?: 'neutral' | 'warm' | 'enthusiastic' | 'calm' // Emotional expression level
+}
+
+/**
  * Metaplex-standard NFT metadata
  */
 export interface KwamiMetadata {
@@ -25,6 +56,7 @@ export interface KwamiMetadata {
   // Custom Kwami properties
   dna: string
   body: BodyConfig
+  soul?: SoulConfig
   minted_at?: number
 }
 
@@ -42,6 +74,7 @@ export function prepareKwamiMetadata(params: {
   description: string
   dna: string
   bodyConfig: BodyConfig
+  soulConfig?: SoulConfig
   imageUri: string
   glbUri?: string
   creatorAddress?: string
@@ -51,6 +84,7 @@ export function prepareKwamiMetadata(params: {
     description,
     dna,
     bodyConfig,
+    soulConfig,
     imageUri,
     glbUri,
     creatorAddress,
@@ -59,7 +93,12 @@ export function prepareKwamiMetadata(params: {
   // Convert body config to attributes
   const attributes = bodyConfigToAttributes(bodyConfig)
 
-  // Add DNA attribute
+  // Add soul config to attributes if provided
+  if (soulConfig) {
+    attributes.push(...soulConfigToAttributes(soulConfig))
+  }
+
+  // Add DNA attribute at the top
   attributes.unshift({
     trait_type: 'DNA',
     value: dna,
@@ -106,8 +145,132 @@ export function prepareKwamiMetadata(params: {
     },
     dna,
     body: bodyConfig,
+    soul: soulConfig,
     minted_at: Date.now(),
   }
+}
+
+/**
+ * Converts soul configuration to Metaplex attributes array
+ */
+export function soulConfigToAttributes(config: SoulConfig): MetadataAttribute[] {
+  const attributes: MetadataAttribute[] = []
+
+  // Personality name
+  if (config.name) {
+    attributes.push({
+      trait_type: 'Name',
+      value: config.name,
+    })
+  }
+
+  // Personality description
+  if (config.personality) {
+    attributes.push({
+      trait_type: 'Personality',
+      value: config.personality,
+    })
+  }
+
+  // Traits as comma-separated string
+  if (config.traits && config.traits.length > 0) {
+    attributes.push({
+      trait_type: 'Traits',
+      value: config.traits.join(', '),
+    })
+  }
+
+  // Language
+  if (config.language) {
+    attributes.push({
+      trait_type: 'Language',
+      value: config.language,
+    })
+  }
+
+  // Conversation style
+  if (config.conversationStyle) {
+    attributes.push({
+      trait_type: 'Conversation Style',
+      value: config.conversationStyle,
+    })
+  }
+
+  // Response length
+  if (config.responseLength) {
+    attributes.push({
+      trait_type: 'Response Length',
+      value: config.responseLength,
+    })
+  }
+
+  // Emotional tone
+  if (config.emotionalTone) {
+    attributes.push({
+      trait_type: 'Emotional Tone',
+      value: config.emotionalTone,
+    })
+  }
+
+  // Emotional traits (individual scores)
+  if (config.emotionalTraits) {
+    const traits = config.emotionalTraits
+    
+    attributes.push(
+      {
+        trait_type: 'Happiness',
+        value: traits.happiness,
+        display_type: 'number',
+      },
+      {
+        trait_type: 'Energy',
+        value: traits.energy,
+        display_type: 'number',
+      },
+      {
+        trait_type: 'Confidence',
+        value: traits.confidence,
+        display_type: 'number',
+      },
+      {
+        trait_type: 'Calmness',
+        value: traits.calmness,
+        display_type: 'number',
+      },
+      {
+        trait_type: 'Optimism',
+        value: traits.optimism,
+        display_type: 'number',
+      },
+      {
+        trait_type: 'Socialness',
+        value: traits.socialness,
+        display_type: 'number',
+      },
+      {
+        trait_type: 'Creativity',
+        value: traits.creativity,
+        display_type: 'number',
+      },
+      {
+        trait_type: 'Patience',
+        value: traits.patience,
+        display_type: 'number',
+      },
+      {
+        trait_type: 'Empathy',
+        value: traits.empathy,
+        display_type: 'number',
+      },
+      {
+        trait_type: 'Curiosity',
+        value: traits.curiosity,
+        display_type: 'number',
+      }
+    )
+  }
+
+  return attributes
 }
 
 /**
@@ -249,9 +412,35 @@ export function validateMetadata(metadata: KwamiMetadata): {
     errors.push('At least one file is required')
   }
 
+  // Validate soul config if provided
+  if (metadata.soul) {
+    validateSoulConfig(metadata.soul, errors)
+  }
+
   return {
     valid: errors.length === 0,
     errors,
+  }
+}
+
+/**
+ * Validates soul configuration
+ */
+function validateSoulConfig(soul: SoulConfig, errors: string[]): void {
+  // Validate emotional traits range if provided
+  if (soul.emotionalTraits) {
+    const traits = soul.emotionalTraits
+    const traitNames = [
+      'happiness', 'energy', 'confidence', 'calmness', 'optimism',
+      'socialness', 'creativity', 'patience', 'empathy', 'curiosity'
+    ] as const
+
+    for (const traitName of traitNames) {
+      const value = traits[traitName]
+      if (value !== undefined && (value < -100 || value > 100)) {
+        errors.push(`Emotional trait '${traitName}' must be between -100 and 100`)
+      }
+    }
   }
 }
 
@@ -260,6 +449,41 @@ export function validateMetadata(metadata: KwamiMetadata): {
  */
 export function extractBodyFromMetadata(metadata: KwamiMetadata): BodyConfig {
   return metadata.body
+}
+
+/**
+ * Extracts soul config from metadata
+ */
+export function extractSoulFromMetadata(metadata: KwamiMetadata): SoulConfig | undefined {
+  return metadata.soul
+}
+
+/**
+ * Gets default soul configuration
+ */
+export function getDefaultSoulConfig(): SoulConfig {
+  return {
+    name: 'Kwami',
+    personality: 'A friendly and helpful AI companion',
+    systemPrompt: 'You are Kwami, a friendly AI companion. Be helpful, clear, and engaging in your responses.',
+    traits: ['friendly', 'helpful', 'curious'],
+    emotionalTraits: {
+      happiness: 50,
+      energy: 50,
+      confidence: 50,
+      calmness: 50,
+      optimism: 50,
+      socialness: 50,
+      creativity: 50,
+      patience: 50,
+      empathy: 50,
+      curiosity: 50,
+    },
+    language: 'en',
+    conversationStyle: 'friendly',
+    responseLength: 'medium',
+    emotionalTone: 'warm',
+  }
 }
 
 /**
@@ -276,7 +500,7 @@ export function exampleMetadata(): KwamiMetadata {
   return {
     name: 'KWAMI #1',
     symbol: 'KWAMI',
-    description: 'A unique AI companion NFT with distinct DNA',
+    description: 'A unique AI companion NFT with distinct DNA and personality',
     image: 'https://arweave.net/example-image-hash',
     external_url: 'https://kwami.io',
     attributes: [
@@ -284,6 +508,10 @@ export function exampleMetadata(): KwamiMetadata {
       { trait_type: 'Skin', value: 'tricolor' },
       { trait_type: 'Resolution', value: 5, display_type: 'number' },
       { trait_type: 'Shininess', value: 50, display_type: 'number' },
+      { trait_type: 'Name', value: 'Kaya' },
+      { trait_type: 'Personality', value: 'friendly and curious' },
+      { trait_type: 'Happiness', value: 75, display_type: 'number' },
+      { trait_type: 'Energy', value: 60, display_type: 'number' },
     ],
     properties: {
       files: [
@@ -297,6 +525,27 @@ export function exampleMetadata(): KwamiMetadata {
       resolution: 5,
       skin: 'tricolor',
       shininess: 50,
+    },
+    soul: {
+      name: 'Kaya',
+      personality: 'friendly and curious',
+      traits: ['friendly', 'curious', 'helpful'],
+      emotionalTraits: {
+        happiness: 75,
+        energy: 60,
+        confidence: 65,
+        calmness: 70,
+        optimism: 80,
+        socialness: 70,
+        creativity: 85,
+        patience: 75,
+        empathy: 90,
+        curiosity: 95,
+      },
+      language: 'en',
+      conversationStyle: 'friendly',
+      responseLength: 'medium',
+      emotionalTone: 'warm',
     },
     minted_at: Date.now(),
   }

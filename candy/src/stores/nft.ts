@@ -109,6 +109,7 @@ export const useNFTStore = defineStore('nft', () => {
   const mintKwami = async (
     config: any,
     metadata: { name: string; description: string },
+    soulConfig?: any,
     imageBuffer: Buffer | null = null
   ) => {
     if (!walletStore.connected || !walletStore.wallet) {
@@ -156,6 +157,7 @@ export const useNFTStore = defineStore('nft', () => {
         description: metadata.description,
         dna,
         bodyConfig: config,
+        soulConfig,
         imageUri: imageResult.uri,
         creatorAddress: walletStore.publicKey!.toBase58(),
       })
