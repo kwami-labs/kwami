@@ -123,19 +123,22 @@
 
                 <div class="p-3 rounded-lg border border-gray-200/60 dark:border-gray-800/60 bg-white/10 dark:bg-black/10">
                   <div class="text-xs text-gray-500 dark:text-gray-400 mb-2">Emotional Traits</div>
-                  <div class="space-y-1.5">
-                    <div v-for="(value, key) in nftStore.currentSoulConfig.emotionalTraits" :key="key" class="flex items-center justify-between text-xs">
-                      <span class="text-gray-600 dark:text-gray-400 capitalize">{{ key }}</span>
-                      <div class="flex items-center gap-2">
-                        <div class="w-16 h-1.5 bg-gray-200 dark:bg-gray-700 rounded-full overflow-hidden">
-                          <div
-                            class="h-full transition-all"
-                            :class="value >= 0 ? 'bg-green-500' : 'bg-red-500'"
-                            :style="{ width: `${Math.abs(value) / 2}%`, marginLeft: value < 0 ? 'auto' : '0' }"
-                          />
-                        </div>
-                        <span class="font-mono text-gray-700 dark:text-gray-300 w-8 text-right">{{ value }}</span>
-                      </div>
+                  <div class="space-y-2">
+                    <div v-for="(value, key) in nftStore.currentSoulConfig.emotionalTraits" :key="key" class="flex items-center gap-3">
+                      <label class="text-xs font-medium text-gray-600 dark:text-gray-400 w-20 capitalize">
+                        {{ key }}
+                      </label>
+                      <input
+                        :value="value"
+                        type="range"
+                        min="-100"
+                        max="100"
+                        disabled
+                        class="flex-1 soul-range-slider"
+                      />
+                      <span class="text-xs font-mono text-gray-600 dark:text-gray-400 w-10 text-right">
+                        {{ value }}
+                      </span>
                     </div>
                   </div>
                 </div>
@@ -344,3 +347,39 @@ onBeforeUnmount(() => {
   logoEl = null
 })
 </script>
+
+<style scoped>
+/* Custom range input styling for Soul emotional traits */
+.soul-range-slider {
+  -webkit-appearance: none;
+  appearance: none;
+  height: 4px;
+  background: linear-gradient(to right, #ef4444 0%, #fbbf24 50%, #10b981 100%);
+  border-radius: 2px;
+  outline: none;
+  cursor: not-allowed;
+  opacity: 0.9;
+}
+
+.soul-range-slider::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 14px;
+  height: 14px;
+  background: currentColor;
+  cursor: not-allowed;
+  border-radius: 50%;
+  border: 2px solid white;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+.soul-range-slider::-moz-range-thumb {
+  width: 14px;
+  height: 14px;
+  background: currentColor;
+  cursor: not-allowed;
+  border-radius: 50%;
+  border: 2px solid white;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+</style>
