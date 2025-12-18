@@ -230,6 +230,25 @@
                   </div>
                 </div>
 
+                <!-- Time -->
+                <div class="p-3 rounded-lg border border-gray-200/60 dark:border-gray-800/60 bg-white/10 dark:bg-black/10">
+                  <div class="text-xs text-gray-500 dark:text-gray-400 mb-2">Time (XYZ)</div>
+                  <div class="grid grid-cols-3 gap-2 text-center">
+                    <div>
+                      <div class="text-xs text-gray-500 dark:text-gray-400 mb-1">X</div>
+                      <div class="text-sm font-mono text-gray-900 dark:text-white">{{ nftStore.currentBlobConfig.time?.x?.toFixed(2) }}</div>
+                    </div>
+                    <div>
+                      <div class="text-xs text-gray-500 dark:text-gray-400 mb-1">Y</div>
+                      <div class="text-sm font-mono text-gray-900 dark:text-white">{{ nftStore.currentBlobConfig.time?.y?.toFixed(2) }}</div>
+                    </div>
+                    <div>
+                      <div class="text-xs text-gray-500 dark:text-gray-400 mb-1">Z</div>
+                      <div class="text-sm font-mono text-gray-900 dark:text-white">{{ nftStore.currentBlobConfig.time?.z?.toFixed(2) }}</div>
+                    </div>
+                  </div>
+                </div>
+
                 <!-- Rotation -->
                 <div class="p-3 rounded-lg border border-gray-200/60 dark:border-gray-800/60 bg-white/10 dark:bg-black/10">
                   <div class="text-xs text-gray-500 dark:text-gray-400 mb-2">Rotation (XYZ)</div>
