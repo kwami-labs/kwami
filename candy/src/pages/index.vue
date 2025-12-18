@@ -163,9 +163,21 @@
               </div>
               
               <div class="space-y-3">
-                <!-- Visual Properties -->
+                <!-- Skin Type & Subtype -->
+                <div class="grid grid-cols-2 gap-2">
+                  <div class="p-2 rounded-lg border border-gray-200/60 dark:border-gray-800/60 bg-white/10 dark:bg-black/10">
+                    <div class="text-xs text-gray-500 dark:text-gray-400 mb-1">Skin Type</div>
+                    <div class="text-sm font-semibold text-gray-900 dark:text-white">Tricolor</div>
+                  </div>
+                  <div class="p-2 rounded-lg border border-gray-200/60 dark:border-gray-800/60 bg-white/10 dark:bg-black/10">
+                    <div class="text-xs text-gray-500 dark:text-gray-400 mb-1">Skin Subtype</div>
+                    <div class="text-sm font-semibold text-gray-900 dark:text-white capitalize">{{ getSkinSubtype(nftStore.currentBlobConfig.skin) }}</div>
+                  </div>
+                </div>
+
+                <!-- Skin Palette -->
                 <div class="p-3 rounded-lg border border-gray-200/60 dark:border-gray-800/60 bg-white/10 dark:bg-black/10">
-                  <div class="text-xs text-gray-500 dark:text-gray-400 mb-2">Colors (RGB)</div>
+                  <div class="text-xs text-gray-500 dark:text-gray-400 mb-2">Skin Palette</div>
                   <div class="flex gap-2">
                     <div class="flex-1 text-center">
                       <div
@@ -194,48 +206,52 @@
                   </div>
                 </div>
 
-                <!-- Geometry -->
+                <!-- Resolution & Wireframe -->
                 <div class="grid grid-cols-2 gap-2">
                   <div class="p-2 rounded-lg border border-gray-200/60 dark:border-gray-800/60 bg-white/10 dark:bg-black/10">
                     <div class="text-xs text-gray-500 dark:text-gray-400 mb-1">Resolution</div>
                     <div class="text-sm font-semibold text-gray-900 dark:text-white">{{ nftStore.currentBlobConfig.resolution || '—' }}</div>
                   </div>
                   <div class="p-2 rounded-lg border border-gray-200/60 dark:border-gray-800/60 bg-white/10 dark:bg-black/10">
+                    <div class="text-xs text-gray-500 dark:text-gray-400 mb-1">Wireframe</div>
+                    <div class="text-sm font-semibold text-gray-900 dark:text-white">{{ nftStore.currentBlobConfig.wireframe ? 'Yes' : 'No' }}</div>
+                  </div>
+                </div>
+
+                <!-- Shininess & Light Intensity -->
+                <div class="grid grid-cols-2 gap-2">
+                  <div class="p-2 rounded-lg border border-gray-200/60 dark:border-gray-800/60 bg-white/10 dark:bg-black/10">
                     <div class="text-xs text-gray-500 dark:text-gray-400 mb-1">Shininess</div>
                     <div class="text-sm font-semibold text-gray-900 dark:text-white">{{ nftStore.currentBlobConfig.shininess || '—' }}</div>
                   </div>
                   <div class="p-2 rounded-lg border border-gray-200/60 dark:border-gray-800/60 bg-white/10 dark:bg-black/10">
-                    <div class="text-xs text-gray-500 dark:text-gray-400 mb-1">Skin</div>
-                    <div class="text-sm font-semibold text-gray-900 dark:text-white">Tricolor</div>
-                  </div>
-                  <div class="p-2 rounded-lg border border-gray-200/60 dark:border-gray-800/60 bg-white/10 dark:bg-black/10">
-                    <div class="text-xs text-gray-500 dark:text-gray-400 mb-1">Subtype</div>
-                    <div class="text-sm font-semibold text-gray-900 dark:text-white capitalize">{{ getSkinSubtype(nftStore.currentBlobConfig.skin) }}</div>
+                    <div class="text-xs text-gray-500 dark:text-gray-400 mb-1">Light Intensity</div>
+                    <div class="text-sm font-semibold text-gray-900 dark:text-white">—</div>
                   </div>
                 </div>
 
                 <!-- Noise Frequency -->
                 <div class="p-3 rounded-lg border border-gray-200/60 dark:border-gray-800/60 bg-white/10 dark:bg-black/10">
-                  <div class="text-xs text-gray-500 dark:text-gray-400 mb-2">Noise Frequency (XYZ)</div>
+                  <div class="text-xs text-gray-500 dark:text-gray-400 mb-2">Noise Frequency</div>
                   <div class="grid grid-cols-3 gap-2 text-center">
                     <div>
                       <div class="text-xs text-gray-500 dark:text-gray-400 mb-1">X</div>
-                      <div class="text-sm font-mono text-gray-900 dark:text-white">{{ nftStore.currentBlobConfig.frequency?.x?.toFixed(1) || '—' }}</div>
+                      <div class="text-sm font-mono text-gray-900 dark:text-white">{{ nftStore.currentBlobConfig.spikes?.x?.toFixed(2) || '—' }}</div>
                     </div>
                     <div>
                       <div class="text-xs text-gray-500 dark:text-gray-400 mb-1">Y</div>
-                      <div class="text-sm font-mono text-gray-900 dark:text-white">{{ nftStore.currentBlobConfig.frequency?.y?.toFixed(1) || '—' }}</div>
+                      <div class="text-sm font-mono text-gray-900 dark:text-white">{{ nftStore.currentBlobConfig.spikes?.y?.toFixed(2) || '—' }}</div>
                     </div>
                     <div>
                       <div class="text-xs text-gray-500 dark:text-gray-400 mb-1">Z</div>
-                      <div class="text-sm font-mono text-gray-900 dark:text-white">{{ nftStore.currentBlobConfig.frequency?.z?.toFixed(1) || '—' }}</div>
+                      <div class="text-sm font-mono text-gray-900 dark:text-white">{{ nftStore.currentBlobConfig.spikes?.z?.toFixed(2) || '—' }}</div>
                     </div>
                   </div>
                 </div>
 
                 <!-- Frequency Amplitude -->
                 <div class="p-3 rounded-lg border border-gray-200/60 dark:border-gray-800/60 bg-white/10 dark:bg-black/10">
-                  <div class="text-xs text-gray-500 dark:text-gray-400 mb-2">Frequency Amplitude (XYZ)</div>
+                  <div class="text-xs text-gray-500 dark:text-gray-400 mb-2">Frequency Amplitude</div>
                   <div class="grid grid-cols-3 gap-2 text-center">
                     <div>
                       <div class="text-xs text-gray-500 dark:text-gray-400 mb-1">X</div>
@@ -252,28 +268,28 @@
                   </div>
                 </div>
 
-                <!-- Animation Speed (Spikes) -->
+                <!-- Animation Speed -->
                 <div class="p-3 rounded-lg border border-gray-200/60 dark:border-gray-800/60 bg-white/10 dark:bg-black/10">
-                  <div class="text-xs text-gray-500 dark:text-gray-400 mb-2">Animation Speed (XYZ)</div>
+                  <div class="text-xs text-gray-500 dark:text-gray-400 mb-2">Animation Speed</div>
                   <div class="grid grid-cols-3 gap-2 text-center">
                     <div>
                       <div class="text-xs text-gray-500 dark:text-gray-400 mb-1">X</div>
-                      <div class="text-sm font-mono text-gray-900 dark:text-white">{{ nftStore.currentBlobConfig.spikes?.x?.toFixed(1) || '—' }}</div>
+                      <div class="text-sm font-mono text-gray-900 dark:text-white">{{ nftStore.currentBlobConfig.time?.x?.toFixed(1) || '—' }}</div>
                     </div>
                     <div>
                       <div class="text-xs text-gray-500 dark:text-gray-400 mb-1">Y</div>
-                      <div class="text-sm font-mono text-gray-900 dark:text-white">{{ nftStore.currentBlobConfig.spikes?.y?.toFixed(1) || '—' }}</div>
+                      <div class="text-sm font-mono text-gray-900 dark:text-white">{{ nftStore.currentBlobConfig.time?.y?.toFixed(1) || '—' }}</div>
                     </div>
                     <div>
                       <div class="text-xs text-gray-500 dark:text-gray-400 mb-1">Z</div>
-                      <div class="text-sm font-mono text-gray-900 dark:text-white">{{ nftStore.currentBlobConfig.spikes?.z?.toFixed(1) || '—' }}</div>
+                      <div class="text-sm font-mono text-gray-900 dark:text-white">{{ nftStore.currentBlobConfig.time?.z?.toFixed(1) || '—' }}</div>
                     </div>
                   </div>
                 </div>
 
                 <!-- Auto Rotation -->
                 <div class="p-3 rounded-lg border border-gray-200/60 dark:border-gray-800/60 bg-white/10 dark:bg-black/10">
-                  <div class="text-xs text-gray-500 dark:text-gray-400 mb-2">Auto Rotation (XYZ)</div>
+                  <div class="text-xs text-gray-500 dark:text-gray-400 mb-2">Auto Rotation</div>
                   <div class="grid grid-cols-3 gap-2 text-center">
                     <div>
                       <div class="text-xs text-gray-500 dark:text-gray-400 mb-1">X</div>
