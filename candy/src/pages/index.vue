@@ -316,35 +316,132 @@
         </KwamiGlassCard>
       </aside>
 
-      <!-- Stats (top-center) -->
-      <div class="fixed left-1/2 top-24 -translate-x-1/2 z-20 w-[min(92vw,560px)]">
-        <div class="grid grid-cols-2 gap-4">
-          <div class="p-4 rounded-lg border border-gray-200/60 dark:border-gray-800/60 bg-white/30 dark:bg-black/20">
-            <div class="text-xs text-gray-500 dark:text-gray-400">Minted</div>
-            <div class="text-2xl font-bold text-gray-900 dark:text-white">{{ nftStore.totalMinted.toLocaleString() }}</div>
-          </div>
-          <div class="p-4 rounded-lg border border-gray-200/60 dark:border-gray-800/60 bg-white/30 dark:bg-black/20">
-            <div class="text-xs text-gray-500 dark:text-gray-400">Remaining</div>
-            <div class="text-2xl font-bold text-gray-900 dark:text-white">{{ remainingCount.toLocaleString() }}</div>
+      <!-- Center header: title + tabs -->
+      <div class="fixed left-1/2 top-24 -translate-x-1/2 z-20 w-[min(92vw,640px)] text-center pointer-events-none">
+        <div class="text-3xl sm:text-4xl font-black tracking-tight">
+          <span class="text-transparent bg-clip-text bg-gradient-to-r from-fuchsia-500 via-cyan-400 to-emerald-400">
+            Mint your unique KWAMI
+          </span>
+        </div>
+
+        <div class="mt-3 flex items-center justify-center pointer-events-auto">
+          <div class="kwami-glass-surface rounded-full border border-gray-200/60 dark:border-gray-800/60 bg-white/15 dark:bg-black/15 p-1 inline-flex gap-1">
+            <button
+              class="px-4 py-2 text-xs font-semibold tracking-wider rounded-full transition"
+              :class="activeTab === 'info'
+                ? 'bg-white/30 dark:bg-white/10 text-gray-900 dark:text-white'
+                : 'text-gray-600 dark:text-gray-300 hover:bg-white/10 dark:hover:bg-white/5'"
+              @click="activeTab = 'info'"
+            >
+              Info
+            </button>
+            <button
+              class="px-4 py-2 text-xs font-semibold tracking-wider rounded-full transition"
+              :class="activeTab === 'mint'
+                ? 'bg-white/30 dark:bg-white/10 text-gray-900 dark:text-white'
+                : 'text-gray-600 dark:text-gray-300 hover:bg-white/10 dark:hover:bg-white/5'"
+              @click="activeTab = 'mint'"
+            >
+              Mint
+            </button>
+            <button
+              class="px-4 py-2 text-xs font-semibold tracking-wider rounded-full transition"
+              :class="activeTab === 'traits'
+                ? 'bg-white/30 dark:bg-white/10 text-gray-900 dark:text-white'
+                : 'text-gray-600 dark:text-gray-300 hover:bg-white/10 dark:hover:bg-white/5'"
+              @click="activeTab = 'traits'"
+            >
+              Traits
+            </button>
           </div>
         </div>
       </div>
 
-      <!-- Blob preview (fixed center, square) -->
-      <div class="fixed inset-0 flex items-center justify-center z-10 pointer-events-none">
-        <div class="pointer-events-auto w-[min(60vmin,520px)]">
-          <BlobPreview
-            ref="blobPreviewRef"
-            :show-dna="false"
-            :show-randomize-button="false"
-            container-class="aspect-square"
-          />
-        </div>
-      </div>
+      <!-- Center pages (horizontal slide) -->
+      <div class="fixed inset-0 z-10 pointer-events-none">
+        <div class="h-full flex items-center justify-center">
+          <div class="pointer-events-auto w-[min(92vw,560px)]">
+            <div class="relative overflow-hidden">
+              <div
+                class="flex w-[300%] transition-transform duration-500 ease-out"
+                :style="{ transform: `translateX(-${tabIndex * 100}%)` }"
+              >
+                <!-- Info (left) -->
+                <section class="w-1/3 shrink-0 px-1">
+                  <KwamiGlassCard class-name="w-full" :scroll-content="false" :cursor-glow="false">
+                    <template #title>Info</template>
+                    <template #headerRight>KWAMI</template>
 
-      <!-- Mint (bottom-center) -->
-      <div class="fixed left-1/2 bottom-14 -translate-x-1/2 z-20 w-[min(92vw,560px)]">
-        <MintPanel :blob-preview-ref="blobPreviewRef" />
+                    <div class="space-y-4">
+                      <p class="text-sm text-gray-700 dark:text-gray-200">
+                        Roll the Candy Machine to generate a one-of-one KWAMI body configuration.
+                      </p>
+                      <div class="grid grid-cols-2 gap-3">
+                        <div class="p-3 rounded-lg border border-gray-200/60 dark:border-gray-800/60 bg-white/10 dark:bg-black/10">
+                          <div class="text-[11px] uppercase tracking-wider text-gray-500 dark:text-gray-400">Network</div>
+                          <div class="mt-1 font-semibold text-gray-900 dark:text-white">Solana</div>
+                        </div>
+                        <div class="p-3 rounded-lg border border-gray-200/60 dark:border-gray-800/60 bg-white/10 dark:bg-black/10">
+                          <div class="text-[11px] uppercase tracking-wider text-gray-500 dark:text-gray-400">Mint</div>
+                          <div class="mt-1 font-semibold text-gray-900 dark:text-white">~0.01 SOL</div>
+                        </div>
+                      </div>
+                      <div class="text-xs text-gray-500 dark:text-gray-400">
+                        Tip: drag to rotate the blob.
+                      </div>
+                    </div>
+                  </KwamiGlassCard>
+                </section>
+
+                <!-- Mint (center / default) -->
+                <section class="w-1/3 shrink-0 px-1">
+                  <div class="flex flex-col items-center justify-center gap-6">
+                    <div class="w-[min(60vmin,520px)]">
+                      <BlobPreview
+                        ref="blobPreviewRef"
+                        :show-dna="false"
+                        :show-randomize-button="false"
+                        container-class="aspect-square"
+                      />
+                    </div>
+
+                    <div class="w-full">
+                      <MintPanel :blob-preview-ref="blobPreviewRef" />
+                    </div>
+                  </div>
+                </section>
+
+                <!-- Traits (right) -->
+                <section class="w-1/3 shrink-0 px-1">
+                  <KwamiGlassCard class-name="w-full" :scroll-content="true" :cursor-glow="false">
+                    <template #title>Traits</template>
+                    <template #headerRight>Live</template>
+
+                    <div class="space-y-4">
+                      <div class="p-4 rounded-lg border border-gray-200/60 dark:border-gray-800/60 bg-white/10 dark:bg-black/10">
+                        <div class="text-xs text-gray-500 dark:text-gray-400 mb-1">DNA</div>
+                        <div class="font-mono text-xs text-gray-700 dark:text-gray-200 break-all">
+                          {{ nftStore.currentDna || '—' }}
+                        </div>
+                      </div>
+
+                      <div v-if="nftStore.currentBlobConfig" class="space-y-3">
+                        <div class="text-sm font-semibold text-gray-900 dark:text-white">Body</div>
+                        <div class="text-xs text-gray-600 dark:text-gray-300 font-mono whitespace-pre-wrap break-words">
+                          {{ formatConfig(nftStore.currentBlobConfig) }}
+                        </div>
+                      </div>
+
+                      <div v-else class="text-sm text-gray-600 dark:text-gray-300">
+                        Roll to generate traits.
+                      </div>
+                    </div>
+                  </KwamiGlassCard>
+                </section>
+              </div>
+            </div>
+          </div>
+        </div>
       </div>
     </main>
 
@@ -373,6 +470,9 @@ import { createKwamiLogoSvg } from 'kwami/ui'
 
 const nftStore = useNFTStore()
 const blobPreviewRef = ref<any>(null)
+
+const activeTab = ref<'info' | 'mint' | 'traits'>('mint')
+const tabIndex = computed(() => (activeTab.value === 'info' ? 0 : activeTab.value === 'mint' ? 1 : 2))
 
 const logoHost = ref<HTMLElement | null>(null)
 let logoEl: SVGSVGElement | null = null
@@ -427,6 +527,14 @@ const short = (value: string, left = 6, right = 6) => {
 }
 
 const remainingCount = computed(() => 1_000_000_000_000 - nftStore.totalMinted)
+
+const formatConfig = (config: any) => {
+  try {
+    return JSON.stringify(config, null, 2)
+  } catch {
+    return String(config)
+  }
+}
 
 // Helper to convert hex color to RGB value for display
 const getColorValue = (hexColor: string | undefined): string => {
