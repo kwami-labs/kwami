@@ -53,9 +53,14 @@ fi
 if ANCHOR_PROVIDER_URL="$CLUSTER" ANCHOR_WALLET="$WALLET_PATH" npx ts-node scripts/initialize-qwami.ts; then
     echo -e "${GREEN}✅ QWAMI Token initialized successfully!${NC}"
     
-    if [ -f "devnet-addresses.json" ]; then
-        QWAMI_MINT=$(grep -o '"qwamiMint": "[^"]*"' devnet-addresses.json | cut -d'"' -f4)
+    # Try to find addresses file for the current cluster
+    CLUSTER_NAME=$(echo "$CLUSTER" | sed 's|https://api.\([^.]*\).solana.com|\1|')
+    ADDRESSES_FILE="${CLUSTER_NAME}-addresses.json"
+    
+    if [ -f "$ADDRESSES_FILE" ]; then
+        QWAMI_MINT=$(grep -o '"qwamiMint": "[^"]*"' "$ADDRESSES_FILE" | cut -d'"' -f4)
         echo -e "${GREEN}  Mint: ${QWAMI_MINT}${NC}"
+        echo -e "${GREEN}  Addresses: ${ADDRESSES_FILE}${NC}"
     fi
 else
     echo -e "${RED}❌ QWAMI initialization failed${NC}"

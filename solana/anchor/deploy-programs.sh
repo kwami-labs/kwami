@@ -31,10 +31,11 @@ fi
 echo -e "\n${YELLOW}Step 1: Select deployment network${NC}"
 echo -e "${BLUE}1)${NC} Localnet (local development)"
 echo -e "${BLUE}2)${NC} Devnet (testing)"
-echo -e "${BLUE}3)${NC} Mainnet-beta (production)"
+echo -e "${BLUE}3)${NC} Testnet (testing - alternative)"
+echo -e "${BLUE}4)${NC} Mainnet-beta (production)"
 echo ""
 
-read -p "Enter your choice (1-3): " network_choice
+read -p "Enter your choice (1-4): " network_choice
 
 case $network_choice in
     1)
@@ -48,6 +49,11 @@ case $network_choice in
         USDC_MINT="4zMMC9srt5Ri5X14GAgXhaHii3GnPAEERYPJgZJDncDU"  # Devnet USDC
         ;;
     3)
+        CLUSTER="testnet"
+        CLUSTER_URL="https://api.testnet.solana.com"
+        USDC_MINT="4zMMC9srt5Ri5X14GAgXhaHii3GnPAEERYPJgZJDncDU"  # Testnet USDC (same as devnet)
+        ;;
+    4)
         CLUSTER="mainnet"
         CLUSTER_URL="https://api.mainnet-beta.solana.com"
         USDC_MINT="EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v"  # Mainnet USDC
@@ -158,7 +164,7 @@ echo -e "Wallet: ${BLUE}${WALLET_ADDRESS}${NC}"
 echo -e "Balance: ${BLUE}${BALANCE} SOL${NC}"
 
 if is_lt "$BALANCE" "$MIN_SOL_BALANCE"; then
-    if [ "$CLUSTER" = "devnet" ]; then
+    if [ "$CLUSTER" = "devnet" ] || [ "$CLUSTER" = "testnet" ]; then
         echo -e "${YELLOW}⚠️  Low balance (< ${MIN_SOL_BALANCE} SOL). Attempting airdrop...${NC}"
 
         for ((i=1; i<=MAX_AIRDROP_ATTEMPTS; i++)); do
@@ -170,7 +176,7 @@ if is_lt "$BALANCE" "$MIN_SOL_BALANCE"; then
 
             echo -e "${YELLOW}Airdrop attempt ${i}/${MAX_AIRDROP_ATTEMPTS}: ${AIRDROP_AMOUNT} SOL${NC}"
             if ! solana airdrop "$AIRDROP_AMOUNT"; then
-                echo -e "${YELLOW}⚠️  Airdrop failed (rate limit is common on devnet). You may need to wait or request manually.${NC}"
+                echo -e "${YELLOW}⚠️  Airdrop failed (rate limit is common on ${CLUSTER}). You may need to wait or request manually.${NC}"
             fi
 
             sleep 2
@@ -390,6 +396,9 @@ echo -e "Latest link:  ${BLUE}deployments/${CLUSTER}-latest.json${NC}"
 echo -e "Full log:     ${BLUE}${LOG_FILE}${NC}"
 echo -e "QWAMI details: ${BLUE}qwami/${CLUSTER}-addresses.json${NC}"
 echo -e "KWAMI details: ${BLUE}kwami/${CLUSTER}-addresses.json${NC}"
+echo -e "\n${YELLOW}📄 IDL Files:${NC}"
+echo -e "QWAMI IDL: ${BLUE}qwami/target/idl/qwami_token.json${NC}"
+echo -e "KWAMI IDL: ${BLUE}kwami/target/idl/kwami_nft.json${NC}"
 
 if [ "$INIT_SKIPPED" = true ] || [ "$QWAMI_INITIALIZED" = false ] || [ "$KWAMI_INITIALIZED" = false ]; then
     echo -e "\n${YELLOW}⚠️  Next Steps:${NC}"

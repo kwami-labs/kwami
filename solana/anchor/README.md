@@ -54,7 +54,7 @@ avm use 0.32.1
 # Install from https://nodejs.org/
 ```
 
-### Deploy to Devnet
+### Deploy to Any Network
 
 ```bash
 # Navigate to anchor directory
@@ -62,16 +62,21 @@ cd solana/anchor
 
 # Run unified deployment script (prompts for network)
 ./deploy-programs.sh
-# Select: 2) Devnet
+# Options:
+#   1) Localnet (local development)
+#   2) Devnet (testing)
+#   3) Testnet (testing - alternative)
+#   4) Mainnet-beta (production)
 
 # Or deploy with automatic network selection
 CLUSTER=devnet ./deploy-programs.sh
+CLUSTER=testnet ./deploy-programs.sh
 ```
 
 The script handles:
 - ✅ Prerequisites check
-- ✅ Network configuration
-- ✅ SOL balance check (airdrops if needed)
+- ✅ Network configuration (localnet/devnet/testnet/mainnet)
+- ✅ SOL balance check (airdrops for devnet/testnet if needed)
 - ✅ Build both programs
 - ✅ Deploy with correct program IDs
 - ✅ Upload IDLs
@@ -92,6 +97,28 @@ cd qwami && ANCHOR_PROVIDER_URL=https://api.devnet.solana.com \
 cd ../kwami && ANCHOR_PROVIDER_URL=https://api.devnet.solana.com \
   ANCHOR_WALLET=$HOME/.config/solana/id.json \
   npx ts-node scripts/initialize-kwami.ts
+```
+
+### IDL Files
+
+After building/deploying, the Interface Definition Language (IDL) files are generated at:
+
+```
+qwami/target/idl/qwami_token.json   # QWAMI Token IDL
+kwami/target/idl/kwami_nft.json     # KWAMI NFT IDL
+```
+
+These IDL files are:
+- 📄 **Auto-generated** during `anchor build`
+- ☁️ **Uploaded on-chain** during deployment (for client queries)
+- 📚 **Used by TypeScript clients** (see `candy/src/types/`)
+- 🔗 **Contains all program interfaces** (instructions, accounts, errors)
+
+To copy IDLs to your frontend:
+```bash
+# Copy to candy app types
+cp qwami/target/idl/qwami_token.json ../../../candy/src/types/
+cp kwami/target/idl/kwami_nft.json ../../../candy/src/types/
 ```
 
 ---
