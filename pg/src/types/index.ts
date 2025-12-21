@@ -46,8 +46,8 @@ export interface BlobParams {
   cameraY: number;
   cameraZ: number;
   
-  // Skin
-  skinType: 'tricolor' | 'tricolor2' | 'zebra';
+  // Skin (Tricolor subtype)
+  skinType: 'poles' | 'donut' | 'vintage';
   
   // Blob texture
   blobMediaType: 'none' | 'image' | 'video';

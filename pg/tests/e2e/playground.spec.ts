@@ -116,11 +116,11 @@ test.describe('Kwami Playground - Body Configuration', () => {
     const skinTypeSelect = page.locator('#skin-type');
     
     if (await skinTypeSelect.isVisible()) {
-      await skinTypeSelect.selectOption('zebra');
+      await skinTypeSelect.selectOption('vintage');
       await page.waitForTimeout(300);
       
       const selectedValue = await skinTypeSelect.inputValue();
-      expect(selectedValue).toBe('zebra');
+      expect(selectedValue).toBe('vintage');
     }
   });
 });

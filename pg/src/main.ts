@@ -104,42 +104,30 @@ const DEFAULT_VALUES = {
   resolution: 180,
   shininess: 50,
   wireframe: false,
-  skin: 'tricolor',
+  skinSubtype: 'poles',
   opacity: 1,
 };
 
-const SKIN_COLLECTION_NAME = '3Colors';
+const SKIN_COLLECTION_NAME = 'Tricolor';
 
-const SKIN_NAME_ALIASES = {
-  tricolor: 'tricolor',
-  tricolor2: 'tricolor2',
-  zebra: 'zebra',
-  donut: 'tricolor2',
-  poles: 'tricolor',
-  vintage: 'zebra',
-  '3colors': 'tricolor',
-  '3colors-poles': 'tricolor',
-  '3colors-donut': 'tricolor2',
-  '3colors-vintage': 'zebra',
-};
-
-const SKIN_VARIANT_LABELS = {
-  tricolor: 'Poles',
-  tricolor2: 'Donut',
-  zebra: 'Vintage',
+const SKIN_SUBTYPE_LABELS = {
+  poles: 'Poles',
+  donut: 'Donut',
+  vintage: 'Vintage',
 };
 
 const SKIN_RANDOMIZATION_TEMPLATE = [
-  'tricolor2',
-  'tricolor2',
-  'tricolor2',
-  'tricolor2',
-  'tricolor2',
-  'tricolor',
-  'tricolor',
-  'tricolor',
-  'tricolor',
-  'zebra',
+  // Keep a similar weighting as before: donut-heavy, then poles, then vintage.
+  'donut',
+  'donut',
+  'donut',
+  'donut',
+  'donut',
+  'poles',
+  'poles',
+  'poles',
+  'poles',
+  'vintage',
 ];
 
 let skinRandomizationQueue = [];
@@ -156,44 +144,48 @@ function refillSkinRandomizationQueue() {
   skinRandomizationQueue = shuffleArray([...SKIN_RANDOMIZATION_TEMPLATE]);
 }
 
-function getCanonicalSkinName(rawSkin) {
+function getCanonicalSkinSubtype(rawSkin) {
   if (!rawSkin) {
-    return 'tricolor';
+    return 'poles';
   }
 
   const key = String(rawSkin).toLowerCase();
-  return SKIN_NAME_ALIASES[key] || 'tricolor';
+  if (key in SKIN_SUBTYPE_LABELS) {
+    return key;
+  }
+
+  return 'poles';
 }
 
-function getSkinDisplayName(rawSkin) {
-  const canonical = getCanonicalSkinName(rawSkin);
-  const variantLabel = SKIN_VARIANT_LABELS[canonical] || canonical;
+function getSkinDisplayName(rawSkinSubtype) {
+  const canonical = getCanonicalSkinSubtype(rawSkinSubtype);
+  const variantLabel = SKIN_SUBTYPE_LABELS[canonical] || canonical;
   return `${SKIN_COLLECTION_NAME} - ${variantLabel}`;
 }
 
-function applySkinToBlob(rawSkin) {
-  const canonical = getCanonicalSkinName(rawSkin);
+function applySkinToBlob(rawSkinSubtype) {
+  const subtype = getCanonicalSkinSubtype(rawSkinSubtype);
   const blob = window.kwami?.body?.blob;
   if (!blob) {
     return null;
   }
 
-  blob.setSkin(canonical);
+  blob.setSkin({ skin: 'tricolor', subtype });
 
   const skinSelect = document.getElementById('skin-type');
   if (skinSelect) {
-    skinSelect.value = canonical;
+    skinSelect.value = subtype;
   }
 
-  return canonical;
+  return subtype;
 }
 
-function getNextRandomizedSkin() {
+function getNextRandomizedSkinSubtype() {
   if (skinRandomizationQueue.length === 0) {
     refillSkinRandomizationQueue();
   }
 
-  return skinRandomizationQueue.shift() || 'tricolor';
+  return skinRandomizationQueue.shift() || 'poles';
 }
 
 refillSkinRandomizationQueue();
@@ -268,7 +260,7 @@ const canvas = document.getElementById('kwami-canvas');
 try {
   window.kwami = new Kwami(canvas, {
     body: {
-      initialSkin: 'Poles', // 3Colors collection default variant
+      initialSkin: { skin: 'tricolor', subtype: 'poles' },
       blob: {
         resolution: 180,
         colors: {
@@ -626,9 +618,11 @@ window.exportGLB = function() {
 window.randomizeBlob = function() {
   if (window.kwami && window.kwami.body) {
     window.kwami.body.randomizeBlob();
-    const appliedSkin = applySkinToBlob(getNextRandomizedSkin());
+    const appliedSkinSubtype = applySkinToBlob(getNextRandomizedSkinSubtype());
     updateAllControlsFromBlob();
-    const skinLabel = appliedSkin ? getSkinDisplayName(appliedSkin) : getSkinDisplayName('tricolor');
+    const skinLabel = appliedSkinSubtype
+      ? getSkinDisplayName(appliedSkinSubtype)
+      : getSkinDisplayName('poles');
     updateStatus(`🎲 Blob randomized! 🎨 Skin: ${skinLabel}`);
   }
 };
@@ -725,7 +719,8 @@ function updateAllControlsFromBlob() {
   const colors = blob.getColors();
   const scale = blob.getScale();
   const wireframe = blob.getWireframe();
-  const skin = blob.getCurrentSkin();
+  const skinSelection = blob.getCurrentSkin();
+  const skinSubtype = skinSelection?.subtype || 'poles';
   const shininess = blob.getShininess();
   
   // Update spikes
@@ -833,7 +828,7 @@ function updateAllControlsFromBlob() {
   // Update skin
   const skinSelect = document.getElementById('skin-type');
   if (skinSelect) {
-    skinSelect.value = skin;
+    skinSelect.value = skinSubtype;
   }
 
   const touchStrengthSlider = document.getElementById('touch-strength');
@@ -1273,9 +1268,11 @@ function initializeBodyControls() {
   const skinSelect = document.getElementById('skin-type');
   if (skinSelect) {
     skinSelect.addEventListener('change', (e) => {
-      const appliedSkin = applySkinToBlob(e.target.value);
+      const appliedSkinSubtype = applySkinToBlob(e.target.value);
       updateAllControlsFromBlob();
-      const skinLabel = appliedSkin ? getSkinDisplayName(appliedSkin) : getSkinDisplayName('tricolor');
+      const skinLabel = appliedSkinSubtype
+        ? getSkinDisplayName(appliedSkinSubtype)
+        : getSkinDisplayName('poles');
       updateStatus(`👕 Changed to ${skinLabel} skin`);
     });
   }

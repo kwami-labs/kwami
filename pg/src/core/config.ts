@@ -83,30 +83,28 @@ export const DEFAULT_BACKGROUND: BackgroundConfig = {
 // SKIN CONFIGURATION
 // ============================================================================
 
-export const SKIN_COLLECTION_NAME: string = '3Colors';
+export const SKIN_COLLECTION_NAME: string = 'Tricolor';
 
+// For the playground, the <select id="skin-type"> uses the Tricolor subtype values.
 export const SKIN_NAME_ALIASES: Record<string, string> = {
-  'tricolor': 'tricolor',
-  'tricolor2': 'tricolor2',
-  'zebra': 'zebra',
-  '3Colors-0-tricolor': 'tricolor',
-  '3Colors-1-tricolor2': 'tricolor2',
-  '3Colors-2-zebra': 'zebra'
+  poles: 'poles',
+  donut: 'donut',
+  vintage: 'vintage',
 };
 
 export const SKIN_VARIANT_LABELS: Record<string, string> = {
-  'tricolor': '3Colors - Poles',
-  'tricolor2': '3Colors - Donut',
-  'zebra': '3Colors - Vintage'
+  poles: 'Tricolor - Poles',
+  donut: 'Tricolor - Donut',
+  vintage: 'Tricolor - Vintage',
 };
 
 export const SKIN_RANDOMIZATION_TEMPLATE: string[] = [
-  'tricolor',
-  'tricolor2',
-  'zebra',
-  'tricolor',
-  'tricolor2',
-  'zebra'
+  'poles',
+  'donut',
+  'vintage',
+  'poles',
+  'donut',
+  'vintage',
 ];
 
 // ============================================================================
