@@ -1,20 +1,17 @@
 import { ShaderMaterial, Color, Vector3 } from 'three';
 import vertexShader from './vertex.glsl?raw';
 import fragmentShader from './fragment.glsl?raw';
-import type { ZebraSkinConfig, TricolorSkinConfig } from '../../../../../types/index';
+import type { TricolorSkinConfig } from '../../../../../types/index';
 
 /**
- * Create a zebra stripe shader material for the blob
- * Tricolor stripes with specular highlights
+ * Vintage subtype for the Tricolor skin.
+ * Tricolor stripes with specular highlights.
  */
-export function createZebraSkin(config: ZebraSkinConfig | TricolorSkinConfig): ShaderMaterial {
-  // If it's a TricolorSkinConfig, use its colors; otherwise use default colors
-  const colors = 'color1' in config
-    ? { color1: config.color1, color2: config.color2, color3: config.color3 }
-    : { color1: '#ff0066', color2: '#00ff66', color3: '#6600ff' };
-
-  const opacity = 'opacity' in config ? config.opacity : 1;
+export function createVintageSkin(config: TricolorSkinConfig): ShaderMaterial {
+  const opacity = config.opacity;
   const isTransparent = opacity < 0.999;
+
+  const colors = { color1: config.color1, color2: config.color2, color3: config.color3 };
 
   return new ShaderMaterial({
     vertexShader,

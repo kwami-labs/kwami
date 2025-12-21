@@ -19,7 +19,7 @@ import { logger } from '../utils/logger';
  * const canvas = document.querySelector('canvas');
  * const kwami = new Kwami(canvas, {
  *   audioFiles: ['/audio/track1.mp3', '/audio/track2.mp3'],
- *   initialSkin: 'tricolor'
+ *   initialSkin: { skin: 'tricolor', subtype: 'poles' }
  * });
  *
  * // Play audio

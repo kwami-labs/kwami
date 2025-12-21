@@ -23,17 +23,9 @@ import {
   getRandomHexColor,
   genDNA,
 } from '../../../utils/randoms';
-import type { BlobOptions, BlobSkinKey, BlobSkinType } from '../../../types';
+import type { BlobOptions, BlobSkinSelection, TricolorSubtype } from '../../../types';
 import { logger } from '../../../utils/logger';
 
-const SKIN_ALIAS_MAP: Record<string, BlobSkinKey> = {
-  tricolor: 'tricolor',
-  tricolor2: 'tricolor2',
-  zebra: 'zebra',
-  donut: 'tricolor2',
-  poles: 'tricolor',
-  vintage: 'zebra',
-};
 
 /**
  * Blob - The 3D visual body of Kwami
@@ -42,12 +34,9 @@ const SKIN_ALIAS_MAP: Record<string, BlobSkinKey> = {
 export class Blob {
   private mesh: Mesh;
   private config = defaultBlobConfig;
-  public currentSkin: BlobSkinKey;
-  private skins: Map<BlobSkinKey, ShaderMaterial> = new Map();
-  private normalizeSkin(skin: BlobSkinType): BlobSkinKey {
-    const key = typeof skin === 'string' ? skin.toLowerCase() : 'tricolor';
-    return SKIN_ALIAS_MAP[key] ?? 'tricolor';
-  }
+  public currentSkin: BlobSkinSelection;
+  public currentSkinSubtype: TricolorSubtype;
+  private skins: Map<TricolorSubtype, ShaderMaterial> = new Map();
 
   private animationFrameId: number | null = null;
 
@@ -122,18 +111,17 @@ export class Blob {
   public position: BlobPosition;
 
   constructor(private options: BlobOptions) {
-    this.currentSkin = this.normalizeSkin(options.skin || 'tricolor');
+    const selection: BlobSkinSelection = options.skin ?? { skin: 'tricolor', subtype: 'poles' };
+    const subtype: TricolorSubtype = selection.subtype ?? 'poles';
+
+    this.currentSkin = { skin: 'tricolor', subtype };
+    this.currentSkinSubtype = subtype;
 
     // Initialize skins with optional color override
     this.initializeSkins(options.colors);
 
     // Apply initial colors and opacity from configuration
-    const activeSkinConfig
-      = this.currentSkin === 'tricolor'
-        ? this.config.skins.tricolor
-        : this.currentSkin === 'tricolor2'
-          ? this.config.skins.tricolor2 || this.config.skins.tricolor
-          : this.config.skins.zebra;
+    const activeSkinConfig = this.config.skins.tricolor[subtype];
 
     // Update this.colors property to match what was used
     if (options.colors) {
@@ -159,7 +147,7 @@ export class Blob {
     );
 
     // Create mesh with initial skin
-    const material = this.skins.get(this.currentSkin)!;
+    const material = this.skins.get(this.currentSkinSubtype)!;
     this.mesh = new Mesh(geometry, material);
     this.updateMaterialOpacity(this.opacity);
     this.updateLightIntensityUniforms();
@@ -209,9 +197,9 @@ export class Blob {
    * @param colorOverride - Optional color override to use instead of random config colors
    */
   private initializeSkins(colorOverride?: { x: string; y: string; z: string }): void {
-    const tricolorConfig = this.config.skins.tricolor;
-    const tricolor2Config = this.config.skins.tricolor2 || tricolorConfig;
-    const zebraConfig = this.config.skins.zebra;
+    const polesConfig = this.config.skins.tricolor.poles;
+    const donutConfig = this.config.skins.tricolor.donut;
+    const vintageConfig = this.config.skins.tricolor.vintage;
 
     // Create config with optional color override
     const getConfigWithColors = (baseConfig: any) => {
@@ -226,22 +214,17 @@ export class Blob {
       return baseConfig;
     };
 
-    const tricolorMaterial = createSkin('tricolor', getConfigWithColors(tricolorConfig));
-    this.applyBackgroundTextureToMaterial(tricolorMaterial);
-    this.skins.set('tricolor', tricolorMaterial);
+    const polesMaterial = createSkin({ skin: 'tricolor', subtype: 'poles' }, getConfigWithColors(polesConfig));
+    this.applyBackgroundTextureToMaterial(polesMaterial);
+    this.skins.set('poles', polesMaterial);
 
-    const tricolor2Material = createSkin('tricolor2', getConfigWithColors(tricolor2Config));
-    this.applyBackgroundTextureToMaterial(tricolor2Material);
-    this.skins.set('tricolor2', tricolor2Material);
+    const donutMaterial = createSkin({ skin: 'tricolor', subtype: 'donut' }, getConfigWithColors(donutConfig));
+    this.applyBackgroundTextureToMaterial(donutMaterial);
+    this.skins.set('donut', donutMaterial);
 
-    const zebraMaterial = createSkin('zebra', getConfigWithColors({
-      ...zebraConfig,
-      color1: zebraConfig.color1 ?? tricolorConfig.color1,
-      color2: zebraConfig.color2 ?? tricolorConfig.color2,
-      color3: zebraConfig.color3 ?? tricolorConfig.color3,
-    }));
-    this.applyBackgroundTextureToMaterial(zebraMaterial);
-    this.skins.set('zebra', zebraMaterial);
+    const vintageMaterial = createSkin({ skin: 'tricolor', subtype: 'vintage' }, getConfigWithColors(vintageConfig));
+    this.applyBackgroundTextureToMaterial(vintageMaterial);
+    this.skins.set('vintage', vintageMaterial);
   }
 
   private applyBackgroundTextureToMaterial(material: ShaderMaterial): void {
@@ -416,16 +399,19 @@ export class Blob {
   /**
    * Change the blob's skin
    */
-  setSkin(skin: BlobSkinType): void {
-    const normalizedSkin = this.normalizeSkin(skin);
-    const material = this.skins.get(normalizedSkin);
+  setSkin(selection: BlobSkinSelection): void {
+    // Currently only Tricolor exists.
+    const subtype: TricolorSubtype = selection.subtype ?? 'poles';
+    const material = this.skins.get(subtype);
+
     if (material) {
       // Save current shininess and wireframe before switching
       const currentMaterial = this.mesh.material as ShaderMaterial;
       const currentShininess = currentMaterial.uniforms?.shininess?.value || 50;
       const currentWireframe = currentMaterial.wireframe;
 
-      this.currentSkin = normalizedSkin;
+      this.currentSkin = { skin: 'tricolor', subtype };
+      this.currentSkinSubtype = subtype;
       this.mesh.material = material;
       this.applyBackgroundTextureToMaterial(material);
 
@@ -454,8 +440,12 @@ export class Blob {
   /**
    * Get current skin type
    */
-  getCurrentSkin(): BlobSkinKey {
+  getCurrentSkin(): BlobSkinSelection {
     return this.currentSkin;
+  }
+
+  getCurrentSkinSubtype(): TricolorSubtype {
+    return this.currentSkinSubtype;
   }
 
   /**
@@ -522,7 +512,7 @@ export class Blob {
   }
 
   /**
-   * Set colors (for tricolor skin)
+   * Set colors (Tricolor skin)
    */
   setColors(x: string, y: string, z: string): void {
     this.setColor('x', x);
@@ -537,20 +527,14 @@ export class Blob {
     this.colors[axis] = color;
     const uniformMap = { x: '_color1', y: '_color2', z: '_color3' };
 
-    // Update all skins that use colors
-    const tricolorMaterial = this.skins.get('tricolor') as ShaderMaterial;
-    const tricolor2Material = this.skins.get('tricolor2') as ShaderMaterial;
-    const zebraMaterial = this.skins.get('zebra') as ShaderMaterial;
-
-    if (tricolorMaterial && tricolorMaterial.uniforms[uniformMap[axis]]) {
-      tricolorMaterial.uniforms[uniformMap[axis]].value = new Color(color);
-    }
-    if (tricolor2Material && tricolor2Material.uniforms[uniformMap[axis]]) {
-      tricolor2Material.uniforms[uniformMap[axis]].value = new Color(color);
-    }
-    if (zebraMaterial && zebraMaterial.uniforms[uniformMap[axis]]) {
-      zebraMaterial.uniforms[uniformMap[axis]].value = new Color(color);
-    }
+    // Update all subtype materials
+    this.skins.forEach((material) => {
+      const shader = material as ShaderMaterial;
+      const key = uniformMap[axis];
+      if (shader?.uniforms?.[key]) {
+        shader.uniforms[key].value = new Color(color);
+      }
+    });
 
     // Update light colors if lights are active
     this.updateLightColors();

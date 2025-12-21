@@ -1,26 +1,29 @@
 import type { ShaderMaterial } from 'three';
-import { createTricolorSkin } from './tricolor';
-import { createTricolor2Skin } from './tricolor2';
-import { createZebraSkin } from './zebra';
-import type { BlobSkinType, TricolorSkinConfig, ZebraSkinConfig } from '../../../../types';
+import { createPolesSkin } from './poles';
+import { createDonutSkin } from './donut';
+import { createVintageSkin } from './vintage';
+import type { BlobSkinSelection, TricolorSkinConfig, TricolorSubtype } from '../../../../types';
 
 /**
- * Create a skin material based on type and configuration
+ * Create a skin material based on skin selection.
  */
 export function createSkin(
-  type: BlobSkinType,
-  config: TricolorSkinConfig | ZebraSkinConfig,
+  selection: BlobSkinSelection,
+  config: TricolorSkinConfig,
 ): ShaderMaterial {
-  switch (type) {
-    case 'tricolor':
-      return createTricolorSkin(config as TricolorSkinConfig);
-    case 'tricolor2':
-      return createTricolor2Skin(config as TricolorSkinConfig);
-    case 'zebra':
-      return createZebraSkin(config as ZebraSkinConfig);
+  // Currently only Tricolor exists.
+  const subtype: TricolorSubtype = selection.subtype ?? 'poles';
+
+  switch (subtype) {
+    case 'poles':
+      return createPolesSkin(config);
+    case 'donut':
+      return createDonutSkin(config);
+    case 'vintage':
+      return createVintageSkin(config);
     default:
-      return createTricolorSkin(config as TricolorSkinConfig);
+      return createPolesSkin(config);
   }
 }
 
-export { createTricolorSkin, createTricolor2Skin, createZebraSkin };
+export { createPolesSkin, createDonutSkin, createVintageSkin };

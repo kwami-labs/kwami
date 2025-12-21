@@ -3,11 +3,13 @@ import { getWalletConnector } from '../../apps/wallet/WalletConnector';
 import { createGlassButton } from '../components/GlassButton';
 import { createGlassPopover } from '../components/GlassPopover';
 import type { GlassContent } from '../types';
+import type { PublicKey } from '@solana/web3.js';
 import type {
   WalletConnectWidgetConnector,
   WalletConnectWidgetHandle,
   WalletConnectWidgetOptions,
   WalletConnectWidgetState,
+  WalletTrackedToken,
 } from './types';
 import { createDivider, createRow, createText, formatSol, truncateAddress } from './utils';
 import { getWalletKindFallback, getWalletLogoSvg, initials } from './logos';
@@ -33,6 +35,53 @@ function renderContent(slot: GlassContent, target: HTMLElement): void {
   }
 }
 
+const MAINNET_USDC_MINT = 'EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v';
+
+function createInlineSpinner(sizePx = 14): HTMLSpanElement {
+  const spinner = document.createElement('span');
+  spinner.style.width = `${sizePx}px`;
+  spinner.style.height = `${sizePx}px`;
+  spinner.style.borderRadius = '999px';
+  spinner.style.display = 'inline-block';
+  spinner.style.border = '2px solid rgba(148,163,184,0.35)';
+  spinner.style.borderTopColor = 'rgba(148,163,184,0.95)';
+  spinner.style.animation = 'kwami-spin 0.85s linear infinite';
+
+  // Ensure keyframes exist once.
+  const id = 'kwami-wallet-spinner-style';
+  if (!document.getElementById(id)) {
+    const style = document.createElement('style');
+    style.id = id;
+    style.textContent = `@keyframes kwami-spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }`;
+    document.head.appendChild(style);
+  }
+
+  return spinner;
+}
+
+function asClickableValue(node: Node, onClick: (anchor: HTMLElement) => void): HTMLButtonElement {
+  const btn = document.createElement('button');
+  btn.type = 'button';
+  btn.className = 'kwami-wallet-value-button';
+  btn.style.background = 'transparent';
+  btn.style.border = 'none';
+  btn.style.padding = '0';
+  btn.style.margin = '0';
+  btn.style.cursor = 'pointer';
+  btn.style.color = 'inherit';
+  btn.style.font = 'inherit';
+  btn.style.display = 'inline-flex';
+  btn.style.alignItems = 'center';
+  btn.style.gap = '0.35rem';
+  btn.addEventListener('click', (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    onClick(btn);
+  });
+  btn.appendChild(node);
+  return btn;
+}
+
 export function createWalletConnectWidget(options: WalletConnectWidgetOptions = {}): WalletConnectWidgetHandle {
   if (typeof document === 'undefined' || typeof window === 'undefined') {
     throw new Error('createWalletConnectWidget can only be used in a browser environment');
@@ -40,12 +89,68 @@ export function createWalletConnectWidget(options: WalletConnectWidgetOptions = 
 
   const wallet: WalletConnectWidgetConnector = options.wallet ?? getWalletConnector();
 
-  const state: WalletConnectWidgetState = {
+  const defaultTrackedTokens: WalletTrackedToken[] = [
+    { symbol: 'USDC', mint: MAINNET_USDC_MINT },
+  ];
+
+  const trackedTokens = options.trackedTokens ?? defaultTrackedTokens;
+
+  // State for current network
+  let currentNetwork = wallet.getNetwork();
+
+  // Set up wallet event listeners for account changes and other events
+  const setupWalletEventListeners = () => {
+    // Using duck typing to check if the wallet supports event listening
+    const walletWithEvents = wallet as any;
+    if (typeof walletWithEvents.on === 'function') {
+      walletWithEvents.on('accountChange', (data: any) => {
+        void refreshConnectionState().then(() => refreshBalances()).then(() => applyStateToUi());
+        options.onAccountChange?.(data);
+      });
+      
+      walletWithEvents.on('connect', (data: any) => {
+        void refreshConnectionState().then(() => refreshBalances()).then(() => applyStateToUi());
+      });
+      
+      walletWithEvents.on('disconnect', () => {
+        refreshConnectionState();
+        applyStateToUi();
+        options.onDisconnected?.();
+      });
+      
+      walletWithEvents.on('networkChange', (data: any) => {
+        currentNetwork = data.network;
+        void refreshConnectionState().then(() => refreshBalances()).then(() => applyStateToUi());
+        options.onNetworkChange?.(data);
+      });
+      
+      walletWithEvents.on('error', (error: any) => {
+        state.status = 'error';
+        const message = error instanceof Error ? error.message : 'Unknown error';
+        setError(message);
+        options.onError?.(error);
+        applyStateToUi();
+      });
+    }
+  };
+
+  const state: WalletConnectWidgetState & {
+    connectingWalletName?: string;
+    selectedPublicKey?: PublicKey | null;
+    availablePublicKeys?: PublicKey[];
+    tokenBalancesByMint?: Record<string, number | null>;
+    connectedWalletName?: string | null;
+  } = {
     status: 'disconnected',
     connectedWallet: null,
     solBalance: null,
     availableWallets: [],
     errorMessage: undefined,
+    connectingWalletName: undefined,
+    selectedPublicKey: null,
+    availablePublicKeys: [],
+    tokenBalancesByMint: {},
+    connectedWalletName: null,
   };
 
   let refreshTimer: ReturnType<typeof setInterval> | null = null;
@@ -75,6 +180,8 @@ export function createWalletConnectWidget(options: WalletConnectWidgetOptions = 
   content.style.display = 'flex';
   content.style.flexDirection = 'column';
   content.style.gap = '0.75rem';
+  // Extra bottom breathing room (some sections end with tight button rows)
+  content.style.paddingBottom = '0.5rem';
 
 
   const walletsSection = document.createElement('div');
@@ -108,7 +215,7 @@ export function createWalletConnectWidget(options: WalletConnectWidgetOptions = 
   content.appendChild(actionsSection);
 
   const popover = createGlassPopover({
-    header: 'Select your favorite Solana wallet',
+    header: 'Select your favorite wallet',
     content,
     width: 420,
     closeOnBlur: true,
@@ -118,6 +225,35 @@ export function createWalletConnectWidget(options: WalletConnectWidgetOptions = 
       borderRadius: options.appearance?.borderRadius ?? '22px',
       borderWidth: options.appearance?.borderWidth,
       padding: options.appearance?.padding ?? '1.25rem',
+      blur: options.appearance?.blur,
+    },
+  });
+
+  // Secondary popovers for in-place selection
+  const networkPopover = createGlassPopover({
+    header: 'Network',
+    content: '',
+    width: 260,
+    closeOnBlur: true,
+    className: 'kwami-wallet-network-popover',
+    theme: options.theme,
+    appearance: {
+      borderRadius: '18px',
+      padding: '1rem',
+      blur: options.appearance?.blur,
+    },
+  });
+
+  const addressPopover = createGlassPopover({
+    header: 'Address',
+    content: '',
+    width: 360,
+    closeOnBlur: true,
+    className: 'kwami-wallet-address-popover',
+    theme: options.theme,
+    appearance: {
+      borderRadius: '18px',
+      padding: '1rem',
       blur: options.appearance?.blur,
     },
   });
@@ -165,7 +301,6 @@ export function createWalletConnectWidget(options: WalletConnectWidgetOptions = 
 
     if (state.status === 'connected') {
       walletsSection.innerHTML = '';
-      walletsSection.appendChild(createText('Connected wallet', { muted: true }));
       return;
     }
 
@@ -245,21 +380,45 @@ export function createWalletConnectWidget(options: WalletConnectWidgetOptions = 
       left.appendChild(icon);
       left.appendChild(meta);
 
+      const right = document.createElement('div');
+      right.style.display = 'inline-flex';
+      right.style.alignItems = 'center';
+      right.style.justifyContent = 'flex-end';
+      right.style.gap = '0.5rem';
+
+      const isConnectingThis = state.status === 'connecting' && state.connectingWalletName?.toLowerCase() === name.toLowerCase();
+
       const pill = document.createElement('div');
       pill.className = ['kwami-wallet-option-pill', installed ? 'kwami-wallet-option-pill--primary' : '']
         .filter(Boolean)
         .join(' ');
-      pill.textContent = installed ? 'Connect' : url ? 'Install' : 'Not installed';
+
+      if (isConnectingThis) {
+        pill.textContent = 'Connecting';
+        pill.style.opacity = '0.9';
+        right.appendChild(createInlineSpinner(14));
+        right.appendChild(pill);
+      } else {
+        pill.textContent = installed ? 'Connect' : url ? 'Install' : 'Not installed';
+        right.appendChild(pill);
+      }
 
       button.appendChild(left);
-      button.appendChild(pill);
+      button.appendChild(right);
 
       if (!installed && !url) {
         button.disabled = true;
       }
 
+      if (state.status === 'connecting' && !isConnectingThis) {
+        button.disabled = true;
+        button.style.opacity = '0.6';
+        button.style.cursor = 'not-allowed';
+      }
+
       button.addEventListener('click', () => {
         if (installed) {
+          state.connectingWalletName = name;
           void connect(name);
           return;
         }
@@ -296,19 +455,144 @@ export function createWalletConnectWidget(options: WalletConnectWidgetOptions = 
     renderSection('Cold wallets', coldWallets);
   }
 
+  function showNetworkChooser(anchorEl: HTMLElement): void {
+    const networks = ['mainnet-beta', 'devnet', 'testnet'] as const;
+    const container = document.createElement('div');
+    container.style.display = 'flex';
+    container.style.flexDirection = 'column';
+    container.style.gap = '0.5rem';
+
+    networks.forEach((network) => {
+      const isActive = network === currentNetwork;
+      const btn = createGlassButton({
+        label: network === 'mainnet-beta' ? 'Mainnet' : network.charAt(0).toUpperCase() + network.slice(1),
+        mode: isActive ? 'primary' : 'ghost',
+        size: 'sm',
+        theme: options.theme,
+        onClick: async () => {
+          try {
+            const w: any = wallet as any;
+            if (typeof w.switchNetwork !== 'function') {
+              setError('Network switching is not supported by this connector.');
+              return;
+            }
+            const success = await w.switchNetwork(network);
+            if (success) {
+              currentNetwork = network;
+              await refreshConnectionState();
+              await refreshBalances();
+              applyStateToUi();
+              options.onNetworkChange?.({ network });
+              networkPopover.hide();
+            }
+          } catch (error) {
+            const message = error instanceof Error ? error.message : 'Failed to switch network';
+            setError(message);
+            options.onError?.(error);
+            applyStateToUi();
+          }
+        },
+      });
+      btn.element.style.width = '100%';
+      container.appendChild(btn.element);
+    });
+
+    networkPopover.setContent(container);
+    const r = anchorEl.getBoundingClientRect();
+    networkPopover.show(r.left + r.width / 2, r.bottom + 10);
+  }
+
+  function showAddressChooser(anchorEl: HTMLElement): void {
+    const w: any = wallet as any;
+    const keys = (typeof w.getAvailablePublicKeys === 'function'
+      ? w.getAvailablePublicKeys()
+      : wallet.getPublicKey()
+        ? [wallet.getPublicKey()!]
+        : []) as PublicKey[];
+
+    state.availablePublicKeys = keys;
+
+    const container = document.createElement('div');
+    container.style.display = 'flex';
+    container.style.flexDirection = 'column';
+    container.style.gap = '0.35rem';
+
+    if (keys.length === 0) {
+      container.appendChild(createText('No addresses available', { muted: true }));
+    } else {
+      keys.forEach((k) => {
+        const isActive = state.selectedPublicKey?.toBase58() === k.toBase58();
+        const rowBtn = document.createElement('button');
+        rowBtn.type = 'button';
+        rowBtn.className = 'kwami-glass-surface';
+        rowBtn.style.display = 'flex';
+        rowBtn.style.alignItems = 'center';
+        rowBtn.style.justifyContent = 'space-between';
+        rowBtn.style.gap = '0.75rem';
+        rowBtn.style.padding = '0.55rem 0.75rem';
+        rowBtn.style.borderRadius = '14px';
+        rowBtn.style.border = '1px solid rgba(148,163,184,0.22)';
+        rowBtn.style.background = 'transparent';
+        rowBtn.style.cursor = 'pointer';
+        rowBtn.style.color = 'inherit';
+
+        const left = createText(truncateAddress(k.toBase58(), 6, 6), { mono: true });
+        const right = createText(isActive ? 'Selected' : '', { muted: true });
+        right.style.fontSize = '0.8rem';
+
+        rowBtn.appendChild(left);
+        rowBtn.appendChild(right);
+
+        rowBtn.addEventListener('click', () => {
+          state.selectedPublicKey = k;
+          void refreshBalances().then(() => applyStateToUi());
+          addressPopover.hide();
+        });
+
+        container.appendChild(rowBtn);
+      });
+    }
+
+    addressPopover.setContent(container);
+    const r = anchorEl.getBoundingClientRect();
+    addressPopover.show(r.left + r.width / 2, r.bottom + 10);
+  }
+
   function rebuildActions(): void {
     actionsSection.innerHTML = '';
 
     if (state.status === 'connected') {
-      const pubkey = state.connectedWallet?.publicKey?.toString() ?? wallet.getPublicKey()?.toString() ?? '';
-      const addressNode = createText(truncateAddress(pubkey, 6, 6), { mono: true });
-      actionsSection.appendChild(createRow('Address', addressNode));
+      const walletName =
+        state.connectedWalletName ??
+        state.connectedWallet?.name ??
+        (typeof wallet.getConnectedWalletName === 'function' ? wallet.getConnectedWalletName() : null) ??
+        'Wallet';
+
+      actionsSection.appendChild(createRow('WALLET', createText(walletName, { mono: false })));
+
+      const networkValue = createText(currentNetwork, { mono: true });
+      const networkButton = asClickableValue(networkValue, (anchor) => showNetworkChooser(anchor));
+      actionsSection.appendChild(createRow('NETWORK', networkButton));
+
+      const selectedPk = state.selectedPublicKey ?? wallet.getPublicKey();
+      const addressStr = selectedPk?.toBase58() ?? '';
+      const addrValue = createText(addressStr ? truncateAddress(addressStr, 6, 6) : '—', { mono: true });
+      const addrButton = asClickableValue(addrValue, (anchor) => showAddressChooser(anchor));
+      actionsSection.appendChild(createRow('ADDRESS', addrButton));
 
       const solNode = createText(
         typeof state.solBalance === 'number' ? `${formatSol(state.solBalance, 4)} SOL` : '—',
         { mono: true },
       );
       actionsSection.appendChild(createRow('SOL', solNode));
+
+      // Tracked token balances
+      trackedTokens.forEach((t) => {
+        const mint = t.mint;
+        const v = state.tokenBalancesByMint?.[mint];
+        const tokenNode = createText(typeof v === 'number' ? `${v}` : '—', { mono: true });
+        actionsSection.appendChild(createRow(t.symbol, tokenNode));
+      });
 
       actionsSection.appendChild(createDivider());
 
@@ -348,10 +632,16 @@ export function createWalletConnectWidget(options: WalletConnectWidgetOptions = 
 
       return;
     }
-
   }
 
   function applyStateToUi(): void {
+    // Header changes
+    if (state.status === 'connected') {
+      popover.setHeader('Your Wallet');
+    } else {
+      popover.setHeader('Select your favorite wallet');
+    }
+
     switch (state.status) {
       case 'connecting':
         buttonHandle.setDisabled(true);
@@ -453,13 +743,29 @@ export function createWalletConnectWidget(options: WalletConnectWidgetOptions = 
     }));
   }
 
-  async function refreshBalance(): Promise<void> {
+  async function refreshBalances(): Promise<void> {
     if (!wallet.isWalletConnected()) {
       state.solBalance = null;
+      state.tokenBalancesByMint = {};
       return;
     }
-    const sol = await wallet.getSolBalance();
+
+    const pk = state.selectedPublicKey ?? wallet.getPublicKey() ?? undefined;
+    const w: any = wallet as any;
+
+    const [sol, tokens] = await Promise.all([
+      wallet.getSolBalance(pk),
+      typeof w.getTokenBalances === 'function' ? w.getTokenBalances(pk) : Promise.resolve([]),
+    ]);
+
     state.solBalance = sol;
+
+    const byMint: Record<string, number | null> = {};
+    for (const t of trackedTokens) {
+      const hit = tokens.find((x) => x.mint === t.mint);
+      byMint[t.mint] = typeof hit?.uiAmount === 'number' ? hit.uiAmount : null;
+    }
+    state.tokenBalancesByMint = byMint;
   }
 
   async function refreshConnectionState(): Promise<void> {
@@ -467,11 +773,29 @@ export function createWalletConnectWidget(options: WalletConnectWidgetOptions = 
       state.status = 'connected';
       state.connectedWallet = {
         publicKey: wallet.getPublicKey()!,
+        name: state.connectedWalletName ?? (typeof wallet.getConnectedWalletName === 'function' ? wallet.getConnectedWalletName() ?? undefined : undefined),
       };
+
+      // Maintain selected address
+      if (!state.selectedPublicKey) {
+        state.selectedPublicKey = wallet.getPublicKey()!;
+      }
+
+    const w: any = wallet as any;
+    if (typeof w.getAvailablePublicKeys === 'function') {
+      state.availablePublicKeys = w.getAvailablePublicKeys();
+    } else {
+      state.availablePublicKeys = [wallet.getPublicKey()!];
+    }
     } else {
       state.status = 'disconnected';
       state.connectedWallet = null;
       state.solBalance = null;
+      state.tokenBalancesByMint = {};
+      state.selectedPublicKey = null;
+      state.availablePublicKeys = [];
+      state.connectedWalletName = null;
+      state.connectingWalletName = undefined;
     }
   }
 
@@ -481,7 +805,7 @@ export function createWalletConnectWidget(options: WalletConnectWidgetOptions = 
       await refreshConnectionState();
       await refreshAvailableWallets();
       if (state.status === 'connected') {
-        await refreshBalance();
+        await refreshBalances();
       }
       applyStateToUi();
     } catch (error) {
@@ -498,6 +822,19 @@ export function createWalletConnectWidget(options: WalletConnectWidgetOptions = 
       setError(undefined);
       state.status = 'connecting';
       applyStateToUi();
+      
+      // Show connecting indicator if not already connected
+      if (buttonHandle.element.isConnected) {
+        const originalLabel = buttonHandle.element.textContent;
+        buttonHandle.setLabel('Connecting...');
+        
+        // Restore label after connection attempt completes
+        setTimeout(() => {
+          if (state.status !== 'connecting') {
+            applyStateToUi();
+          }
+        }, 100);
+      }
 
       const connected = await wallet.connect(walletName);
       if (!connected) {
@@ -507,15 +844,18 @@ export function createWalletConnectWidget(options: WalletConnectWidgetOptions = 
       }
 
       state.connectedWallet = connected;
+      state.connectedWalletName = connected.name ?? null;
+      state.selectedPublicKey = connected.publicKey;
       state.status = 'connected';
-      await refreshBalance();
+      await refreshBalances();
+      state.connectingWalletName = undefined;
       applyStateToUi();
       options.onConnected?.(connected);
 
       if (options.autoRefreshBalanceMs && options.autoRefreshBalanceMs > 0) {
         if (refreshTimer) clearInterval(refreshTimer);
         refreshTimer = setInterval(() => {
-          void refreshBalance()
+          void refreshBalances()
             .then(() => applyStateToUi())
             .catch((error) => {
               state.status = 'error';
@@ -530,6 +870,7 @@ export function createWalletConnectWidget(options: WalletConnectWidgetOptions = 
       return connected;
     } catch (error) {
       state.status = 'error';
+      state.connectingWalletName = undefined;
       const message = error instanceof Error ? error.message : 'Failed to connect wallet';
       setError(message);
       options.onError?.(error);
@@ -545,6 +886,11 @@ export function createWalletConnectWidget(options: WalletConnectWidgetOptions = 
       state.status = ok ? 'disconnected' : 'error';
       state.connectedWallet = null;
       state.solBalance = null;
+      state.tokenBalancesByMint = {};
+      state.selectedPublicKey = null;
+      state.availablePublicKeys = [];
+      state.connectedWalletName = null;
+      state.connectingWalletName = undefined;
       if (refreshTimer) {
         clearInterval(refreshTimer);
         refreshTimer = null;
@@ -590,6 +936,9 @@ export function createWalletConnectWidget(options: WalletConnectWidgetOptions = 
     root.remove();
   }
 
+  // Set up event listeners
+  setupWalletEventListeners();
+  
   // initial state
   void refresh();
 

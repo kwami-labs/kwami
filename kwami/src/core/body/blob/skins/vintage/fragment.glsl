@@ -12,7 +12,7 @@ uniform sampler2D backgroundTexture;
 uniform bool useBackgroundTexture;
 uniform float lightIntensity;
 
-float zebraStripes(float x,float frequency,float width){
+float vintageStripes(float x,float frequency,float width){
   return smoothstep(.5-width*.5,.5+width*.5,mod(x*frequency+.5,1.));
 }
 
@@ -31,10 +31,10 @@ void main(){
   }
   vec3 specular=specular_color*spec;
   
-  // Create zebra stripes using the tricolor colors
-  float stripeX=zebraStripes(vPosition.x,5.,.1);
-  float stripeY=zebraStripes(vPosition.y,5.,.1);
-  float stripeZ=zebraStripes(vPosition.z,5.,.1);
+  // Create vintage stripes using the Tricolor colors
+  float stripeX=vintageStripes(vPosition.x,5.,.1);
+  float stripeY=vintageStripes(vPosition.y,5.,.1);
+  float stripeZ=vintageStripes(vPosition.z,5.,.1);
   
   // Mix colors based on stripes
   vec3 color=mix(_color1,_color2,stripeX);

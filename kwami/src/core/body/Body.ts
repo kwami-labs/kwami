@@ -25,7 +25,7 @@ import { KwamiAudio } from './Audio';
 import { Blob } from './blob/Blob.js';
 import { Scene } from './scene/Scene.js';
 import { ContextMenu } from './ContextMenu';
-import type { BackgroundMediaFit, BodyConfig, BlobSkinType, SceneBackgroundConfig } from '../../types/index';
+import type { BackgroundMediaFit, BodyConfig, BlobSkinSelection, SceneBackgroundConfig } from '../../types/index';
 import { isYouTubeUrl, createYouTubeIframe } from '../utils/YouTubeHelper';
 import { AppDashboard } from '../apps/AppDashboard';
 import { getAppConnectors } from '../../apps/registry';
@@ -175,14 +175,19 @@ export class KwamiBody {
     this.audio = new KwamiAudio(config?.audioFiles || [], config?.audio);
 
     // Create the blob
+    const initialSkin: BlobSkinSelection =
+      config?.blob?.skin
+      ?? config?.initialSkin
+      ?? { skin: 'tricolor', subtype: 'poles' };
+
     this.blob = new Blob({
       scene: this.scene,
       camera: this.camera,
       renderer: this.renderer,
       audio: this.audio,
-      skin: config?.initialSkin || 'tricolor',
-      onAfterRender: () => this.refreshBlobImageTransparencyMode(),
       ...config?.blob,
+      skin: initialSkin,
+      onAfterRender: () => this.refreshBlobImageTransparencyMode(),
     });
 
     // Apply initial position if provided in config
@@ -346,9 +351,9 @@ export class KwamiBody {
   }
 
   /**
-   * Change the blob's skin
+   * Change the blob's skin selection
    */
-  setSkin(skin: BlobSkinType): void {
+  setSkin(skin: BlobSkinSelection): void {
     this.blob.setSkin(skin);
   }
 
@@ -410,7 +415,7 @@ export class KwamiBody {
       resolution: 180,
       shininess: 50,
       wireframe: false,
-      skin: 'tricolor' as BlobSkinType,
+      skin: { skin: 'tricolor', subtype: 'poles' } as BlobSkinSelection,
       opacity: 1
     };
 

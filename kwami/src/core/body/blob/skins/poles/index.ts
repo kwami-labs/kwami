@@ -4,13 +4,10 @@ import fragmentShader from './fragment.glsl?raw';
 import type { TricolorSkinConfig } from '../../../../../types/index';
 
 /**
- * Create a tricolor2 shader material for the blob
- * Colors are distributed vertically like a donut:
- * - Color 1 at the top
- * - Color 2 in the middle (donut band)
- * - Color 3 at the bottom
+ * Create a tricolor shader material for the blob
+ * Colors blend around the blob based on position angle
  */
-export function createTricolor2Skin(config: TricolorSkinConfig): ShaderMaterial {
+export function createPolesSkin(config: TricolorSkinConfig): ShaderMaterial {
   const isTransparent = config.opacity < 0.999;
 
   return new ShaderMaterial({
@@ -60,4 +57,3 @@ export function createTricolor2Skin(config: TricolorSkinConfig): ShaderMaterial 
 }
 
 export { vertexShader, fragmentShader };
-

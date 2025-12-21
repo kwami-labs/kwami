@@ -37,9 +37,29 @@ export interface WalletConnectWidgetConnector {
   getPublicKey: () => PublicKey | null;
   getSolBalance: (publicKey?: PublicKey) => Promise<number>;
   getNetwork: () => string;
+
+  // Optional/extended APIs (supported by Kwami's WalletConnector)
+  getTokenBalances?: (publicKey?: PublicKey) => Promise<Array<{ mint: string; uiAmount: number; decimals: number }>>;
+  switchNetwork?: (network: 'mainnet-beta' | 'devnet' | 'testnet') => Promise<boolean>;
+  getAvailablePublicKeys?: () => PublicKey[];
+  getConnectedWalletName?: () => string | null;
 }
 
+export type WalletTrackedToken = {
+  symbol: string;
+  /**
+   * Mint address for the token. (If you need per-network mints, pass a different widget per network
+   * or resolve the mint yourself before passing it here.)
+   */
+  mint: string;
+};
+
 export interface WalletConnectWidgetOptions extends BaseGlassProps {
+  /**
+   * Additional SPL tokens to show balances for.
+   * Defaults to USDC only. (SOL is always shown.)
+   */
+  trackedTokens?: WalletTrackedToken[];
   /**
    * Wallet connector instance. If omitted, the widget will use Kwami's default getWalletConnector().
    */
@@ -69,6 +89,16 @@ export interface WalletConnectWidgetOptions extends BaseGlassProps {
    * Called after a wallet disconnects.
    */
   onDisconnected?: () => void;
+
+  /**
+   * Called when wallet account changes.
+   */
+  onAccountChange?: (data?: { publicKey: PublicKey }) => void;
+
+  /**
+   * Called when network changes.
+   */
+  onNetworkChange?: (data?: { network: string }) => void;
 
   /**
    * Called when an error happens (connect / balance / disconnect).

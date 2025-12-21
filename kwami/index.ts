@@ -12,7 +12,7 @@
  * const kwami = new Kwami(canvas, {
  *   body: {
  *     audioFiles: ['/audio/track1.mp3'],
- *     initialSkin: 'tricolor'
+ *     initialSkin: { skin: 'tricolor', subtype: 'poles' }
  *   }
  * });
  *
@@ -59,7 +59,7 @@ export * from './src/apps';
 export { Scene } from './src/core/body/scene/Scene';
 
 // Skins
-export { createSkin, createTricolorSkin, createZebraSkin } from './src/core/body/blob/skins';
+export { createSkin, createPolesSkin, createDonutSkin, createVintageSkin } from './src/core/body/blob/skins';
 
 // Configuration
 export { defaultBlobConfig } from './src/core/body/blob/config';
@@ -73,13 +73,14 @@ export type {
   AudioConfig,
   SceneConfig,
   BlobConfig,
-  BlobSkinType,
+  BlobSkin,
+  TricolorSubtype,
+  BlobSkinSelection,
   BlobOptions,
   MindConfig,
   SoulConfig,
   VoiceSettings,
   TricolorSkinConfig,
-  ZebraSkinConfig,
   EventHandler,
   EventHandlers,
 } from './src/types';

@@ -9,11 +9,22 @@ import type { WalletConfig } from '../apps/wallet/WalletConnector';
 export type KwamiState = 'idle' | 'listening' | 'thinking' | 'speaking';
 
 /**
- * Available skin types for the blob
+ * Blob skin system
+ *
+ * The only skin is Tricolor, with 3 subtypes.
  */
-export type BlobSkinKey = 'tricolor' | 'tricolor2' | 'zebra';
-export type BlobSkinAlias = 'donut' | 'poles' | 'vintage' | 'Donut' | 'Poles' | 'Vintage';
-export type BlobSkinType = BlobSkinKey | BlobSkinAlias;
+export type BlobSkin = 'tricolor';
+export type TricolorSubtype = 'poles' | 'donut' | 'vintage';
+
+/**
+ * Skin selection (extensible discriminated union).
+ * Add new skins by extending this union with a new object shape.
+ */
+export type BlobSkinSelection =
+  | {
+      skin: 'tricolor';
+      subtype?: TricolorSubtype;
+    };
 
 /**
  * Audio configuration options
@@ -78,6 +89,11 @@ export interface SceneConfig {
  * Blob configuration options
  */
 export interface BlobConfig {
+  /**
+   * Skin selection (skin + subtype).
+   */
+  skin?: BlobSkinSelection;
+
   resolution?: number;
   spikes?: { x: number; y: number; z: number };
   time?: { x: number; y: number; z: number };
@@ -96,7 +112,12 @@ export interface BodyConfig {
   audio?: AudioConfig;
   scene?: SceneConfig;
   blob?: BlobConfig;
-  initialSkin?: BlobSkinType;
+
+  /**
+   * Initial skin selection.
+   * Default: { skin: 'tricolor', subtype: 'poles' }
+   */
+  initialSkin?: BlobSkinSelection;
 }
 
 /**
@@ -288,7 +309,12 @@ export interface BlobOptions {
   camera: PerspectiveCamera;
   renderer: WebGLRenderer;
   audio: KwamiAudio;
-  skin: BlobSkinType;
+
+  /**
+   * Skin selection.
+   */
+  skin?: BlobSkinSelection;
+
   resolution?: number;
   spikes?: { x: number; y: number; z: number };
   time?: { x: number; y: number; z: number };
@@ -327,18 +353,6 @@ export interface TricolorSkinConfig {
   opacity: number;
 }
 
-/**
- * Zebra skin configuration
- */
-export interface ZebraSkinConfig {
-  wireframe: boolean;
-  lightPosition: { x: number; y: number; z: number };
-  shininess: number;
-  opacity: number;
-  color1: string;
-  color2: string;
-  color3: string;
-}
 
 /**
  * Blob options configuration
@@ -370,9 +384,11 @@ export interface BlobOptionsConfig {
     step: number;
   };
   skins: {
-    tricolor: TricolorSkinConfig;
-    tricolor2: TricolorSkinConfig;
-    zebra: ZebraSkinConfig;
+    tricolor: {
+      poles: TricolorSkinConfig;
+      donut: TricolorSkinConfig;
+      vintage: TricolorSkinConfig;
+    };
   };
 }
 

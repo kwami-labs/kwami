@@ -25,6 +25,7 @@ export interface WalletConfig {
   network?: 'mainnet-beta' | 'devnet' | 'testnet';
   rpcEndpoint?: string;
   commitment?: Commitment;
+  autoSwitchNetwork?: boolean;
 }
 
 export interface ConnectedWallet {
@@ -93,6 +94,8 @@ interface WalletAdapter {
   signTransaction?<T extends Transaction | VersionedTransaction>(transaction: T): Promise<T>;
   signAllTransactions?<T extends Transaction | VersionedTransaction>(transactions: T[]): Promise<T[]>;
   signMessage?(message: Uint8Array): Promise<Uint8Array>;
+  on?(event: string, handler: (...args: any[]) => void): void;
+  off?(event: string, handler: (...args: any[]) => void): void;
 }
 
 /**
@@ -103,12 +106,17 @@ export class WalletConnector {
   private connection: Connection;
   private wallet: WalletAdapter | null = null;
   private isConnected = false;
+  private listeners: Map<string, Set<(...args: any[]) => void>> = new Map();
+  private accountChangeListener: (() => void) | null = null;
+  private lastKnownPublicKey: PublicKey | null = null;
+  private lastKnownWalletName: string | null = null;
 
   constructor(config: WalletConfig = {}) {
     this.config = {
       network: config.network || 'mainnet-beta',
       rpcEndpoint: config.rpcEndpoint || this.getDefaultRpcEndpoint(config.network || 'mainnet-beta'),
       commitment: config.commitment || 'confirmed',
+      autoSwitchNetwork: config.autoSwitchNetwork || false,
     };
 
     this.connection = new Connection(this.config.rpcEndpoint!, this.config.commitment);
@@ -165,10 +173,13 @@ export class WalletConnector {
       { name: 'SafePal', kind: 'browser', url: 'https://www.safepal.com/extension' },
       { name: 'XDEFI', kind: 'browser' },
 
-      // Hardware
+  // Hardware
       { name: 'Ledger', kind: 'hardware', url: 'https://www.ledger.com' },
       { name: 'Trezor', kind: 'hardware', url: 'https://trezor.io' },
-      { name: 'Keystone', kind: 'hardware', url: 'https://keyst.one' },
+      { name: 'Keystone', kind: 'hardware', url: 'https://keyst.one' },{ name: 'BitKeep', kind: 'browser', url: 'https://bitkeep.com' },
+      { name: 'OKX Wallet', kind: 'browser', url: 'https://www.okx.com/web3' },
+      { name: 'Atomic Wallet', kind: 'browser', url: 'https://atomicwallet.io' },
+      { name: 'Exodus', kind: 'browser', url: 'https://www.exodus.com' },
 
       // Wallet adapter catalog
       { name: 'Alpha', kind: 'browser' },
@@ -365,15 +376,44 @@ export class WalletConnector {
   }
 
   /**
-   * Connect to wallet
+   * Connect to wallet with retry mechanism
    */
-  async connect(walletName?: string): Promise<ConnectedWallet | null> {
+  async connect(walletName?: string, maxRetries = 3): Promise<ConnectedWallet | null> {
+    // Implement retry logic for wallet connection
+    for (let attempt = 1; attempt <= maxRetries; attempt++) {
+      try {
+        const result = await this._connectAttempt(walletName);
+        if (result) {
+          return result;
+        }
+        
+        if (attempt < maxRetries) {
+          logger.info(`Connection attempt ${attempt} failed, retrying...`);
+          // Wait between attempts with exponential backoff
+          await new Promise(resolve => setTimeout(resolve, 1000 * Math.pow(2, attempt - 1)));
+        }
+      } catch (error) {
+        if (attempt === maxRetries) {
+          throw error;
+        }
+        logger.info(`Connection attempt ${attempt} threw error, retrying...`);
+      }
+    }
+    
+    return null;
+  }
+
+  /**
+   * Actual connection attempt implementation
+   */
+  private async _connectAttempt(walletName?: string): Promise<ConnectedWallet | null> {
     try {
       const availableWallets = await this.detectWallets();
 
       const installedWallets = availableWallets.filter((w) => w.installed && w.adapter);
       if (installedWallets.length === 0) {
         logger.error('No Solana wallets detected. Please install Phantom, Solflare, or another Solana wallet.');
+        this.emit('error', new Error('No Solana wallets detected'));
         return null;
       }
 
@@ -390,13 +430,20 @@ export class WalletConnector {
             (w) => w.name.toLowerCase() === walletName.toLowerCase(),
           );
           if (knownButMissing && !knownButMissing.installed) {
-            logger.error(`${knownButMissing.name} wallet not detected. Please install it first.`);
+            const error = new Error(`${knownButMissing.name} wallet not detected. Please install it first.`);
+            logger.error(error.message);
+            this.emit('error', error);
             return null;
           }
         }
       }
 
       this.wallet = selectedWallet.adapter;
+
+      // Setup wallet event listeners
+      if (this.wallet) {
+        this.setupWalletListeners(this.wallet);
+      }
 
       // Connect to wallet
       await this.wallet!.connect();
@@ -406,15 +453,20 @@ export class WalletConnector {
       }
 
       this.isConnected = true;
+      this.lastKnownPublicKey = this.wallet!.publicKey;
+      this.lastKnownWalletName = selectedWallet.name;
 
       logger.info(`Connected to ${selectedWallet.name} wallet:`, this.wallet!.publicKey.toString());
+      this.emit('connect', { publicKey: this.wallet!.publicKey, walletName: selectedWallet.name });
 
       return {
         publicKey: this.wallet!.publicKey,
         name: selectedWallet.name,
       };
     } catch (error) {
+      this.isConnected = false;
       logger.error('Failed to connect wallet:', error);
+      this.emit('error', error);
       return null;
     }
   }
@@ -428,13 +480,18 @@ export class WalletConnector {
     }
 
     try {
+      this.removeWalletListeners(this.wallet);
       await this.wallet.disconnect();
       this.wallet = null;
       this.isConnected = false;
+      this.lastKnownPublicKey = null;
+      this.lastKnownWalletName = null;
       logger.info('Wallet disconnected');
+      this.emit('disconnect');
       return true;
     } catch (error) {
       logger.error('Failed to disconnect wallet:', error);
+      this.emit('error', error);
       return false;
     }
   }
@@ -453,6 +510,57 @@ export class WalletConnector {
    */
   getPublicKey(): PublicKey | null {
     return this.wallet?.publicKey || null;
+  }
+
+  /**
+   * Best-effort connected wallet name (if known).
+   * Populated when `connect()` succeeds.
+   */
+  getConnectedWalletName(): string | null {
+    return this.lastKnownWalletName;
+  }
+
+  /**
+   * Best-effort list of all available public keys/accounts exposed by the connected wallet.
+   * Falls back to the currently connected public key.
+   */
+  getAvailablePublicKeys(): PublicKey[] {
+    const pk = this.wallet?.publicKey;
+
+    const w: any = this.wallet as any;
+
+    // Wallet Standard adapters may expose accounts either directly (`adapter.accounts`) or via `adapter.wallet.accounts`.
+    const accounts: any[] | undefined =
+      (Array.isArray(w?.accounts) ? w.accounts : undefined) ??
+      (Array.isArray(w?.wallet?.accounts) ? w.wallet.accounts : undefined);
+
+    const keysFromAccounts: PublicKey[] = [];
+    if (accounts) {
+      for (const acct of accounts) {
+        const ap = acct?.publicKey;
+        if (ap instanceof PublicKey) {
+          keysFromAccounts.push(ap);
+        } else if (ap && typeof ap?.toBytes === 'function') {
+          try {
+            keysFromAccounts.push(new PublicKey(ap.toBytes()));
+          } catch {
+            // ignore
+          }
+        } else if (typeof ap === 'string') {
+          try {
+            keysFromAccounts.push(new PublicKey(ap));
+          } catch {
+            // ignore
+          }
+        }
+      }
+    }
+
+    const unique = new Map<string, PublicKey>();
+    for (const k of keysFromAccounts) unique.set(k.toBase58(), k);
+    if (pk) unique.set(pk.toBase58(), pk);
+
+    return Array.from(unique.values());
   }
 
   /**
@@ -679,6 +787,96 @@ export class WalletConnector {
   }
 
   /**
+   * Set up wallet event listeners for account changes
+   */
+  private setupWalletListeners(wallet: WalletAdapter): void {
+    if (!wallet.on) return;
+
+    // Listen for account/publicKey changes
+    const handleAccountChange = () => {
+      if (wallet.publicKey) {
+        const pubKeyStr = wallet.publicKey.toString();
+        const prevPubKeyStr = this.lastKnownPublicKey?.toString() ?? '';
+        
+        if (pubKeyStr !== prevPubKeyStr) {
+          this.lastKnownPublicKey = wallet.publicKey;
+          logger.info('Wallet account changed:', pubKeyStr);
+          this.emit('accountChange', { publicKey: wallet.publicKey });
+        }
+      }
+    };
+
+    // Handle connect/disconnect events
+    const handleConnect = () => {
+      if (wallet.publicKey) {
+        this.isConnected = true;
+        this.lastKnownPublicKey = wallet.publicKey;
+        logger.info('Wallet connected via event listener');
+        this.emit('connect', { publicKey: wallet.publicKey });
+      }
+    };
+
+    const handleDisconnect = () => {
+      this.isConnected = false;
+      this.lastKnownPublicKey = null;
+      logger.info('Wallet disconnected via event listener');
+      this.emit('disconnect');
+    };
+
+    // Register listeners
+    wallet.on?.('connect', handleConnect);
+    wallet.on?.('disconnect', handleDisconnect);
+    wallet.on?.('accountChanged', handleAccountChange);
+
+    // Store for cleanup
+    if (!this.accountChangeListener) {
+      this.accountChangeListener = handleAccountChange;
+    }
+  }
+
+  /**
+   * Remove wallet event listeners
+   */
+  private removeWalletListeners(wallet: WalletAdapter): void {
+    if (!wallet.off) return;
+    if (!this.accountChangeListener) return;
+
+    wallet.off?.('connect', this.accountChangeListener);
+    wallet.off?.('disconnect', this.accountChangeListener);
+    wallet.off?.('accountChanged', this.accountChangeListener);
+  }
+
+  /**
+   * Emit custom events
+   */
+  private emit(event: string, data?: any): void {
+    const handlers = this.listeners.get(event);
+    if (handlers) {
+      handlers.forEach(handler => handler(data));
+    }
+  }
+
+  /**
+   * Listen to wallet events
+   */
+  on(event: 'connect' | 'disconnect' | 'error' | 'accountChange' | 'networkChange', handler: (data?: any) => void): void {
+    if (!this.listeners.has(event)) {
+      this.listeners.set(event, new Set());
+    }
+    this.listeners.get(event)!.add(handler);
+  }
+
+  /**
+   * Stop listening to wallet events
+   */
+  off(event: 'connect' | 'disconnect' | 'error' | 'accountChange' | 'networkChange', handler: (data?: any) => void): void {
+    const handlers = this.listeners.get(event);
+    if (handlers) {
+      handlers.delete(handler);
+    }
+  }
+
+  /**
    * Get Solana connection
    */
   getConnection(): Connection {
@@ -690,6 +888,39 @@ export class WalletConnector {
    */
   getNetwork(): string {
     return this.config.network!;
+  }
+
+  /**
+   * Switch to a different network
+   */
+  async switchNetwork(network: 'mainnet-beta' | 'devnet' | 'testnet'): Promise<boolean> {
+    try {
+      // Update config
+      this.config.network = network;
+      this.config.rpcEndpoint = this.getDefaultRpcEndpoint(network);
+      
+      // Create new connection
+      this.connection = new Connection(this.config.rpcEndpoint!, this.config.commitment);
+      
+      // Emit network change event
+      this.emit('networkChange', { network });
+      
+      logger.info(`Switched to ${network}`);
+      return true;
+    } catch (error) {
+      logger.error('Failed to switch network:', error);
+      this.emit('error', error);
+      return false;
+    }
+  }
+
+  /**
+   * Check if the wallet supports multi-chain or switching networks
+   */
+  async supportsNetworkSwitching(): Promise<boolean> {
+    // Most modern wallets support network switching
+    // This could be enhanced to check for specific wallet capabilities
+    return true;
   }
 }
 

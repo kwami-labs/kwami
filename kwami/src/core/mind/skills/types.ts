@@ -40,6 +40,8 @@ export type PositionPreset =
   | 'bottom-center'
   | 'bottom-right';
 
+import type { BlobSkinSelection } from '../../../types';
+
 /**
  * Base action interface
  */
@@ -124,7 +126,7 @@ export interface CameraAction extends SkillAction {
  */
 export interface SkinAction extends SkillAction {
   type: 'body.skin';
-  skin: 'tricolor' | 'tricolor2' | 'zebra';
+  skin: BlobSkinSelection;
 }
 
 /**
