@@ -123,7 +123,225 @@ cp kwami/target/idl/kwami_nft.json ../../../candy/src/types/
 
 ---
 
-## 🏗️ Architecture
+## 📦 Deployment Artifacts
+
+The deployment scripts generate several types of artifacts to track deployment state across networks.
+
+### Directory Structure
+
+```
+solana/anchor/
+├── logs/                                           # Deployment logs (gitignored)
+│   ├── deployment-localnet-YYYYMMDD-HHMMSS.log
+│   ├── deployment-devnet-YYYYMMDD-HHMMSS.log
+│   ├── deployment-testnet-YYYYMMDD-HHMMSS.log
+│   └── deployment-mainnet-YYYYMMDD-HHMMSS.log
+├── deployments/                                    # Deployment summaries (gitignored)
+│   ├── localnet-deployment-YYYYMMDD-HHMMSS.json
+│   ├── localnet-latest.json
+│   ├── devnet-deployment-YYYYMMDD-HHMMSS.json
+│   ├── devnet-latest.json
+│   ├── testnet-deployment-YYYYMMDD-HHMMSS.json
+│   ├── testnet-latest.json
+│   ├── mainnet-deployment-YYYYMMDD-HHMMSS.json
+│   └── mainnet-latest.json
+├── qwami/                                          # QWAMI addresses (committed)
+│   ├── localnet-addresses.json
+│   ├── devnet-addresses.json
+│   ├── testnet-addresses.json
+│   └── mainnet-addresses.json
+└── kwami/                                          # KWAMI addresses (committed)
+    ├── localnet-addresses.json
+    ├── devnet-addresses.json
+    ├── testnet-addresses.json
+    └── mainnet-addresses.json
+```
+
+### Artifact Types
+
+#### 1. Deployment Logs (`logs/`)
+
+**Purpose**: Complete console output of each deployment  
+**Format**: `deployment-{cluster}-YYYYMMDD-HHMMSS.log`  
+**Content**: Full transcript including commands, output, errors, warnings, and timestamps
+
+```bash
+# View latest devnet log
+tail -f logs/deployment-devnet-*.log
+
+# Search for errors
+grep -i error logs/deployment-devnet-*.log
+
+# List all logs for a cluster
+ls -lth logs/deployment-devnet-*.log
+```
+
+#### 2. Deployment Summaries (`deployments/`)
+
+**Purpose**: Structured JSON summary of deployment state  
+**Format**: `{cluster}-deployment-YYYYMMDD-HHMMSS.json`
+
+**Example**:
+```json
+{
+  "cluster": "devnet",
+  "timestamp": "2025-12-17T19:36:40Z",
+  "deployer": "3TYRKswBCUy8agGNBF3wpg4AoiahZWKBKJB3ZJhybscf",
+  "balance": "4.84554944",
+  "programs": {
+    "qwami": {
+      "programId": "6CAgdgpPq8Np78LsDwREJqFPh9rM5Jh6RSS8eZ37kZuv",
+      "explorer": "https://explorer.solana.com/address/6CAgdgpPq8Np78LsDwREJqFPh9rM5Jh6RSS8eZ37kZuv?cluster=devnet",
+      "initialized": true
+    },
+    "kwami": {
+      "programId": "DoAJAykwUrSDjraDegK4AJ1GCoztLYrTvKhUJHaFbSsD",
+      "explorer": "https://explorer.solana.com/address/DoAJAykwUrSDjraDegK4AJ1GCoztLYrTvKhUJHaFbSsD?cluster=devnet",
+      "initialized": true
+    }
+  },
+  "configuration": {
+    "usdcMint": "4zMMC9srt5Ri5X14GAgXhaHii3GnPAEERYPJgZJDncDU",
+    "clusterUrl": "https://api.devnet.solana.com"
+  }
+}
+```
+
+```bash
+# View latest deployment
+cat deployments/devnet-latest.json | jq
+
+# Get program IDs
+jq -r '.programs.qwami.programId' deployments/devnet-latest.json
+jq -r '.programs.kwami.programId' deployments/devnet-latest.json
+
+# Check initialization status
+jq -r '.programs.qwami.initialized' deployments/devnet-latest.json
+```
+
+#### 3. Program Addresses (`{program}/{cluster}-addresses.json`)
+
+**Purpose**: Detailed addresses for each program per cluster  
+**Content**: All PDAs, mints, vaults, and transaction details  
+**Status**: Committed to git (represents canonical deployment state)
+
+**QWAMI Example**:
+```json
+{
+  "programId": "6CAgdgpPq8Np78LsDwREJqFPh9rM5Jh6RSS8eZ37kZuv",
+  "qwamiMint": "61rRyR9ey3AtZs9Z7r4t3JUnoWVDry7pfrWtWgiWpiK7",
+  "tokenAuthority": "7FQ83JWrngSSY5U7TtM6Wf6LAiDmutJb67jjDj5kfX82",
+  "treasury": "3odgxpVSjL5YFVM3YxPYqBz3stzZ4B1NKa1aYPqQuows",
+  "usdcVault": "HV7TVgabJf2SLyLSMrQVAzPA7RegXJRARtCkryxDrKUR",
+  "usdcMint": "4zMMC9srt5Ri5X14GAgXhaHii3GnPAEERYPJgZJDncDU",
+  "cluster": "devnet",
+  "timestamp": "2025-12-17T19:08:00.018Z"
+}
+```
+
+**KWAMI Example**:
+```json
+{
+  "programId": "DoAJAykwUrSDjraDegK4AJ1GCoztLYrTvKhUJHaFbSsD",
+  "collectionMint": "CzNuMseUFbpXNDLEKWEtrD3snXhNdZiGMn1rFFjjGvj6",
+  "collectionAuthority": "BVcKkTjKZ6V9rEebDKaYLgArnvPPfBEmCCTWSZGEqxEX",
+  "dnaRegistry": "6H4VUE7uLxosPBeu8GsTb2TgqnykbkWDkLcApGgpr4cL",
+  "treasury": "7mfcbavtJ7u8xSv8xRAgTnCosrRiASH1dighXk529r3D",
+  "qwamiVault": "7BQkRbZ9Htqhvn2Z2Zeh3bktuwYE8CrkCZSivB7sp4j3",
+  "qwamiMint": "61rRyR9ey3AtZs9Z7r4t3JUnoWVDry7pfrWtWgiWpiK7",
+  "cluster": "devnet",
+  "timestamp": "2025-12-17T19:32:09.782Z"
+}
+```
+
+```bash
+# View addresses for specific cluster
+cat qwami/devnet-addresses.json | jq
+cat kwami/testnet-addresses.json | jq
+
+# Get specific values
+jq -r '.programId' qwami/devnet-addresses.json
+jq -r '.collectionMint' kwami/devnet-addresses.json
+
+# Compare across clusters
+echo "Localnet: $(jq -r '.programId' qwami/localnet-addresses.json 2>/dev/null || echo 'Not deployed')"
+echo "Devnet:   $(jq -r '.programId' qwami/devnet-addresses.json 2>/dev/null || echo 'Not deployed')"
+echo "Testnet:  $(jq -r '.programId' qwami/testnet-addresses.json 2>/dev/null || echo 'Not deployed')"
+echo "Mainnet:  $(jq -r '.programId' qwami/mainnet-addresses.json 2>/dev/null || echo 'Not deployed')"
+```
+
+### Git Strategy
+
+**Committed Files** (✅ Tracked in git):
+- `qwami/{cluster}-addresses.json` - Canonical deployment state
+- `kwami/{cluster}-addresses.json` - Canonical deployment state
+
+**Gitignored Files** (❌ Not tracked):
+- `logs/` - Large, temporary, developer-specific
+- `deployments/` - Can be regenerated from address files
+
+**Rationale**: Address files are small, critical for scripts, and represent the source of truth for deployment state.
+
+### Multi-Cluster Workflow
+
+```bash
+# Deploy to localnet (development)
+./deploy-programs.sh  # Select: 1) Localnet
+
+# Deploy to devnet (testing)
+./deploy-programs.sh  # Select: 2) Devnet
+
+# Deploy to testnet (testing alternative)
+./deploy-programs.sh  # Select: 3) Testnet
+
+# Deploy to mainnet (production)
+./deploy-programs.sh  # Select: 4) Mainnet
+
+# Check deployment status across all clusters
+for cluster in localnet devnet testnet mainnet; do
+  echo "=== $cluster ==="
+  jq -r '.programId' qwami/${cluster}-addresses.json 2>/dev/null || echo "Not deployed"
+done
+
+# Switch Solana CLI between clusters
+solana config set --url devnet
+solana config set --url testnet
+solana config set --url mainnet-beta
+solana config set --url http://localhost:8899  # localnet
+```
+
+### Explorer Links
+
+```bash
+# Generate explorer link for any cluster
+CLUSTER="devnet"
+PROGRAM_ID=$(jq -r '.programId' qwami/${CLUSTER}-addresses.json)
+echo "https://explorer.solana.com/address/${PROGRAM_ID}?cluster=${CLUSTER}"
+
+# Open collection mint on explorer
+COLLECTION=$(jq -r '.collectionMint' kwami/devnet-addresses.json)
+echo "https://explorer.solana.com/address/${COLLECTION}?cluster=devnet"
+```
+
+### Cleanup Old Artifacts
+
+```bash
+# Keep only last 10 logs per cluster
+cd logs && ls -t deployment-devnet-*.log | tail -n +11 | xargs rm -f
+cd logs && ls -t deployment-testnet-*.log | tail -n +11 | xargs rm -f
+
+# Keep only last 5 deployment summaries per cluster
+cd deployments && ls -t devnet-deployment-*.json | tail -n +6 | xargs rm -f
+cd deployments && ls -t testnet-deployment-*.json | tail -n +6 | xargs rm -f
+
+# Clean all localnet artifacts (development only)
+rm -f logs/deployment-localnet-*.log
+rm -f deployments/localnet-deployment-*.json
+```
+
+---
+
+## 🏭 Architecture
 
 ### Program Overview
 
