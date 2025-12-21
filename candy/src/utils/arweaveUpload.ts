@@ -163,6 +163,10 @@ export async function uploadMetadataToArweave(
  * Convert blob configuration to NFT attributes
  */
 export function configToAttributes(config: any): Array<{ trait_type: string; value: any }> {
+  const skin = config?.skin
+  const skinName = skin?.skin ? String(skin.skin) : 'tricolor'
+  const subtype = skin?.subtype ? String(skin.subtype) : 'poles'
+
   return [
     { trait_type: 'Resolution', value: config.resolution },
     { trait_type: 'Color R', value: config.colors?.x?.toFixed(2) || '0' },
@@ -176,6 +180,7 @@ export function configToAttributes(config: any): Array<{ trait_type: string; val
     { trait_type: 'Rotation Z', value: config.rotation?.z?.toFixed(3) || '0' },
     { trait_type: 'Base Scale', value: config.baseScale?.toFixed(2) || '1.5' },
     { trait_type: 'Shininess', value: config.shininess || 50 },
-    { trait_type: 'Skin', value: config.skin || 'tricolor' },
+    { trait_type: 'Skin', value: skinName === 'tricolor' ? 'Tricolor' : skinName },
+    { trait_type: 'Skin Subtype', value: subtype.charAt(0).toUpperCase() + subtype.slice(1) },
   ]
 }

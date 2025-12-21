@@ -181,7 +181,7 @@ const blobConfig = reactive<any>({
   shininess: 50,
   lightIntensity: 1.0,
   wireframe: false,
-  skin: 'tricolor',
+  skin: { skin: 'tricolor', subtype: 'poles' },
   baseScale: 4.0,
   opacity: 1.0,
   amplitude: { x: 0.8, y: 0.8, z: 0.8 },
@@ -340,7 +340,7 @@ const initKwami = async () => {
     kwami = new Kwami(canvas.value, {
       body: {
         // Keep it lightweight and transparent for candy UI
-        initialSkin: 'tricolor',
+        initialSkin: { skin: 'tricolor', subtype: 'poles' },
         blob: {
           resolution: blobConfig.resolution,
         },

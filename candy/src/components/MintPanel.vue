@@ -43,8 +43,9 @@
       label="Connect Wallet"
       mode="outline"
       size="lg"
-      :disabled="true"
+      :disabled="false"
       :block="true"
+      @click="handleConnect"
     />
 
     <KwamiGlassButton
@@ -81,6 +82,7 @@ import KwamiGlassButton from '@/components/KwamiGlassButton.vue'
 
 const props = defineProps<{
   blobPreviewRef?: any
+  onRequestConnect?: () => void | Promise<void>
 }>()
 
 const wallet = useWalletStore()
@@ -93,6 +95,17 @@ const safeName = computed(() => {
   }
   return 'KWAMI'
 })
+
+const handleConnect = async () => {
+  // Prefer opening the header wallet popover (same UX as top-right Connect Wallet)
+  if (props.onRequestConnect) {
+    await props.onRequestConnect()
+    return
+  }
+
+  // Fallback: directly trigger wallet connect
+  await wallet.connect()
+}
 
 const handleMint = async () => {
   if (nftStore.mintingStatus !== 'idle') return

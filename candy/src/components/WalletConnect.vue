@@ -12,6 +12,14 @@ const walletStore = useWalletStore()
 
 let widget: WalletConnectWidgetHandle | null = null
 
+const open = async () => {
+  await widget?.open()
+}
+
+defineExpose({
+  open,
+})
+
 onMounted(() => {
   if (!mount.value) return
 

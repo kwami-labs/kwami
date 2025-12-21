@@ -1,0 +1,1121 @@
+{
+  "address": "6CAgdgpPq8Np78LsDwREJqFPh9rM5Jh6RSS8eZ37kZuv",
+  "metadata": {
+    "name": "qwami_token",
+    "version": "0.1.0",
+    "spec": "0.1.0",
+    "description": "QWAMI SPL Token - Integer token with 1 trillion supply, powering KWAMI AI ecosystem"
+  },
+  "instructions": [
+    {
+      "name": "burn_for_sol",
+      "docs": [
+        "Burn QWAMI tokens to receive SOL",
+        "Formula: SOL_amount = (QWAMI_amount × QWAMI_price_USD) / SOL_price_USD"
+      ],
+      "discriminator": [
+        82,
+        25,
+        84,
+        184,
+        136,
+        66,
+        237,
+        11
+      ],
+      "accounts": [
+        {
+          "name": "mint",
+          "writable": true,
+          "relations": [
+            "token_authority"
+          ]
+        },
+        {
+          "name": "token_authority",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  116,
+                  111,
+                  107,
+                  101,
+                  110,
+                  45,
+                  97,
+                  117,
+                  116,
+                  104,
+                  111,
+                  114,
+                  105,
+                  116,
+                  121
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "mint"
+              }
+            ]
+          }
+        },
+        {
+          "name": "treasury",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  113,
+                  119,
+                  97,
+                  109,
+                  105,
+                  45,
+                  116,
+                  114,
+                  101,
+                  97,
+                  115,
+                  117,
+                  114,
+                  121
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "name": "sol_vault",
+          "docs": [
+            "Treasury's SOL vault (PDA)"
+          ],
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  115,
+                  111,
+                  108,
+                  45,
+                  118,
+                  97,
+                  117,
+                  108,
+                  116
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "name": "seller_qwami_account",
+          "docs": [
+            "Seller's QWAMI token account (burns tokens)"
+          ],
+          "writable": true
+        },
+        {
+          "name": "seller",
+          "writable": true,
+          "signer": true
+        },
+        {
+          "name": "token_program",
+          "address": "TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA"
+        }
+      ],
+      "args": [
+        {
+          "name": "qwami_amount",
+          "type": "u64"
+        }
+      ]
+    },
+    {
+      "name": "burn_for_usdc",
+      "docs": [
+        "Burn QWAMI tokens to receive USDC",
+        "Formula: USDC_amount = QWAMI_amount × QWAMI_price_USD"
+      ],
+      "discriminator": [
+        113,
+        121,
+        38,
+        96,
+        169,
+        61,
+        54,
+        156
+      ],
+      "accounts": [
+        {
+          "name": "mint",
+          "writable": true,
+          "relations": [
+            "token_authority"
+          ]
+        },
+        {
+          "name": "token_authority",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  116,
+                  111,
+                  107,
+                  101,
+                  110,
+                  45,
+                  97,
+                  117,
+                  116,
+                  104,
+                  111,
+                  114,
+                  105,
+                  116,
+                  121
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "mint"
+              }
+            ]
+          }
+        },
+        {
+          "name": "treasury",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  113,
+                  119,
+                  97,
+                  109,
+                  105,
+                  45,
+                  116,
+                  114,
+                  101,
+                  97,
+                  115,
+                  117,
+                  114,
+                  121
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "name": "usdc_vault",
+          "docs": [
+            "Treasury's USDC vault"
+          ],
+          "writable": true
+        },
+        {
+          "name": "seller_usdc_account",
+          "docs": [
+            "Seller's USDC token account (receives USDC)"
+          ],
+          "writable": true
+        },
+        {
+          "name": "seller_qwami_account",
+          "docs": [
+            "Seller's QWAMI token account (burns tokens)"
+          ],
+          "writable": true
+        },
+        {
+          "name": "seller",
+          "writable": true,
+          "signer": true
+        },
+        {
+          "name": "token_program",
+          "address": "TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA"
+        }
+      ],
+      "args": [
+        {
+          "name": "qwami_amount",
+          "type": "u64"
+        }
+      ]
+    },
+    {
+      "name": "burn_tokens",
+      "docs": [
+        "Burn QWAMI tokens"
+      ],
+      "discriminator": [
+        76,
+        15,
+        51,
+        254,
+        229,
+        215,
+        121,
+        66
+      ],
+      "accounts": [
+        {
+          "name": "mint",
+          "writable": true,
+          "relations": [
+            "token_authority"
+          ]
+        },
+        {
+          "name": "token_authority",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  116,
+                  111,
+                  107,
+                  101,
+                  110,
+                  45,
+                  97,
+                  117,
+                  116,
+                  104,
+                  111,
+                  114,
+                  105,
+                  116,
+                  121
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "mint"
+              }
+            ]
+          }
+        },
+        {
+          "name": "source",
+          "writable": true
+        },
+        {
+          "name": "owner",
+          "signer": true
+        },
+        {
+          "name": "token_program",
+          "address": "TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA"
+        }
+      ],
+      "args": [
+        {
+          "name": "amount",
+          "type": "u64"
+        }
+      ]
+    },
+    {
+      "name": "initialize",
+      "docs": [
+        "Initialize the QWAMI token, authority, and treasury"
+      ],
+      "discriminator": [
+        175,
+        175,
+        109,
+        31,
+        13,
+        152,
+        155,
+        237
+      ],
+      "accounts": [
+        {
+          "name": "mint",
+          "docs": [
+            "QWAMI mint account must be created off-chain (so this instruction stays under the SBF stack limit)"
+          ],
+          "writable": true
+        },
+        {
+          "name": "token_authority",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  116,
+                  111,
+                  107,
+                  101,
+                  110,
+                  45,
+                  97,
+                  117,
+                  116,
+                  104,
+                  111,
+                  114,
+                  105,
+                  116,
+                  121
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "mint"
+              }
+            ]
+          }
+        },
+        {
+          "name": "treasury",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  113,
+                  119,
+                  97,
+                  109,
+                  105,
+                  45,
+                  116,
+                  114,
+                  101,
+                  97,
+                  115,
+                  117,
+                  114,
+                  121
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "name": "usdc_vault",
+          "docs": [
+            "USDC token vault must be created off-chain and owned by the `treasury` PDA"
+          ],
+          "writable": true
+        },
+        {
+          "name": "usdc_mint",
+          "docs": [
+            "USDC mint (official USDC on Solana)"
+          ]
+        },
+        {
+          "name": "payer",
+          "writable": true,
+          "signer": true
+        },
+        {
+          "name": "system_program",
+          "address": "11111111111111111111111111111111"
+        },
+        {
+          "name": "token_program",
+          "address": "TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA"
+        }
+      ],
+      "args": []
+    },
+    {
+      "name": "mint_tokens",
+      "docs": [
+        "Mint new QWAMI tokens (authority only)"
+      ],
+      "discriminator": [
+        59,
+        132,
+        24,
+        246,
+        122,
+        39,
+        8,
+        243
+      ],
+      "accounts": [
+        {
+          "name": "mint",
+          "writable": true,
+          "relations": [
+            "token_authority"
+          ]
+        },
+        {
+          "name": "token_authority",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  116,
+                  111,
+                  107,
+                  101,
+                  110,
+                  45,
+                  97,
+                  117,
+                  116,
+                  104,
+                  111,
+                  114,
+                  105,
+                  116,
+                  121
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "mint"
+              }
+            ]
+          }
+        },
+        {
+          "name": "destination",
+          "writable": true
+        },
+        {
+          "name": "authority",
+          "signer": true,
+          "relations": [
+            "token_authority"
+          ]
+        },
+        {
+          "name": "token_program",
+          "address": "TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA"
+        }
+      ],
+      "args": [
+        {
+          "name": "amount",
+          "type": "u64"
+        }
+      ]
+    },
+    {
+      "name": "mint_with_sol",
+      "docs": [
+        "Mint QWAMI tokens by paying with SOL",
+        "Formula: QWAMI_amount = (SOL_amount × SOL_price_USD) / QWAMI_price_USD",
+        "Note: For MVP, using 1:1 ratio. In production, integrate Pyth oracle for SOL price"
+      ],
+      "discriminator": [
+        189,
+        31,
+        158,
+        202,
+        48,
+        34,
+        190,
+        162
+      ],
+      "accounts": [
+        {
+          "name": "mint",
+          "writable": true,
+          "relations": [
+            "token_authority"
+          ]
+        },
+        {
+          "name": "token_authority",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  116,
+                  111,
+                  107,
+                  101,
+                  110,
+                  45,
+                  97,
+                  117,
+                  116,
+                  104,
+                  111,
+                  114,
+                  105,
+                  116,
+                  121
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "mint"
+              }
+            ]
+          }
+        },
+        {
+          "name": "treasury",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  113,
+                  119,
+                  97,
+                  109,
+                  105,
+                  45,
+                  116,
+                  114,
+                  101,
+                  97,
+                  115,
+                  117,
+                  114,
+                  121
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "name": "sol_vault",
+          "docs": [
+            "Treasury's SOL vault (PDA)"
+          ],
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  115,
+                  111,
+                  108,
+                  45,
+                  118,
+                  97,
+                  117,
+                  108,
+                  116
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "name": "buyer_qwami_account",
+          "docs": [
+            "Buyer's QWAMI token account (receives minted tokens)"
+          ],
+          "writable": true
+        },
+        {
+          "name": "buyer",
+          "writable": true,
+          "signer": true
+        },
+        {
+          "name": "system_program",
+          "address": "11111111111111111111111111111111"
+        },
+        {
+          "name": "token_program",
+          "address": "TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA"
+        }
+      ],
+      "args": [
+        {
+          "name": "sol_lamports",
+          "type": "u64"
+        }
+      ]
+    },
+    {
+      "name": "mint_with_usdc",
+      "docs": [
+        "Mint QWAMI tokens by paying with USDC",
+        "Formula: QWAMI_amount = USDC_amount / QWAMI_price_USD"
+      ],
+      "discriminator": [
+        128,
+        28,
+        133,
+        173,
+        71,
+        142,
+        185,
+        206
+      ],
+      "accounts": [
+        {
+          "name": "mint",
+          "writable": true,
+          "relations": [
+            "token_authority"
+          ]
+        },
+        {
+          "name": "token_authority",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  116,
+                  111,
+                  107,
+                  101,
+                  110,
+                  45,
+                  97,
+                  117,
+                  116,
+                  104,
+                  111,
+                  114,
+                  105,
+                  116,
+                  121
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "mint"
+              }
+            ]
+          }
+        },
+        {
+          "name": "treasury",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  113,
+                  119,
+                  97,
+                  109,
+                  105,
+                  45,
+                  116,
+                  114,
+                  101,
+                  97,
+                  115,
+                  117,
+                  114,
+                  121
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "name": "usdc_vault",
+          "docs": [
+            "Treasury's USDC vault"
+          ],
+          "writable": true
+        },
+        {
+          "name": "buyer_usdc_account",
+          "docs": [
+            "Buyer's USDC token account (pays with USDC)"
+          ],
+          "writable": true
+        },
+        {
+          "name": "buyer_qwami_account",
+          "docs": [
+            "Buyer's QWAMI token account (receives minted tokens)"
+          ],
+          "writable": true
+        },
+        {
+          "name": "buyer",
+          "writable": true,
+          "signer": true
+        },
+        {
+          "name": "token_program",
+          "address": "TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA"
+        }
+      ],
+      "args": [
+        {
+          "name": "usdc_amount",
+          "type": "u64"
+        }
+      ]
+    },
+    {
+      "name": "transfer_authority",
+      "docs": [
+        "Transfer authority to a new address"
+      ],
+      "discriminator": [
+        48,
+        169,
+        76,
+        72,
+        229,
+        180,
+        55,
+        161
+      ],
+      "accounts": [
+        {
+          "name": "token_authority",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  116,
+                  111,
+                  107,
+                  101,
+                  110,
+                  45,
+                  97,
+                  117,
+                  116,
+                  104,
+                  111,
+                  114,
+                  105,
+                  116,
+                  121
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "token_authority.mint",
+                "account": "TokenAuthority"
+              }
+            ]
+          }
+        },
+        {
+          "name": "authority",
+          "signer": true,
+          "relations": [
+            "token_authority"
+          ]
+        }
+      ],
+      "args": [
+        {
+          "name": "new_authority",
+          "type": "pubkey"
+        }
+      ]
+    },
+    {
+      "name": "update_base_price",
+      "docs": [
+        "Update base price (authority only)"
+      ],
+      "discriminator": [
+        236,
+        70,
+        121,
+        237,
+        125,
+        3,
+        109,
+        133
+      ],
+      "accounts": [
+        {
+          "name": "token_authority",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  116,
+                  111,
+                  107,
+                  101,
+                  110,
+                  45,
+                  97,
+                  117,
+                  116,
+                  104,
+                  111,
+                  114,
+                  105,
+                  116,
+                  121
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "token_authority.mint",
+                "account": "TokenAuthority"
+              }
+            ]
+          }
+        },
+        {
+          "name": "authority",
+          "signer": true,
+          "relations": [
+            "token_authority"
+          ]
+        }
+      ],
+      "args": [
+        {
+          "name": "new_price_usd_cents",
+          "type": "u64"
+        }
+      ]
+    }
+  ],
+  "accounts": [
+    {
+      "name": "QwamiTreasury",
+      "discriminator": [
+        94,
+        128,
+        139,
+        205,
+        226,
+        161,
+        97,
+        215
+      ]
+    },
+    {
+      "name": "TokenAuthority",
+      "discriminator": [
+        145,
+        159,
+        9,
+        246,
+        161,
+        7,
+        193,
+        203
+      ]
+    }
+  ],
+  "errors": [
+    {
+      "code": 6000,
+      "name": "MaxSupplyExceeded",
+      "msg": "Maximum supply of 1 trillion tokens exceeded"
+    },
+    {
+      "code": 6001,
+      "name": "InvalidAuthority",
+      "msg": "Invalid authority provided"
+    },
+    {
+      "code": 6002,
+      "name": "InvalidPrice",
+      "msg": "Invalid price value"
+    },
+    {
+      "code": 6003,
+      "name": "MathOverflow",
+      "msg": "Math operation overflow"
+    },
+    {
+      "code": 6004,
+      "name": "InvalidTreasuryVault",
+      "msg": "Invalid treasury vault provided"
+    },
+    {
+      "code": 6005,
+      "name": "InvalidMintAuthority",
+      "msg": "Invalid mint authority"
+    },
+    {
+      "code": 6006,
+      "name": "InvalidMintDecimals",
+      "msg": "Invalid mint decimals"
+    },
+    {
+      "code": 6007,
+      "name": "InsufficientTreasuryBalance",
+      "msg": "Insufficient treasury balance to process this transaction"
+    }
+  ],
+  "types": [
+    {
+      "name": "QwamiTreasury",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "authority",
+            "docs": [
+              "Authority that can manage the treasury"
+            ],
+            "type": "pubkey"
+          },
+          {
+            "name": "usdc_vault",
+            "docs": [
+              "USDC token vault PDA"
+            ],
+            "type": "pubkey"
+          },
+          {
+            "name": "total_sol_received",
+            "docs": [
+              "Total SOL received from QWAMI mints"
+            ],
+            "type": "u64"
+          },
+          {
+            "name": "total_usdc_received",
+            "docs": [
+              "Total USDC received from QWAMI mints"
+            ],
+            "type": "u64"
+          },
+          {
+            "name": "total_sol_distributed",
+            "docs": [
+              "Total SOL distributed from QWAMI burns"
+            ],
+            "type": "u64"
+          },
+          {
+            "name": "total_usdc_distributed",
+            "docs": [
+              "Total USDC distributed from QWAMI burns"
+            ],
+            "type": "u64"
+          },
+          {
+            "name": "qwami_mints_with_sol",
+            "docs": [
+              "Number of QWAMI mints with SOL"
+            ],
+            "type": "u64"
+          },
+          {
+            "name": "qwami_mints_with_usdc",
+            "docs": [
+              "Number of QWAMI mints with USDC"
+            ],
+            "type": "u64"
+          },
+          {
+            "name": "qwami_burns_for_sol",
+            "docs": [
+              "Number of QWAMI burns for SOL"
+            ],
+            "type": "u64"
+          },
+          {
+            "name": "qwami_burns_for_usdc",
+            "docs": [
+              "Number of QWAMI burns for USDC"
+            ],
+            "type": "u64"
+          },
+          {
+            "name": "bump",
+            "docs": [
+              "Bump seed"
+            ],
+            "type": "u8"
+          }
+        ]
+      }
+    },
+    {
+      "name": "TokenAuthority",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "authority",
+            "docs": [
+              "The authority that can mint tokens and update settings"
+            ],
+            "type": "pubkey"
+          },
+          {
+            "name": "mint",
+            "docs": [
+              "The mint address"
+            ],
+            "type": "pubkey"
+          },
+          {
+            "name": "total_minted",
+            "docs": [
+              "Total tokens minted (including burned)"
+            ],
+            "type": "u64"
+          },
+          {
+            "name": "total_burned",
+            "docs": [
+              "Total tokens burned"
+            ],
+            "type": "u64"
+          },
+          {
+            "name": "base_price_usd_cents",
+            "docs": [
+              "Base price in USD cents (1 cent = 0.01 USD)"
+            ],
+            "type": "u64"
+          },
+          {
+            "name": "bump",
+            "docs": [
+              "Bump seed for PDA"
+            ],
+            "type": "u8"
+          }
+        ]
+      }
+    }
+  ]
+}

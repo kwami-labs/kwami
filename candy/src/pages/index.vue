@@ -47,7 +47,7 @@
 
             <div class="flex items-center gap-3 justify-self-end">
               <ThemeToggle />
-              <WalletConnect />
+              <WalletConnect ref="walletConnectRef" />
             </div>
           </div>
         </div>
@@ -436,47 +436,99 @@
 
             <!-- Mint button (slides with page) -->
             <div class="absolute left-1/2 bottom-0 -translate-x-1/2 z-20 w-[min(92vw,560px)]">
-              <MintPanel :blob-preview-ref="blobPreviewRef" />
+              <MintPanel :blob-preview-ref="blobPreviewRef" :on-request-connect="openWalletConnect" />
             </div>
           </section>
 
           <!-- Traits page (right) -->
           <section class="w-full shrink-0 h-full relative">
-            <div class="absolute inset-0 flex items-center justify-center px-6">
-              <div class="w-[min(92vw,720px)]">
-                <KwamiGlassCard class-name="w-full" :scroll-content="true" :cursor-glow="false">
-                  <template #title>Traits</template>
-                  <template #headerRight>Solana</template>
+            <div class="absolute inset-0 px-6 py-6 overflow-hidden">
+              <div class="h-full overflow-hidden grid grid-cols-[240px_1fr] gap-6">
+                <!-- Left vertical menu -->
+                <aside class="h-full overflow-y-auto pr-2">
+                  <div class="text-xs uppercase tracking-wider text-gray-500 dark:text-gray-400 mb-3">Traits</div>
 
-                  <div class="space-y-5">
-                    <div class="p-4 rounded-lg border border-gray-200/60 dark:border-gray-800/60 bg-white/20 dark:bg-black/20">
-                      <div class="flex items-center justify-between mb-2">
-                        <span class="text-sm text-gray-500 dark:text-gray-400">DNA Hash</span>
-                        <KwamiGlassButton
-                          :label="dnaCopied ? 'Copied!' : 'Copy'"
-                          mode="ghost"
-                          size="sm"
-                          :disabled="!nftStore.currentDna"
-                          @click="copyDna"
-                        />
+                  <nav class="space-y-2">
+                    <button
+                      v-for="section in traitsCatalog.sections"
+                      :key="section.id"
+                      type="button"
+                      class="w-full text-left px-3 py-2 rounded-xl border transition"
+                      :class="activeTraitSection === section.id
+                        ? 'border-primary-500/40 bg-primary-500/10 text-gray-900 dark:text-white'
+                        : 'border-gray-200/60 dark:border-gray-800/60 bg-white/10 dark:bg-black/10 text-gray-700 dark:text-gray-200 hover:bg-white/15 dark:hover:bg-black/15'"
+                      @click="activeTraitSection = section.id"
+                    >
+                      <div class="text-sm font-semibold">
+                        {{ section.label }}
                       </div>
-                      <p class="font-mono text-xs break-all text-gray-700 dark:text-gray-200">
-                        {{ nftStore.currentDna || '—' }}
-                      </p>
-                    </div>
-
-                    <div v-if="nftStore.currentBlobConfig" class="space-y-3">
-                      <div class="text-sm font-semibold text-gray-900 dark:text-white">Body</div>
-                      <div class="text-xs text-gray-600 dark:text-gray-300 font-mono whitespace-pre-wrap break-words">
-                        {{ formatConfig(nftStore.currentBlobConfig) }}
+                      <div class="text-xs opacity-70 mt-0.5">
+                        {{ section.description || '' }}
                       </div>
-                    </div>
+                    </button>
+                  </nav>
+                </aside>
 
-                    <div v-else class="text-sm text-gray-600 dark:text-gray-300">
-                      Roll to generate traits.
+                <!-- Content -->
+                <div class="h-full overflow-y-auto">
+                  <div class="mb-6">
+                    <div class="text-3xl sm:text-4xl font-black tracking-tight">
+                      <span class="text-transparent bg-clip-text bg-gradient-to-r from-fuchsia-500 via-cyan-400 to-emerald-400">
+                        {{ activeSection?.label || 'Traits' }}
+                      </span>
+                    </div>
+                    <div class="mt-2 text-sm text-gray-600 dark:text-gray-300">
+                      {{ activeSection?.description || 'Browse the catalog of mint traits.' }}
                     </div>
                   </div>
-                </KwamiGlassCard>
+
+                  <!-- BODY -->
+                  <div v-if="activeTraitSection === 'body'" class="space-y-6">
+                    <div class="grid lg:grid-cols-3 gap-5">
+                      <section
+                        v-for="category in bodyCategories"
+                        :key="category.id"
+                        class="space-y-3"
+                      >
+                        <div>
+                          <div class="text-sm font-semibold text-gray-900 dark:text-white">{{ category.label }}</div>
+                          <div class="text-xs text-gray-500 dark:text-gray-400">{{ category.description || '' }}</div>
+                        </div>
+
+                        <div class="grid grid-cols-1 gap-3">
+                          <article
+                            v-for="item in category.items"
+                            :key="item.id"
+                            class="rounded-2xl border border-gray-200/60 dark:border-gray-800/60 bg-white/10 dark:bg-black/10 p-4"
+                          >
+                            <div class="flex items-start justify-between gap-3">
+                              <div class="min-w-0">
+                                <div class="text-sm font-semibold text-gray-900 dark:text-white">
+                                  {{ item.title }}
+                                </div>
+                                <div v-if="item.subtitle" class="text-xs text-gray-500 dark:text-gray-400 mt-0.5">
+                                  {{ item.subtitle }}
+                                </div>
+                              </div>
+                              <div v-if="typeof item.probability === 'number'" class="text-xs font-mono text-gray-500 dark:text-gray-400">
+                                {{ formatPct(item.probability) }}
+                              </div>
+                            </div>
+
+                            <div v-if="item.config" class="mt-3 text-xs font-mono text-gray-600 dark:text-gray-300 whitespace-pre-wrap break-words">
+                              {{ formatConfig(item.config) }}
+                            </div>
+                          </article>
+                        </div>
+                      </section>
+                    </div>
+                  </div>
+
+                  <!-- Fallback (other sections) -->
+                  <div v-else class="text-sm text-gray-600 dark:text-gray-300">
+                    This section is not configured yet.
+                  </div>
+                </div>
               </div>
             </div>
           </section>
@@ -506,12 +558,68 @@ import ThemeToggle from '@/components/ThemeToggle.vue'
 import KwamiGlassCard from '@/components/KwamiGlassCard.vue'
 import KwamiGlassButton from '@/components/KwamiGlassButton.vue'
 import { createKwamiLogoSvg } from 'kwami/ui'
+import traitsCatalogJson from '@/config/traits-catalog.json'
 
 const nftStore = useNFTStore()
 const blobPreviewRef = ref<any>(null)
+const walletConnectRef = ref<{ open?: () => Promise<void> } | null>(null)
+
+const openWalletConnect = async () => {
+  await walletConnectRef.value?.open?.()
+}
+
+type TraitsCatalog = {
+  version: number
+  sections: Array<{
+    id: string
+    label: string
+    description?: string
+    categories?: Array<{
+      id: string
+      label: string
+      description?: string
+      items: Array<{
+        id: string
+        title: string
+        subtitle?: string
+        probability?: number
+        config?: any
+      }>
+    }>
+  }>
+}
+
+const traitsCatalog = traitsCatalogJson as TraitsCatalog
+
+const activeTraitSection = ref<string>(traitsCatalog.sections[0]?.id || 'body')
+
+const activeSection = computed(() => traitsCatalog.sections.find((s) => s.id === activeTraitSection.value))
+
+const bodyCategories = computed(() => {
+  const body = traitsCatalog.sections.find((s) => s.id === 'body')
+  return body?.categories ?? []
+})
+
+const formatPct = (p: number) => `${Math.round(p * 1000) / 10}%`
 
 const activeTab = ref<'info' | 'mint' | 'traits'>('mint')
 const tabIndex = computed(() => (activeTab.value === 'info' ? 0 : activeTab.value === 'mint' ? 1 : 2))
+
+// Function to navigate to the next tab
+const navigateTab = (direction: 'left' | 'right') => {
+  const tabs = ['info', 'mint', 'traits'] as const
+  const currentIndex = tabs.indexOf(activeTab.value)
+  
+  if (direction === 'left') {
+    // Move to the previous tab, with wrap-around
+    const newIndex = currentIndex - 1 < 0 ? tabs.length - 1 : currentIndex - 1
+    activeTab.value = tabs[newIndex]
+  } else {
+    // Move to the next tab, with wrap-around
+    const newIndex = currentIndex + 1 >= tabs.length ? 0 : currentIndex + 1
+    activeTab.value = tabs[newIndex]
+  }
+}
 
 const logoHost = ref<HTMLElement | null>(null)
 let logoEl: SVGSVGElement | null = null
@@ -602,14 +710,10 @@ const getColorComponent = (hexColor: string | undefined, component: 'r' | 'g' | 
   return component === 'r' ? r : component === 'g' ? g : b
 }
 
-// Helper to map skin type to subtype
-const getSkinSubtype = (skin: string | undefined): string => {
-  if (!skin) return 'Poles'
-  
-  const skinLower = skin.toLowerCase()
-  if (skinLower.includes('tricolor2')) return 'Donut'
-  if (skinLower.includes('zebra')) return 'Vintage'
-  return 'Poles' // Default for 'tricolor'
+// Helper to map skin selection to subtype label
+const getSkinSubtype = (skin: any): string => {
+  const subtype = String(skin?.subtype || 'poles')
+  return subtype.charAt(0).toUpperCase() + subtype.slice(1)
 }
 
 const copyDna = async () => {
@@ -626,9 +730,33 @@ const copyDna = async () => {
   }
 }
 
+// Keyboard event handler for arrow navigation
+const handleKeyDown = (event: KeyboardEvent) => {
+  // Only handle arrow keys when not focused on an input/textarea
+  const activeElement = document.activeElement
+  const isInputElement = activeElement && (
+    activeElement.tagName === 'INPUT' || 
+    activeElement.tagName === 'TEXTAREA' || 
+    activeElement.tagName === 'SELECT'
+  )
+  
+  if (isInputElement) return
+  
+  if (event.key === 'ArrowLeft') {
+    event.preventDefault()
+    navigateTab('left')
+  } else if (event.key === 'ArrowRight') {
+    event.preventDefault()
+    navigateTab('right')
+  }
+}
+
 onMounted(async () => {
   document.title = 'Kwami.io - Mint Your Unique KWAMI NFT'
   await nftStore.fetchStats()
+  
+  // Add keyboard event listener for arrow navigation
+  window.addEventListener('keydown', handleKeyDown)
 
   if (logoHost.value) {
     // Clear (HMR / remount safety)
@@ -648,6 +776,9 @@ onMounted(async () => {
 })
 
 onBeforeUnmount(() => {
+  // Remove keyboard event listener
+  window.removeEventListener('keydown', handleKeyDown)
+  
   if (logoEl?.parentNode) {
     logoEl.parentNode.removeChild(logoEl)
   }

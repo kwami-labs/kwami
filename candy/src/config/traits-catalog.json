@@ -1,0 +1,102 @@
+{
+  "version": 1,
+  "sections": [
+    {
+      "id": "body",
+      "label": "Body",
+      "description": "Visual and rendering traits",
+      "categories": [
+        {
+          "id": "blob",
+          "label": "Blob",
+          "description": "Geometry + material core",
+          "items": [
+            {
+              "id": "resolution-128",
+              "title": "Resolution 128",
+              "subtitle": "Balanced detail",
+              "probability": 0.35,
+              "config": { "resolution": 128 }
+            },
+            {
+              "id": "resolution-96",
+              "title": "Resolution 96",
+              "subtitle": "Faster, softer",
+              "probability": 0.35,
+              "config": { "resolution": 96 }
+            },
+            {
+              "id": "wireframe-on",
+              "title": "Wireframe",
+              "subtitle": "Rare mode",
+              "probability": 0.08,
+              "config": { "wireframe": true }
+            }
+          ]
+        },
+        {
+          "id": "skin",
+          "label": "Skin (Tricolor)",
+          "description": "Tricolor subtypes",
+          "items": [
+            {
+              "id": "skin-poles",
+              "title": "Poles",
+              "subtitle": "Tricolor",
+              "probability": 0.6,
+              "config": { "skin": { "skin": "tricolor", "subtype": "poles" } }
+            },
+            {
+              "id": "skin-donut",
+              "title": "Donut",
+              "subtitle": "Tricolor",
+              "probability": 0.25,
+              "config": { "skin": { "skin": "tricolor", "subtype": "donut" } }
+            },
+            {
+              "id": "skin-vintage",
+              "title": "Vintage",
+              "subtitle": "Tricolor",
+              "probability": 0.15,
+              "config": { "skin": { "skin": "tricolor", "subtype": "vintage" } }
+            }
+          ]
+        },
+        {
+          "id": "background",
+          "label": "Background",
+          "description": "Scene / ambience",
+          "items": [
+            {
+              "id": "bg-none",
+              "title": "None",
+              "subtitle": "Clean",
+              "probability": 0.55,
+              "config": { "background": "none" }
+            },
+            {
+              "id": "bg-rings",
+              "title": "Rings",
+              "subtitle": "Energetic",
+              "probability": 0.3,
+              "config": { "background": "rings" }
+            },
+            {
+              "id": "bg-stars",
+              "title": "Stars",
+              "subtitle": "Calm",
+              "probability": 0.15,
+              "config": { "background": "stars" }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "soul",
+      "label": "Soul",
+      "description": "Personality traits",
+      "categories": []
+    }
+  ]
+}

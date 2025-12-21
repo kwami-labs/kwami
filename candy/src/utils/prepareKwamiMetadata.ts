@@ -279,11 +279,19 @@ export function soulConfigToAttributes(config: SoulConfig): MetadataAttribute[] 
 export function bodyConfigToAttributes(config: BodyConfig): MetadataAttribute[] {
   const attributes: MetadataAttribute[] = []
 
-  // Skin type
-  if (config.skin) {
+  // Skin (Tricolor + subtype)
+  if (config.skin && typeof config.skin === 'object') {
+    const skinName = String((config.skin as any).skin || 'tricolor')
+    const subtype = String((config.skin as any).subtype || 'poles')
+
     attributes.push({
       trait_type: 'Skin',
-      value: config.skin,
+      value: skinName === 'tricolor' ? 'Tricolor' : skinName,
+    })
+
+    attributes.push({
+      trait_type: 'Skin Subtype',
+      value: subtype.charAt(0).toUpperCase() + subtype.slice(1),
     })
   }
 

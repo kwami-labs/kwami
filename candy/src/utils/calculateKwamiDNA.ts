@@ -38,8 +38,11 @@ export interface BodyConfig {
   shininess?: number
   wireframe?: boolean
 
-  // Skin type
-  skin?: 'tricolor' | 'tricolor2' | 'zebra' | string
+  // Skin selection (extensible)
+  skin?: {
+    skin: string
+    subtype?: string
+  }
 
   // Scale
   baseScale?: number
@@ -232,7 +235,10 @@ export function generateRandomBodyConfig(): BodyConfig {
     shininess: random(0, 100),
     wireframe: Math.random() > 0.5,
     
-    skin: ['tricolor', 'tricolor2', 'zebra'][Math.floor(random(0, 3))],
+    skin: {
+      skin: 'tricolor',
+      subtype: (['poles', 'donut', 'vintage'] as const)[Math.floor(random(0, 3))],
+    },
     
     baseScale: random(2, 5),
     opacity: random(0.8, 1),

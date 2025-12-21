@@ -1,0 +1,1015 @@
+{
+  "address": "DoAJAykwUrSDjraDegK4AJ1GCoztLYrTvKhUJHaFbSsD",
+  "metadata": {
+    "name": "kwami_nft",
+    "version": "0.1.0",
+    "spec": "0.1.0",
+    "description": "Kwami NFT program with DNA-based uniqueness validation"
+  },
+  "instructions": [
+    {
+      "name": "burn_kwami",
+      "docs": [
+        "Burn Kwami NFT and remove DNA from registry (with 50% QWAMI refund)",
+        "This allows re-minting with a different DNA"
+      ],
+      "discriminator": [
+        211,
+        238,
+        101,
+        178,
+        199,
+        234,
+        211,
+        172
+      ],
+      "accounts": [
+        {
+          "name": "kwami_nft",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  107,
+                  119,
+                  97,
+                  109,
+                  105,
+                  45,
+                  110,
+                  102,
+                  116
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "kwami_nft.mint",
+                "account": "KwamiNft"
+              }
+            ]
+          }
+        },
+        {
+          "name": "mint",
+          "writable": true
+        },
+        {
+          "name": "dna_registry",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  100,
+                  110,
+                  97,
+                  45,
+                  114,
+                  101,
+                  103,
+                  105,
+                  115,
+                  116,
+                  114,
+                  121
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "dna_registry.collection",
+                "account": "DnaRegistry"
+              }
+            ]
+          }
+        },
+        {
+          "name": "treasury",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  107,
+                  119,
+                  97,
+                  109,
+                  105,
+                  45,
+                  116,
+                  114,
+                  101,
+                  97,
+                  115,
+                  117,
+                  114,
+                  121
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "name": "user_qwami_account",
+          "docs": [
+            "User's QWAMI token account (receives refund)"
+          ],
+          "writable": true
+        },
+        {
+          "name": "qwami_vault",
+          "docs": [
+            "Treasury's QWAMI vault (pays refund)"
+          ],
+          "writable": true
+        },
+        {
+          "name": "owner",
+          "writable": true,
+          "signer": true,
+          "relations": [
+            "kwami_nft"
+          ]
+        },
+        {
+          "name": "token_program",
+          "address": "TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA"
+        }
+      ],
+      "args": []
+    },
+    {
+      "name": "check_dna_exists",
+      "docs": [
+        "Check if a DNA hash is already registered"
+      ],
+      "discriminator": [
+        183,
+        228,
+        254,
+        11,
+        59,
+        1,
+        131,
+        134
+      ],
+      "accounts": [
+        {
+          "name": "dna_registry",
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  100,
+                  110,
+                  97,
+                  45,
+                  114,
+                  101,
+                  103,
+                  105,
+                  115,
+                  116,
+                  114,
+                  121
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "dna_registry.collection",
+                "account": "DnaRegistry"
+              }
+            ]
+          }
+        }
+      ],
+      "args": [
+        {
+          "name": "dna_hash",
+          "type": {
+            "array": [
+              "u8",
+              32
+            ]
+          }
+        }
+      ],
+      "returns": "bool"
+    },
+    {
+      "name": "initialize",
+      "docs": [
+        "Initialize the Kwami NFT program, DNA registry, and treasury"
+      ],
+      "discriminator": [
+        175,
+        175,
+        109,
+        31,
+        13,
+        152,
+        155,
+        237
+      ],
+      "accounts": [
+        {
+          "name": "collection_mint",
+          "docs": [
+            "Collection mint must be created off-chain (keeps this instruction under the SBF stack limit)"
+          ],
+          "writable": true
+        },
+        {
+          "name": "collection_authority",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  99,
+                  111,
+                  108,
+                  108,
+                  101,
+                  99,
+                  116,
+                  105,
+                  111,
+                  110,
+                  45,
+                  97,
+                  117,
+                  116,
+                  104,
+                  111,
+                  114,
+                  105,
+                  116,
+                  121
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "collection_mint"
+              }
+            ]
+          }
+        },
+        {
+          "name": "dna_registry",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  100,
+                  110,
+                  97,
+                  45,
+                  114,
+                  101,
+                  103,
+                  105,
+                  115,
+                  116,
+                  114,
+                  121
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "collection_mint"
+              }
+            ]
+          }
+        },
+        {
+          "name": "treasury",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  107,
+                  119,
+                  97,
+                  109,
+                  105,
+                  45,
+                  116,
+                  114,
+                  101,
+                  97,
+                  115,
+                  117,
+                  114,
+                  121
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "name": "qwami_vault",
+          "docs": [
+            "QWAMI token vault must be created off-chain and owned by the `treasury` PDA"
+          ],
+          "writable": true
+        },
+        {
+          "name": "qwami_mint",
+          "docs": [
+            "QWAMI token mint"
+          ]
+        },
+        {
+          "name": "payer",
+          "writable": true,
+          "signer": true
+        },
+        {
+          "name": "system_program",
+          "address": "11111111111111111111111111111111"
+        },
+        {
+          "name": "token_program",
+          "address": "TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA"
+        }
+      ],
+      "args": []
+    },
+    {
+      "name": "mint_kwami",
+      "docs": [
+        "Mint a new Kwami NFT with unique DNA validation (requires QWAMI payment)"
+      ],
+      "discriminator": [
+        200,
+        116,
+        147,
+        137,
+        42,
+        111,
+        131,
+        148
+      ],
+      "accounts": [
+        {
+          "name": "mint",
+          "writable": true,
+          "signer": true
+        },
+        {
+          "name": "kwami_nft",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  107,
+                  119,
+                  97,
+                  109,
+                  105,
+                  45,
+                  110,
+                  102,
+                  116
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "mint"
+              }
+            ]
+          }
+        },
+        {
+          "name": "collection_authority",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  99,
+                  111,
+                  108,
+                  108,
+                  101,
+                  99,
+                  116,
+                  105,
+                  111,
+                  110,
+                  45,
+                  97,
+                  117,
+                  116,
+                  104,
+                  111,
+                  114,
+                  105,
+                  116,
+                  121
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "collection_authority.collection_mint",
+                "account": "CollectionAuthority"
+              }
+            ]
+          }
+        },
+        {
+          "name": "dna_registry",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  100,
+                  110,
+                  97,
+                  45,
+                  114,
+                  101,
+                  103,
+                  105,
+                  115,
+                  116,
+                  114,
+                  121
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "collection_authority.collection_mint",
+                "account": "CollectionAuthority"
+              }
+            ]
+          }
+        },
+        {
+          "name": "treasury",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  107,
+                  119,
+                  97,
+                  109,
+                  105,
+                  45,
+                  116,
+                  114,
+                  101,
+                  97,
+                  115,
+                  117,
+                  114,
+                  121
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "name": "user_qwami_account",
+          "docs": [
+            "User's QWAMI token account (pays minting cost)"
+          ],
+          "writable": true
+        },
+        {
+          "name": "qwami_vault",
+          "docs": [
+            "Treasury's QWAMI vault (receives minting payment)"
+          ],
+          "writable": true
+        },
+        {
+          "name": "owner",
+          "writable": true,
+          "signer": true
+        },
+        {
+          "name": "system_program",
+          "address": "11111111111111111111111111111111"
+        },
+        {
+          "name": "token_program",
+          "address": "TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA"
+        }
+      ],
+      "args": [
+        {
+          "name": "dna_hash",
+          "type": {
+            "array": [
+              "u8",
+              32
+            ]
+          }
+        },
+        {
+          "name": "name",
+          "type": "string"
+        },
+        {
+          "name": "symbol",
+          "type": "string"
+        },
+        {
+          "name": "uri",
+          "type": "string"
+        }
+      ]
+    },
+    {
+      "name": "transfer_kwami",
+      "docs": [
+        "Transfer Kwami NFT ownership (updates internal record)"
+      ],
+      "discriminator": [
+        78,
+        177,
+        34,
+        189,
+        140,
+        216,
+        46,
+        30
+      ],
+      "accounts": [
+        {
+          "name": "kwami_nft",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  107,
+                  119,
+                  97,
+                  109,
+                  105,
+                  45,
+                  110,
+                  102,
+                  116
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "kwami_nft.mint",
+                "account": "KwamiNft"
+              }
+            ]
+          }
+        },
+        {
+          "name": "current_owner",
+          "signer": true
+        }
+      ],
+      "args": [
+        {
+          "name": "new_owner",
+          "type": "pubkey"
+        }
+      ]
+    },
+    {
+      "name": "update_metadata",
+      "docs": [
+        "Update Kwami NFT metadata (mind/soul changes only, DNA must stay same)"
+      ],
+      "discriminator": [
+        170,
+        182,
+        43,
+        239,
+        97,
+        78,
+        225,
+        186
+      ],
+      "accounts": [
+        {
+          "name": "kwami_nft",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  107,
+                  119,
+                  97,
+                  109,
+                  105,
+                  45,
+                  110,
+                  102,
+                  116
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "kwami_nft.mint",
+                "account": "KwamiNft"
+              }
+            ]
+          }
+        },
+        {
+          "name": "owner",
+          "signer": true,
+          "relations": [
+            "kwami_nft"
+          ]
+        }
+      ],
+      "args": [
+        {
+          "name": "new_uri",
+          "type": "string"
+        }
+      ]
+    }
+  ],
+  "accounts": [
+    {
+      "name": "CollectionAuthority",
+      "discriminator": [
+        209,
+        221,
+        189,
+        233,
+        183,
+        32,
+        247,
+        91
+      ]
+    },
+    {
+      "name": "DnaRegistry",
+      "discriminator": [
+        238,
+        254,
+        46,
+        166,
+        250,
+        189,
+        213,
+        199
+      ]
+    },
+    {
+      "name": "KwamiNft",
+      "discriminator": [
+        109,
+        60,
+        55,
+        32,
+        11,
+        83,
+        16,
+        242
+      ]
+    },
+    {
+      "name": "KwamiTreasury",
+      "discriminator": [
+        133,
+        17,
+        225,
+        138,
+        62,
+        14,
+        246,
+        227
+      ]
+    }
+  ],
+  "errors": [
+    {
+      "code": 6000,
+      "name": "MaxSupplyReached",
+      "msg": "Maximum supply of 10 billion KWAMIs has been reached (2100). No more can be minted."
+    },
+    {
+      "code": 6001,
+      "name": "GenerationSupplyReached",
+      "msg": "Current generation's supply limit reached. Wait for next generation (January 1st)."
+    },
+    {
+      "code": 6002,
+      "name": "DuplicateDNA",
+      "msg": "This DNA already exists. Each Kwami must have unique DNA."
+    },
+    {
+      "code": 6003,
+      "name": "RegistryFull",
+      "msg": "DNA registry is full. Maximum capacity reached."
+    },
+    {
+      "code": 6004,
+      "name": "InvalidOwner",
+      "msg": "Invalid owner for this Kwami NFT"
+    },
+    {
+      "code": 6005,
+      "name": "NameTooLong",
+      "msg": "Name exceeds maximum length of 32 characters"
+    },
+    {
+      "code": 6006,
+      "name": "SymbolTooLong",
+      "msg": "Symbol exceeds maximum length of 10 characters"
+    },
+    {
+      "code": 6007,
+      "name": "UriTooLong",
+      "msg": "URI exceeds maximum length of 200 characters"
+    },
+    {
+      "code": 6008,
+      "name": "InsufficientQwamiBalance",
+      "msg": "Insufficient QWAMI balance to mint this NFT. Check the required amount."
+    },
+    {
+      "code": 6009,
+      "name": "InvalidQwamiMint",
+      "msg": "Invalid QWAMI mint address. Please use the official QWAMI token."
+    },
+    {
+      "code": 6010,
+      "name": "InvalidQwamiAccount",
+      "msg": "Invalid QWAMI token account. Account must be owned by the signer."
+    },
+    {
+      "code": 6011,
+      "name": "InvalidTreasuryVault",
+      "msg": "Invalid treasury vault. Please use the official treasury account."
+    },
+    {
+      "code": 6012,
+      "name": "InvalidCollectionMintAuthority",
+      "msg": "Invalid collection mint authority"
+    },
+    {
+      "code": 6013,
+      "name": "InvalidCollectionMintDecimals",
+      "msg": "Invalid collection mint decimals"
+    },
+    {
+      "code": 6014,
+      "name": "InsufficientTreasuryBalance",
+      "msg": "Insufficient treasury balance to process refund. Contact support."
+    }
+  ],
+  "types": [
+    {
+      "name": "CollectionAuthority",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "authority",
+            "docs": [
+              "Authority that can manage the collection"
+            ],
+            "type": "pubkey"
+          },
+          {
+            "name": "collection_mint",
+            "docs": [
+              "Collection mint address"
+            ],
+            "type": "pubkey"
+          },
+          {
+            "name": "total_minted",
+            "docs": [
+              "Total number of Kwamis minted"
+            ],
+            "type": "u64"
+          },
+          {
+            "name": "bump",
+            "docs": [
+              "Bump seed"
+            ],
+            "type": "u8"
+          }
+        ]
+      }
+    },
+    {
+      "name": "DnaRegistry",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "authority",
+            "docs": [
+              "Authority"
+            ],
+            "type": "pubkey"
+          },
+          {
+            "name": "collection",
+            "docs": [
+              "Collection this registry belongs to"
+            ],
+            "type": "pubkey"
+          },
+          {
+            "name": "dna_hashes",
+            "docs": [
+              "Array of DNA hashes"
+            ],
+            "type": {
+              "vec": {
+                "array": [
+                  "u8",
+                  32
+                ]
+              }
+            }
+          },
+          {
+            "name": "dna_count",
+            "docs": [
+              "Count of registered DNAs"
+            ],
+            "type": "u64"
+          }
+        ]
+      }
+    },
+    {
+      "name": "KwamiNft",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "mint",
+            "docs": [
+              "The mint address of this NFT"
+            ],
+            "type": "pubkey"
+          },
+          {
+            "name": "owner",
+            "docs": [
+              "Current owner"
+            ],
+            "type": "pubkey"
+          },
+          {
+            "name": "dna_hash",
+            "docs": [
+              "DNA hash (SHA-256)"
+            ],
+            "type": {
+              "array": [
+                "u8",
+                32
+              ]
+            }
+          },
+          {
+            "name": "minted_at",
+            "docs": [
+              "Timestamp when minted"
+            ],
+            "type": "i64"
+          },
+          {
+            "name": "updated_at",
+            "docs": [
+              "Timestamp when last updated"
+            ],
+            "type": "i64"
+          },
+          {
+            "name": "metadata_uri",
+            "docs": [
+              "Metadata URI (Arweave)"
+            ],
+            "type": "string"
+          },
+          {
+            "name": "mint_cost_qwami",
+            "docs": [
+              "Original base minting cost in QWAMI (used for refund calculation)"
+            ],
+            "type": "u64"
+          },
+          {
+            "name": "bump",
+            "docs": [
+              "Bump seed"
+            ],
+            "type": "u8"
+          }
+        ]
+      }
+    },
+    {
+      "name": "KwamiTreasury",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "authority",
+            "docs": [
+              "Authority that can manage the treasury"
+            ],
+            "type": "pubkey"
+          },
+          {
+            "name": "qwami_vault",
+            "docs": [
+              "QWAMI token vault PDA"
+            ],
+            "type": "pubkey"
+          },
+          {
+            "name": "total_qwami_received",
+            "docs": [
+              "Total QWAMI received from NFT mints"
+            ],
+            "type": "u64"
+          },
+          {
+            "name": "total_qwami_refunded",
+            "docs": [
+              "Total QWAMI refunded from NFT burns"
+            ],
+            "type": "u64"
+          },
+          {
+            "name": "nft_mints_count",
+            "docs": [
+              "Total number of NFT mints"
+            ],
+            "type": "u64"
+          },
+          {
+            "name": "nft_burns_count",
+            "docs": [
+              "Total number of NFT burns"
+            ],
+            "type": "u64"
+          },
+          {
+            "name": "dividend_pool_balance",
+            "docs": [
+              "Dividend pool balance (80% of revenue)"
+            ],
+            "type": "u64"
+          },
+          {
+            "name": "operations_balance",
+            "docs": [
+              "Operations fund balance (20% of revenue)"
+            ],
+            "type": "u64"
+          },
+          {
+            "name": "last_dividend_distribution",
+            "docs": [
+              "Last dividend distribution timestamp"
+            ],
+            "type": "i64"
+          },
+          {
+            "name": "bump",
+            "docs": [
+              "Bump seed"
+            ],
+            "type": "u8"
+          }
+        ]
+      }
+    }
+  ]
+}
