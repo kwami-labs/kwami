@@ -18,7 +18,7 @@ An **independent, reusable** 3D Interactive AI Companion Library for creating en
 ### Key Features
 
 - ✅ **Audio-Reactive 3D Blob** - Real-time visualization with WebGL
-- ✅ **Multiple Shader Skins** - 3Colors collection (Poles, Donut, Vintage)
+- ✅ **Tricolor Skin** - Subtypes (Poles, Donut, Vintage)
 - ✅ **Interactive Touch Effects** - Liquid-like ripples on click
 - ✅ **Animation States** - Idle, listening, thinking, speaking
 - ✅ **AI Voice Integration** - ElevenLabs & OpenAI TTS support
@@ -47,7 +47,7 @@ const canvas = document.querySelector("canvas") as HTMLCanvasElement;
 const kwami = new Kwami(canvas, {
   body: {
     audioFiles: ["/audio/track.mp3"],
-    initialSkin: "Poles",
+    initialSkin: { skin: "tricolor", subtype: "poles" },
     blob: {
       resolution: 180,
       colors: { x: "#ff0066", y: "#00ff66", z: "#6600ff" },

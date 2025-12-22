@@ -1132,7 +1132,7 @@ This version marks a major evolution in the Kwami ecosystem with the introductio
 
 - 🧭 Dual sidebar layout; redesigned UI; background configuration API and controls
 - 📷 Camera position controls; improved defaults; rotating sidebar with Soul config
-- 🎨 Skins: Tricolor2 (Donut), zebra tricolor enhancements; skin switching & shininess improvements
+- 🎨 Skins: Tricolor (Donut), Tricolor (Vintage) enhancements; skin switching & shininess improvements
 - 🫧 Blob animation: fluid dynamics, audio effects system, interactive click/touch; smooth state transitions; microphone listening support
 - 🖼️ Background images and media support; randomization ranges, messages area reorg; asset and scene bootstrapping
 
@@ -1206,8 +1206,8 @@ This version marks a major evolution in the Kwami ecosystem with the introductio
 
 ### ✨ Added
 
-- 🎨 Tricolor2 (Donut) skin
-- 🦓 Zebra skin tricolor enhancements
+- 🎨 Tricolor (Donut) subtype
+- 🎨 Tricolor (Vintage) subtype enhancements
 
 ### 🔧 Changed
 
@@ -1294,7 +1294,7 @@ This version represents a complete architectural refactoring of the @kwami libra
 - **Automatic resize handling** using ResizeObserver
 - **Animation loop management** with proper cleanup
 - **Resource disposal methods** for memory management
-- **Multiple skin support** (3Colors collection: Poles, Donut, Vintage)
+- **Tricolor skin support** (subtypes: Poles, Donut, Vintage)
 - **Configurable scene setup** with sensible defaults
 - **Audio playlist management** (next/previous track support)
 - **Volume control** for audio playback
@@ -1537,7 +1537,7 @@ kwami.body.blob.setSpikes(0.5, 0.5, 0.5);
 ### ✨ Added
 
 - Added Anthropic Claude as LLM fallback
-- Body: added donut variant for 3Colors skin (alternative spherical mapping)
+- Body: added donut variant for Tricolor skin (alternative spherical mapping)
 
 ## [0.4.3] - 2022-11-15
 

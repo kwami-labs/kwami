@@ -266,7 +266,7 @@ MindProvider Interface
 1. **Custom Skins**
    - Create shader materials in `kwami/src/core/body/blob/skins/`
    - Register in skin factory
-   - Available skins: Zebra, TriColor, TriColor2
+   - Available skin: Tricolor (subtypes: Poles, Donut, Vintage)
 
 2. **New Providers**
    - Implement `MindProvider` interface

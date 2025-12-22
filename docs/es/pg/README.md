@@ -87,7 +87,7 @@ The playground manages **three main configuration sections** across two sidebars
     - **Resolution (120-220)**: Mesh detail level
     - **Shininess (0-100000)**: Specular highlight
     - **Wireframe Mode**: Toggle wireframe
-    - **Skin Type**: Tricolor, Tricolor2, or Zebra
+    - **Skin Type**: Poles, Donut, or Vintage (Tricolor subtypes)
 
   - **🎵 Audio Effects**:
     - **Frequency Modulation**: Bass/Mid/High → Spikes (0-1)
@@ -196,7 +196,7 @@ This playground demonstrates the complete Kwami system through three main sectio
 - **Customizable Appearance**: Control colors, scale, resolution, spikes
 - **Camera Controls**: Orbit around the blob from any angle
 - **Background Management**: Gradient, solid, or transparent with opacity
-- **Dual Skin System**: Tricolor and Zebra shader materials
+- **Tricolor Skin System**: Subtypes (Poles, Donut, Vintage)
 
 ### ✨ Soul (Personality)
 

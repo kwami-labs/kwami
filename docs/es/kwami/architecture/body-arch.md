@@ -217,7 +217,7 @@ const config: BodyConfig = {
     preload: "auto",
   },
   blob: {
-    skin: "tricolor2",
+    skin: { skin: "tricolor", subtype: "donut" },
     spikes: { x: 0.35, y: 0.22, z: 0.28 },
     rotation: { x: 0.001, y: 0.002, z: 0 },
     onAfterRender: () => {

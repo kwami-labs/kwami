@@ -29,7 +29,7 @@ import { KwamiBody } from 'kwami';
 const canvas = document.querySelector('canvas');
 const body = new KwamiBody(canvas, {
   audioFiles: ['/audio/track.mp3'],
-  initialSkin: 'Poles',
+  initialSkin: { skin: 'tricolor', subtype: 'poles' },
   blob: {
     resolution: 180,
     spikes: { x: 0.2, y: 0.2, z: 0.2 },
@@ -90,12 +90,12 @@ The blob is the core visual element - an audio-reactive 3D sphere.
 ### Appearance
 
 ```typescript
-// Change skin
-body.blob.setSkin('Poles');   // 3Colors - Poles
-body.blob.setSkin('Donut');   // 3Colors - Donut
-body.blob.setSkin('Vintage'); // 3Colors - Vintage
+// Change skin (Tricolor + subtype)
+body.blob.setSkin({ skin: 'tricolor', subtype: 'poles' });   // Tricolor - Poles
+body.blob.setSkin({ skin: 'tricolor', subtype: 'donut' });   // Tricolor - Donut
+body.blob.setSkin({ skin: 'tricolor', subtype: 'vintage' }); // Tricolor - Vintage
 
-// Set colors (for 3Colors skins)
+// Set colors (for Tricolor skins)
 body.blob.setColors('#ff0000', '#00ff00', '#0000ff');
 body.blob.setColor('x', '#ff00ff'); // Single axis
 

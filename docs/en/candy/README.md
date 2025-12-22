@@ -68,7 +68,7 @@ For detailed setup, see [QUICKSTART.md](./QUICKSTART.md) and [ENV_SETUP.md](./EN
 Each KWAMI has a unique DNA hash calculated from its body configuration:
 - Geometry parameters (resolution, spikes, time, rotation)
 - Visual properties (colors, shininess, wireframe)
-- Skin type (tricolor, tricolor2, zebra)
+- Skin selection (Tricolor + subtype: poles, donut, vintage)
 - Scale and opacity
 
 The DNA hash ensures no two KWAMIs are identical on-chain.

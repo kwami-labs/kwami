@@ -172,7 +172,7 @@ Unique AI companion NFTs with DNA-based uniqueness validation on Solana.
 - **Geometry:** resolution
 - **Deformation:** spikes (x,y,z), time (x,y,z), rotation (x,y,z)
 - **Visual:** colors (x,y,z), shininess, wireframe, opacity, baseScale
-- **Skin:** tricolor, tricolor2, zebra
+- **Skin:** Tricolor (subtype: poles, donut, vintage)
 
 #### DNA Calculation
 ```javascript

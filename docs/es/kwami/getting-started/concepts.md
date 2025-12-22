@@ -210,16 +210,16 @@ kwami.setState('speaking');
 
 Kwami supports multiple shader-based visual styles:
 
-### 3Colors Collection
+### Tricolor skin
 
 - **Poles** - Classic tricolor gradient with polar mapping
 - **Donut** - Toroidal color distribution
-- **Vintage** - Retro-styled zebra stripes
+- **Vintage** - Retro-styled stripes
 
 ```typescript
-kwami.body.blob.setSkin("Poles");
-kwami.body.blob.setSkin("Donut");
-kwami.body.blob.setSkin("Vintage");
+kwami.body.blob.setSkin({ skin: "tricolor", subtype: "poles" });
+kwami.body.blob.setSkin({ skin: "tricolor", subtype: "donut" });
+kwami.body.blob.setSkin({ skin: "tricolor", subtype: "vintage" });
 ```
 
 ### Custom Skins
