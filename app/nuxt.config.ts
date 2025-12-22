@@ -1,5 +1,4 @@
 // https://nuxt.com/docs/api/configuration/nuxt-config
-import { fileURLToPath } from 'node:url';
 
 export default defineNuxtConfig({
   modules: [
@@ -109,18 +108,6 @@ export default defineNuxtConfig({
       },
     },
   },
-  alias: {
-    '@kwami': fileURLToPath(new URL('./node_modules/kwami', import.meta.url)),
-    '@kwami/assets': fileURLToPath(new URL('./assets', import.meta.url)),
-  },
-  vite: {
-    resolve: {
-      alias: {
-        '@kwami': fileURLToPath(new URL('./node_modules/kwami', import.meta.url)),
-        '@kwami/assets': fileURLToPath(new URL('./assets', import.meta.url)),
-      },
-    },
-  },
   eslint: {
     config: {
       stylistic: {
@@ -129,7 +116,7 @@ export default defineNuxtConfig({
     },
   },
   i18n: {
-    langDir: 'i18n/locales',
+    langDir: 'locales',
     locales: [
       { code: 'en', language: 'English', file: 'en.json' },
       { code: 'fr', language: 'Français', file: 'fr.json' },

@@ -1,4 +1,4 @@
-import { Kwami } from '@kwami';
+import { Kwami } from 'kwami';
 import audioFiles from '~/assets/aud';
 
 const useQStore = defineStore('q', {
@@ -17,7 +17,7 @@ const useQStore = defineStore('q', {
       this.body = new Kwami(canvas, {
         body: {
           audioFiles,
-          initialSkin: 'tricolor',
+          initialSkin: { skin: 'tricolor', subtype: 'poles' },
           blob: {
             resolution: 180,
           },
