@@ -19,6 +19,7 @@ idl-build = ["anchor-lang/idl-build", "anchor-spl/idl-build"]
 [dependencies]
 anchor-lang = "0.32.1"
 anchor-spl = "0.32.1"
+mpl-token-metadata = "5.0.0"
 
 #[dev-dependencies]
 #solana-program-test = "1.18.26"

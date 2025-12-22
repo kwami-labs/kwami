@@ -1,6 +1,15 @@
 use anchor_lang::prelude::*;
 use anchor_lang::solana_program::program_option::COption;
-use anchor_spl::token::{self, Mint, Token, TokenAccount, Transfer};
+use anchor_spl::token::{self, Mint, Token, TokenAccount, Transfer, MintTo};
+use anchor_spl::associated_token::AssociatedToken;
+use mpl_token_metadata::{
+    instructions::{
+        CreateMetadataAccountV3Cpi,
+        CreateMetadataAccountV3CpiAccounts,
+        CreateMetadataAccountV3InstructionArgs,
+    },
+    types::DataV2,
+};
 
 declare_id!("DoAJAykwUrSDjraDegK4AJ1GCoztLYrTvKhUJHaFbSsD"); // Will be updated after deployment
 
@@ -241,12 +250,69 @@ pub mod kwami_nft {
         dna_registry.dna_hashes.push(dna_hash);
         dna_registry.dna_count += 1;
 
-        // NOTE: Metaplex metadata creation is intentionally omitted here.
-        // The `anchor-spl` metadata helpers are not available in Anchor v0.29.x,
-        // and we keep the on-chain program build compatible with Solana 1.18 toolchains.
-
-        // Increment collection counter
+        // Increment collection counter before CPI
         collection_authority.total_minted += 1;
+
+        // Store values needed for CPI before dropping mutable borrows
+        let collection_mint = collection_authority.collection_mint;
+        let authority_bump = collection_authority.bump;
+        let current_total_minted = collection_authority.total_minted;
+        
+        // Drop all mutable borrows before CPI
+        drop(dna_registry);
+        drop(collection_authority);
+        drop(treasury);
+        drop(kwami_nft);
+        
+        // Create Metaplex metadata for wallet visibility
+        let collection_authority_seeds = &[
+            b"collection-authority",
+            collection_mint.as_ref(),
+            &[authority_bump],
+        ];
+        let collection_authority_signer = &[&collection_authority_seeds[..]];
+
+        CreateMetadataAccountV3Cpi::new(
+            &ctx.accounts.token_metadata_program.to_account_info(),
+            CreateMetadataAccountV3CpiAccounts {
+                metadata: &ctx.accounts.metadata.to_account_info(),
+                mint: &ctx.accounts.mint.to_account_info(),
+                mint_authority: &ctx.accounts.collection_authority.to_account_info(),
+                payer: &ctx.accounts.owner.to_account_info(),
+                update_authority: (&ctx.accounts.collection_authority.to_account_info(), true),
+                system_program: &ctx.accounts.system_program.to_account_info(),
+                rent: None,
+            },
+            CreateMetadataAccountV3InstructionArgs {
+                data: DataV2 {
+                    name,
+                    symbol,
+                    uri,
+                    seller_fee_basis_points: 500, // 5% royalty
+                    creators: None,
+                    collection: Some(mpl_token_metadata::types::Collection {
+                        verified: false,
+                        key: collection_mint,
+                    }),
+                    uses: None,
+                },
+                is_mutable: true,
+                collection_details: None,
+            },
+        )
+        .invoke_signed(collection_authority_signer)?;
+
+        // Mint 1 NFT token to owner's token account
+        let mint_to_ctx = CpiContext::new_with_signer(
+            ctx.accounts.token_program.to_account_info(),
+            MintTo {
+                mint: ctx.accounts.mint.to_account_info(),
+                to: ctx.accounts.owner_token_account.to_account_info(),
+                authority: ctx.accounts.collection_authority.to_account_info(),
+            },
+            collection_authority_signer,
+        );
+        token::mint_to(mint_to_ctx, 1)?;
 
         msg!("Minted Kwami NFT");
         msg!("Generation: #{}", current_generation);
@@ -255,8 +321,8 @@ pub mod kwami_nft {
         msg!("DNA Hash: {:?}", dna_hash);
         msg!("Mint: {}", ctx.accounts.mint.key());
         msg!("Owner: {}", ctx.accounts.owner.key());
-        msg!("Total Minted: {}/{}", collection_authority.total_minted, current_max_supply);
-        msg!("Global Progress: {}/{} (Final by 2100)", collection_authority.total_minted, MAX_TOTAL_KWAMIS);
+        msg!("Total Minted: {}/{}", current_total_minted, current_max_supply);
+        msg!("Global Progress: {}/{} (Final by 2100)", current_total_minted, MAX_TOTAL_KWAMIS);
         msg!("Treasury Revenue: {} QWAMI (Dividends: {} | Operations: {})",
             total_cost, dividend_amount, operations_amount);
 
@@ -493,11 +559,29 @@ pub struct MintKwami<'info> {
     )]
     pub qwami_vault: Box<Account<'info, TokenAccount>>,
 
+    /// CHECK: Metaplex metadata account (created by CPI)
+    #[account(mut)]
+    pub metadata: UncheckedAccount<'info>,
+
+    /// Owner's token account to receive the minted NFT
+    #[account(
+        init,
+        payer = owner,
+        associated_token::mint = mint,
+        associated_token::authority = owner,
+    )]
+    pub owner_token_account: Box<Account<'info, TokenAccount>>,
+
     #[account(mut)]
     pub owner: Signer<'info>,
 
     pub system_program: Program<'info, System>,
     pub token_program: Program<'info, Token>,
+    pub associated_token_program: Program<'info, AssociatedToken>,
+    
+    /// CHECK: Metaplex Token Metadata program
+    #[account(address = mpl_token_metadata::ID)]
+    pub token_metadata_program: UncheckedAccount<'info>,
 }
 
 #[derive(Accounts)]
