@@ -1,7 +1,7 @@
 import { defineStore } from 'pinia'
 import { ref } from 'vue'
 import type { PublicKey } from '@solana/web3.js'
-import { uploadImageToIpfs, uploadMetadataToIpfs } from '@/utils/uploadIpfs'
+import { uploadImageToIpfs, uploadMetadataToIpfs, uploadGifToIpfs, upload3DModelToIpfs } from '@/utils/uploadIpfs'
 import { checkDnaExists as checkDnaOnChain, mintKwamiNft, fetchOwnedKwamis, getTotalMintedCount, burnKwamiNft } from '@/utils/solanaHelpers'
 import { prepareKwamiMetadata, type SoulConfig } from '@/utils/prepareKwamiMetadata'
 import { calculateKwamiDNA } from '@/utils/calculateKwamiDNA'
@@ -110,12 +110,14 @@ export const useNFTStore = defineStore('nft', () => {
     }
   }
   
-  // Mint a new KWAMI NFT
+  // Mint a new KWAMI NFT with image, GIF, and 3D model
   const mintKwami = async (
     config: any,
     metadata: { name: string; description: string },
     soulConfig?: any,
-    imageBuffer: Buffer | null = null
+    imageBuffer: Buffer | null = null,
+    gifBuffer?: Buffer | null,
+    modelBuffer?: Buffer | null
   ) => {
     if (!walletStore.connected || !walletStore.wallet) {
       throw new Error('Wallet not connected')
@@ -156,16 +158,49 @@ export const useNFTStore = defineStore('nft', () => {
       
       console.log('[NFT Store] Image uploaded:', imageResult.uri)
       
-      // Prepare metadata using the utility
+      // Upload GIF if provided
+      let gifResult
+      if (gifBuffer) {
+        console.log('[NFT Store] Uploading GIF...')
+        gifResult = await uploadGifToIpfs(gifBuffer, walletStore.wallet)
+        console.log('[NFT Store] GIF uploaded:', gifResult.uri)
+      }
+      
+      // Upload 3D model if provided
+      let modelResult
+      if (modelBuffer) {
+        console.log('[NFT Store] Uploading 3D model...')
+        modelResult = await upload3DModelToIpfs(modelBuffer, walletStore.wallet)
+        console.log('[NFT Store] 3D model uploaded:', modelResult.uri)
+      }
+      
+      // Prepare metadata with GIF as primary image
       const metadataJson = prepareKwamiMetadata({
         name: metadata.name,
         description: metadata.description,
         dna,
         bodyConfig: config,
         soulConfig,
-        imageUri: imageResult.uri,
+        imageUri: gifResult ? gifResult.uri : imageResult.uri,  // Use GIF as main image
         creatorAddress: walletStore.publicKey!.toBase58(),
       })
+      
+      // Set animation_url to 3D model (GLB) for Phantom 3D viewer
+      if (modelResult) {
+        metadataJson.animation_url = modelResult.uri
+        console.log('[NFT Store] Set animation_url to 3D model for Phantom display')
+      }
+      
+      // Add static PNG to properties.files
+      if (imageResult) {
+        metadataJson.properties = metadataJson.properties || {}
+        metadataJson.properties.files = metadataJson.properties.files || []
+        metadataJson.properties.files.push({
+          uri: imageResult.uri,
+          type: 'image/png',
+          cdn: false
+        })
+      }
       
       // Upload metadata to IPFS
       const metadataResult = await uploadMetadataToIpfs(

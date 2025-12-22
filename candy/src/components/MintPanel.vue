@@ -120,17 +120,31 @@ const handleMint = async () => {
       })
     }
 
-    // Get blob configuration and capture image
+    // Get blob configuration and capture all formats
     let config: any
     let imageBuffer: Buffer | null = null
+    let gifBuffer: Buffer | null = null
+    let modelBuffer: Buffer | null = null
 
     if (props.blobPreviewRef) {
       config = props.blobPreviewRef.getConfig()
-      imageBuffer = await props.blobPreviewRef.captureImage()
-
-      if (!imageBuffer) {
-        console.warn('[MintPanel] Failed to capture image, continuing with mock')
+      
+      console.log('[MintPanel] Capturing all formats (image, GIF, 3D model)...')
+      const captures = await props.blobPreviewRef.captureAllFormats()
+      
+      if (!captures || !captures.image) {
+        throw new Error('Failed to capture media. Please try again.')
       }
+      
+      imageBuffer = captures.image
+      gifBuffer = captures.gif
+      modelBuffer = captures.model
+      
+      console.log('[MintPanel] All formats captured:', {
+        image: imageBuffer.length,
+        gif: gifBuffer?.length,
+        model: modelBuffer?.length
+      })
     } else {
       console.warn('[MintPanel] BlobPreview ref not available, using default config')
       config = {
@@ -147,16 +161,17 @@ const handleMint = async () => {
     nftStore.setBlobConfig(config)
     nftStore.setImageBuffer(imageBuffer)
 
-    // Mint KWAMI
-    // (Soul config not wired in candy yet; pass undefined)
+    // Mint KWAMI with all formats
     await nftStore.mintKwami(
       config,
       {
         name: safeName.value,
-        description: '',
+        description: 'A unique KWAMI NFT with animated GIF and interactive 3D model',
       },
       undefined,
-      imageBuffer
+      imageBuffer,
+      gifBuffer,
+      modelBuffer
     )
   } catch (error: any) {
     console.error('Minting failed:', error)

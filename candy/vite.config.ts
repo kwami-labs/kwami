@@ -33,7 +33,9 @@ export default defineConfig({
       'buffer-layout',
       '@solana/buffer-layout',
       'superstruct',
-      'borsh'
+      'borsh',
+      'gifenc',
+      'three-stdlib'
     ],
     esbuildOptions: {
       target: 'esnext',

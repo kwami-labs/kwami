@@ -198,19 +198,46 @@ const captureImage = async (): Promise<Buffer | null> => {
   }
 
   try {
-    // Wait for any pending renders to complete
+    // Wait for any pending renders to complete (2 frames to be safe)
     await new Promise(resolve => requestAnimationFrame(resolve))
     await new Promise(resolve => requestAnimationFrame(resolve))
     
-    // Ensure kwami has rendered the current frame
-    if (kwami?.body) {
-      kwami.body.render()
-    }
-    
+    console.log('[BlobPreview] Capturing canvas after render frames')
     return await captureAndPrepareForUpload(canvas.value)
   } catch (error) {
     console.error('[BlobPreview] Error capturing canvas:', error)
     return null
+  }
+}
+
+const captureAllFormats = async () => {
+  if (!canvas.value || !kwami?.body) {
+    console.error('[BlobPreview] Canvas or kwami not available')
+    return null
+  }
+
+  try {
+    const { captureAllFormats } = await import('@/utils/advancedCanvasCapture')
+    const scene = kwami.body.scene.scene
+    const blobMesh = kwami.body.blob.getMesh()
+    const renderer = kwami.body.scene.renderer
+    
+    return await captureAllFormats(canvas.value, scene, blobMesh, renderer, {
+      gifDuration: 3000,
+      gifFps: 20
+    })
+  } catch (error) {
+    console.error('[BlobPreview] Error capturing all formats:', error)
+    return null
+  }
+}
+
+const getSceneAndMesh = () => {
+  if (!kwami?.body) return null
+  return {
+    scene: kwami.body.scene.scene,
+    mesh: kwami.body.blob.getMesh(),
+    canvas: canvas.value
   }
 }
 
@@ -331,6 +358,8 @@ const onClickRandomize = async () => {
 // Expose functions to parent
 defineExpose({
   captureImage,
+  captureAllFormats,
+  getSceneAndMesh,
   getConfig,
   getDna,
   blobConfig,

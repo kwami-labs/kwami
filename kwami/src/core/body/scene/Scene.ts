@@ -49,6 +49,7 @@ function createRenderer(
     antialias: true,
     alpha: true,
     stencil: true,
+    preserveDrawingBuffer: config?.preserveDrawingBuffer ?? false,
   }) as WebGL2RenderingContext;
 
   const renderer = new WebGLRenderer({
@@ -56,6 +57,7 @@ function createRenderer(
     context,
     antialias: true,
     alpha: true,
+    preserveDrawingBuffer: config?.preserveDrawingBuffer ?? false,
   });
 
   renderer.autoClearStencil = true;

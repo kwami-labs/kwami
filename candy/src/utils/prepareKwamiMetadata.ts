@@ -39,6 +39,7 @@ export interface KwamiMetadata {
   symbol: string
   description: string
   image: string
+  animation_url?: string  // 3D model (GLB) or GIF animation
   external_url?: string
   attributes: MetadataAttribute[]
   properties: {

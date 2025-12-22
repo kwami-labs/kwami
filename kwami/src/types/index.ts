@@ -82,6 +82,7 @@ export interface SceneConfig {
   };
   enableShadows?: boolean;
   enableControls?: boolean;
+  preserveDrawingBuffer?: boolean; // Required for canvas.toBlob() capture
   background?: SceneBackgroundConfig;
 }
 
