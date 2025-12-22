@@ -70,8 +70,9 @@ export async function uploadImageToArweave(
     const balance = await irys.getLoadedBalance()
     
     if (balance.lt(price)) {
-      console.log('[Irys] Funding account...', { needed: price.toString(), current: balance.toString() })
-      await irys.fund(price.multipliedBy(1.1)) // Fund 110% to cover fees
+      const fundAmount = price.multipliedBy(1.1).toNumber()
+      console.log('[Irys] Funding account...', { needed: price.toString(), current: balance.toString(), funding: fundAmount })
+      await irys.fund(fundAmount) // Fund 110% to cover fees
     }
 
     // Upload image
@@ -131,8 +132,9 @@ export async function uploadMetadataToArweave(
     const balance = await irys.getLoadedBalance()
     
     if (balance.lt(price)) {
-      console.log('[Irys] Funding account for metadata...', { needed: price.toString() })
-      await irys.fund(price.multipliedBy(1.1))
+      const fundAmount = price.multipliedBy(1.1).toNumber()
+      console.log('[Irys] Funding account for metadata...', { needed: price.toString(), funding: fundAmount })
+      await irys.fund(fundAmount)
     }
 
     // Upload metadata

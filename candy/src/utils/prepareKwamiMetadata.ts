@@ -513,7 +513,8 @@ export function exampleMetadata(): KwamiMetadata {
     external_url: 'https://kwami.io',
     attributes: [
       { trait_type: 'DNA', value: 'a1b2c3d4...' },
-      { trait_type: 'Skin', value: 'tricolor' },
+      { trait_type: 'Skin', value: 'Tricolor' },
+      { trait_type: 'Skin Subtype', value: 'Poles' },
       { trait_type: 'Resolution', value: 5, display_type: 'number' },
       { trait_type: 'Shininess', value: 50, display_type: 'number' },
       { trait_type: 'Name', value: 'Kaya' },
@@ -531,7 +532,7 @@ export function exampleMetadata(): KwamiMetadata {
     dna: 'a1b2c3d4e5f6...',
     body: {
       resolution: 5,
-      skin: 'tricolor',
+      skin: { skin: 'tricolor', subtype: 'poles' },
       shininess: 50,
     },
     soul: {
