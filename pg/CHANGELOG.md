@@ -41,7 +41,7 @@ All notable changes to the KWAMI Playground will be documented in this file.
 - Audio effects control (FFT, smoothing, frequency modulation)
 - Background image support (15+ included images)
 - Wireframe mode toggle
-- Multiple skin types (Tricolor, Tricolor2, Zebra)
+- Tricolor skin subtypes (Poles, Donut, Vintage)
 
 ## Version History
 
