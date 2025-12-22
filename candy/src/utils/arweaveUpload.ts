@@ -9,10 +9,37 @@ export interface UploadResult {
 }
 
 /**
+ * Create a Solana wallet wrapper compatible with Irys SDK
+ * The SDK expects a specific structure for Solana wallets
+ */
+function createIrysWalletAdapter(walletAdapter: any) {
+  // Create a wallet object that mimics what Irys expects
+  const wrapper = {
+    publicKey: walletAdapter.publicKey,
+    signTransaction: async (tx: any) => {
+      return await walletAdapter.signTransaction(tx)
+    },
+    signAllTransactions: walletAdapter.signAllTransactions 
+      ? async (txs: any[]) => await walletAdapter.signAllTransactions(txs)
+      : undefined,
+    signMessage: walletAdapter.signMessage
+      ? async (message: Uint8Array) => await walletAdapter.signMessage(message)
+      : undefined,
+  }
+  
+  // Irys also checks for the wallet object itself in some cases
+  return {
+    ...wrapper,
+    _wallet: walletAdapter,
+    publicKey: walletAdapter.publicKey,
+  }
+}
+
+/**
  * Get Irys instance for uploads
  * Uses lazy loading to avoid SSR issues
  */
-async function getIrysInstance(wallet: any) {
+async function getIrysInstance(wallet: any, connection: any) {
   try {
     // Dynamic import to avoid SSR issues
     const { default: Irys } = await import('@irys/sdk')
@@ -21,20 +48,36 @@ async function getIrysInstance(wallet: any) {
     const network = import.meta.env.VITE_SOLANA_NETWORK || 'devnet'
     const rpcUrl = import.meta.env.VITE_SOLANA_RPC_URL || 'https://api.devnet.solana.com'
 
-    // Create Irys instance
+    // Validate wallet has required methods
+    if (!wallet || !wallet.publicKey) {
+      throw new Error('Invalid wallet: missing publicKey')
+    }
+    if (!wallet.signTransaction) {
+      throw new Error('Invalid wallet: missing signTransaction method')
+    }
+
+    console.log('[Irys] Initializing with wallet:', wallet.publicKey.toBase58())
+    console.log('[Irys] Wallet object keys:', Object.keys(wallet))
+    console.log('[Irys] Has signTransaction:', typeof wallet.signTransaction)
+
+    // Create Irys instance - pass wallet directly
+    // The Irys SDK should detect it as an injected wallet
     const irys = new Irys({
-      network: network === 'mainnet-beta' ? 'mainnet' : 'devnet',
+      url: network === 'mainnet-beta' ? 'https://node1.irys.xyz' : 'https://devnet.irys.xyz',
       token: 'solana',
-      key: wallet,
-      config: {
-        providerUrl: rpcUrl,
-      },
+      key: wallet, // Pass the wallet adapter directly without wrapping
+      config: { providerUrl: rpcUrl },
     })
 
+    // Store connection for transaction confirmation
+    ;(irys as any)._connection = connection
+
+    console.log('[Irys] Instance created successfully')
+
     return irys
-  } catch (error) {
+  } catch (error: any) {
     console.error('[Irys] Error initializing:', error)
-    throw new Error('Failed to initialize Irys client')
+    throw new Error(`Failed to initialize Irys client: ${error.message}`)
   }
 }
 
@@ -44,16 +87,24 @@ async function getIrysInstance(wallet: any) {
 export async function uploadImageToArweave(
   imageBuffer: Buffer | Uint8Array,
   wallet: any,
-  contentType: string = 'image/png'
+  contentType: string = 'image/png',
+  connection?: any
 ): Promise<UploadResult> {
   try {
     const data = Buffer.isBuffer(imageBuffer) ? imageBuffer : Buffer.from(imageBuffer)
 
     console.log('[Arweave] Uploading image...', { size: data.length, contentType })
 
+    // Check if we should use mock mode (for development)
+    const useMockUpload = import.meta.env.VITE_USE_MOCK_ARWEAVE === 'true'
+    
     // For development/testing with mock wallet, return placeholder
-    if (!wallet || typeof wallet === 'string') {
-      console.warn('[Arweave] Using mock upload (no wallet provided)')
+    if (!wallet || typeof wallet === 'string' || useMockUpload) {
+      if (useMockUpload) {
+        console.warn('[Arweave] Using MOCK upload (VITE_USE_MOCK_ARWEAVE=true)')
+      } else {
+        console.warn('[Arweave] Using mock upload (no wallet provided)')
+      }
       await new Promise(resolve => setTimeout(resolve, 1000))
       const mockTxId = `mock_img_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`
       return {
@@ -63,17 +114,19 @@ export async function uploadImageToArweave(
     }
 
     // Real upload with Irys
-    const irys = await getIrysInstance(wallet)
+    const { Connection } = await import('@solana/web3.js')
+    const conn = connection || new Connection(
+      import.meta.env.VITE_SOLANA_RPC_URL || 'https://api.devnet.solana.com',
+      'confirmed'
+    )
+    const irys = await getIrysInstance(wallet, conn)
 
-    // Fund if needed (check balance first)
+    // Check price (Irys will handle funding automatically during upload)
     const price = await irys.getPrice(data.length)
-    const balance = await irys.getLoadedBalance()
-    
-    if (balance.lt(price)) {
-      const fundAmount = price.multipliedBy(1.1).toNumber()
-      console.log('[Irys] Funding account...', { needed: price.toString(), current: balance.toString(), funding: fundAmount })
-      await irys.fund(fundAmount) // Fund 110% to cover fees
-    }
+    console.log('[Irys] Upload cost:', {
+      bytes: data.length,
+      price: price.toString(),
+    })
 
     // Upload image
     const receipt = await irys.upload(data, {
@@ -104,14 +157,22 @@ export async function uploadImageToArweave(
  */
 export async function uploadMetadataToArweave(
   metadata: any,
-  wallet: any
+  wallet: any,
+  connection?: any
 ): Promise<UploadResult> {
   try {
     console.log('[Arweave] Uploading metadata...', { name: metadata.name })
 
+    // Check if we should use mock mode (for development)
+    const useMockUpload = import.meta.env.VITE_USE_MOCK_ARWEAVE === 'true'
+    
     // For development/testing with mock wallet, return placeholder
-    if (!wallet || typeof wallet === 'string') {
-      console.warn('[Arweave] Using mock upload (no wallet provided)')
+    if (!wallet || typeof wallet === 'string' || useMockUpload) {
+      if (useMockUpload) {
+        console.warn('[Arweave] Using MOCK upload (VITE_USE_MOCK_ARWEAVE=true)')
+      } else {
+        console.warn('[Arweave] Using mock upload (no wallet provided)')
+      }
       await new Promise(resolve => setTimeout(resolve, 1000))
       const mockTxId = `mock_meta_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`
       return {
@@ -125,17 +186,19 @@ export async function uploadMetadataToArweave(
     const metadataBuffer = Buffer.from(metadataJson, 'utf-8')
 
     // Real upload with Irys
-    const irys = await getIrysInstance(wallet)
+    const { Connection } = await import('@solana/web3.js')
+    const conn = connection || new Connection(
+      import.meta.env.VITE_SOLANA_RPC_URL || 'https://api.devnet.solana.com',
+      'confirmed'
+    )
+    const irys = await getIrysInstance(wallet, conn)
 
-    // Fund if needed
+    // Check price (Irys will handle funding automatically during upload)
     const price = await irys.getPrice(metadataBuffer.length)
-    const balance = await irys.getLoadedBalance()
-    
-    if (balance.lt(price)) {
-      const fundAmount = price.multipliedBy(1.1).toNumber()
-      console.log('[Irys] Funding account for metadata...', { needed: price.toString(), funding: fundAmount })
-      await irys.fund(fundAmount)
-    }
+    console.log('[Irys] Upload cost for metadata:', {
+      bytes: metadataBuffer.length,
+      price: price.toString(),
+    })
 
     // Upload metadata
     const receipt = await irys.upload(metadataBuffer, {

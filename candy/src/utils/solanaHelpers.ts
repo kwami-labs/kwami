@@ -88,7 +88,11 @@ export async function getKwamiProgram(wallet: any): Promise<Program<KwamiNft> | 
       return null
     }
 
-    const program = new Program(idl as any, programId, provider)
+    // Use the address from IDL if available, otherwise use env config
+    const idlAddress = idl.address || idl.metadata?.address
+    const finalProgramId = idlAddress ? new PublicKey(idlAddress) : programId
+    
+    const program = new Program(idl as any, finalProgramId, provider)
     return program as Program<KwamiNft>
   } catch (error) {
     console.error('[Anchor] Error loading KWAMI program:', error)
@@ -113,7 +117,11 @@ export async function getQwamiProgram(wallet: any): Promise<Program<QwamiToken> 
       return null
     }
 
-    const program = new Program(idl as any, programId, provider)
+    // Use the address from IDL if available, otherwise use env config
+    const idlAddress = idl.address || idl.metadata?.address
+    const finalProgramId = idlAddress ? new PublicKey(idlAddress) : programId
+    
+    const program = new Program(idl as any, finalProgramId, provider)
     return program as Program<QwamiToken>
   } catch (error) {
     console.error('[Anchor] Error loading QWAMI program:', error)

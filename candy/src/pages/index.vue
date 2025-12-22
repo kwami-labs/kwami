@@ -9,7 +9,6 @@
               <a href="/" class="inline-flex items-center" aria-label="KWAMI">
                 <span ref="logoHost" class="inline-flex items-center" />
               </a>
-              <UsersOnline />
             </div>
 
             <!-- Tabs (center) -->
@@ -550,7 +549,6 @@
 <script setup lang="ts">
 import { ref, computed, onMounted, onBeforeUnmount } from 'vue'
 import { useNFTStore } from '@/stores/nft'
-import UsersOnline from '@/components/UsersOnline.vue'
 import WalletConnect from '@/components/WalletConnect.vue'
 import BlobPreview from '@/components/BlobPreview.vue'
 import MintPanel from '@/components/MintPanel.vue'

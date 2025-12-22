@@ -142,7 +142,8 @@ export const useNFTStore = defineStore('nft', () => {
         imageResult = await uploadImageToArweave(
           imageBuffer,
           walletStore.wallet,
-          'image/png'
+          'image/png',
+          walletStore.connection
         )
       } else {
         // Fallback to mock (for testing)
@@ -150,7 +151,8 @@ export const useNFTStore = defineStore('nft', () => {
         imageResult = await uploadImageToArweave(
           Buffer.from('mock'),
           walletStore.publicKey!.toBase58() as any,
-          'image/png'
+          'image/png',
+          walletStore.connection
         )
       }
       
@@ -170,7 +172,8 @@ export const useNFTStore = defineStore('nft', () => {
       // Upload metadata to Arweave
       const metadataResult = await uploadMetadataToArweave(
         metadataJson,
-        walletStore.wallet
+        walletStore.wallet,
+        walletStore.connection
       )
       
       console.log('[NFT Store] Metadata uploaded:', metadataResult.uri)

@@ -483,18 +483,17 @@ export function createWalletConnectWidget(options: WalletConnectWidgetOptions = 
         onClick: async () => {
           try {
             const w: any = wallet as any;
-            let success = false;
+            const fallback = getWalletConnector();
+            const switchFn =
+              (typeof w.switchNetwork === 'function' && w.switchNetwork.bind(w)) ||
+              (typeof (fallback as any).switchNetwork === 'function' && (fallback as any).switchNetwork.bind(fallback));
 
-            if (typeof w.switchNetwork === 'function') {
-              success = await w.switchNetwork(network);
-            } else {
-              // Fallback: try the default singleton connector if available
-              const fallback = getWalletConnector();
-              if (typeof (fallback as any).switchNetwork === 'function') {
-                success = await (fallback as any).switchNetwork(network);
-              }
+            if (!switchFn) {
+              setError('Network switching is not supported by this connector.');
+              return;
             }
 
+            const success = await switchFn(network);
             if (!success) {
               setError('Network switching is not supported by this connector.');
               return;
@@ -502,9 +501,7 @@ export function createWalletConnectWidget(options: WalletConnectWidgetOptions = 
 
             currentNetwork = network;
             trackedTokens = resolveDefaultTrackedTokens(currentNetwork);
-            await refreshConnectionState();
-            await refreshBalances();
-            applyStateToUi();
+            await refresh(); // full refresh to re-detect wallets + balances
             options.onNetworkChange?.({ network });
             networkPopover.hide();
           } catch (error) {
@@ -529,11 +526,11 @@ export function createWalletConnectWidget(options: WalletConnectWidgetOptions = 
     if (!currentPk) return;
 
     const msg = document.createElement('div');
-    msg.style.fontSize = '0.82rem';
-    msg.style.padding = '0.25rem 0.5rem';
+    msg.style.fontSize = '0.78rem';
+    msg.style.padding = '0.2rem 0.45rem';
     msg.style.textAlign = 'center';
     msg.style.whiteSpace = 'nowrap';
-    msg.textContent = 'Copied address to clipboard';
+    msg.textContent = 'Copied!';
 
     void navigator.clipboard.writeText(currentPk.toBase58()).catch(() => {
       msg.textContent = 'Copy failed, copy manually';
@@ -541,8 +538,8 @@ export function createWalletConnectWidget(options: WalletConnectWidgetOptions = 
 
     addressPopover.setContent(msg);
     const r = anchorEl.getBoundingClientRect();
-    addressPopover.show(r.left + r.width / 2, r.bottom + 8);
-    setTimeout(() => addressPopover.hide(), 1100);
+    addressPopover.show(r.left + r.width / 2, r.bottom + 6);
+    setTimeout(() => addressPopover.hide(), 900);
   }
 
   function rebuildActions(): void {
@@ -751,7 +748,9 @@ export function createWalletConnectWidget(options: WalletConnectWidgetOptions = 
 
     const byMint: Record<string, number | null> = {};
     for (const t of trackedTokens) {
-      const hit = tokens.find((x: { mint: string; uiAmount: number; decimals: number }) => x.mint === t.mint);
+      const hit = tokens.find(
+        (x: { mint: string; uiAmount: number; decimals: number }) => x.mint?.toLowerCase() === t.mint.toLowerCase(),
+      );
       byMint[t.mint] = typeof hit?.uiAmount === 'number' ? hit.uiAmount : null;
     }
     state.tokenBalancesByMint = byMint;
