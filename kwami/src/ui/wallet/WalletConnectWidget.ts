@@ -36,6 +36,8 @@ function renderContent(slot: GlassContent, target: HTMLElement): void {
 }
 
 const MAINNET_USDC_MINT = 'EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v';
+const DEVNET_USDC_MINT = '4zMMC9srt5Ri5X14GAgXhaHii3GnPAEERYPJgZJDncDU'; // spl-usdc devnet
+const TESTNET_USDC_MINT = MAINNET_USDC_MINT; // fallback (testnet often mirrors)
 
 function createInlineSpinner(sizePx = 14): HTMLSpanElement {
   const spinner = document.createElement('span');
@@ -89,14 +91,23 @@ export function createWalletConnectWidget(options: WalletConnectWidgetOptions = 
 
   const wallet: WalletConnectWidgetConnector = options.wallet ?? getWalletConnector();
 
-  const defaultTrackedTokens: WalletTrackedToken[] = [
-    { symbol: 'USDC', mint: MAINNET_USDC_MINT },
-  ];
-
-  const trackedTokens = options.trackedTokens ?? defaultTrackedTokens;
-
   // State for current network
   let currentNetwork = wallet.getNetwork();
+
+  const resolveDefaultTrackedTokens = (network: string): WalletTrackedToken[] => {
+    if (options.trackedTokens) return options.trackedTokens;
+    switch (network) {
+      case 'devnet':
+        return [{ symbol: 'USDC', mint: DEVNET_USDC_MINT }];
+      case 'testnet':
+        return [{ symbol: 'USDC', mint: TESTNET_USDC_MINT }];
+      case 'mainnet-beta':
+      default:
+        return [{ symbol: 'USDC', mint: MAINNET_USDC_MINT }];
+    }
+  };
+
+  let trackedTokens = resolveDefaultTrackedTokens(currentNetwork);
 
   // Set up wallet event listeners for account changes and other events
   const setupWalletEventListeners = () => {
@@ -472,19 +483,30 @@ export function createWalletConnectWidget(options: WalletConnectWidgetOptions = 
         onClick: async () => {
           try {
             const w: any = wallet as any;
-            if (typeof w.switchNetwork !== 'function') {
+            let success = false;
+
+            if (typeof w.switchNetwork === 'function') {
+              success = await w.switchNetwork(network);
+            } else {
+              // Fallback: try the default singleton connector if available
+              const fallback = getWalletConnector();
+              if (typeof (fallback as any).switchNetwork === 'function') {
+                success = await (fallback as any).switchNetwork(network);
+              }
+            }
+
+            if (!success) {
               setError('Network switching is not supported by this connector.');
               return;
             }
-            const success = await w.switchNetwork(network);
-            if (success) {
-              currentNetwork = network;
-              await refreshConnectionState();
-              await refreshBalances();
-              applyStateToUi();
-              options.onNetworkChange?.({ network });
-              networkPopover.hide();
-            }
+
+            currentNetwork = network;
+            trackedTokens = resolveDefaultTrackedTokens(currentNetwork);
+            await refreshConnectionState();
+            await refreshBalances();
+            applyStateToUi();
+            options.onNetworkChange?.({ network });
+            networkPopover.hide();
           } catch (error) {
             const message = error instanceof Error ? error.message : 'Failed to switch network';
             setError(message);
@@ -503,59 +525,24 @@ export function createWalletConnectWidget(options: WalletConnectWidgetOptions = 
   }
 
   function showAddressChooser(anchorEl: HTMLElement): void {
-    const w: any = wallet as any;
-    const keys = (typeof w.getAvailablePublicKeys === 'function'
-      ? w.getAvailablePublicKeys()
-      : wallet.getPublicKey()
-        ? [wallet.getPublicKey()!]
-        : []) as PublicKey[];
+    const currentPk = state.selectedPublicKey ?? wallet.getPublicKey();
+    if (!currentPk) return;
 
-    state.availablePublicKeys = keys;
+    const msg = document.createElement('div');
+    msg.style.fontSize = '0.82rem';
+    msg.style.padding = '0.25rem 0.5rem';
+    msg.style.textAlign = 'center';
+    msg.style.whiteSpace = 'nowrap';
+    msg.textContent = 'Copied address to clipboard';
 
-    const container = document.createElement('div');
-    container.style.display = 'flex';
-    container.style.flexDirection = 'column';
-    container.style.gap = '0.35rem';
+    void navigator.clipboard.writeText(currentPk.toBase58()).catch(() => {
+      msg.textContent = 'Copy failed, copy manually';
+    });
 
-    if (keys.length === 0) {
-      container.appendChild(createText('No addresses available', { muted: true }));
-    } else {
-      keys.forEach((k) => {
-        const isActive = state.selectedPublicKey?.toBase58() === k.toBase58();
-        const rowBtn = document.createElement('button');
-        rowBtn.type = 'button';
-        rowBtn.className = 'kwami-glass-surface';
-        rowBtn.style.display = 'flex';
-        rowBtn.style.alignItems = 'center';
-        rowBtn.style.justifyContent = 'space-between';
-        rowBtn.style.gap = '0.75rem';
-        rowBtn.style.padding = '0.55rem 0.75rem';
-        rowBtn.style.borderRadius = '14px';
-        rowBtn.style.border = '1px solid rgba(148,163,184,0.22)';
-        rowBtn.style.background = 'transparent';
-        rowBtn.style.cursor = 'pointer';
-        rowBtn.style.color = 'inherit';
-
-        const left = createText(truncateAddress(k.toBase58(), 6, 6), { mono: true });
-        const right = createText(isActive ? 'Selected' : '', { muted: true });
-        right.style.fontSize = '0.8rem';
-
-        rowBtn.appendChild(left);
-        rowBtn.appendChild(right);
-
-        rowBtn.addEventListener('click', () => {
-          state.selectedPublicKey = k;
-          void refreshBalances().then(() => applyStateToUi());
-          addressPopover.hide();
-        });
-
-        container.appendChild(rowBtn);
-      });
-    }
-
-    addressPopover.setContent(container);
+    addressPopover.setContent(msg);
     const r = anchorEl.getBoundingClientRect();
-    addressPopover.show(r.left + r.width / 2, r.bottom + 10);
+    addressPopover.show(r.left + r.width / 2, r.bottom + 8);
+    setTimeout(() => addressPopover.hide(), 1100);
   }
 
   function rebuildActions(): void {
@@ -755,14 +742,16 @@ export function createWalletConnectWidget(options: WalletConnectWidgetOptions = 
 
     const [sol, tokens] = await Promise.all([
       wallet.getSolBalance(pk),
-      typeof w.getTokenBalances === 'function' ? w.getTokenBalances(pk) : Promise.resolve([]),
+      typeof w.getTokenBalances === 'function'
+        ? (w.getTokenBalances(pk) as Promise<Array<{ mint: string; uiAmount: number; decimals: number }>>)
+        : Promise.resolve([] as Array<{ mint: string; uiAmount: number; decimals: number }>),
     ]);
 
     state.solBalance = sol;
 
     const byMint: Record<string, number | null> = {};
     for (const t of trackedTokens) {
-      const hit = tokens.find((x) => x.mint === t.mint);
+      const hit = tokens.find((x: { mint: string; uiAmount: number; decimals: number }) => x.mint === t.mint);
       byMint[t.mint] = typeof hit?.uiAmount === 'number' ? hit.uiAmount : null;
     }
     state.tokenBalancesByMint = byMint;
