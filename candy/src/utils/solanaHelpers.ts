@@ -8,6 +8,12 @@ import { TOKEN_PROGRAM_ID } from '@solana/spl-token'
 import { AnchorProvider, Program, web3 } from '@coral-xyz/anchor'
 import type { KwamiNft } from '../types/kwami_nft'
 import type { QwamiToken } from '../types/qwami_token'
+import { 
+  checkDnaExistsDirect,
+  mintKwamiDirect,
+  fetchOwnedKwamisDirect,
+  getTotalMintedCountDirect 
+} from './solanaDirectHelpers'
 
 // Get Solana connection
 export function getSolanaConnection(): Connection {
@@ -168,49 +174,15 @@ async function loadQwamiIdl(): Promise<any | null> {
  */
 export async function checkDnaExists(dna: string, wallet: any): Promise<boolean> {
   try {
-    const program = await getKwamiProgram(wallet)
+    const connection = getSolanaConnection()
     
-    if (!program) {
-      console.warn('[Solana] Program not loaded, using mock mode')
-      // In development/mock mode, simulate check
-      await new Promise(resolve => setTimeout(resolve, 500))
-      return false
-    }
-
-    // Convert DNA string to bytes array
-    const dnaBytes = Buffer.from(dna, 'hex')
-    if (dnaBytes.length !== 32) {
-      throw new Error('Invalid DNA hash - must be 32 bytes')
-    }
-
-    // Get collection authority and DNA registry PDAs
-    const programId = getKwamiProgramId()!
-    const [collectionAuthority] = PublicKey.findProgramAddressSync(
-      [Buffer.from('collection-authority')],
-      programId
-    )
-
-    const [dnaRegistry] = PublicKey.findProgramAddressSync(
-      [Buffer.from('dna-registry')],
-      programId
-    )
-
-    console.log('[Solana] Checking DNA existence on-chain...', { dna: dna.substring(0, 16) + '...' })
-
-    // Call check_dna_exists instruction
-    const exists = await program.methods
-      .checkDnaExists(Array.from(dnaBytes))
-      .accounts({
-        dnaRegistry,
-      })
-      .view()
-
+    console.log('[Solana] Checking DNA existence using direct web3.js...')
+    const exists = await checkDnaExistsDirect(connection, dna)
+    
     console.log('[Solana] DNA exists:', exists)
     return exists
   } catch (error: any) {
     console.error('[Solana] Error checking DNA:', error)
-    // In case of error, be safe and assume it might exist
-    // This prevents duplicate minting attempts
     throw new Error(`Failed to check DNA uniqueness: ${error.message}`)
   }
 }
@@ -230,90 +202,13 @@ export async function mintKwamiNft(
       throw new Error('Wallet not connected properly')
     }
 
-    const program = await getKwamiProgram(wallet)
+    const connection = getSolanaConnection()
     
-    if (!program) {
-      console.warn('[Solana] Program not loaded, using mock mode')
-      await new Promise(resolve => setTimeout(resolve, 2000))
-      const mockMintAddress = `mock_mint_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`
-      console.log('[Solana] KWAMI minted (mock):', mockMintAddress)
-      return mockMintAddress
-    }
-
-    console.log('[Solana] Minting KWAMI NFT...', {
-      wallet: wallet.publicKey.toBase58(),
-      name,
-      metadataUri: metadataUri.substring(0, 50) + '...'
-    })
-
-    // Convert DNA string to bytes array
-    const dnaBytes = Buffer.from(dna, 'hex')
-    if (dnaBytes.length !== 32) {
-      throw new Error('Invalid DNA hash - must be 32 bytes')
-    }
-
-    // Generate new mint keypair
-    const mintKeypair = Keypair.generate()
-    const mint = mintKeypair.publicKey
-
-    // Get PDAs
-    const programId = getKwamiProgramId()!
+    console.log('[Solana] Minting KWAMI using direct web3.js...')
+    const mintAddress = await mintKwamiDirect(connection, wallet, dna, metadataUri, name)
     
-    const [collectionAuthority] = PublicKey.findProgramAddressSync(
-      [Buffer.from('collection-authority')],
-      programId
-    )
-
-    const [dnaRegistry] = PublicKey.findProgramAddressSync(
-      [Buffer.from('dna-registry')],
-      programId
-    )
-
-    const [kwamiNft] = PublicKey.findProgramAddressSync(
-      [Buffer.from('kwami-nft'), mint.toBuffer()],
-      programId
-    )
-
-    // Get metadata PDA (Metaplex)
-    const TOKEN_METADATA_PROGRAM_ID = new PublicKey('metaqbxxUerdq28cj1RbAWkYQm3ybzjb6a8bt518x1s')
-    const [metadata] = PublicKey.findProgramAddressSync(
-      [
-        Buffer.from('metadata'),
-        TOKEN_METADATA_PROGRAM_ID.toBuffer(),
-        mint.toBuffer(),
-      ],
-      TOKEN_METADATA_PROGRAM_ID
-    )
-
-    // Call mint_kwami instruction
-    const tx = await program.methods
-      .mintKwami(
-        Array.from(dnaBytes),
-        name,
-        'KWAMI',
-        metadataUri
-      )
-      .accounts({
-        mint,
-        kwamiNft,
-        collectionAuthority,
-        dnaRegistry,
-        metadata,
-        owner: wallet.publicKey,
-        metadataProgram: TOKEN_METADATA_PROGRAM_ID,
-        systemProgram: SystemProgram.programId,
-        tokenProgram: TOKEN_PROGRAM_ID,
-        rent: web3.SYSVAR_RENT_PUBKEY,
-      })
-      .signers([mintKeypair])
-      .rpc()
-
-    console.log('[Solana] KWAMI minted successfully!', {
-      mint: mint.toBase58(),
-      transaction: tx
-    })
-
-    return mint.toBase58()
+    console.log('[Solana] KWAMI minted:', mintAddress)
+    return mintAddress
   } catch (error: any) {
     console.error('[Solana] Error minting KWAMI:', error)
     throw new Error(`Failed to mint KWAMI: ${error.message}`)
@@ -326,43 +221,15 @@ export async function mintKwamiNft(
  */
 export async function fetchOwnedKwamis(walletAddress: PublicKey, wallet: any): Promise<any[]> {
   try {
-    const program = await getKwamiProgram(wallet)
+    const connection = getSolanaConnection()
     
-    console.log('[Solana] Fetching owned KWAMIs for:', walletAddress.toBase58())
+    console.log('[Solana] Fetching owned KWAMIs using direct web3.js...')
+    const nfts = await fetchOwnedKwamisDirect(connection, walletAddress)
     
-    if (!program) {
-      console.warn('[Solana] Program not loaded, returning empty array')
-      return []
-    }
-
-    const programId = getKwamiProgramId()!
-
-    // Fetch all KWAMI NFT accounts owned by this wallet
-    const accounts = await program.account.kwamiNft.all([
-      {
-        memcmp: {
-          offset: 8 + 32, // After discriminator and mint pubkey
-          bytes: walletAddress.toBase58(),
-        },
-      },
-    ])
-
-    console.log('[Solana] Found', accounts.length, 'KWAMIs')
-
-    // Transform to simpler format
-    const nfts = accounts.map((account) => ({
-      mint: account.account.mint.toBase58(),
-      owner: account.account.owner.toBase58(),
-      dnaHash: Buffer.from(account.account.dnaHash).toString('hex'),
-      metadataUri: account.account.metadataUri,
-      mintedAt: new Date(account.account.mintedAt.toNumber() * 1000).toISOString(),
-      updatedAt: new Date(account.account.updatedAt.toNumber() * 1000).toISOString(),
-    }))
-
+    console.log('[Solana] Found', nfts.length, 'KWAMIs')
     return nfts
   } catch (error: any) {
     console.error('[Solana] Error fetching owned KWAMIs:', error)
-    // Return empty array on error to not break the UI
     return []
   }
 }
@@ -372,28 +239,13 @@ export async function fetchOwnedKwamis(walletAddress: PublicKey, wallet: any): P
  */
 export async function getTotalMintedCount(wallet: any): Promise<number> {
   try {
-    const program = await getKwamiProgram(wallet)
+    const connection = getSolanaConnection()
     
-    if (!program) {
-      console.warn('[Solana] Program not loaded, returning 0')
-      return 0
-    }
-
-    console.log('[Solana] Fetching total minted count...')
-
-    const programId = getKwamiProgramId()!
-    const [collectionAuthority] = PublicKey.findProgramAddressSync(
-      [Buffer.from('collection-authority')],
-      programId
-    )
-
-    // Fetch collection authority account
-    const account = await program.account.collectionAuthority.fetch(collectionAuthority)
+    console.log('[Solana] Fetching total minted count using direct web3.js...')
+    const total = await getTotalMintedCountDirect(connection)
     
-    const totalMinted = account.totalMinted.toNumber()
-    console.log('[Solana] Total minted:', totalMinted)
-
-    return totalMinted
+    console.log('[Solana] Total minted:', total)
+    return total
   } catch (error: any) {
     console.error('[Solana] Error fetching total minted count:', error)
     return 0
