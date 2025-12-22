@@ -198,6 +198,15 @@ const captureImage = async (): Promise<Buffer | null> => {
   }
 
   try {
+    // Wait for any pending renders to complete
+    await new Promise(resolve => requestAnimationFrame(resolve))
+    await new Promise(resolve => requestAnimationFrame(resolve))
+    
+    // Ensure kwami has rendered the current frame
+    if (kwami?.body) {
+      kwami.body.render()
+    }
+    
     return await captureAndPrepareForUpload(canvas.value)
   } catch (error) {
     console.error('[BlobPreview] Error capturing canvas:', error)
@@ -346,6 +355,7 @@ const initKwami = async () => {
         },
         scene: {
           background: { type: 'transparent', opacity: 1 },
+          preserveDrawingBuffer: true, // Required for canvas.toBlob() capture
         },
       },
     })

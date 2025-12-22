@@ -89,11 +89,9 @@ const wallet = useWalletStore()
 const nftStore = useNFTStore()
 
 const safeName = computed(() => {
-  const dna = nftStore.currentDna
-  if (dna && dna.length >= 10) {
-    return `KWAMI ${dna.slice(0, 8).toUpperCase()}`
-  }
-  return 'KWAMI'
+  // Use sequential numbering based on total minted
+  // The on-chain counter is incremented before minting, so use current count
+  return `KWAMI #${nftStore.totalMinted}`
 })
 
 const handleConnect = async () => {
@@ -111,6 +109,9 @@ const handleMint = async () => {
   if (nftStore.mintingStatus !== 'idle') return
 
   try {
+    // Fetch latest total minted count for accurate numbering
+    await nftStore.fetchStats()
+    
     // Slot-machine roll: randomize 12–24 times before minting
     if (props.blobPreviewRef?.rollCandyMachine) {
       await props.blobPreviewRef.rollCandyMachine({

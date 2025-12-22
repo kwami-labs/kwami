@@ -38,8 +38,35 @@ export async function blobToBuffer(blob: Blob): Promise<Buffer> {
  * Returns buffer ready for Arweave
  */
 export async function captureAndPrepareForUpload(canvas: HTMLCanvasElement): Promise<Buffer> {
+  console.log('[Canvas] Capturing canvas:', {
+    width: canvas.width,
+    height: canvas.height,
+    hasContext: !!canvas.getContext('webgl2') || !!canvas.getContext('webgl')
+  })
+  
+  // Force canvas to render current frame
+  const gl = canvas.getContext('webgl2') || canvas.getContext('webgl')
+  if (gl) {
+    gl.finish() // Wait for all rendering commands to complete
+  }
+  
   const blob = await captureCanvasAsBlob(canvas)
-  return await blobToBuffer(blob)
+  console.log('[Canvas] Blob captured:', { size: blob.size, type: blob.type })
+  
+  // Debug: Create temporary download link to verify image
+  const debugUrl = URL.createObjectURL(blob)
+  console.log('[Canvas] Debug image URL (open in new tab):', debugUrl)
+  console.log('[Canvas] To verify image, run: window.open("' + debugUrl + '")')
+  
+  const buffer = await blobToBuffer(blob)
+  console.log('[Canvas] Buffer created:', { size: buffer.length })
+  
+  // Validate buffer is not empty or too small
+  if (buffer.length < 100) {
+    throw new Error('Captured image is too small - canvas may be empty')
+  }
+  
+  return buffer
 }
 
 /**

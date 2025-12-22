@@ -11,6 +11,7 @@
   "dependencies": {
     "@coral-xyz/anchor": "^0.32.1",
     "@iconify/vue": "^4.1.1",
+    "@irys/sdk": "^0.2.11",
     "@metaplex-foundation/js": "^0.20.1",
     "@metaplex-foundation/mpl-token-metadata": "^3.2.1",
     "@solana/spl-token": "^0.4.9",
@@ -22,10 +23,12 @@
     "buffer": "^6.0.3",
     "crypto-js": "^4.2.0",
     "kwami": "^1.5.11",
+    "nft.storage": "^7.2.0",
     "pinia": "^2.1.7",
     "process": "^0.11.10",
     "stream-browserify": "^3.0.0",
     "three": "^0.169.0",
+    "tweetnacl": "^1.0.3",
     "vue": "^3.5.24",
     "vue-router": "^4.6.3"
   },

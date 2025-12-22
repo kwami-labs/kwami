@@ -1,7 +1,7 @@
 import { defineStore } from 'pinia'
 import { ref } from 'vue'
 import type { PublicKey } from '@solana/web3.js'
-import { uploadImageToArweave, uploadMetadataToArweave } from '@/utils/arweaveUpload'
+import { uploadImageToIpfs, uploadMetadataToIpfs } from '@/utils/uploadIpfs'
 import { checkDnaExists as checkDnaOnChain, mintKwamiNft, fetchOwnedKwamis, getTotalMintedCount, burnKwamiNft } from '@/utils/solanaHelpers'
 import { prepareKwamiMetadata, type SoulConfig } from '@/utils/prepareKwamiMetadata'
 import { calculateKwamiDNA } from '@/utils/calculateKwamiDNA'
@@ -133,26 +133,24 @@ export const useNFTStore = defineStore('nft', () => {
         throw new Error('This KWAMI DNA already exists! Try modifying the configuration.')
       }
       
-      // Upload image to Arweave
+      // Upload image to IPFS (instant availability!)
       mintingStatus.value = 'uploading'
       
       let imageResult
       if (imageBuffer) {
         // Use actual image buffer from canvas
-        imageResult = await uploadImageToArweave(
+        imageResult = await uploadImageToIpfs(
           imageBuffer,
           walletStore.wallet,
-          'image/png',
-          walletStore.connection
+          'image/png'
         )
       } else {
         // Fallback to mock (for testing)
         console.warn('[NFT Store] No image buffer provided, using mock upload')
-        imageResult = await uploadImageToArweave(
+        imageResult = await uploadImageToIpfs(
           Buffer.from('mock'),
-          walletStore.publicKey!.toBase58() as any,
-          'image/png',
-          walletStore.connection
+          undefined,
+          'image/png'
         )
       }
       
@@ -169,11 +167,10 @@ export const useNFTStore = defineStore('nft', () => {
         creatorAddress: walletStore.publicKey!.toBase58(),
       })
       
-      // Upload metadata to Arweave
-      const metadataResult = await uploadMetadataToArweave(
+      // Upload metadata to IPFS
+      const metadataResult = await uploadMetadataToIpfs(
         metadataJson,
-        walletStore.wallet,
-        walletStore.connection
+        walletStore.wallet
       )
       
       console.log('[NFT Store] Metadata uploaded:', metadataResult.uri)
