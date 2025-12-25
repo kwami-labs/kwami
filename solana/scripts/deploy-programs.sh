@@ -50,22 +50,18 @@ case $network_choice in
     1)
         CLUSTER="localnet"
         CLUSTER_URL="http://localhost:8899"
-        USDC_MINT="11111111111111111111111111111111"  # Placeholder for localnet
         ;;
     2)
         CLUSTER="devnet"
         CLUSTER_URL="https://api.devnet.solana.com"
-        USDC_MINT="4zMMC9srt5Ri5X14GAgXhaHii3GnPAEERYPJgZJDncDU"  # Devnet USDC
         ;;
     3)
         CLUSTER="testnet"
         CLUSTER_URL="https://api.testnet.solana.com"
-        USDC_MINT="4zMMC9srt5Ri5X14GAgXhaHii3GnPAEERYPJgZJDncDU"  # Testnet USDC (same as devnet)
         ;;
     4)
         CLUSTER="mainnet"
         CLUSTER_URL="https://api.mainnet-beta.solana.com"
-        USDC_MINT="EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v"  # Mainnet USDC
         
         echo -e "\n${RED}⚠️  WARNING: You are about to deploy to MAINNET!${NC}"
         echo -e "${YELLOW}This will use REAL SOL and the deployment is PERMANENT.${NC}"
@@ -360,7 +356,6 @@ cat > "$SUMMARY_FILE" << EOF
     }
   },
   "configuration": {
-    "usdcMint": "${USDC_MINT}",
     "clusterUrl": "${CLUSTER_URL}"
   }
 }

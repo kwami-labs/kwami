@@ -1,5 +1,5 @@
 use anchor_lang::prelude::*;
-use anchor_spl::token::{self, Token, TokenAccount, Transfer};
+use anchor_spl::token::{self, Token, TokenAccount, Transfer, CloseAccount};
 
 declare_id!("DAO11111111111111111111111111111111111111111");
 
@@ -249,6 +249,18 @@ pub mod kwami_dao {
             signer,
         );
         token::transfer(transfer_ctx, amount)?;
+
+        // Close the vault account to reclaim rent for the voter.
+        let close_ctx = CpiContext::new_with_signer(
+            ctx.accounts.token_program.to_account_info(),
+            CloseAccount {
+                account: ctx.accounts.vote_vault.to_account_info(),
+                destination: ctx.accounts.voter.to_account_info(),
+                authority: ctx.accounts.dao_state.to_account_info(),
+            },
+            signer,
+        );
+        token::close_account(close_ctx)?;
 
         vote_record.withdrawn = true;
         vote_record.qwami_amount = 0;

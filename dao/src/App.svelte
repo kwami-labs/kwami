@@ -41,6 +41,16 @@
     }
   }
 
+  const setActiveTab = (tab: Tab) => {
+    activeTab = tab
+  }
+
+  const handleNavigateEvent = (event: Event) => {
+    const detail = (event as CustomEvent).detail as Tab | undefined
+    if (!detail) return
+    if (tabs.includes(detail)) setActiveTab(detail)
+  }
+
   onMount(() => {
     document.title = 'KWAMI DAO'
     // Ensure kwami glass base styles are injected before any `.kwami-glass-surface` elements render.
@@ -48,10 +58,12 @@
     createGlassPanel({ content: '' })
     initAuth()
     window.addEventListener('keydown', handleKeyDown)
+    window.addEventListener('kwami:navigate', handleNavigateEvent as EventListener)
   })
 
   onDestroy(() => {
     window.removeEventListener('keydown', handleKeyDown)
+    window.removeEventListener('kwami:navigate', handleNavigateEvent as EventListener)
   })
 </script>
 

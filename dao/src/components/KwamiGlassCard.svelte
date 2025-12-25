@@ -33,6 +33,11 @@
     contentHost.style.display = ''
   })
 
+  $: if (card) {
+    card.setTitle(title)
+    card.setHeaderRight(headerRight)
+  }
+
   onDestroy(() => {
     card?.element.remove()
     card = null
