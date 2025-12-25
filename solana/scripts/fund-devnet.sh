@@ -159,9 +159,9 @@ fi
 
 # Show next steps
 echo "Next Steps:"
-echo "1. Deploy programs: cd solana/anchor/qwami-token && anchor deploy"
-echo "2. Initialize token: ./solana/scripts/deploy-qwami-token.sh"
-echo "3. Initialize collection: ./solana/scripts/initialize-collection.sh"
+echo "1. Deploy programs: ./solana/scripts/deploy-programs.sh"
+echo "2. Initialize programs: ./solana/scripts/initialize-programs.sh"
+echo "3. (Optional) Deploy+initialize KWAMI only: ./solana/scripts/initialize-collection.sh"
 echo ""
 
 exit 0

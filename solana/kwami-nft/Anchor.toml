@@ -1,0 +1,22 @@
+[toolchain]
+anchor_version = "0.32.1"
+
+[features]
+seeds = false
+skip-lint = false
+
+[programs.devnet]
+kwami_nft = "DoAJAykwUrSDjraDegK4AJ1GCoztLYrTvKhUJHaFbSsD"
+
+[programs.localnet]
+kwami_nft = "DoAJAykwUrSDjraDegK4AJ1GCoztLYrTvKhUJHaFbSsD"
+
+[registry]
+url = "https://api.apr.dev"
+
+[provider]
+cluster = "devnet"
+wallet = "~/.config/solana/id.json"
+
+[scripts]
+test = "npm run test"

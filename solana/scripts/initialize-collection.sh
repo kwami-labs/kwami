@@ -5,6 +5,11 @@
 
 set -e  # Exit on error
 
+# Resolve solana/ dir (so this script can be run from anywhere)
+SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )"
+SOLANA_DIR="$(cd "$SCRIPT_DIR/.." &> /dev/null && pwd)"
+KWAMI_DIR="${SOLANA_DIR}/kwami-nft"
+
 # Colors for output
 RED='\033[0;31m'
 GREEN='\033[0;32m'
@@ -57,7 +62,7 @@ if [[ $CLUSTER != *"devnet"* ]] && [[ $CLUSTER != *"localhost"* ]]; then
 fi
 
 # Check balance
-if (( $(echo "$BALANCE < 2" | bc -l) )); then
+if awk -v a="$BALANCE" 'BEGIN { exit !(a+0 < 2) }'; then
     echo -e "${YELLOW}⚠️  Low balance detected. Consider funding your wallet.${NC}"
     echo "   You can request an airdrop: solana airdrop 2"
     read -p "Continue anyway? (y/N): " -n 1 -r
@@ -70,7 +75,7 @@ fi
 
 # Navigate to Kwami NFT program
 echo -e "${YELLOW}📦 Building Kwami NFT program...${NC}"
-cd "$(dirname "$0")/../anchor/kwami-nft"
+cd "$KWAMI_DIR"
 
 # Clean and build
 anchor clean
@@ -102,7 +107,7 @@ echo ""
 
 # Update declare_id in lib.rs
 echo -e "${YELLOW}📝 Updating program ID in source code...${NC}"
-sed -i "s/declare_id!(\".*\")/declare_id!(\"$PROGRAM_ID\")/" programs/kwami-nft/src/lib.rs
+sed -i "s/declare_id!(\".*\")/declare_id!(\"$PROGRAM_ID\")/" programs/src/lib.rs
 
 # Rebuild with correct program ID
 echo -e "${YELLOW}🔨 Rebuilding with correct program ID...${NC}"
@@ -115,35 +120,35 @@ anchor deploy
 echo -e "${GREEN}✅ Program redeployed with correct ID${NC}"
 echo ""
 
-# Generate collection mint keypair
-echo -e "${YELLOW}🔑 Generating collection mint keypair...${NC}"
-COLLECTION_KEYPAIR="/tmp/kwami-collection-$(date +%s).json"
-solana-keygen new --no-bip39-passphrase --outfile "$COLLECTION_KEYPAIR"
-COLLECTION_MINT=$(solana-keygen pubkey "$COLLECTION_KEYPAIR")
+echo -e "${YELLOW}🧩 Initializing KWAMI program (creates collection mint + PDAs)...${NC}"
 
-echo -e "${GREEN}✅ Collection mint: $COLLECTION_MINT${NC}"
-echo "   Keypair saved to: $COLLECTION_KEYPAIR"
-echo ""
+if ! command -v npx &> /dev/null; then
+    echo -e "${RED}❌ Node.js/npx not found. Cannot run initialization.${NC}"
+    echo -e "${YELLOW}Run manually:${NC} cd ${KWAMI_DIR} && npm install && npm run initialize"
+    exit 1
+fi
 
-# TODO: Initialize collection using Anchor client
-# This would require a TypeScript/JavaScript script
-echo -e "${YELLOW}📋 Next steps:${NC}"
-echo "   1. Run the collection initialization script:"
-echo "      cd solana/metaplex"
-echo "      ts-node utils/initializeCollection.ts"
-echo ""
-echo "   2. Update your .env file with:"
-echo "      NUXT_PUBLIC_KWAMI_NFT_PROGRAM_ID=$PROGRAM_ID"
-echo "      NUXT_PUBLIC_KWAMI_COLLECTION_MINT=$COLLECTION_MINT"
-echo ""
-echo "   3. Save the collection keypair securely:"
-echo "      mv $COLLECTION_KEYPAIR ~/kwami-collection.json"
-echo ""
+# Ensure JS deps are installed (safe if already installed)
+if [ ! -d node_modules ]; then
+    npm install
+fi
+
+ANCHOR_PROVIDER_URL="$CLUSTER" ANCHOR_WALLET="$WALLET" npm run initialize
+
+CLUSTER_NAME=$(
+  if echo "$CLUSTER" | grep -qE 'localhost|127\.0\.0\.1'; then echo "localnet";
+  elif echo "$CLUSTER" | grep -q 'devnet'; then echo "devnet";
+  elif echo "$CLUSTER" | grep -q 'testnet'; then echo "testnet";
+  elif echo "$CLUSTER" | grep -q 'mainnet'; then echo "mainnet";
+  else echo "unknown"; fi
+)
+
+echo -e "${GREEN}✅ Initialization complete.${NC}"
+echo -e "${YELLOW}Addresses:${NC} ${BLUE}${KWAMI_DIR}/${CLUSTER_NAME}-addresses.json${NC}"
 
 echo -e "${GREEN}========================================${NC}"
 echo -e "${GREEN}  ✅ Kwami NFT Program Deployed${NC}"
 echo -e "${GREEN}========================================${NC}"
 echo ""
 echo -e "${BLUE}Program ID: $PROGRAM_ID${NC}"
-echo -e "${BLUE}Collection Mint: $COLLECTION_MINT${NC}"
 echo ""
