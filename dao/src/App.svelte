@@ -1,5 +1,6 @@
 <script lang="ts">
   import { onDestroy, onMount } from 'svelte'
+  import { createGlassPanel } from 'kwami/ui'
   import BackgroundRings from '@/components/BackgroundRings.svelte'
   import KwamiLogo from '@/components/KwamiLogo.svelte'
   import ThemeToggle from '@/components/ThemeToggle.svelte'
@@ -42,6 +43,9 @@
 
   onMount(() => {
     document.title = 'KWAMI DAO'
+    // Ensure kwami glass base styles are injected before any `.kwami-glass-surface` elements render.
+    // We don't need to mount this element; calling it is enough to register styles.
+    createGlassPanel({ content: '' })
     initAuth()
     window.addEventListener('keydown', handleKeyDown)
   })
