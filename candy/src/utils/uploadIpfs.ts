@@ -29,7 +29,10 @@ export async function uploadImageToIpfs(
 
     // Create FormData for Pinata API
     const formData = new FormData()
-    const blob = new Blob([data], { type: contentType })
+    // Convert Buffer -> ArrayBuffer to satisfy DOM Blob typings (and avoid SharedArrayBuffer typing issues)
+    const bytes = new Uint8Array(data)
+    const ab = bytes.buffer.slice(bytes.byteOffset, bytes.byteOffset + bytes.byteLength)
+    const blob = new Blob([ab], { type: contentType })
     const file = new File([blob], 'kwami.png', { type: contentType })
     formData.append('file', file)
     
@@ -127,7 +130,9 @@ export async function uploadGifToIpfs(
     console.log('[IPFS] Uploading GIF...', { size: gifBuffer.length })
 
     const formData = new FormData()
-    const blob = new Blob([gifBuffer], { type: 'image/gif' })
+    const bytes = new Uint8Array(gifBuffer)
+    const ab = bytes.buffer.slice(bytes.byteOffset, bytes.byteOffset + bytes.byteLength)
+    const blob = new Blob([ab], { type: 'image/gif' })
     const file = new File([blob], 'kwami-animated.gif', { type: 'image/gif' })
     formData.append('file', file)
     
@@ -173,7 +178,9 @@ export async function upload3DModelToIpfs(
     console.log('[IPFS] Uploading 3D model...', { size: modelBuffer.length })
 
     const formData = new FormData()
-    const blob = new Blob([modelBuffer], { type: 'model/gltf-binary' })
+    const bytes = new Uint8Array(modelBuffer)
+    const ab = bytes.buffer.slice(bytes.byteOffset, bytes.byteOffset + bytes.byteLength)
+    const blob = new Blob([ab], { type: 'model/gltf-binary' })
     const file = new File([blob], 'kwami-model.glb', { type: 'model/gltf-binary' })
     formData.append('file', file)
     

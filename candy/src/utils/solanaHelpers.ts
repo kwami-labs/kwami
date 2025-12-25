@@ -6,8 +6,6 @@
 import { Connection, PublicKey, Transaction, SystemProgram, LAMPORTS_PER_SOL, Keypair } from '@solana/web3.js'
 import { TOKEN_PROGRAM_ID } from '@solana/spl-token'
 import { AnchorProvider, Program, web3 } from '@coral-xyz/anchor'
-import type { KwamiNft } from '../types/kwami_nft'
-import type { QwamiToken } from '../types/qwami_token'
 import { 
   checkDnaExistsDirect,
   mintKwamiDirect,
@@ -79,7 +77,7 @@ export function getAnchorProvider(wallet: any): AnchorProvider | null {
 /**
  * Get KWAMI NFT Program instance
  */
-export async function getKwamiProgram(wallet: any): Promise<Program<KwamiNft> | null> {
+export async function getKwamiProgram(wallet: any): Promise<Program<any> | null> {
   try {
     const programId = getKwamiProgramId()
     if (!programId) return null
@@ -96,10 +94,14 @@ export async function getKwamiProgram(wallet: any): Promise<Program<KwamiNft> | 
 
     // Use the address from IDL if available, otherwise use env config
     const idlAddress = idl.address || idl.metadata?.address
-    const finalProgramId = idlAddress ? new PublicKey(idlAddress) : programId
-    
-    const program = new Program(idl as any, finalProgramId, provider)
-    return program as Program<KwamiNft>
+    // Anchor v0.32 expects the program address to be present on the IDL (idl.address / idl.metadata.address).
+    // If missing, we still proceed (some flows use the direct web3.js helpers instead).
+    if (!idlAddress) {
+      console.warn('[Anchor] IDL missing address; Anchor Program may not work as expected')
+    }
+
+    const program = new Program(idl as any, provider) as unknown as Program<any>
+    return program
   } catch (error) {
     console.error('[Anchor] Error loading KWAMI program:', error)
     return null
@@ -109,7 +111,7 @@ export async function getKwamiProgram(wallet: any): Promise<Program<KwamiNft> | 
 /**
  * Get QWAMI Token Program instance
  */
-export async function getQwamiProgram(wallet: any): Promise<Program<QwamiToken> | null> {
+export async function getQwamiProgram(wallet: any): Promise<Program<any> | null> {
   try {
     const programId = getQwamiProgramId()
     if (!programId) return null
@@ -125,10 +127,12 @@ export async function getQwamiProgram(wallet: any): Promise<Program<QwamiToken> 
 
     // Use the address from IDL if available, otherwise use env config
     const idlAddress = idl.address || idl.metadata?.address
-    const finalProgramId = idlAddress ? new PublicKey(idlAddress) : programId
-    
-    const program = new Program(idl as any, finalProgramId, provider)
-    return program as Program<QwamiToken>
+    if (!idlAddress) {
+      console.warn('[Anchor] IDL missing address; Anchor Program may not work as expected')
+    }
+
+    const program = new Program(idl as any, provider) as unknown as Program<any>
+    return program
   } catch (error) {
     console.error('[Anchor] Error loading QWAMI program:', error)
     return null
@@ -277,6 +281,7 @@ export async function burnKwamiNft(
 
     const mint = new PublicKey(mintAddress)
     const programId = getKwamiProgramId()!
+    const collectionMint = new PublicKey(import.meta.env.VITE_COLLECTION_MINT)
 
     // Get PDAs
     const [kwamiNft] = PublicKey.findProgramAddressSync(
@@ -285,12 +290,19 @@ export async function burnKwamiNft(
     )
 
     const [dnaRegistry] = PublicKey.findProgramAddressSync(
-      [Buffer.from('dna-registry')],
+      [Buffer.from('dna-registry'), collectionMint.toBuffer()],
+      programId
+    )
+
+    const [treasury] = PublicKey.findProgramAddressSync(
+      [Buffer.from('kwami-treasury')],
       programId
     )
 
     // Call burn_kwami instruction
-    const tx = await program.methods
+    // Anchor's generated method/account typings can become extremely deep and trip TS2589.
+    // We intentionally cast this call-site to `any` to keep build stability; runtime behavior is unchanged.
+    const tx = await (program as any).methods
       .burnKwami()
       .accounts({
         kwamiNft,
@@ -298,7 +310,7 @@ export async function burnKwamiNft(
         dnaRegistry,
         owner: wallet.publicKey,
         tokenProgram: TOKEN_PROGRAM_ID,
-      })
+      } as any)
       .rpc()
 
     console.log('[Solana] KWAMI burned successfully', { transaction: tx })
@@ -338,12 +350,13 @@ export async function updateKwamiMetadata(
     )
 
     // Call update_metadata instruction
-    const tx = await program.methods
+    // Avoid TS2589 (Anchor typings can get excessively deep)
+    const tx = await (program as any).methods
       .updateMetadata(newMetadataUri)
       .accounts({
         kwamiNft,
         owner: wallet.publicKey,
-      })
+      } as any)
       .rpc()
 
     console.log('[Solana] Metadata updated successfully', { transaction: tx })

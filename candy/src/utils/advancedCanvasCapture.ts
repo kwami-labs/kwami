@@ -10,19 +10,11 @@ import {
   MeshStandardMaterial, 
   AnimationClip, 
   NumberKeyframeTrack,
-  VectorKeyframeTrack,
   Color,
-  WebGLRenderTarget,
-  OrthographicCamera,
-  CanvasTexture,
-  SphereGeometry,
   BufferGeometry,
   BufferAttribute,
-  LinearFilter,
-  RGBAFormat,
   Vector3
 } from 'three'
-import { createNoise3D } from 'simplex-noise'
 import type { Scene, Mesh, WebGLRenderer } from 'three'
 
 export interface CaptureResult {
@@ -99,170 +91,166 @@ async function captureAnimatedGif(
 }
 
 /**
- * Compute displaced geometry by EXACTLY replicating the blob's noise displacement
- * This matches the calculation in animation.ts lines 187-283
+ * Snapshot the blob geometry exactly as currently rendered.
+ *
+ * Important: the Kwami blob animation displaces vertices on the CPU every frame
+ * (see `kwami/src/core/body/blob/animation.ts`). So the mesh geometry at capture
+ * time already matches what you see in BlobPreview; we should export that snapshot
+ * rather than re-simulating noise with guessed parameters.
  */
-function computeDisplacedGeometry(blobMesh: Mesh): BufferGeometry {
-  const noise3D = createNoise3D()
-  const geometry = blobMesh.geometry.clone()
-  const positions = geometry.attributes.position
-  const vertex = new Vector3()
-  
-  // Time calculation (matching animation.ts line 164)
-  const reduction = 0.00003
-  const perf = performance.now() * reduction
-  
-  // Default spike values (these should ideally come from blob config)
-  const spikeX = 0.3
-  const spikeY = 0.3
-  const spikeZ = 0.3
-  const amplitudeX = 0.8
-  const amplitudeY = 0.8
-  const amplitudeZ = 0.8
-  const timeX = 1.0
-  const timeY = 1.0
-  const timeZ = 1.0
-  
-  // Calculate time factors (lines 178-180)
-  const tX = perf * timeX
-  const tY = perf * timeY
-  const tZ = perf * timeZ
-  
-  // Calculate noise frequencies (lines 188-190)
-  const baseFreqX = Math.max(0.025, spikeX)
-  const baseFreqY = Math.max(0.025, spikeY)
-  const baseFreqZ = Math.max(0.025, spikeZ)
-  
-  // Apply EXACT displacement to each vertex (lines 193-283)
-  for (let i = 0; i < positions.count; i++) {
-    vertex.fromBufferAttribute(positions, i)
-    const direction = vertex.clone().normalize()
-    
-    // Generate multi-layered noise (lines 230-251)
-    const noise1 = noise3D(
-      direction.x * baseFreqX * 0.5 + tX,
-      direction.y * baseFreqY * 0.5 + tY,
-      direction.z * baseFreqZ * 0.5 + tZ,
-    )
-    
-    const noise2 = noise3D(
-      direction.x * baseFreqX * 1.2 + tX * 1.2,
-      direction.y * baseFreqY * 1.2 + tY * 1.2,
-      direction.z * baseFreqZ * 1.2 + tZ * 1.2,
-    )
-    
-    const noise3 = noise3D(
-      direction.x * baseFreqX * 0.3 + tX * 0.8,
-      direction.y * baseFreqY * 0.3 + tY * 0.8,
-      direction.z * baseFreqZ * 0.3 + tZ * 0.8,
-    )
-    
-    // Combine noises with frequency weighting (line 251)
-    const finalNoise = noise1 * 0.5 + noise2 * 0.3 + noise3 * 0.2
-    
-    // Base amplitude (line 256 - idle state)
-    const baseAmplitude = 0.16
-    
-    // Apply per-axis amplitude modulation (lines 259-264)
-    const amplitudeMultiplier =
-      Math.abs(direction.x) * amplitudeX +
-      Math.abs(direction.y) * amplitudeY +
-      Math.abs(direction.z) * amplitudeZ
-    
-    const amplitude = baseAmplitude * amplitudeMultiplier
-    
-    // Normal/Speaking mode displacement (line 282 - idle, no audio)
-    const speakingDisplacement = amplitude * finalNoise
-    
-    // Apply displacement along vertex direction
-    const displacedVertex = direction.multiplyScalar(1 + speakingDisplacement)
-    positions.setXYZ(i, displacedVertex.x, displacedVertex.y, displacedVertex.z)
+function snapshotBlobGeometry(blobMesh: Mesh): BufferGeometry {
+  const geometry = blobMesh.geometry.clone() as BufferGeometry
+
+  const positions = geometry.getAttribute('position')
+  if (!positions) {
+    throw new Error('Blob mesh has no position attribute to export')
   }
-  
-  positions.needsUpdate = true
+
+  // Ensure normals exist and match the displaced vertex positions
   geometry.computeVertexNormals()
-  
-  console.log('[Geometry] Applied EXACT noise displacement to', positions.count, 'vertices')
+
+  console.log('[Geometry] Snapshotted blob geometry:', positions.count, 'vertices')
   return geometry
 }
 
 /**
- * Bake the shader to a texture by rendering it
+ * Basic smoothstep implementation (GLSL compatible)
  */
-function bakeShaderToTexture(
-  blobMesh: Mesh,
-  renderer: WebGLRenderer | undefined,
-  scene: Scene,
-  canvas: HTMLCanvasElement
-): CanvasTexture {
-  console.log('[Texture Bake] Starting texture baking...')
-  
-  if (!renderer) {
-    console.warn('[Texture Bake] No renderer provided, using canvas snapshot')
-    // Fallback: copy WebGL canvas to 2D canvas for texture
-    const textureCanvas = document.createElement('canvas')
-    textureCanvas.width = canvas.width
-    textureCanvas.height = canvas.height
-    const ctx = textureCanvas.getContext('2d')
-    if (ctx) {
-      ctx.drawImage(canvas, 0, 0)
-      console.log('[Texture Bake] ✅ Created texture from canvas snapshot')
-      return new CanvasTexture(textureCanvas)
-    }
-    throw new Error('Cannot create 2D context for texture')
+function smoothstep(edge0: number, edge1: number, x: number): number {
+  const t = Math.max(0, Math.min(1, (x - edge0) / (edge1 - edge0)))
+  return t * t * (3 - 2 * t)
+}
+
+function lerp(a: number, b: number, t: number): number {
+  return a + (b - a) * t
+}
+
+type TricolorSubtype = 'poles' | 'donut' | 'vintage' | 'unknown'
+
+function detectTricolorSubtype(fragmentShader: string | undefined): TricolorSubtype {
+  if (!fragmentShader) return 'unknown'
+  if (fragmentShader.includes('vintageStripes')) return 'vintage'
+  if (fragmentShader.includes('normalizedY')) return 'donut'
+  if (fragmentShader.includes('angle=atan') || fragmentShader.includes('float angle=atan')) return 'poles'
+  return 'unknown'
+}
+
+function getShaderUniformColor(material: any, uniformName: string, fallback: Color): Color {
+  const v = material?.uniforms?.[uniformName]?.value
+  if (v && typeof v === 'object' && 'r' in v && 'g' in v && 'b' in v) {
+    return v as Color
   }
-  
-  // Create a render target for baking
-  const textureSize = 1024
-  const renderTarget = new WebGLRenderTarget(textureSize, textureSize, {
-    format: RGBAFormat,
-    minFilter: LinearFilter,
-    magFilter: LinearFilter,
-  })
-  
-  // Create temporary camera for rendering
-  const camera = new OrthographicCamera(-2, 2, 2, -2, 0.1, 100)
-  camera.position.set(0, 0, 5)
-  camera.lookAt(0, 0, 0)
-  
-  // Store original settings
-  const originalRenderTarget = renderer.getRenderTarget()
-  const originalClearColor = renderer.getClearColor(new Color())
-  const originalClearAlpha = renderer.getClearAlpha()
-  
-  // Render to texture
-  renderer.setRenderTarget(renderTarget)
-  renderer.setClearColor(0x000000, 0)
-  renderer.clear()
-  renderer.render(scene, camera)
-  
-  // Read pixels from render target
-  const pixelBuffer = new Uint8Array(textureSize * textureSize * 4)
-  renderer.readRenderTargetPixels(renderTarget, 0, 0, textureSize, textureSize, pixelBuffer)
-  
-  // Restore original settings
-  renderer.setRenderTarget(originalRenderTarget)
-  renderer.setClearColor(originalClearColor, originalClearAlpha)
-  
-  // Create canvas from pixel data
-  const textureCanvas = document.createElement('canvas')
-  textureCanvas.width = textureSize
-  textureCanvas.height = textureSize
-  const ctx = textureCanvas.getContext('2d')!
-  const imageData = ctx.createImageData(textureSize, textureSize)
-  imageData.data.set(pixelBuffer)
-  ctx.putImageData(imageData, 0, 0)
-  
-  // Clean up
-  renderTarget.dispose()
-  
-  console.log('[Texture Bake] ✅ Texture baked successfully')
-  return new CanvasTexture(textureCanvas)
+  return fallback
+}
+
+function getShaderUniformNumber(material: any, uniformName: string, fallback: number): number {
+  const v = material?.uniforms?.[uniformName]?.value
+  return typeof v === 'number' ? v : fallback
+}
+
+function bakeTricolorVertexColors(
+  geometry: BufferGeometry,
+  subtype: TricolorSubtype,
+  c1: Color,
+  c2: Color,
+  c3: Color,
+): void {
+  const positions = geometry.getAttribute('position')
+  if (!positions) throw new Error('Geometry has no positions for vertex color baking')
+
+  const colors = new Float32Array(positions.count * 3)
+
+  const p = new Vector3()
+  const twoPi = Math.PI * 2
+
+  const writeColor = (i: number, r: number, g: number, b: number) => {
+    const idx = i * 3
+    colors[idx + 0] = r
+    colors[idx + 1] = g
+    colors[idx + 2] = b
+  }
+
+  for (let i = 0; i < positions.count; i++) {
+    p.fromBufferAttribute(positions as any, i)
+
+    let r = c1.r
+    let g = c1.g
+    let b = c1.b
+
+    if (subtype === 'donut') {
+      // From `kwami/src/core/body/blob/skins/donut/fragment.glsl`
+      const normalizedY = (p.y + 1.0) / 2.0
+      if (normalizedY > 0.66) {
+        const t = (normalizedY - 0.66) / 0.34
+        const s = smoothstep(0.0, 1.0, t)
+        r = lerp(c2.r, c1.r, s)
+        g = lerp(c2.g, c1.g, s)
+        b = lerp(c2.b, c1.b, s)
+      } else if (normalizedY > 0.33) {
+        r = c2.r; g = c2.g; b = c2.b
+      } else {
+        const t = normalizedY / 0.33
+        const s = smoothstep(0.0, 1.0, t)
+        r = lerp(c3.r, c2.r, s)
+        g = lerp(c3.g, c2.g, s)
+        b = lerp(c3.b, c2.b, s)
+      }
+    } else if (subtype === 'vintage') {
+      // From `kwami/src/core/body/blob/skins/vintage/fragment.glsl`
+      const vintageStripes = (x: number, frequency: number, width: number) => {
+        const m = ((x * frequency + 0.5) % 1 + 1) % 1
+        return smoothstep(0.5 - width * 0.5, 0.5 + width * 0.5, m)
+      }
+      const stripeX = vintageStripes(p.x, 5.0, 0.1)
+      const stripeY = vintageStripes(p.y, 5.0, 0.1)
+      // stripeZ exists in shader but is not used for mixing there
+
+      // color = mix(c1, c2, stripeX)
+      r = lerp(c1.r, c2.r, stripeX)
+      g = lerp(c1.g, c2.g, stripeX)
+      b = lerp(c1.b, c2.b, stripeX)
+
+      // color = mix(color, c3, stripeY * 0.5)
+      const t2 = stripeY * 0.5
+      r = lerp(r, c3.r, t2)
+      g = lerp(g, c3.g, t2)
+      b = lerp(b, c3.b, t2)
+    } else {
+      // Default to poles (or unknown): `kwami/src/core/body/blob/skins/poles/fragment.glsl`
+      const angle = Math.atan2(p.y, p.x)
+      const hue = angle / twoPi + 0.5
+      if (hue < 1 / 3) {
+        const t = 3 * hue
+        r = lerp(c1.r, c2.r, t)
+        g = lerp(c1.g, c2.g, t)
+        b = lerp(c1.b, c2.b, t)
+      } else if (hue < 2 / 3) {
+        const t = 3 * (hue - 1 / 3)
+        r = lerp(c2.r, c3.r, t)
+        g = lerp(c2.g, c3.g, t)
+        b = lerp(c2.b, c3.b, t)
+      } else {
+        const t = 3 * (hue - 2 / 3)
+        r = lerp(c3.r, c1.r, t)
+        g = lerp(c3.g, c1.g, t)
+        b = lerp(c3.b, c1.b, t)
+      }
+    }
+
+    writeColor(i, r, g, b)
+  }
+
+  geometry.setAttribute('color', new BufferAttribute(colors, 3))
 }
 
 /**
- * Export 3D model as GLB file with baked texture
- * This creates a perfect visual match with the preview
+ * Export 3D model as GLB.
+ *
+ * Notes:
+ * - The blob "shape" is CPU-displaced per-frame; we snapshot geometry as-is.
+ * - Baking the full screen into a texture will not align with UVs, so we bake
+ *   the procedural tricolor shader into vertex colors (UV-free) for a closer match.
+ * - If the blob is using a real `backgroundTexture` (UV-based), we reuse that texture.
  */
 async function export3DModel(
   scene: Scene,
@@ -278,27 +266,54 @@ async function export3DModel(
     })
     
     try {
-      console.log('[3D Export] Baking shader to texture...')
-      
-      // Bake the shader appearance to a texture
-      const bakedTexture = bakeShaderToTexture(blobMesh, renderer, scene, canvas)
-      bakedTexture.flipY = false  // Fix texture orientation
-      
-      // Compute displaced geometry on CPU (replicating shader displacement)
-      console.log('[3D Export] Computing displaced geometry...')
-      const geometry = computeDisplacedGeometry(blobMesh)
+      // Snapshot geometry exactly as currently rendered in BlobPreview
+      console.log('[3D Export] Snapshotting blob geometry...')
+      const geometry = snapshotBlobGeometry(blobMesh)
       
       console.log('[3D Export] Displaced geometry:', geometry.attributes.position.count, 'vertices')
-      
-      // Clone the mesh with textured material
+
+      const srcMaterial: any = Array.isArray(blobMesh.material) ? blobMesh.material[0] : blobMesh.material
+      const subtype = detectTricolorSubtype(srcMaterial?.fragmentShader)
+
+      // If the shader is using a real UV-based background texture, reuse it directly.
+      const useBackgroundTexture = Boolean(srcMaterial?.uniforms?.useBackgroundTexture?.value)
+      const backgroundTexture = srcMaterial?.uniforms?.backgroundTexture?.value
+
+      const opacity = getShaderUniformNumber(srcMaterial, 'opacity', 1.0)
+      const shininess = getShaderUniformNumber(srcMaterial, 'shininess', 50)
+
+      const materialParams: any = {
+        side: 2, // DoubleSide
+        transparent: opacity < 0.999,
+        opacity,
+        // Rough conversion: shader shininess (0-200) -> PBR roughness (1-0)
+        roughness: Math.max(0.05, Math.min(0.95, 1 - shininess / 200)),
+        metalness: 0.05,
+      }
+
+      if (useBackgroundTexture && backgroundTexture) {
+        // Clone to avoid mutating the live preview texture state.
+        const map = backgroundTexture.clone ? backgroundTexture.clone() : backgroundTexture
+        if (map) {
+          map.flipY = false
+          map.needsUpdate = true
+          materialParams.map = map
+        }
+        console.log('[3D Export] Using backgroundTexture map for export')
+      } else {
+        const c1 = getShaderUniformColor(srcMaterial, '_color1', new Color('#ff0000'))
+        const c2 = getShaderUniformColor(srcMaterial, '_color2', new Color('#00ff00'))
+        const c3 = getShaderUniformColor(srcMaterial, '_color3', new Color('#0000ff'))
+
+        bakeTricolorVertexColors(geometry, subtype, c1, c2, c3)
+        materialParams.vertexColors = true
+        console.log('[3D Export] Baked vertex colors for export', { subtype })
+      }
+
+      // Clone the mesh with export-friendly PBR material
       const exportMesh = new ThreeMesh(
         geometry,
-        new MeshStandardMaterial({
-          map: bakedTexture,
-          roughness: 0.4,
-          metalness: 0.3,
-          side: 2, // DoubleSide
-        })
+        new MeshStandardMaterial(materialParams)
       )
       
       exportMesh.name = 'KWAMI_Blob'
@@ -350,7 +365,10 @@ async function export3DModel(
       const exporter = new GLTFExporter()
       
       exporter.parse(
-        exportMesh,
+        // NOTE: This repo currently has multiple `@types/three` copies (root + `candy/`),
+        // which makes the GLTFExporter typings incompatible with Mesh from this module.
+        // Runtime is fine; cast to avoid the type mismatch.
+        exportMesh as any,
         (result) => {
           console.log('[3D Export] Parse complete, result type:', typeof result)
           
@@ -374,7 +392,8 @@ async function export3DModel(
           binary: true,
           embedImages: true,
           truncateDrawRange: false,
-          animations: [clip],  // Include rotation animation
+          // See note above about multiple `@types/three` copies; cast to keep TS happy.
+          animations: [clip as any],  // Include rotation animation
         }
       )
     } catch (error) {

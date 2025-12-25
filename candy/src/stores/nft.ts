@@ -198,7 +198,6 @@ export const useNFTStore = defineStore('nft', () => {
         metadataJson.properties.files.push({
           uri: imageResult.uri,
           type: 'image/png',
-          cdn: false
         })
       }
       

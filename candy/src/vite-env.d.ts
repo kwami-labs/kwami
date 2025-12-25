@@ -17,3 +17,6 @@ interface ImportMetaEnv {
 interface ImportMeta {
   readonly env: ImportMetaEnv
 }
+
+// `gifenc` ships without TypeScript types in this repo; declare it as `any`.
+declare module 'gifenc';

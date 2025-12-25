@@ -10,7 +10,7 @@
     {
       "name": "burn_kwami",
       "docs": [
-        "Burn Kwami NFT and remove DNA from registry (with 50% QWAMI refund)",
+        "Burn Kwami NFT and remove DNA from registry (with 50% SOL refund)",
         "This allows re-minting with a different DNA"
       ],
       "discriminator": [
@@ -113,30 +113,12 @@
           }
         },
         {
-          "name": "user_qwami_account",
-          "docs": [
-            "User's QWAMI token account (receives refund)"
-          ],
-          "writable": true
-        },
-        {
-          "name": "qwami_vault",
-          "docs": [
-            "Treasury's QWAMI vault (pays refund)"
-          ],
-          "writable": true
-        },
-        {
           "name": "owner",
           "writable": true,
           "signer": true,
           "relations": [
             "kwami_nft"
           ]
-        },
-        {
-          "name": "token_program",
-          "address": "TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA"
         }
       ],
       "args": []
@@ -317,19 +299,6 @@
           }
         },
         {
-          "name": "qwami_vault",
-          "docs": [
-            "QWAMI token vault must be created off-chain and owned by the `treasury` PDA"
-          ],
-          "writable": true
-        },
-        {
-          "name": "qwami_mint",
-          "docs": [
-            "QWAMI token mint"
-          ]
-        },
-        {
           "name": "payer",
           "writable": true,
           "signer": true
@@ -337,10 +306,6 @@
         {
           "name": "system_program",
           "address": "11111111111111111111111111111111"
-        },
-        {
-          "name": "token_program",
-          "address": "TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA"
         }
       ],
       "args": []
@@ -348,7 +313,7 @@
     {
       "name": "mint_kwami",
       "docs": [
-        "Mint a new Kwami NFT with unique DNA validation (requires QWAMI payment)"
+        "Mint a new Kwami NFT with unique DNA validation (requires SOL payment)"
       ],
       "discriminator": [
         200,
@@ -486,20 +451,6 @@
               }
             ]
           }
-        },
-        {
-          "name": "user_qwami_account",
-          "docs": [
-            "User's QWAMI token account (pays minting cost)"
-          ],
-          "writable": true
-        },
-        {
-          "name": "qwami_vault",
-          "docs": [
-            "Treasury's QWAMI vault (receives minting payment)"
-          ],
-          "writable": true
         },
         {
           "name": "metadata",
@@ -855,38 +806,28 @@
     },
     {
       "code": 6008,
-      "name": "InsufficientQwamiBalance",
-      "msg": "Insufficient QWAMI balance to mint this NFT. Check the required amount."
+      "name": "InsufficientSolBalance",
+      "msg": "Insufficient SOL balance to mint this NFT."
     },
     {
       "code": 6009,
-      "name": "InvalidQwamiMint",
-      "msg": "Invalid QWAMI mint address. Please use the official QWAMI token."
-    },
-    {
-      "code": 6010,
-      "name": "InvalidQwamiAccount",
-      "msg": "Invalid QWAMI token account. Account must be owned by the signer."
-    },
-    {
-      "code": 6011,
-      "name": "InvalidTreasuryVault",
-      "msg": "Invalid treasury vault. Please use the official treasury account."
-    },
-    {
-      "code": 6012,
       "name": "InvalidCollectionMintAuthority",
       "msg": "Invalid collection mint authority"
     },
     {
-      "code": 6013,
+      "code": 6010,
       "name": "InvalidCollectionMintDecimals",
       "msg": "Invalid collection mint decimals"
     },
     {
-      "code": 6014,
+      "code": 6011,
       "name": "InsufficientTreasuryBalance",
       "msg": "Insufficient treasury balance to process refund. Contact support."
+    },
+    {
+      "code": 6012,
+      "name": "MathOverflow",
+      "msg": "Math overflow"
     }
   ],
   "types": [
@@ -1022,9 +963,9 @@
             "type": "string"
           },
           {
-            "name": "mint_cost_qwami",
+            "name": "mint_cost_lamports",
             "docs": [
-              "Original base minting cost in QWAMI (used for refund calculation)"
+              "Original base minting cost in lamports (used for refund calculation)"
             ],
             "type": "u64"
           },
@@ -1051,23 +992,16 @@
             "type": "pubkey"
           },
           {
-            "name": "qwami_vault",
+            "name": "total_sol_received",
             "docs": [
-              "QWAMI token vault PDA"
-            ],
-            "type": "pubkey"
-          },
-          {
-            "name": "total_qwami_received",
-            "docs": [
-              "Total QWAMI received from NFT mints"
+              "Total SOL (lamports) received from NFT mints"
             ],
             "type": "u64"
           },
           {
-            "name": "total_qwami_refunded",
+            "name": "total_sol_refunded",
             "docs": [
-              "Total QWAMI refunded from NFT burns"
+              "Total SOL (lamports) refunded from NFT burns"
             ],
             "type": "u64"
           },

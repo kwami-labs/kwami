@@ -218,9 +218,13 @@ const captureAllFormats = async () => {
 
   try {
     const { captureAllFormats } = await import('@/utils/advancedCanvasCapture')
-    const scene = kwami.body.scene.scene
-    const blobMesh = kwami.body.blob.getMesh()
-    const renderer = kwami.body.scene.renderer
+    // NOTE: `KwamiBody` keeps its Scene internals private in newer `kwami` versions.
+    // For capture tooling we need access to Three scene + renderer, so we intentionally
+    // go through `any` to avoid depending on private TS fields.
+    const bodyAny = kwami.body as any
+    const scene = (bodyAny.scene?.scene ?? bodyAny.scene) as any
+    const blobMesh = bodyAny.blob?.getMesh?.() as any
+    const renderer = (bodyAny.scene?.renderer ?? bodyAny.renderer) as any
     
     return await captureAllFormats(canvas.value, scene, blobMesh, renderer, {
       gifDuration: 3000,
@@ -235,8 +239,8 @@ const captureAllFormats = async () => {
 const getSceneAndMesh = () => {
   if (!kwami?.body) return null
   return {
-    scene: kwami.body.scene.scene,
-    mesh: kwami.body.blob.getMesh(),
+    scene: (kwami.body as any).scene?.scene ?? (kwami.body as any).scene,
+    mesh: (kwami.body as any).blob?.getMesh?.(),
     canvas: canvas.value
   }
 }

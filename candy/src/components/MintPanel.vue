@@ -141,7 +141,7 @@ const handleMint = async () => {
       modelBuffer = captures.model
       
       console.log('[MintPanel] All formats captured:', {
-        image: imageBuffer.length,
+        image: imageBuffer?.length,
         gif: gifBuffer?.length,
         model: modelBuffer?.length
       })
@@ -169,7 +169,7 @@ const handleMint = async () => {
         description: 'A unique KWAMI NFT with animated GIF and interactive 3D model',
       },
       undefined,
-      imageBuffer,
+      imageBuffer ?? null,
       gifBuffer,
       modelBuffer
     )

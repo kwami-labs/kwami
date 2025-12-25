@@ -9,25 +9,21 @@ import {
   Transaction, 
   TransactionInstruction,
   SystemProgram,
-  SYSVAR_RENT_PUBKEY,
   Keypair,
-  TransactionMessage,
-  VersionedTransaction,
 } from '@solana/web3.js'
 import { 
   TOKEN_PROGRAM_ID,
   getAssociatedTokenAddress,
-  createAssociatedTokenAccountInstruction,
   ASSOCIATED_TOKEN_PROGRAM_ID,
 } from '@solana/spl-token'
 
 // Program ID
-const KWAMI_PROGRAM_ID = new PublicKey('DoAJAykwUrSDjraDegK4AJ1GCoztLYrTvKhUJHaFbSsD')
+const KWAMI_PROGRAM_ID = new PublicKey(
+  import.meta.env.VITE_KWAMI_NFT_PROGRAM_ID || 'DoAJAykwUrSDjraDegK4AJ1GCoztLYrTvKhUJHaFbSsD'
+)
 
 // Known addresses from devnet deployment
 const COLLECTION_MINT = new PublicKey(import.meta.env.VITE_COLLECTION_MINT)
-const QWAMI_MINT = new PublicKey(import.meta.env.VITE_QWAMI_MINT)
-const QWAMI_VAULT = new PublicKey('7BQkRbZ9Htqhvn2Z2Zeh3bktuwYE8CrkCZSivB7sp4j3')
 const TOKEN_METADATA_PROGRAM_ID = new PublicKey('metaqbxxUerdq28cj1RbAWkYQm3ybzjb6a8bt518x1s')
 
 // Instruction discriminators (first 8 bytes of SHA256("global:instruction_name"))
@@ -187,13 +183,6 @@ export async function mintKwamiDirect(
     console.log('[Direct] Treasury:', treasury.toBase58())
     console.log('[Direct] Metadata:', metadata.toBase58())
 
-    // Get user's QWAMI token account
-    const userQwamiAccount = await getAssociatedTokenAddress(
-      QWAMI_MINT,
-      wallet.publicKey
-    )
-    console.log('[Direct] User QWAMI Account:', userQwamiAccount.toBase58())
-
     // Get owner's token account for the NFT (where the NFT will be sent)
     const ownerTokenAccount = await getAssociatedTokenAddress(
       mintKeypair.publicKey,
@@ -201,21 +190,7 @@ export async function mintKwamiDirect(
     )
     console.log('[Direct] Owner Token Account:', ownerTokenAccount.toBase58())
 
-    // Check if user QWAMI account exists, create if not
-    const accountInfo = await connection.getAccountInfo(userQwamiAccount)
     const transaction = new Transaction()
-    
-    if (!accountInfo) {
-      console.log('[Direct] Creating user QWAMI account...')
-      transaction.add(
-        createAssociatedTokenAccountInstruction(
-          wallet.publicKey,
-          userQwamiAccount,
-          wallet.publicKey,
-          QWAMI_MINT
-        )
-      )
-    }
 
     // Convert DNA string to 32-byte hash
     // The DNA is already a hex string, pad it to 32 bytes
@@ -240,13 +215,11 @@ export async function mintKwamiDirect(
     // Build mint instruction
     // Account order matches the Rust struct MintKwami:
     const keys = [
-      { pubkey: mintKeypair.publicKey, isSigner: false, isWritable: true },      // mint (init)
+      { pubkey: mintKeypair.publicKey, isSigner: true, isWritable: true },       // mint (init, signer)
       { pubkey: kwamiNft, isSigner: false, isWritable: true },                   // kwami_nft (init)
       { pubkey: collectionAuthority, isSigner: false, isWritable: true },        // collection_authority
       { pubkey: dnaRegistry, isSigner: false, isWritable: true },                // dna_registry (realloc)
       { pubkey: treasury, isSigner: false, isWritable: true },                   // treasury
-      { pubkey: userQwamiAccount, isSigner: false, isWritable: true },           // user_qwami_account
-      { pubkey: QWAMI_VAULT, isSigner: false, isWritable: true },                // qwami_vault
       { pubkey: metadata, isSigner: false, isWritable: true },                   // metadata (Metaplex)
       { pubkey: ownerTokenAccount, isSigner: false, isWritable: true },          // owner_token_account (init)
       { pubkey: wallet.publicKey, isSigner: true, isWritable: true },            // owner (signer, payer)
@@ -344,10 +317,25 @@ export async function getTotalMintedCountDirect(
 ): Promise<number> {
   try {
     console.log('[Direct] Fetching total minted count...')
-    
-    // For now, return 0
-    // TODO: Fetch collection authority account and read total_minted field
-    return 0
+
+    const [collectionAuthority] = getCollectionAuthorityPDA(COLLECTION_MINT)
+    const accountInfo = await connection.getAccountInfo(collectionAuthority, 'confirmed')
+
+    if (!accountInfo?.data) {
+      throw new Error(`Collection authority account not found: ${collectionAuthority.toBase58()}`)
+    }
+
+    // Anchor account layout for CollectionAuthority:
+    // 8   discriminator
+    // 32  authority
+    // 32  collection_mint
+    // 8   total_minted (u64 LE)
+    // 1   bump
+    const data = Buffer.from(accountInfo.data)
+    const TOTAL_MINTED_OFFSET = 8 + 32 + 32
+    const totalMinted = Number(data.readBigUInt64LE(TOTAL_MINTED_OFFSET))
+
+    return totalMinted
   } catch (error) {
     console.error('[Direct] Error fetching total minted:', error)
     return 0
