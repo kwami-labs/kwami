@@ -1,39 +1,40 @@
 import { defineConfig } from 'vite'
-import vue from '@vitejs/plugin-vue'
+import react from '@vitejs/plugin-react'
+import { nodePolyfills } from 'vite-plugin-node-polyfills'
 import { fileURLToPath, URL } from 'node:url'
 
 // https://vite.dev/config/
 export default defineConfig({
-  plugins: [vue()],
+  plugins: [
+    react(),
+    nodePolyfills({
+      globals: {
+        Buffer: true,
+        global: true,
+        process: true,
+      },
+      protocolImports: true,
+    }),
+  ],
   resolve: {
     alias: {
       '@': fileURLToPath(new URL('./src', import.meta.url)),
-      'bn.js': 'bn.js',
-      'buffer': 'buffer',
-      'kwami': fileURLToPath(new URL('../kwami/index.ts', import.meta.url)),
-    }
+    },
   },
   define: {
-    'process.env.ANCHOR_BROWSER': JSON.stringify(true),
-    'global': 'globalThis',
+    global: 'globalThis',
   },
   optimizeDeps: {
-    include: ['bn.js', 'buffer'],
+    include: ['bn.js', 'buffer', 'bs58'],
     esbuildOptions: {
-      target: 'esnext'
-    }
+      target: 'esnext',
+      define: { global: 'globalThis' },
+    },
   },
   build: {
     target: 'esnext',
-    rollupOptions: {
-      output: {
-        manualChunks: {
-          'solana': ['@solana/web3.js', '@solana/spl-token'],
-          'metaplex': ['@metaplex-foundation/js', '@metaplex-foundation/mpl-token-metadata'],
-          'anchor': ['@coral-xyz/anchor'],
-          'three': ['three']
-        }
-      }
-    }
-  }
+    commonjsOptions: {
+      transformMixedEsModules: true,
+    },
+  },
 })
