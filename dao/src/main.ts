@@ -1,19 +1,8 @@
-// CRITICAL: Import polyfills FIRST before anything else
-import '@/polyfills';
+import './app.css'
+import App from './App.svelte'
+import { mount } from 'svelte'
 
-// Now import everything else AFTER polyfills are set up
-import { createApp } from 'vue';
-import { createPinia } from 'pinia';
-import App from '@/App.vue';
-import router from '@/router';
-import solanaWalletPlugin from '@/plugins/solana';
-import 'solana-wallets-vue/styles.css';
-import '@/styles/global.css';
+// Default to dark theme (Tailwind `darkMode: 'class'`)
+document.documentElement.classList.add('dark')
 
-const app = createApp(App);
-
-app.use(createPinia());
-app.use(router);
-app.use(solanaWalletPlugin);
-
-app.mount('#app');
+mount(App, { target: document.getElementById('app')! })

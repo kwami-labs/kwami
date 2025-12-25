@@ -1,0 +1,41 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* App-wide defaults (Candy-like, but framework agnostic) */
+:root {
+  font-family: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Arial, 'Apple Color Emoji',
+    'Segoe UI Emoji';
+
+  /* Provide defaults for kwami glass class contract so we can use `.kwami-glass-surface` directly */
+  --glass-surface: rgba(0, 0, 0, 0.2);
+  --glass-outline: rgba(148, 163, 184, 0.28);
+  --glass-text: rgba(255, 255, 255, 0.92);
+  --glass-accent: rgba(192, 132, 252, 0.9);
+  --glass-glow: rgba(56, 189, 248, 0.22);
+  --glass-shadow: 0 30px 70px rgba(0, 0, 0, 0.35);
+}
+
+html,
+body {
+  height: 100%;
+}
+
+body {
+  margin: 0;
+  overflow: hidden; /* like Candy: we do internal scrolling per panel */
+  background: #030712;
+  color: white;
+}
+
+/* Smooth out default focus outlines (we still keep focus-visible rings via Tailwind/kwami styles) */
+:focus {
+  outline: none;
+}
+
+/* Utility: subtle grid overlay (optional) */
+.kwami-bg-grid {
+  background-image: radial-gradient(circle at 1px 1px, rgba(255, 255, 255, 0.06) 1px, transparent 0);
+  background-size: 24px 24px;
+}
+
