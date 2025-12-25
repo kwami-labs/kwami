@@ -31,7 +31,7 @@
     "test:ui": "vitest --ui",
     "test:coverage": "vitest run --coverage",
     "test:coverage:ui": "vitest --coverage --ui",
-    "build": "tsc && node scripts/copy-assets.js",
+    "build": "node -e \"require('fs').rmSync('dist',{ recursive:true, force:true })\" && tsc && node scripts/copy-assets.js",
     "dev": "tsc --watch",
     "prepublishOnly": "npm run build && npm test",
     "postpublish": "echo '✅ Successfully published kwami to npm!'"

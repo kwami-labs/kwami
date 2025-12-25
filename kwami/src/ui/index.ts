@@ -4,6 +4,8 @@ export * from './rings';
 export * from './logo';
 export * from './welcome';
 export * from './wallet';
+export { ensureBaseUiStyles } from './baseUiStyles';
+export { normalizeIconifyName } from './iconNames';
 export { createGlassButton } from './components/GlassButton';
 export { createGlassPopover } from './components/GlassPopover';
 export { createGlassModal } from './components/GlassModal';
