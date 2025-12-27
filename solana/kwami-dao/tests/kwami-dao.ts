@@ -39,6 +39,9 @@ describe("kwami-dao", () => {
       maxVotingPeriod: new BN(14 * 24 * 60 * 60),
       minExecutionDelay: new BN(2 * 24 * 60 * 60),
       kwamiCollection: kwamiCollection,
+      treasuryWallet: wallet.publicKey,
+      qwamiTokenAuthority: Keypair.generate().publicKey,
+      kwamiCollectionAuthority: Keypair.generate().publicKey,
     };
 
     await program.methods
@@ -110,6 +113,9 @@ describe("kwami-dao", () => {
       maxVotingPeriod: new BN(14 * 24 * 60 * 60),
       minExecutionDelay: new BN(3 * 24 * 60 * 60),
       kwamiCollection: kwamiCollection,
+      treasuryWallet: wallet.publicKey,
+      qwamiTokenAuthority: Keypair.generate().publicKey,
+      kwamiCollectionAuthority: Keypair.generate().publicKey,
     };
 
     await program.methods

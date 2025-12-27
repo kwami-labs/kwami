@@ -5,7 +5,8 @@
   "license": "MIT",
   "scripts": {
     "build": "anchor build",
-    "test": "anchor test",
+    "test": "ts-mocha -p ./tsconfig.json -t 1000000 tests/**/*.ts",
+    "test:anchor": "anchor test",
     "deploy": "anchor deploy",
     "deploy:devnet": "anchor deploy --provider.cluster devnet",
     "deploy:mainnet": "anchor deploy --provider.cluster mainnet-beta",

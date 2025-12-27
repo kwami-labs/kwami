@@ -58,6 +58,23 @@ async function refreshFromWallet(): Promise<void> {
   await verifyKwamiOwnership(pk)
 }
 
+function formatAuthError(error: unknown): string {
+  const raw = error instanceof Error ? error.message : String(error ?? 'Failed to verify KWAMI NFT ownership')
+
+  // Common RPC error shape we see in the UI: `403 : {"jsonrpc":"2.0","error":{"code":403,"message":"Access forbidden"}...}`
+  if (/\b403\b/.test(raw) && /Access forbidden/i.test(raw)) {
+    return [
+      'RPC 403 (Access forbidden).',
+      'Your RPC endpoint is rejecting requests (missing/invalid API key or blocked origin).',
+      'Set a working Solana RPC in your wallet connector / environment and try again.',
+      '',
+      raw,
+    ].join('\n')
+  }
+
+  return raw
+}
+
 export async function verifyKwamiOwnership(publicKey?: PublicKey | null): Promise<void> {
   const wallet = getWalletConnector()
   const pk = publicKey ?? wallet.getPublicKey()
@@ -99,7 +116,7 @@ export async function verifyKwamiOwnership(publicKey?: PublicKey | null): Promis
       lastCheckedAt: Date.now(),
     }))
   } catch (error) {
-    const message = error instanceof Error ? error.message : 'Failed to verify KWAMI NFT ownership'
+    const message = formatAuthError(error)
     auth.update((s) => ({
       ...s,
       status: 'error',

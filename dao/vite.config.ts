@@ -16,6 +16,12 @@ export default defineConfig({
       protocolImports: true,
     }),
   ],
+  server: {
+    fs: {
+      // Allow importing local IDLs / generated artifacts from sibling packages in this monorepo.
+      allow: [path.resolve(__dirname, '..')],
+    },
+  },
   resolve: {
     alias: {
       '@': path.resolve(__dirname, './src'),
@@ -34,6 +40,7 @@ export default defineConfig({
       '@solana/buffer-layout',
       'superstruct',
       'borsh',
+      '@coral-xyz/anchor',
     ],
     esbuildOptions: {
       target: 'esnext',

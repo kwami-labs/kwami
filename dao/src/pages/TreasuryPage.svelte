@@ -2,12 +2,23 @@
   import KwamiGlassCard from '@/components/KwamiGlassCard.svelte'
   import KwamiGlassButton from '@/components/KwamiGlassButton.svelte'
   import { auth } from '@/stores/auth'
+  import { onDestroy } from 'svelte'
+  import { refreshTreasuryMetrics, treasuryMetrics } from '@/stores/treasuryMetrics'
 
   const fmt = (n: number) => n.toLocaleString(undefined, { maximumFractionDigits: 2 })
+
+  let timer: any
+  $: network = $auth.network
+  $: {
+    void refreshTreasuryMetrics(network)
+    clearInterval(timer)
+    timer = setInterval(() => void refreshTreasuryMetrics(network), 20_000)
+  }
+  onDestroy(() => clearInterval(timer))
 </script>
 
 <div class="absolute inset-0 px-6 py-6 overflow-hidden">
-  <div class="h-full overflow-hidden grid grid-cols-1 lg:grid-cols-[420px_1fr] gap-6">
+  <div class="h-full overflow-hidden mx-auto max-w-6xl grid grid-cols-1 lg:grid-cols-[0.9fr_1.1fr] gap-6">
     <aside class="h-full overflow-hidden">
       <KwamiGlassCard title="Treasury" headerRight="Public view" className="h-full" scrollContent={true} cursorGlow={true}>
         <div class="space-y-5">
@@ -23,17 +34,61 @@
           </div>
 
           <div class="grid grid-cols-2 gap-3">
-            <div class="p-4 rounded-xl border border-gray-200/60 dark:border-gray-800/60 bg-white/10 dark:bg-black/10">
+            <div class="p-4 rounded-xl border border-gray-200/60 bg-white/10 dark:border-gray-800/60 dark:bg-black/10">
               <div class="text-xs text-gray-500 dark:text-gray-400 mb-1">Treasury (SOL)</div>
-              <div class="text-xl font-black text-gray-900 dark:text-white">{fmt(128.42)}</div>
+              <div class="text-xl font-black text-gray-900 dark:text-white">
+                {#if $treasuryMetrics.status === 'ready' && $treasuryMetrics.treasurySol != null}
+                  {fmt($treasuryMetrics.treasurySol)}
+                {:else}
+                  —
+                {/if}
+              </div>
             </div>
-            <div class="p-4 rounded-xl border border-gray-200/60 dark:border-gray-800/60 bg-white/10 dark:bg-black/10">
-              <div class="text-xs text-gray-500 dark:text-gray-400 mb-1">Treasury (USDC)</div>
-              <div class="text-xl font-black text-gray-900 dark:text-white">{fmt(54_230.0)}</div>
+            <div class="p-4 rounded-xl border border-gray-200/60 bg-white/10 dark:border-gray-800/60 dark:bg-black/10">
+              <div class="text-xs text-gray-500 dark:text-gray-400 mb-1">KWAMI minted</div>
+              <div class="text-xl font-black text-gray-900 dark:text-white">
+                {#if $treasuryMetrics.status === 'ready' && $treasuryMetrics.totalKwamiMinted != null}
+                  {$treasuryMetrics.totalKwamiMinted.toLocaleString()}
+                {:else}
+                  —
+                {/if}
+              </div>
             </div>
           </div>
 
-          <div class="p-4 rounded-xl border border-gray-200/60 dark:border-gray-800/60 bg-white/10 dark:bg-black/10">
+          <div class="grid grid-cols-2 gap-3">
+            <div class="p-4 rounded-xl border border-gray-200/60 bg-white/10 dark:border-gray-800/60 dark:bg-black/10">
+              <div class="text-xs text-gray-500 dark:text-gray-400 mb-1">QWAMI minted</div>
+              <div class="text-xl font-black text-gray-900 dark:text-white">
+                {#if $treasuryMetrics.status === 'ready' && $treasuryMetrics.totalQwamiMinted != null}
+                  {$treasuryMetrics.totalQwamiMinted.toLocaleString()}
+                {:else}
+                  —
+                {/if}
+              </div>
+            </div>
+            <div class="p-4 rounded-xl border border-gray-200/60 bg-white/10 dark:border-gray-800/60 dark:bg-black/10">
+              <div class="text-xs text-gray-500 dark:text-gray-400 mb-1">QWAMI burned</div>
+              <div class="text-xl font-black text-gray-900 dark:text-white">
+                {#if $treasuryMetrics.status === 'ready' && $treasuryMetrics.totalQwamiBurned != null}
+                  {$treasuryMetrics.totalQwamiBurned.toLocaleString()}
+                {:else}
+                  —
+                {/if}
+              </div>
+            </div>
+          </div>
+
+          {#if $treasuryMetrics.status === 'error' && $treasuryMetrics.errorMessage}
+            <div class="p-4 rounded-xl border border-rose-200/60 bg-rose-50/30 dark:border-rose-900/50 dark:bg-rose-950/20 text-sm text-rose-700 dark:text-rose-200">
+              {$treasuryMetrics.errorMessage}
+              {#if $treasuryMetrics.daoState}
+                <div class="mt-2 text-xs font-mono opacity-80">daoState: {$treasuryMetrics.daoState}</div>
+              {/if}
+            </div>
+          {/if}
+
+          <div class="p-4 rounded-xl border border-gray-200/60 bg-white/10 dark:border-gray-800/60 dark:bg-black/10">
             <div class="text-xs uppercase tracking-wider text-gray-500 dark:text-gray-400 mb-2">Actions</div>
             <div class="flex flex-wrap gap-2">
               <KwamiGlassButton
@@ -73,33 +128,45 @@
     <section class="h-full overflow-hidden">
       <KwamiGlassCard title="Activity" headerRight="Public" className="h-full" scrollContent={true} cursorGlow={true}>
         <div class="space-y-3">
-          <article class="p-4 rounded-2xl border border-gray-200/60 dark:border-gray-800/60 bg-white/10 dark:bg-black/10">
+          <article class="p-4 rounded-2xl border border-gray-200/60 bg-white/10 dark:border-gray-800/60 dark:bg-black/10">
             <div class="flex items-center justify-between gap-3">
-              <div class="text-sm font-semibold text-gray-900 dark:text-white">Grant payout</div>
-              <span class="text-xs font-mono text-gray-500 dark:text-gray-400">2h ago</span>
+              <div class="text-sm font-semibold text-gray-900 dark:text-white">Treasury wallet</div>
+              <span class="text-xs font-mono text-gray-500 dark:text-gray-400">Public</span>
             </div>
             <div class="mt-2 text-sm text-gray-700 dark:text-gray-200">
-              250 USDC sent to community project milestone.
+              {#if $treasuryMetrics.treasuryWallet}
+                <span class="font-mono text-xs break-all">{$treasuryMetrics.treasuryWallet}</span>
+              {:else}
+                —
+              {/if}
             </div>
           </article>
 
-          <article class="p-4 rounded-2xl border border-gray-200/60 dark:border-gray-800/60 bg-white/10 dark:bg-black/10">
+          <article class="p-4 rounded-2xl border border-gray-200/60 bg-white/10 dark:border-gray-800/60 dark:bg-black/10">
             <div class="flex items-center justify-between gap-3">
-              <div class="text-sm font-semibold text-gray-900 dark:text-white">Treasury top-up</div>
-              <span class="text-xs font-mono text-gray-500 dark:text-gray-400">1d ago</span>
+              <div class="text-sm font-semibold text-gray-900 dark:text-white">DAO state</div>
+              <span class="text-xs font-mono text-gray-500 dark:text-gray-400">PDA</span>
             </div>
             <div class="mt-2 text-sm text-gray-700 dark:text-gray-200">
-              12.5 SOL deposited to treasury.
+              {#if $treasuryMetrics.daoState}
+                <span class="font-mono text-xs break-all">{$treasuryMetrics.daoState}</span>
+              {:else}
+                —
+              {/if}
             </div>
           </article>
 
-          <article class="p-4 rounded-2xl border border-gray-200/60 dark:border-gray-800/60 bg-white/10 dark:bg-black/10">
+          <article class="p-4 rounded-2xl border border-gray-200/60 bg-white/10 dark:border-gray-800/60 dark:bg-black/10">
             <div class="flex items-center justify-between gap-3">
-              <div class="text-sm font-semibold text-gray-900 dark:text-white">Ops budget</div>
-              <span class="text-xs font-mono text-gray-500 dark:text-gray-400">7d ago</span>
+              <div class="text-sm font-semibold text-gray-900 dark:text-white">Last update</div>
+              <span class="text-xs font-mono text-gray-500 dark:text-gray-400">Auto</span>
             </div>
             <div class="mt-2 text-sm text-gray-700 dark:text-gray-200">
-              1,000 USDC allocated for infrastructure costs.
+              {#if $treasuryMetrics.lastUpdatedAt}
+                {new Date($treasuryMetrics.lastUpdatedAt).toLocaleString()}
+              {:else}
+                —
+              {/if}
             </div>
           </article>
         </div>

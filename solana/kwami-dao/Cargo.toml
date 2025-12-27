@@ -1,7 +1,5 @@
 [workspace]
-members = [
-    "programs/*"
-]
+members = ["programs/kwami-dao"]
 resolver = "2"
 
 [profile.release]

@@ -1,6 +1,5 @@
 <script lang="ts">
   import { onDestroy, onMount } from 'svelte'
-  import { createGlassPanel } from 'kwami/ui'
   import BackgroundRings from '@/components/BackgroundRings.svelte'
   import KwamiLogo from '@/components/KwamiLogo.svelte'
   import ThemeToggle from '@/components/ThemeToggle.svelte'
@@ -53,9 +52,6 @@
 
   onMount(() => {
     document.title = 'KWAMI DAO'
-    // Ensure kwami glass base styles are injected before any `.kwami-glass-surface` elements render.
-    // We don't need to mount this element; calling it is enough to register styles.
-    createGlassPanel({ content: '' })
     initAuth()
     window.addEventListener('keydown', handleKeyDown)
     window.addEventListener('kwami:navigate', handleNavigateEvent as EventListener)
@@ -67,14 +63,7 @@
   })
 </script>
 
-<div class="relative h-screen overflow-hidden bg-[#030712] text-white">
-  <!-- Backdrop -->
-  <div class="absolute inset-0">
-    <div class="absolute -inset-[40%] opacity-70 blur-3xl bg-[radial-gradient(circle_at_30%_20%,rgba(192,132,252,0.28),transparent_55%),radial-gradient(circle_at_70%_35%,rgba(56,189,248,0.20),transparent_55%),radial-gradient(circle_at_40%_85%,rgba(16,185,129,0.16),transparent_55%)]"></div>
-    <div class="absolute inset-0 kwami-bg-grid opacity-[0.20]"></div>
-    <div class="absolute inset-0 bg-gradient-to-b from-black/10 via-black/55 to-black/70"></div>
-  </div>
-
+<div class="relative h-screen overflow-hidden bg-gray-50 text-gray-900 transition-colors duration-300 dark:bg-gray-950 dark:text-white">
   <BackgroundRings />
 
   <!-- Header (overlay) -->
@@ -90,12 +79,12 @@
 
           <!-- Tabs -->
           <div class="justify-self-center">
-            <div class="kwami-glass-surface rounded-full border border-white/10 bg-white/5 p-1 inline-flex gap-1 shadow-[0_18px_60px_rgba(0,0,0,0.35)]">
+            <div class="kwami-glass-surface inline-flex gap-1 rounded-full border border-gray-200/60 bg-white/15 p-1 dark:border-gray-800/60 dark:bg-black/15">
               <button
                 class={`px-4 py-2 text-xs font-semibold tracking-wider rounded-full transition ${
                   activeTab === 'info'
-                    ? 'bg-white/10 text-white'
-                    : 'text-white/70 hover:bg-white/5'
+                    ? 'bg-white/30 text-gray-900 dark:bg-white/10 dark:text-white'
+                    : 'text-gray-600 hover:bg-white/10 dark:text-gray-300 dark:hover:bg-white/5'
                 }`}
                 type="button"
                 on:click={() => (activeTab = 'info')}
@@ -106,8 +95,8 @@
               <button
                 class={`px-4 py-2 text-xs font-semibold tracking-wider rounded-full transition ${
                   activeTab === 'governance'
-                    ? 'bg-white/10 text-white'
-                    : 'text-white/70 hover:bg-white/5'
+                    ? 'bg-white/30 text-gray-900 dark:bg-white/10 dark:text-white'
+                    : 'text-gray-600 hover:bg-white/10 dark:text-gray-300 dark:hover:bg-white/5'
                 }`}
                 type="button"
                 on:click={() => (activeTab = 'governance')}
@@ -118,8 +107,8 @@
               <button
                 class={`px-4 py-2 text-xs font-semibold tracking-wider rounded-full transition ${
                   activeTab === 'treasury'
-                    ? 'bg-white/10 text-white'
-                    : 'text-white/70 hover:bg-white/5'
+                    ? 'bg-white/30 text-gray-900 dark:bg-white/10 dark:text-white'
+                    : 'text-gray-600 hover:bg-white/10 dark:text-gray-300 dark:hover:bg-white/5'
                 }`}
                 type="button"
                 on:click={() => (activeTab = 'treasury')}
@@ -161,9 +150,9 @@
   </main>
 
   <!-- Footer (thin, fixed; no scrolling) -->
-  <footer class="fixed bottom-0 inset-x-0 z-20 border-t border-white/10 py-3">
+  <footer class="fixed bottom-0 inset-x-0 z-20 border-t border-gray-200/60 py-3 dark:border-gray-800/60">
     <div class="px-6">
-      <div class="text-center text-xs text-white/45">
+      <div class="text-center text-xs text-gray-500">
         © 2025 Kwami.io — KWAMI DAO
       </div>
     </div>

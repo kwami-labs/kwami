@@ -11,6 +11,8 @@
       "@/*": ["./src/*"],
       "~/*": ["./src/*"]
     },
+    "resolveJsonModule": true,
+    "allowSyntheticDefaultImports": true,
     "noEmit": true,
     /**
      * Typecheck JS in `.svelte` and `.js` files by default.

@@ -6,10 +6,10 @@ seeds = false
 skip-lint = false
 
 [programs.devnet]
-kwami_dao = "DAO11111111111111111111111111111111111111111"
+kwami_dao = "6j64Ct74mypeT3UKVhtFUjBW8RX144VvxWJjH9iBqbAv"
 
 [programs.localnet]
-kwami_dao = "DAO11111111111111111111111111111111111111111"
+kwami_dao = "6j64Ct74mypeT3UKVhtFUjBW8RX144VvxWJjH9iBqbAv"
 
 [registry]
 url = "https://api.apr.dev"

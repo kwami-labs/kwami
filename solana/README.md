@@ -486,7 +486,7 @@ check_dna_exists(dna_hash: [u8; 32]) -> bool
 ### 3. KWAMI DAO Program
 
 **Location**: `kwami-dao/programs/`  
-**Program ID**: `DAO11111111111111111111111111111111111111111`
+**Program ID**: `6j64Ct74mypeT3UKVhtFUjBW8RX144VvxWJjH9iBqbAv`
 
 #### Features
 

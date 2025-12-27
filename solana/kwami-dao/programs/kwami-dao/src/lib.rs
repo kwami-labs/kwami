@@ -1,7 +1,7 @@
 use anchor_lang::prelude::*;
-use anchor_spl::token::{self, Token, TokenAccount, Transfer, CloseAccount};
+use anchor_spl::token::{self, CloseAccount, Mint, Token, TokenAccount, Transfer};
 
-declare_id!("DAO11111111111111111111111111111111111111111");
+declare_id!("6j64Ct74mypeT3UKVhtFUjBW8RX144VvxWJjH9iBqbAv");
 
 #[program]
 pub mod kwami_dao {
@@ -10,7 +10,7 @@ pub mod kwami_dao {
     /// Initialize the DAO governance system
     pub fn initialize(ctx: Context<Initialize>, governance_config: GovernanceConfig) -> Result<()> {
         let dao_state = &mut ctx.accounts.dao_state;
-        
+
         dao_state.authority = ctx.accounts.authority.key();
         dao_state.qwami_mint = ctx.accounts.qwami_mint.key();
         dao_state.kwami_collection = governance_config.kwami_collection;
@@ -20,7 +20,7 @@ pub mod kwami_dao {
         dao_state.proposal_count = 0;
         dao_state.governance_config = governance_config;
         dao_state.bump = ctx.bumps.dao_state;
-        
+
         msg!("DAO initialized with authority: {}", dao_state.authority);
         Ok(())
     }
@@ -36,18 +36,21 @@ pub mod kwami_dao {
         require!(title.len() <= 100, DaoError::TitleTooLong);
         require!(description.len() <= 2000, DaoError::DescriptionTooLong);
         require!(voting_period_seconds >= 86400, DaoError::VotingPeriodTooShort); // Min 1 day
-        require!(voting_period_seconds <= 1_209_600, DaoError::VotingPeriodTooLong); // Max 14 days
-        
+        require!(
+            voting_period_seconds <= 1_209_600,
+            DaoError::VotingPeriodTooLong
+        ); // Max 14 days
+
         let dao_state = &mut ctx.accounts.dao_state;
         let proposal = &mut ctx.accounts.proposal;
-        
+
         // Check minimum QWAMI balance
         let min_qwami = dao_state.governance_config.min_qwami_to_propose;
         require!(
             ctx.accounts.proposer_qwami_account.amount >= min_qwami,
             DaoError::InsufficientQwami
         );
-        
+
         // Set proposal data
         proposal.proposal_id = dao_state.proposal_count;
         proposal.proposer = ctx.accounts.proposer.key();
@@ -64,47 +67,40 @@ pub mod kwami_dao {
         proposal.executed = false;
         proposal.cancelled = false;
         proposal.bump = ctx.bumps.proposal;
-        
+
         dao_state.proposal_count += 1;
-        
+
         msg!("Proposal #{} created: {}", proposal.proposal_id, proposal.title);
         Ok(())
     }
 
     /// Cast a vote on a proposal
-    pub fn vote(
-        ctx: Context<Vote>,
-        vote_type: VoteType,
-        qwami_amount: u64,
-    ) -> Result<()> {
+    pub fn vote(ctx: Context<Vote>, vote_type: VoteType, qwami_amount: u64) -> Result<()> {
         let proposal = &mut ctx.accounts.proposal;
         let vote_record = &mut ctx.accounts.vote_record;
         let clock = Clock::get()?;
-        
+
         // Check proposal is active
         require!(
             proposal.status == ProposalStatus::Active,
             DaoError::ProposalNotActive
         );
-        
+
         // Check voting period hasn't ended
         require!(
             clock.unix_timestamp < proposal.voting_ends_at,
             DaoError::VotingPeriodEnded
         );
-        
+
         // Check voter has enough QWAMI
         require!(
             ctx.accounts.voter_qwami_account.amount >= qwami_amount,
             DaoError::InsufficientQwami
         );
-        
+
         // Check voter hasn't already voted
-        require!(
-            vote_record.qwami_amount == 0,
-            DaoError::AlreadyVoted
-        );
-        
+        require!(vote_record.qwami_amount == 0, DaoError::AlreadyVoted);
+
         // Lock tokens in a per-vote vault (escrow) so voting is economically meaningful.
         // Tokens can be withdrawn after voting ends via `withdraw_vote`.
         let transfer_ctx = CpiContext::new(
@@ -125,7 +121,7 @@ pub mod kwami_dao {
         vote_record.voted_at = clock.unix_timestamp;
         vote_record.withdrawn = false;
         vote_record.bump = ctx.bumps.vote_record;
-        
+
         // Update proposal vote counts
         match vote_type {
             VoteType::For => proposal.votes_for += qwami_amount,
@@ -133,7 +129,7 @@ pub mod kwami_dao {
             VoteType::Abstain => proposal.votes_abstain += qwami_amount,
         }
         proposal.total_votes += qwami_amount;
-        
+
         msg!(
             "Vote cast on proposal #{}: {:?} with {} QWAMI",
             proposal.proposal_id,
@@ -148,28 +144,29 @@ pub mod kwami_dao {
         let proposal = &mut ctx.accounts.proposal;
         let dao_state = &ctx.accounts.dao_state;
         let clock = Clock::get()?;
-        
+
         // Check voting period has ended
         require!(
             clock.unix_timestamp >= proposal.voting_ends_at,
             DaoError::VotingPeriodNotEnded
         );
-        
+
         // Check proposal is still active
         require!(
             proposal.status == ProposalStatus::Active,
             DaoError::ProposalNotActive
         );
-        
+
         // Check if quorum was met
         let quorum = dao_state.governance_config.quorum;
         let quorum_met = proposal.total_votes >= quorum;
-        
+
         // Determine outcome
         if quorum_met {
             if proposal.votes_for > proposal.votes_against {
                 proposal.status = ProposalStatus::Passed;
-                proposal.execution_available_at = clock.unix_timestamp + proposal.execution_delay_seconds;
+                proposal.execution_available_at =
+                    clock.unix_timestamp + proposal.execution_delay_seconds;
                 msg!("Proposal #{} PASSED", proposal.proposal_id);
             } else {
                 proposal.status = ProposalStatus::Rejected;
@@ -179,7 +176,7 @@ pub mod kwami_dao {
             proposal.status = ProposalStatus::QuorumNotMet;
             msg!("Proposal #{} failed to meet quorum", proposal.proposal_id);
         }
-        
+
         Ok(())
     }
 
@@ -187,35 +184,32 @@ pub mod kwami_dao {
     pub fn cancel_proposal(ctx: Context<CancelProposal>) -> Result<()> {
         let proposal = &mut ctx.accounts.proposal;
         let dao_state = &ctx.accounts.dao_state;
-        
+
         // Check caller is proposer or authority
         let caller = ctx.accounts.caller.key();
         require!(
             caller == proposal.proposer || caller == dao_state.authority,
             DaoError::Unauthorized
         );
-        
+
         // Check proposal is still active
         require!(
             proposal.status == ProposalStatus::Active,
             DaoError::ProposalNotActive
         );
-        
+
         proposal.status = ProposalStatus::Cancelled;
         proposal.cancelled = true;
-        
+
         msg!("Proposal #{} cancelled", proposal.proposal_id);
         Ok(())
     }
 
     /// Update governance configuration (authority only)
-    pub fn update_config(
-        ctx: Context<UpdateConfig>,
-        new_config: GovernanceConfig,
-    ) -> Result<()> {
+    pub fn update_config(ctx: Context<UpdateConfig>, new_config: GovernanceConfig) -> Result<()> {
         let dao_state = &mut ctx.accounts.dao_state;
         dao_state.governance_config = new_config;
-        
+
         msg!("Governance config updated");
         Ok(())
     }
@@ -282,13 +276,13 @@ pub struct Initialize<'info> {
         bump
     )]
     pub dao_state: Account<'info, DaoState>,
-    
+
     /// CHECK: QWAMI token mint address
     pub qwami_mint: AccountInfo<'info>,
-    
+
     #[account(mut)]
     pub authority: Signer<'info>,
-    
+
     pub system_program: Program<'info, System>,
 }
 
@@ -300,7 +294,7 @@ pub struct CreateProposal<'info> {
         bump = dao_state.bump
     )]
     pub dao_state: Account<'info, DaoState>,
-    
+
     #[account(
         init,
         payer = proposer,
@@ -309,16 +303,16 @@ pub struct CreateProposal<'info> {
         bump
     )]
     pub proposal: Account<'info, Proposal>,
-    
+
     #[account(
         constraint = proposer_qwami_account.owner == proposer.key(),
         constraint = proposer_qwami_account.mint == dao_state.qwami_mint
     )]
     pub proposer_qwami_account: Account<'info, TokenAccount>,
-    
+
     #[account(mut)]
     pub proposer: Signer<'info>,
-    
+
     pub system_program: Program<'info, System>,
 }
 
@@ -331,7 +325,7 @@ pub struct Vote<'info> {
         bump = proposal.bump
     )]
     pub proposal: Account<'info, Proposal>,
-    
+
     #[account(
         init,
         payer = voter,
@@ -340,13 +334,18 @@ pub struct Vote<'info> {
         bump
     )]
     pub vote_record: Account<'info, VoteRecord>,
-    
+
     #[account(
         seeds = [b"dao-state"],
         bump = dao_state.bump
     )]
     pub dao_state: Account<'info, DaoState>,
-    
+
+    #[account(
+        constraint = qwami_mint.key() == dao_state.qwami_mint
+    )]
+    pub qwami_mint: Account<'info, Mint>,
+
     #[account(
         constraint = voter_qwami_account.owner == voter.key(),
         constraint = voter_qwami_account.mint == dao_state.qwami_mint
@@ -357,16 +356,16 @@ pub struct Vote<'info> {
     #[account(
         init,
         payer = voter,
-        token::mint = dao_state.qwami_mint,
+        token::mint = qwami_mint,
         token::authority = dao_state,
         seeds = [b"vote-vault", proposal.key().as_ref(), voter.key().as_ref()],
         bump
     )]
     pub vote_vault: Account<'info, TokenAccount>,
-    
+
     #[account(mut)]
     pub voter: Signer<'info>,
-    
+
     pub token_program: Program<'info, Token>,
     pub system_program: Program<'info, System>,
 }
@@ -419,7 +418,7 @@ pub struct FinalizeProposal<'info> {
         bump = proposal.bump
     )]
     pub proposal: Account<'info, Proposal>,
-    
+
     #[account(
         seeds = [b"dao-state"],
         bump = dao_state.bump
@@ -435,13 +434,13 @@ pub struct CancelProposal<'info> {
         bump = proposal.bump
     )]
     pub proposal: Account<'info, Proposal>,
-    
+
     #[account(
         seeds = [b"dao-state"],
         bump = dao_state.bump
     )]
     pub dao_state: Account<'info, DaoState>,
-    
+
     pub caller: Signer<'info>,
 }
 
@@ -454,7 +453,7 @@ pub struct UpdateConfig<'info> {
         has_one = authority
     )]
     pub dao_state: Account<'info, DaoState>,
-    
+
     pub authority: Signer<'info>,
 }
 
@@ -516,11 +515,11 @@ pub struct VoteRecord {
 
 #[derive(AnchorSerialize, AnchorDeserialize, Clone, InitSpace)]
 pub struct GovernanceConfig {
-    pub min_qwami_to_propose: u64,  // Minimum QWAMI to create proposal (e.g., 100)
-    pub quorum: u64,                 // Minimum total votes for proposal to pass (e.g., 10000)
-    pub max_voting_period: i64,      // Maximum voting period in seconds (e.g., 14 days)
-    pub min_execution_delay: i64,    // Minimum time between passing and execution (e.g., 2 days)
-    pub kwami_collection: Pubkey,    // KWAMI NFT collection address for verification
+    pub min_qwami_to_propose: u64, // Minimum QWAMI to create proposal (e.g., 100)
+    pub quorum: u64,              // Minimum total votes for proposal to pass (e.g., 10000)
+    pub max_voting_period: i64,   // Maximum voting period in seconds (e.g., 14 days)
+    pub min_execution_delay: i64, // Minimum time between passing and execution (e.g., 2 days)
+    pub kwami_collection: Pubkey, // KWAMI NFT collection address for verification
     /// Wallet where SOL proceeds are deposited (for dashboard display).
     pub treasury_wallet: Pubkey,
     /// QWAMI TokenAuthority PDA (for minted/burned dashboard stats).
@@ -552,37 +551,37 @@ pub enum VoteType {
 pub enum DaoError {
     #[msg("Title must be 100 characters or less")]
     TitleTooLong,
-    
+
     #[msg("Description must be 2000 characters or less")]
     DescriptionTooLong,
-    
+
     #[msg("Voting period must be at least 1 day")]
     VotingPeriodTooShort,
-    
+
     #[msg("Voting period cannot exceed 14 days")]
     VotingPeriodTooLong,
-    
+
     #[msg("Insufficient QWAMI tokens")]
     InsufficientQwami,
-    
+
     #[msg("Proposal is not active")]
     ProposalNotActive,
-    
+
     #[msg("Voting period has ended")]
     VotingPeriodEnded,
-    
+
     #[msg("Voting period has not ended yet")]
     VotingPeriodNotEnded,
-    
+
     #[msg("Already voted on this proposal")]
     AlreadyVoted,
-    
+
     #[msg("Unauthorized")]
     Unauthorized,
-    
+
     #[msg("Proposal execution not available yet")]
     ExecutionNotAvailable,
-    
+
     #[msg("Proposal has already been executed")]
     AlreadyExecuted,
 
@@ -595,4 +594,5 @@ pub enum DaoError {
     #[msg("Nothing to withdraw")]
     NothingToWithdraw,
 }
+
 

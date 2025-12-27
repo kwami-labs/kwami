@@ -10,6 +10,7 @@
     "check": "svelte-check --tsconfig ./tsconfig.app.json && tsc -p tsconfig.node.json"
   },
   "dependencies": {
+    "@coral-xyz/anchor": "^0.32.1",
     "@metaplex-foundation/js": "^0.20.1",
     "@solana/web3.js": "^1.98.4",
     "buffer": "^6.0.3",

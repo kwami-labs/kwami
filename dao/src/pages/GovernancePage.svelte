@@ -43,7 +43,7 @@
 </script>
 
 <div class="absolute inset-0 px-6 py-6 overflow-hidden">
-  <div class="h-full overflow-hidden grid grid-cols-1 lg:grid-cols-[420px_1fr] gap-6">
+  <div class="h-full overflow-hidden mx-auto max-w-6xl grid grid-cols-1 lg:grid-cols-[0.9fr_1.1fr] gap-6">
     <aside class="h-full overflow-hidden">
       <KwamiGlassCard title="Governance" headerRight="Open view" className="h-full" scrollContent={true} cursorGlow={true}>
         <div class="space-y-5">
@@ -58,7 +58,7 @@
             </div>
           </div>
 
-          <div class="p-4 rounded-xl border border-gray-200/60 dark:border-gray-800/60 bg-white/10 dark:bg-black/10">
+          <div class="p-4 rounded-xl border border-gray-200/60 bg-white/10 dark:border-gray-800/60 dark:bg-black/10">
             <div class="text-xs uppercase tracking-wider text-gray-500 dark:text-gray-400 mb-1">Your access</div>
             <div class="text-sm text-gray-700 dark:text-gray-200">
               {#if $auth.status === 'member'}
@@ -104,7 +104,7 @@
       <KwamiGlassCard title="Proposals" headerRight="Public" className="h-full" scrollContent={true} cursorGlow={true}>
         <div class="space-y-3">
           {#each proposals as p}
-            <article class="p-4 rounded-2xl border border-gray-200/60 dark:border-gray-800/60 bg-white/10 dark:bg-black/10">
+            <article class="p-4 rounded-2xl border border-gray-200/60 bg-white/10 dark:border-gray-800/60 dark:bg-black/10">
               <div class="flex items-start justify-between gap-3">
                 <div class="min-w-0">
                   <div class="text-sm font-semibold text-gray-900 dark:text-white">

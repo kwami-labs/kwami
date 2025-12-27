@@ -1,6 +1,16 @@
 import { Metaplex } from '@metaplex-foundation/js'
 import type { Connection, PublicKey } from '@solana/web3.js'
 
+async function tryFetchJson(uri: string): Promise<any | null> {
+  try {
+    const res = await fetch(uri, { method: 'GET' })
+    if (!res.ok) return null
+    return await res.json()
+  } catch {
+    return null
+  }
+}
+
 export type KwamiOwnedNft = {
   mint: string
   name: string
@@ -8,6 +18,8 @@ export type KwamiOwnedNft = {
   image?: string
   description?: string
   attributes?: Array<{ trait_type: string; value: string | number }>
+  dna?: string
+  body?: unknown
 }
 
 export async function fetchOwnedKwamiNfts(args: {
@@ -27,13 +39,16 @@ export async function fetchOwnedKwamiNfts(args: {
     filtered.map(async (m) => {
       // `findAllByOwner` returns a union; `load` accepts the same union type.
       const nft = await metaplex.nfts().load({ metadata: m as any })
+      const json = nft.json ?? (await tryFetchJson(nft.uri))
       return {
         mint: nft.address.toBase58(),
         name: nft.name,
         uri: nft.uri,
-        image: nft.json?.image,
-        description: nft.json?.description,
-        attributes: Array.isArray(nft.json?.attributes) ? (nft.json?.attributes as any) : undefined,
+        image: json?.image,
+        description: json?.description,
+        attributes: Array.isArray(json?.attributes) ? (json.attributes as any) : undefined,
+        dna: (json as any)?.dna,
+        body: (json as any)?.body,
       } satisfies KwamiOwnedNft
     }),
   )

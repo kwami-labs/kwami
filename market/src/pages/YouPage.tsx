@@ -1,5 +1,6 @@
 import { KwamiGlassCard } from '@/components/KwamiGlassCard'
 import { KwamiGlassButton } from '@/components/KwamiGlassButton'
+import { KwamiBlobPreview } from '@/components/KwamiBlobPreview'
 import { useWallet } from '@/state/wallet'
 
 function short(addr: string, left = 6, right = 6) {
@@ -109,13 +110,18 @@ export function YouPage() {
                           ) : null}
                         </div>
 
-                        {nft.image ? (
+                        {nft.body || nft.image ? (
                           <div className="mt-3 overflow-hidden rounded-xl border border-white/20">
-                            <img src={nft.image} alt={nft.name} className="h-40 w-full object-cover" loading="lazy" />
+                            <KwamiBlobPreview
+                              bodyConfig={nft.body as any}
+                              fallbackImageUrl={nft.image}
+                              alt={nft.name}
+                              className="h-40 w-full"
+                            />
                           </div>
                         ) : (
                           <div className="mt-3 flex h-40 items-center justify-center rounded-xl border border-gray-200/60 bg-white/10 text-xs text-gray-500 dark:border-gray-800/60 dark:bg-black/10 dark:text-gray-400">
-                            No image
+                            No metadata
                           </div>
                         )}
 
