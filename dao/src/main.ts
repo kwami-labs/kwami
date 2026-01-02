@@ -8,6 +8,14 @@ ensureBaseUiStyles()
 createGlassPanel({ content: '' })
 
 // Default to dark theme (Tailwind `darkMode: 'class'`)
-document.documentElement.classList.add('dark')
+// Check localStorage first to avoid flash, but default to dark if not set
+try {
+  const stored = localStorage.getItem('kwami-theme')
+  if (stored !== 'light') {
+    document.documentElement.classList.add('dark')
+  }
+} catch {
+  document.documentElement.classList.add('dark')
+}
 
 mount(App, { target: document.getElementById('app')! })

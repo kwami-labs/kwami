@@ -6,6 +6,7 @@ html,
 body,
 #app {
   height: 100%;
+  width: 100%;
 }
 
 html,
@@ -13,6 +14,25 @@ body {
   margin: 0;
   padding: 0;
   overflow: hidden; /* full-screen pages like `candy/` */
+  overflow-x: hidden;
+}
+
+/*
+  Defensive layout reset:
+  Some host/global styles (or embedded contexts) can accidentally constrain the app to a narrow column
+  (e.g. `body { display:flex }` or `#app { width: fit-content }`), which breaks our full-bleed shell.
+*/
+body {
+  display: block;
+  min-width: 100vw;
+  max-width: 100vw;
+  overflow-x: hidden;
+}
+
+#app {
+  min-width: 100vw;
+  max-width: 100vw;
+  overflow-x: hidden;
 }
 
 /* App-wide defaults (framework agnostic) */
@@ -21,12 +41,12 @@ body {
     'Segoe UI Emoji';
 
   /* Provide defaults for kwami glass class contract so we can use `.kwami-glass-surface` directly */
-  --glass-surface: rgba(0, 0, 0, 0.2);
-  --glass-outline: rgba(148, 163, 184, 0.28);
-  --glass-text: rgba(255, 255, 255, 0.92);
-  --glass-accent: rgba(192, 132, 252, 0.9);
-  --glass-glow: rgba(56, 189, 248, 0.22);
-  --glass-shadow: 0 30px 70px rgba(0, 0, 0, 0.35);
+  --glass-surface: rgba(255, 255, 255, 0.95);
+  --glass-outline: rgba(148, 163, 184, 0.35);
+  --glass-text: rgba(15, 23, 42, 0.95);
+  --glass-accent: rgba(124, 58, 237, 0.9);
+  --glass-glow: rgba(124, 58, 237, 0.15);
+  --glass-shadow: 0 25px 60px rgba(0, 0, 0, 0.15);
 }
 
 html,
@@ -41,5 +61,56 @@ body {
 /* Smooth out default focus outlines (we still keep focus-visible rings via Tailwind/kwami styles) */
 :focus {
   outline: none;
+}
+
+/* CRITICAL: Force full viewport width (override any conflicting styles) */
+html, body {
+  width: 100vw !important;
+  max-width: 100vw !important;
+  min-width: 100vw !important;
+  overflow-x: hidden !important;
+}
+
+#app {
+  width: 100vw !important;
+  max-width: 100vw !important;
+  min-width: 100vw !important;
+  overflow-x: hidden !important;
+}
+
+/* Prevent any child from causing horizontal overflow */
+#app > * {
+  max-width: 100vw !important;
+}
+
+/* Dark mode glass overrides */
+.dark {
+  --glass-surface: rgba(15, 18, 35, 0.85);
+  --glass-outline: rgba(148, 163, 184, 0.25);
+  --glass-text: rgba(248, 250, 252, 0.95);
+  --glass-accent: rgba(168, 85, 247, 0.9);
+  --glass-glow: rgba(168, 85, 247, 0.18);
+  --glass-shadow: 0 30px 70px rgba(0, 0, 0, 0.5);
+}
+
+/* Force glass card styling with higher specificity - override inline styles from kwami/ui */
+.dark .kwami-glass-card,
+.dark .kwami-glass-surface {
+  background: rgba(15, 18, 35, 0.90) !important;
+  border-color: rgba(148, 163, 184, 0.30) !important;
+  color: rgba(248, 250, 252, 0.95) !important;
+  box-shadow: 0 30px 70px rgba(0, 0, 0, 0.6) !important;
+  backdrop-filter: blur(16px) saturate(180%) !important;
+  -webkit-backdrop-filter: blur(16px) saturate(180%) !important;
+}
+
+.kwami-glass-card,
+.kwami-glass-surface {
+  background: rgba(255, 255, 255, 0.92) !important;
+  border-color: rgba(148, 163, 184, 0.35) !important;
+  color: rgba(15, 23, 42, 0.95) !important;
+  box-shadow: 0 25px 60px rgba(0, 0, 0, 0.15) !important;
+  backdrop-filter: blur(16px) saturate(180%) !important;
+  -webkit-backdrop-filter: blur(16px) saturate(180%) !important;
 }
 

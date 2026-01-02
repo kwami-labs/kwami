@@ -63,7 +63,10 @@
   })
 </script>
 
-<div class="relative h-screen overflow-hidden bg-gray-50 text-gray-900 transition-colors duration-300 dark:bg-gray-950 dark:text-white">
+<div 
+  class="relative h-screen w-screen overflow-hidden bg-gradient-to-br from-gray-50 via-gray-100 to-gray-200 text-gray-900 transition-colors duration-300 dark:bg-gradient-to-br dark:from-gray-950 dark:via-black dark:to-gray-900 dark:text-white"
+  style="width: 100vw !important; min-width: 100vw !important; max-width: 100vw !important; overflow-x: hidden !important;"
+>
   <BackgroundRings />
 
   <!-- Header (overlay) -->
@@ -128,21 +131,21 @@
   </header>
 
   <!-- Fullscreen (no page scroll) -->
-  <main class="h-screen overflow-hidden pt-24 pb-14">
-    <div class="h-full overflow-hidden">
+  <main class="h-screen overflow-hidden pt-24 pb-14" style="width: 100vw !important; max-width: 100vw !important;">
+    <div class="h-full overflow-hidden" style="width: 100vw !important; max-width: 100vw !important;">
       <div
         class="h-full flex transition-transform duration-500 ease-out"
-        style={`transform: translateX(-${tabIndex() * 100}%);`}
+        style={`transform: translateX(-${tabIndex() * 100}%); width: ${tabs.length * 100}vw !important;`}
       >
-        <section class="w-full shrink-0 h-full relative">
+        <section class="h-full relative" style="width: 100vw; flex-shrink: 0;">
           <InfoPage />
         </section>
 
-        <section class="w-full shrink-0 h-full relative">
+        <section class="h-full relative" style="width: 100vw; flex-shrink: 0;">
           <GovernancePage />
         </section>
 
-        <section class="w-full shrink-0 h-full relative">
+        <section class="h-full relative" style="width: 100vw; flex-shrink: 0;">
           <TreasuryPage />
         </section>
       </div>

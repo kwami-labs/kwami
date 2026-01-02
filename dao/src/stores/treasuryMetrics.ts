@@ -4,9 +4,9 @@ import type { Idl } from '@coral-xyz/anchor'
 import { BorshAccountsCoder } from '@coral-xyz/anchor'
 import { Buffer } from 'buffer'
 
-import kwamiDaoIdl from '../../../solana/kwami-dao/target/idl/kwami_dao.json'
-import qwamiTokenIdl from '../../../solana/qwami-token/target/idl/qwami_token.json'
-import kwamiNftIdl from '../../../solana/kwami-nft/target/idl/kwami_nft.json'
+import kwamiDaoIdl from '../../public/idl/kwami_dao.json'
+import qwamiTokenIdl from '../../public/idl/qwami_token.json'
+import kwamiNftIdl from '../../public/idl/kwami_nft.json'
 
 export type TreasuryMetricsState = {
   status: 'idle' | 'loading' | 'ready' | 'error'
