@@ -10,8 +10,8 @@
     {
       "name": "burn_kwami",
       "docs": [
-        "Burn Kwami NFT and remove DNA from registry (with 50% SOL refund)",
-        "This allows re-minting with a different DNA"
+        "Burn Kwami NFT and remove DNA from registry (no SOL refund in SOL-paid MVP).",
+        "This allows re-minting with a different DNA."
       ],
       "discriminator": [
         211,
@@ -183,6 +183,200 @@
       "returns": "bool"
     },
     {
+      "name": "create_collection_nft",
+      "docs": [
+        "Create the Metaplex Collection NFT (metadata + master edition) for the configured collection mint.",
+        "Wallets typically only group NFTs when the collection is *verified* against a real collection NFT."
+      ],
+      "discriminator": [
+        57,
+        187,
+        157,
+        254,
+        110,
+        19,
+        20,
+        253
+      ],
+      "accounts": [
+        {
+          "name": "collection_mint",
+          "writable": true
+        },
+        {
+          "name": "collection_authority",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  99,
+                  111,
+                  108,
+                  108,
+                  101,
+                  99,
+                  116,
+                  105,
+                  111,
+                  110,
+                  45,
+                  97,
+                  117,
+                  116,
+                  104,
+                  111,
+                  114,
+                  105,
+                  116,
+                  121
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "collection_authority.collection_mint",
+                "account": "CollectionAuthority"
+              }
+            ]
+          }
+        },
+        {
+          "name": "collection_metadata",
+          "writable": true
+        },
+        {
+          "name": "collection_master_edition",
+          "writable": true
+        },
+        {
+          "name": "authority_token_account",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "account",
+                "path": "authority"
+              },
+              {
+                "kind": "const",
+                "value": [
+                  6,
+                  221,
+                  246,
+                  225,
+                  215,
+                  101,
+                  161,
+                  147,
+                  217,
+                  203,
+                  225,
+                  70,
+                  206,
+                  235,
+                  121,
+                  172,
+                  28,
+                  180,
+                  133,
+                  237,
+                  95,
+                  91,
+                  55,
+                  145,
+                  58,
+                  140,
+                  245,
+                  133,
+                  126,
+                  255,
+                  0,
+                  169
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "collection_mint"
+              }
+            ],
+            "program": {
+              "kind": "const",
+              "value": [
+                140,
+                151,
+                37,
+                143,
+                78,
+                36,
+                137,
+                241,
+                187,
+                61,
+                16,
+                41,
+                20,
+                142,
+                13,
+                131,
+                11,
+                90,
+                19,
+                153,
+                218,
+                255,
+                16,
+                132,
+                4,
+                142,
+                123,
+                216,
+                219,
+                233,
+                248,
+                89
+              ]
+            }
+          }
+        },
+        {
+          "name": "authority",
+          "writable": true,
+          "signer": true
+        },
+        {
+          "name": "system_program",
+          "address": "11111111111111111111111111111111"
+        },
+        {
+          "name": "token_program",
+          "address": "TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA"
+        },
+        {
+          "name": "associated_token_program",
+          "address": "ATokenGPvbdGVxr1b2hvZbsiqW5xWH25efTNsLJA8knL"
+        },
+        {
+          "name": "token_metadata_program",
+          "address": "metaqbxxUerdq28cj1RbAWkYQm3ybzjb6a8bt518x1s"
+        }
+      ],
+      "args": [
+        {
+          "name": "name",
+          "type": "string"
+        },
+        {
+          "name": "symbol",
+          "type": "string"
+        },
+        {
+          "name": "uri",
+          "type": "string"
+        }
+      ]
+    },
+    {
       "name": "initialize",
       "docs": [
         "Initialize the Kwami NFT program, DNA registry, and treasury"
@@ -202,6 +396,136 @@
           "name": "collection_mint",
           "docs": [
             "Collection mint must be created off-chain (keeps this instruction under the SBF stack limit)"
+          ],
+          "writable": true
+        },
+        {
+          "name": "collection_authority",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  99,
+                  111,
+                  108,
+                  108,
+                  101,
+                  99,
+                  116,
+                  105,
+                  111,
+                  110,
+                  45,
+                  97,
+                  117,
+                  116,
+                  104,
+                  111,
+                  114,
+                  105,
+                  116,
+                  121
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "collection_mint"
+              }
+            ]
+          }
+        },
+        {
+          "name": "dna_registry",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  100,
+                  110,
+                  97,
+                  45,
+                  114,
+                  101,
+                  103,
+                  105,
+                  115,
+                  116,
+                  114,
+                  121
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "collection_mint"
+              }
+            ]
+          }
+        },
+        {
+          "name": "treasury",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  107,
+                  119,
+                  97,
+                  109,
+                  105,
+                  45,
+                  116,
+                  114,
+                  101,
+                  97,
+                  115,
+                  117,
+                  114,
+                  121
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "name": "payer",
+          "writable": true,
+          "signer": true
+        },
+        {
+          "name": "system_program",
+          "address": "11111111111111111111111111111111"
+        }
+      ],
+      "args": []
+    },
+    {
+      "name": "initialize_collection",
+      "docs": [
+        "Initialize a *new* collection authority + DNA registry while reusing the existing treasury.",
+        "This is useful if the original collection mint was created incorrectly (e.g. missing freeze authority)",
+        "and you need to rotate to a new collection mint without resetting the treasury."
+      ],
+      "discriminator": [
+        112,
+        62,
+        53,
+        139,
+        173,
+        152,
+        98,
+        93
+      ],
+      "accounts": [
+        {
+          "name": "collection_mint",
+          "docs": [
+            "Collection mint must be created off-chain."
           ],
           "writable": true
         },
@@ -603,6 +927,430 @@
       ]
     },
     {
+      "name": "mint_kwami_with_receipt",
+      "docs": [
+        "Finalize a mint using a previously purchased roll receipt.",
+        "This does NOT transfer SOL (payment already happened in `purchase_roll`)."
+      ],
+      "discriminator": [
+        211,
+        53,
+        40,
+        156,
+        118,
+        241,
+        212,
+        117
+      ],
+      "accounts": [
+        {
+          "name": "mint_receipt",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  109,
+                  105,
+                  110,
+                  116,
+                  45,
+                  114,
+                  101,
+                  99,
+                  101,
+                  105,
+                  112,
+                  116
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "owner"
+              },
+              {
+                "kind": "arg",
+                "path": "roll_id"
+              }
+            ]
+          }
+        },
+        {
+          "name": "mint",
+          "writable": true,
+          "signer": true
+        },
+        {
+          "name": "kwami_nft",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  107,
+                  119,
+                  97,
+                  109,
+                  105,
+                  45,
+                  110,
+                  102,
+                  116
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "mint"
+              }
+            ]
+          }
+        },
+        {
+          "name": "collection_authority",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  99,
+                  111,
+                  108,
+                  108,
+                  101,
+                  99,
+                  116,
+                  105,
+                  111,
+                  110,
+                  45,
+                  97,
+                  117,
+                  116,
+                  104,
+                  111,
+                  114,
+                  105,
+                  116,
+                  121
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "collection_authority.collection_mint",
+                "account": "CollectionAuthority"
+              }
+            ]
+          }
+        },
+        {
+          "name": "dna_registry",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  100,
+                  110,
+                  97,
+                  45,
+                  114,
+                  101,
+                  103,
+                  105,
+                  115,
+                  116,
+                  114,
+                  121
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "collection_authority.collection_mint",
+                "account": "CollectionAuthority"
+              }
+            ]
+          }
+        },
+        {
+          "name": "treasury",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  107,
+                  119,
+                  97,
+                  109,
+                  105,
+                  45,
+                  116,
+                  114,
+                  101,
+                  97,
+                  115,
+                  117,
+                  114,
+                  121
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "name": "metadata",
+          "writable": true
+        },
+        {
+          "name": "owner_token_account",
+          "docs": [
+            "Owner's token account to receive the minted NFT"
+          ],
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "account",
+                "path": "owner"
+              },
+              {
+                "kind": "const",
+                "value": [
+                  6,
+                  221,
+                  246,
+                  225,
+                  215,
+                  101,
+                  161,
+                  147,
+                  217,
+                  203,
+                  225,
+                  70,
+                  206,
+                  235,
+                  121,
+                  172,
+                  28,
+                  180,
+                  133,
+                  237,
+                  95,
+                  91,
+                  55,
+                  145,
+                  58,
+                  140,
+                  245,
+                  133,
+                  126,
+                  255,
+                  0,
+                  169
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "mint"
+              }
+            ],
+            "program": {
+              "kind": "const",
+              "value": [
+                140,
+                151,
+                37,
+                143,
+                78,
+                36,
+                137,
+                241,
+                187,
+                61,
+                16,
+                41,
+                20,
+                142,
+                13,
+                131,
+                11,
+                90,
+                19,
+                153,
+                218,
+                255,
+                16,
+                132,
+                4,
+                142,
+                123,
+                216,
+                219,
+                233,
+                248,
+                89
+              ]
+            }
+          }
+        },
+        {
+          "name": "owner",
+          "writable": true,
+          "signer": true
+        },
+        {
+          "name": "system_program",
+          "address": "11111111111111111111111111111111"
+        },
+        {
+          "name": "token_program",
+          "address": "TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA"
+        },
+        {
+          "name": "associated_token_program",
+          "address": "ATokenGPvbdGVxr1b2hvZbsiqW5xWH25efTNsLJA8knL"
+        },
+        {
+          "name": "token_metadata_program",
+          "address": "metaqbxxUerdq28cj1RbAWkYQm3ybzjb6a8bt518x1s"
+        }
+      ],
+      "args": [
+        {
+          "name": "roll_id",
+          "type": "pubkey"
+        },
+        {
+          "name": "dna_hash",
+          "type": {
+            "array": [
+              "u8",
+              32
+            ]
+          }
+        },
+        {
+          "name": "name",
+          "type": "string"
+        },
+        {
+          "name": "symbol",
+          "type": "string"
+        },
+        {
+          "name": "uri",
+          "type": "string"
+        }
+      ]
+    },
+    {
+      "name": "purchase_roll",
+      "docs": [
+        "Purchase a \"roll\" (SOL payment) before selecting DNA/metadata.",
+        "This enables a Candy Machine style UX: pay first, then roll/reveal, then upload, then finalize mint."
+      ],
+      "discriminator": [
+        180,
+        76,
+        131,
+        145,
+        187,
+        102,
+        67,
+        245
+      ],
+      "accounts": [
+        {
+          "name": "mint_receipt",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  109,
+                  105,
+                  110,
+                  116,
+                  45,
+                  114,
+                  101,
+                  99,
+                  101,
+                  105,
+                  112,
+                  116
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "buyer"
+              },
+              {
+                "kind": "arg",
+                "path": "roll_id"
+              }
+            ]
+          }
+        },
+        {
+          "name": "treasury",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  107,
+                  119,
+                  97,
+                  109,
+                  105,
+                  45,
+                  116,
+                  114,
+                  101,
+                  97,
+                  115,
+                  117,
+                  114,
+                  121
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "name": "treasury_authority",
+          "docs": [
+            "The wallet that receives SOL proceeds (must match `treasury.authority`)."
+          ],
+          "writable": true
+        },
+        {
+          "name": "buyer",
+          "writable": true,
+          "signer": true
+        },
+        {
+          "name": "system_program",
+          "address": "11111111111111111111111111111111"
+        }
+      ],
+      "args": [
+        {
+          "name": "roll_id",
+          "type": "pubkey"
+        }
+      ]
+    },
+    {
       "name": "transfer_kwami",
       "docs": [
         "Transfer Kwami NFT ownership (updates internal record)"
@@ -654,6 +1402,94 @@
         {
           "name": "new_owner",
           "type": "pubkey"
+        }
+      ]
+    },
+    {
+      "name": "update_collection_nft_metadata",
+      "docs": [
+        "Update the collection NFT's Metaplex metadata (name/symbol/uri).",
+        "This is needed because the collection NFT update authority is the PDA."
+      ],
+      "discriminator": [
+        242,
+        213,
+        64,
+        25,
+        57,
+        54,
+        13,
+        43
+      ],
+      "accounts": [
+        {
+          "name": "collection_mint",
+          "writable": true
+        },
+        {
+          "name": "collection_authority",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  99,
+                  111,
+                  108,
+                  108,
+                  101,
+                  99,
+                  116,
+                  105,
+                  111,
+                  110,
+                  45,
+                  97,
+                  117,
+                  116,
+                  104,
+                  111,
+                  114,
+                  105,
+                  116,
+                  121
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "collection_authority.collection_mint",
+                "account": "CollectionAuthority"
+              }
+            ]
+          }
+        },
+        {
+          "name": "collection_metadata",
+          "writable": true
+        },
+        {
+          "name": "authority",
+          "writable": true,
+          "signer": true
+        },
+        {
+          "name": "token_metadata_program",
+          "address": "metaqbxxUerdq28cj1RbAWkYQm3ybzjb6a8bt518x1s"
+        }
+      ],
+      "args": [
+        {
+          "name": "name",
+          "type": "string"
+        },
+        {
+          "name": "symbol",
+          "type": "string"
+        },
+        {
+          "name": "uri",
+          "type": "string"
         }
       ]
     },
@@ -768,6 +1604,19 @@
         246,
         227
       ]
+    },
+    {
+      "name": "MintReceipt",
+      "discriminator": [
+        140,
+        16,
+        143,
+        24,
+        20,
+        95,
+        250,
+        15
+      ]
     }
   ],
   "errors": [
@@ -828,13 +1677,48 @@
     },
     {
       "code": 6011,
-      "name": "InsufficientTreasuryBalance",
-      "msg": "Insufficient treasury balance to process refund. Contact support."
+      "name": "InvalidTreasuryAuthority",
+      "msg": "Treasury authority wallet does not match the configured authority"
     },
     {
       "code": 6012,
+      "name": "InvalidCollectionMint",
+      "msg": "Invalid collection mint (must match the program's collection mint)"
+    },
+    {
+      "code": 6013,
+      "name": "InvalidCollectionMetadata",
+      "msg": "Invalid collection metadata PDA"
+    },
+    {
+      "code": 6014,
+      "name": "InvalidCollectionMasterEdition",
+      "msg": "Invalid collection master edition PDA"
+    },
+    {
+      "code": 6015,
       "name": "MathOverflow",
       "msg": "Math overflow"
+    },
+    {
+      "code": 6016,
+      "name": "InvalidReceipt",
+      "msg": "Invalid mint receipt"
+    },
+    {
+      "code": 6017,
+      "name": "ReceiptAlreadyUsed",
+      "msg": "Mint receipt already used"
+    },
+    {
+      "code": 6018,
+      "name": "ReceiptExpired",
+      "msg": "Mint receipt expired (generation changed); please purchase again"
+    },
+    {
+      "code": 6019,
+      "name": "InvalidCollectionAuthority",
+      "msg": "Invalid collection authority"
     }
   ],
   "types": [
@@ -1006,13 +1890,6 @@
             "type": "u64"
           },
           {
-            "name": "total_sol_refunded",
-            "docs": [
-              "Total SOL (lamports) refunded from NFT burns"
-            ],
-            "type": "u64"
-          },
-          {
             "name": "nft_mints_count",
             "docs": [
               "Total number of NFT mints"
@@ -1027,30 +1904,66 @@
             "type": "u64"
           },
           {
-            "name": "dividend_pool_balance",
+            "name": "bump",
             "docs": [
-              "Dividend pool balance (80% of revenue)"
+              "Bump seed"
             ],
-            "type": "u64"
+            "type": "u8"
+          }
+        ]
+      }
+    },
+    {
+      "name": "MintReceipt",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "roll_id",
+            "docs": [
+              "Client-provided roll id to allow multiple receipts per buyer."
+            ],
+            "type": "pubkey"
           },
           {
-            "name": "operations_balance",
+            "name": "buyer",
             "docs": [
-              "Operations fund balance (20% of revenue)"
+              "Buyer who paid for this roll."
             ],
-            "type": "u64"
+            "type": "pubkey"
           },
           {
-            "name": "last_dividend_distribution",
+            "name": "generation",
             "docs": [
-              "Last dividend distribution timestamp"
+              "Generation at time of purchase."
             ],
             "type": "i64"
           },
           {
+            "name": "price_lamports",
+            "docs": [
+              "Amount paid (lamports)."
+            ],
+            "type": "u64"
+          },
+          {
+            "name": "paid_at",
+            "docs": [
+              "Timestamp of payment."
+            ],
+            "type": "i64"
+          },
+          {
+            "name": "used",
+            "docs": [
+              "Whether this receipt has been consumed."
+            ],
+            "type": "bool"
+          },
+          {
             "name": "bump",
             "docs": [
-              "Bump seed"
+              "Bump seed."
             ],
             "type": "u8"
           }

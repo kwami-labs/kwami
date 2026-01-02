@@ -137,16 +137,22 @@
         class="h-full flex transition-transform duration-500 ease-out"
         style={`transform: translateX(-${tabIndex() * 100}%); width: ${tabs.length * 100}vw !important;`}
       >
-        <section class="h-full relative" style="width: 100vw; flex-shrink: 0;">
-          <InfoPage />
+        <section class="h-full relative flex items-center justify-center px-6" style="width: 100vw; flex-shrink: 0;">
+          <div class="w-[min(92vw,720px)]">
+            <InfoPage />
+          </div>
         </section>
 
-        <section class="h-full relative" style="width: 100vw; flex-shrink: 0;">
-          <GovernancePage />
+        <section class="h-full relative flex items-center justify-center px-6" style="width: 100vw; flex-shrink: 0;">
+          <div class="w-[min(96vw,1180px)]">
+            <GovernancePage />
+          </div>
         </section>
 
-        <section class="h-full relative" style="width: 100vw; flex-shrink: 0;">
-          <TreasuryPage />
+        <section class="h-full relative flex items-center justify-center px-6" style="width: 100vw; flex-shrink: 0;">
+          <div class="w-[min(96vw,1180px)]">
+            <TreasuryPage />
+          </div>
         </section>
       </div>
     </div>

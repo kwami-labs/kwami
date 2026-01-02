@@ -1,0 +1,1037 @@
+{
+  "address": "6j64Ct74mypeT3UKVhtFUjBW8RX144VvxWJjH9iBqbAv",
+  "metadata": {
+    "name": "kwami_dao",
+    "version": "0.1.0",
+    "spec": "0.1.0",
+    "description": "KWAMI DAO Governance Program"
+  },
+  "instructions": [
+    {
+      "name": "cancel_proposal",
+      "docs": [
+        "Cancel a proposal (only by proposer or authority)"
+      ],
+      "discriminator": [
+        106,
+        74,
+        128,
+        146,
+        19,
+        65,
+        39,
+        23
+      ],
+      "accounts": [
+        {
+          "name": "proposal",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  112,
+                  114,
+                  111,
+                  112,
+                  111,
+                  115,
+                  97,
+                  108
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "proposal.proposal_id",
+                "account": "Proposal"
+              }
+            ]
+          }
+        },
+        {
+          "name": "dao_state",
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  100,
+                  97,
+                  111,
+                  45,
+                  115,
+                  116,
+                  97,
+                  116,
+                  101
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "name": "caller",
+          "signer": true
+        }
+      ],
+      "args": []
+    },
+    {
+      "name": "create_proposal",
+      "docs": [
+        "Create a new governance proposal"
+      ],
+      "discriminator": [
+        132,
+        116,
+        68,
+        174,
+        216,
+        160,
+        198,
+        22
+      ],
+      "accounts": [
+        {
+          "name": "dao_state",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  100,
+                  97,
+                  111,
+                  45,
+                  115,
+                  116,
+                  97,
+                  116,
+                  101
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "name": "proposal",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  112,
+                  114,
+                  111,
+                  112,
+                  111,
+                  115,
+                  97,
+                  108
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "dao_state.proposal_count",
+                "account": "DaoState"
+              }
+            ]
+          }
+        },
+        {
+          "name": "proposer_qwami_account"
+        },
+        {
+          "name": "proposer",
+          "writable": true,
+          "signer": true
+        },
+        {
+          "name": "system_program",
+          "address": "11111111111111111111111111111111"
+        }
+      ],
+      "args": [
+        {
+          "name": "title",
+          "type": "string"
+        },
+        {
+          "name": "description",
+          "type": "string"
+        },
+        {
+          "name": "execution_delay_seconds",
+          "type": "i64"
+        },
+        {
+          "name": "voting_period_seconds",
+          "type": "i64"
+        }
+      ]
+    },
+    {
+      "name": "finalize_proposal",
+      "docs": [
+        "Finalize a proposal after voting period ends"
+      ],
+      "discriminator": [
+        23,
+        68,
+        51,
+        167,
+        109,
+        173,
+        187,
+        164
+      ],
+      "accounts": [
+        {
+          "name": "proposal",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  112,
+                  114,
+                  111,
+                  112,
+                  111,
+                  115,
+                  97,
+                  108
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "proposal.proposal_id",
+                "account": "Proposal"
+              }
+            ]
+          }
+        },
+        {
+          "name": "dao_state",
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  100,
+                  97,
+                  111,
+                  45,
+                  115,
+                  116,
+                  97,
+                  116,
+                  101
+                ]
+              }
+            ]
+          }
+        }
+      ],
+      "args": []
+    },
+    {
+      "name": "initialize",
+      "docs": [
+        "Initialize the DAO governance system"
+      ],
+      "discriminator": [
+        175,
+        175,
+        109,
+        31,
+        13,
+        152,
+        155,
+        237
+      ],
+      "accounts": [
+        {
+          "name": "dao_state",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  100,
+                  97,
+                  111,
+                  45,
+                  115,
+                  116,
+                  97,
+                  116,
+                  101
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "name": "qwami_mint"
+        },
+        {
+          "name": "authority",
+          "writable": true,
+          "signer": true
+        },
+        {
+          "name": "system_program",
+          "address": "11111111111111111111111111111111"
+        }
+      ],
+      "args": [
+        {
+          "name": "governance_config",
+          "type": {
+            "defined": {
+              "name": "GovernanceConfig"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "update_config",
+      "docs": [
+        "Update governance configuration (authority only)"
+      ],
+      "discriminator": [
+        29,
+        158,
+        252,
+        191,
+        10,
+        83,
+        219,
+        99
+      ],
+      "accounts": [
+        {
+          "name": "dao_state",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  100,
+                  97,
+                  111,
+                  45,
+                  115,
+                  116,
+                  97,
+                  116,
+                  101
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "name": "authority",
+          "signer": true,
+          "relations": [
+            "dao_state"
+          ]
+        }
+      ],
+      "args": [
+        {
+          "name": "new_config",
+          "type": {
+            "defined": {
+              "name": "GovernanceConfig"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "vote",
+      "docs": [
+        "Cast a vote on a proposal"
+      ],
+      "discriminator": [
+        227,
+        110,
+        155,
+        23,
+        136,
+        126,
+        172,
+        25
+      ],
+      "accounts": [
+        {
+          "name": "proposal",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  112,
+                  114,
+                  111,
+                  112,
+                  111,
+                  115,
+                  97,
+                  108
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "proposal.proposal_id",
+                "account": "Proposal"
+              }
+            ]
+          }
+        },
+        {
+          "name": "vote_record",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  118,
+                  111,
+                  116,
+                  101
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "proposal"
+              },
+              {
+                "kind": "account",
+                "path": "voter"
+              }
+            ]
+          }
+        },
+        {
+          "name": "dao_state",
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  100,
+                  97,
+                  111,
+                  45,
+                  115,
+                  116,
+                  97,
+                  116,
+                  101
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "name": "qwami_mint"
+        },
+        {
+          "name": "voter_qwami_account"
+        },
+        {
+          "name": "vote_vault",
+          "docs": [
+            "Per-vote escrow vault owned by `dao_state` PDA."
+          ],
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  118,
+                  111,
+                  116,
+                  101,
+                  45,
+                  118,
+                  97,
+                  117,
+                  108,
+                  116
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "proposal"
+              },
+              {
+                "kind": "account",
+                "path": "voter"
+              }
+            ]
+          }
+        },
+        {
+          "name": "voter",
+          "writable": true,
+          "signer": true
+        },
+        {
+          "name": "token_program",
+          "address": "TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA"
+        },
+        {
+          "name": "system_program",
+          "address": "11111111111111111111111111111111"
+        }
+      ],
+      "args": [
+        {
+          "name": "vote_type",
+          "type": {
+            "defined": {
+              "name": "VoteType"
+            }
+          }
+        },
+        {
+          "name": "qwami_amount",
+          "type": "u64"
+        }
+      ]
+    },
+    {
+      "name": "withdraw_vote",
+      "docs": [
+        "Withdraw locked voting tokens after the voting period ends (or proposal is no longer active)."
+      ],
+      "discriminator": [
+        243,
+        255,
+        70,
+        200,
+        3,
+        242,
+        103,
+        137
+      ],
+      "accounts": [
+        {
+          "name": "dao_state",
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  100,
+                  97,
+                  111,
+                  45,
+                  115,
+                  116,
+                  97,
+                  116,
+                  101
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "name": "proposal",
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  112,
+                  114,
+                  111,
+                  112,
+                  111,
+                  115,
+                  97,
+                  108
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "proposal.proposal_id",
+                "account": "Proposal"
+              }
+            ]
+          }
+        },
+        {
+          "name": "vote_record",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  118,
+                  111,
+                  116,
+                  101
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "proposal"
+              },
+              {
+                "kind": "account",
+                "path": "voter"
+              }
+            ]
+          }
+        },
+        {
+          "name": "vote_vault",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  118,
+                  111,
+                  116,
+                  101,
+                  45,
+                  118,
+                  97,
+                  117,
+                  108,
+                  116
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "proposal"
+              },
+              {
+                "kind": "account",
+                "path": "voter"
+              }
+            ]
+          }
+        },
+        {
+          "name": "voter_qwami_account",
+          "writable": true
+        },
+        {
+          "name": "voter",
+          "signer": true
+        },
+        {
+          "name": "token_program",
+          "address": "TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA"
+        }
+      ],
+      "args": []
+    }
+  ],
+  "accounts": [
+    {
+      "name": "DaoState",
+      "discriminator": [
+        24,
+        50,
+        14,
+        105,
+        233,
+        60,
+        201,
+        244
+      ]
+    },
+    {
+      "name": "Proposal",
+      "discriminator": [
+        26,
+        94,
+        189,
+        187,
+        116,
+        136,
+        53,
+        33
+      ]
+    },
+    {
+      "name": "VoteRecord",
+      "discriminator": [
+        112,
+        9,
+        123,
+        165,
+        234,
+        9,
+        157,
+        167
+      ]
+    }
+  ],
+  "errors": [
+    {
+      "code": 6000,
+      "name": "TitleTooLong",
+      "msg": "Title must be 100 characters or less"
+    },
+    {
+      "code": 6001,
+      "name": "DescriptionTooLong",
+      "msg": "Description must be 2000 characters or less"
+    },
+    {
+      "code": 6002,
+      "name": "VotingPeriodTooShort",
+      "msg": "Voting period must be at least 1 day"
+    },
+    {
+      "code": 6003,
+      "name": "VotingPeriodTooLong",
+      "msg": "Voting period cannot exceed 14 days"
+    },
+    {
+      "code": 6004,
+      "name": "InsufficientQwami",
+      "msg": "Insufficient QWAMI tokens"
+    },
+    {
+      "code": 6005,
+      "name": "ProposalNotActive",
+      "msg": "Proposal is not active"
+    },
+    {
+      "code": 6006,
+      "name": "VotingPeriodEnded",
+      "msg": "Voting period has ended"
+    },
+    {
+      "code": 6007,
+      "name": "VotingPeriodNotEnded",
+      "msg": "Voting period has not ended yet"
+    },
+    {
+      "code": 6008,
+      "name": "AlreadyVoted",
+      "msg": "Already voted on this proposal"
+    },
+    {
+      "code": 6009,
+      "name": "Unauthorized",
+      "msg": "Unauthorized"
+    },
+    {
+      "code": 6010,
+      "name": "ExecutionNotAvailable",
+      "msg": "Proposal execution not available yet"
+    },
+    {
+      "code": 6011,
+      "name": "AlreadyExecuted",
+      "msg": "Proposal has already been executed"
+    },
+    {
+      "code": 6012,
+      "name": "VotingStillActive",
+      "msg": "Vote tokens are still locked because voting is still active"
+    },
+    {
+      "code": 6013,
+      "name": "AlreadyWithdrawn",
+      "msg": "Vote tokens already withdrawn"
+    },
+    {
+      "code": 6014,
+      "name": "NothingToWithdraw",
+      "msg": "Nothing to withdraw"
+    }
+  ],
+  "types": [
+    {
+      "name": "DaoState",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "authority",
+            "type": "pubkey"
+          },
+          {
+            "name": "qwami_mint",
+            "type": "pubkey"
+          },
+          {
+            "name": "kwami_collection",
+            "type": "pubkey"
+          },
+          {
+            "name": "treasury_wallet",
+            "docs": [
+              "Wallet where SOL proceeds are deposited (for dashboard display)."
+            ],
+            "type": "pubkey"
+          },
+          {
+            "name": "qwami_token_authority",
+            "docs": [
+              "QWAMI TokenAuthority PDA (for minted/burned dashboard stats)."
+            ],
+            "type": "pubkey"
+          },
+          {
+            "name": "kwami_collection_authority",
+            "docs": [
+              "KWAMI CollectionAuthority PDA (for minted dashboard stats)."
+            ],
+            "type": "pubkey"
+          },
+          {
+            "name": "proposal_count",
+            "type": "u64"
+          },
+          {
+            "name": "governance_config",
+            "type": {
+              "defined": {
+                "name": "GovernanceConfig"
+              }
+            }
+          },
+          {
+            "name": "bump",
+            "type": "u8"
+          }
+        ]
+      }
+    },
+    {
+      "name": "GovernanceConfig",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "min_qwami_to_propose",
+            "type": "u64"
+          },
+          {
+            "name": "quorum",
+            "type": "u64"
+          },
+          {
+            "name": "max_voting_period",
+            "type": "i64"
+          },
+          {
+            "name": "min_execution_delay",
+            "type": "i64"
+          },
+          {
+            "name": "kwami_collection",
+            "type": "pubkey"
+          },
+          {
+            "name": "treasury_wallet",
+            "docs": [
+              "Wallet where SOL proceeds are deposited (for dashboard display)."
+            ],
+            "type": "pubkey"
+          },
+          {
+            "name": "qwami_token_authority",
+            "docs": [
+              "QWAMI TokenAuthority PDA (for minted/burned dashboard stats)."
+            ],
+            "type": "pubkey"
+          },
+          {
+            "name": "kwami_collection_authority",
+            "docs": [
+              "KWAMI CollectionAuthority PDA (for minted dashboard stats)."
+            ],
+            "type": "pubkey"
+          }
+        ]
+      }
+    },
+    {
+      "name": "Proposal",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "proposal_id",
+            "type": "u64"
+          },
+          {
+            "name": "proposer",
+            "type": "pubkey"
+          },
+          {
+            "name": "title",
+            "type": "string"
+          },
+          {
+            "name": "description",
+            "type": "string"
+          },
+          {
+            "name": "status",
+            "type": {
+              "defined": {
+                "name": "ProposalStatus"
+              }
+            }
+          },
+          {
+            "name": "created_at",
+            "type": "i64"
+          },
+          {
+            "name": "voting_ends_at",
+            "type": "i64"
+          },
+          {
+            "name": "execution_delay_seconds",
+            "type": "i64"
+          },
+          {
+            "name": "execution_available_at",
+            "type": "i64"
+          },
+          {
+            "name": "votes_for",
+            "type": "u64"
+          },
+          {
+            "name": "votes_against",
+            "type": "u64"
+          },
+          {
+            "name": "votes_abstain",
+            "type": "u64"
+          },
+          {
+            "name": "total_votes",
+            "type": "u64"
+          },
+          {
+            "name": "executed",
+            "type": "bool"
+          },
+          {
+            "name": "cancelled",
+            "type": "bool"
+          },
+          {
+            "name": "bump",
+            "type": "u8"
+          }
+        ]
+      }
+    },
+    {
+      "name": "ProposalStatus",
+      "type": {
+        "kind": "enum",
+        "variants": [
+          {
+            "name": "Active"
+          },
+          {
+            "name": "Passed"
+          },
+          {
+            "name": "Rejected"
+          },
+          {
+            "name": "QuorumNotMet"
+          },
+          {
+            "name": "Cancelled"
+          },
+          {
+            "name": "Executed"
+          }
+        ]
+      }
+    },
+    {
+      "name": "VoteRecord",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "proposal_id",
+            "type": "u64"
+          },
+          {
+            "name": "voter",
+            "type": "pubkey"
+          },
+          {
+            "name": "vote_type",
+            "type": {
+              "defined": {
+                "name": "VoteType"
+              }
+            }
+          },
+          {
+            "name": "qwami_amount",
+            "type": "u64"
+          },
+          {
+            "name": "voted_at",
+            "type": "i64"
+          },
+          {
+            "name": "withdrawn",
+            "type": "bool"
+          },
+          {
+            "name": "bump",
+            "type": "u8"
+          }
+        ]
+      }
+    },
+    {
+      "name": "VoteType",
+      "type": {
+        "kind": "enum",
+        "variants": [
+          {
+            "name": "For"
+          },
+          {
+            "name": "Against"
+          },
+          {
+            "name": "Abstain"
+          }
+        ]
+      }
+    }
+  ]
+}

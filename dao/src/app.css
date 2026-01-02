@@ -55,12 +55,21 @@ body {
 }
 
 body {
-  /* background + color are controlled by the app shell (Tailwind classes) */
+  background: linear-gradient(135deg, #0b1220 0%, #0f172a 50%, #0b1220 100%);
+  color: #0f172a;
+}
+html.dark body {
+  background: linear-gradient(135deg, #030712 0%, #050914 45%, #0b1220 100%);
+  color: #f8fafc;
 }
 
 /* Smooth out default focus outlines (we still keep focus-visible rings via Tailwind/kwami styles) */
 :focus {
   outline: none;
+}
+/* Defensive: never let a host container clamp width */
+*, *::before, *::after {
+  box-sizing: border-box;
 }
 
 /* CRITICAL: Force full viewport width (override any conflicting styles) */
@@ -81,6 +90,17 @@ html, body {
 /* Prevent any child from causing horizontal overflow */
 #app > * {
   max-width: 100vw !important;
+}
+
+/* Extra guard: if the host page wraps our app in a container, still span full width */
+#app,
+#app > div,
+body > div:first-child {
+  width: 100% !important;
+  max-width: 100% !important;
+  min-width: 100% !important;
+  margin: 0 !important;
+  padding: 0 !important;
 }
 
 /* Dark mode glass overrides */

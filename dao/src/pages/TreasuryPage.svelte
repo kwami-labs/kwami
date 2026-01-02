@@ -17,10 +17,10 @@
   onDestroy(() => clearInterval(timer))
 </script>
 
-<div class="absolute inset-0 px-6 py-6 overflow-hidden">
-  <div class="h-full overflow-hidden mx-auto max-w-6xl grid grid-cols-1 lg:grid-cols-[0.9fr_1.1fr] gap-6">
-    <aside class="h-full overflow-hidden">
-      <KwamiGlassCard title="Treasury" headerRight="Public view" className="h-full" scrollContent={true} cursorGlow={true}>
+<div class="w-full h-full">
+  <div class="grid grid-cols-1 lg:grid-cols-[0.9fr_1.1fr] gap-4 sm:gap-6">
+    <aside>
+      <KwamiGlassCard title="Treasury" headerRight="Public view" className="w-full h-full" scrollContent={true} cursorGlow={false}>
         <div class="space-y-5">
           <div>
             <div class="text-3xl sm:text-4xl font-black tracking-tight">
@@ -125,8 +125,8 @@
       </KwamiGlassCard>
     </aside>
 
-    <section class="h-full overflow-hidden">
-      <KwamiGlassCard title="Activity" headerRight="Public" className="h-full" scrollContent={true} cursorGlow={true}>
+    <section>
+      <KwamiGlassCard title="Activity" headerRight="Public" className="w-full h-full" scrollContent={true} cursorGlow={false}>
         <div class="space-y-3">
           <article class="p-4 rounded-2xl border border-gray-200/60 bg-white/10 dark:border-gray-800/60 dark:bg-black/10">
             <div class="flex items-center justify-between gap-3">
