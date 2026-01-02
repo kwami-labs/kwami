@@ -8,8 +8,16 @@ use mpl_token_metadata::{
         CreateMetadataAccountV3Cpi,
         CreateMetadataAccountV3CpiAccounts,
         CreateMetadataAccountV3InstructionArgs,
+        CreateMasterEditionV3Cpi,
+        CreateMasterEditionV3CpiAccounts,
+        CreateMasterEditionV3InstructionArgs,
+        VerifySizedCollectionItemCpi,
+        VerifySizedCollectionItemCpiAccounts,
+        UpdateMetadataAccountV2Cpi,
+        UpdateMetadataAccountV2CpiAccounts,
+        UpdateMetadataAccountV2InstructionArgs,
     },
-    types::DataV2,
+    types::{CollectionDetails, DataV2},
 };
 
 // Devnet program id (deployed via `anchor deploy --program-name kwami_nft`)
@@ -118,9 +126,427 @@ pub mod kwami_nft {
         Ok(())
     }
 
+    /// Initialize a *new* collection authority + DNA registry while reusing the existing treasury.
+    /// This is useful if the original collection mint was created incorrectly (e.g. missing freeze authority)
+    /// and you need to rotate to a new collection mint without resetting the treasury.
+    pub fn initialize_collection(ctx: Context<InitializeCollection>) -> Result<()> {
+        let collection_authority = &mut ctx.accounts.collection_authority;
+        collection_authority.authority = ctx.accounts.payer.key();
+        collection_authority.collection_mint = ctx.accounts.collection_mint.key();
+        collection_authority.total_minted = 0;
+        collection_authority.bump = ctx.bumps.collection_authority;
+
+        let dna_registry = &mut ctx.accounts.dna_registry;
+        dna_registry.authority = ctx.accounts.payer.key();
+        dna_registry.collection = ctx.accounts.collection_mint.key();
+        dna_registry.dna_count = 0;
+
+        msg!("Initialized new collection config");
+        msg!("Collection: {}", collection_authority.collection_mint);
+        msg!("Authority: {}", collection_authority.authority);
+        msg!("Treasury (reused): {}", ctx.accounts.treasury.key());
+        Ok(())
+    }
+
+    /// Purchase a "roll" (SOL payment) before selecting DNA/metadata.
+    /// This enables a Candy Machine style UX: pay first, then roll/reveal, then upload, then finalize mint.
+    pub fn purchase_roll(ctx: Context<PurchaseRoll>, roll_id: Pubkey) -> Result<()> {
+        let current_timestamp = Clock::get()?.unix_timestamp;
+        let (current_generation, _current_max_supply) = get_current_generation_info(current_timestamp);
+        let (_base_cost_lamports, total_cost_lamports) =
+            calculate_mint_cost_lamports(current_generation)?;
+
+        // Best-effort pre-check; the CPI will also fail if insufficient.
+        require!(
+            ctx.accounts.buyer.to_account_info().lamports() >= total_cost_lamports,
+            ErrorCode::InsufficientSolBalance
+        );
+
+        // Transfer SOL to configured treasury authority wallet.
+        require_keys_eq!(
+            ctx.accounts.treasury_authority.key(),
+            ctx.accounts.treasury.authority,
+            ErrorCode::InvalidTreasuryAuthority
+        );
+
+        system_transfer(
+            CpiContext::new(
+                ctx.accounts.system_program.to_account_info(),
+                SystemTransfer {
+                    from: ctx.accounts.buyer.to_account_info(),
+                    to: ctx.accounts.treasury_authority.to_account_info(),
+                },
+            ),
+            total_cost_lamports,
+        )?;
+
+        // Record receipt (one-time use).
+        let receipt = &mut ctx.accounts.mint_receipt;
+        receipt.roll_id = roll_id;
+        receipt.buyer = ctx.accounts.buyer.key();
+        receipt.generation = current_generation;
+        receipt.price_lamports = total_cost_lamports;
+        receipt.paid_at = current_timestamp;
+        receipt.used = false;
+        receipt.bump = ctx.bumps.mint_receipt;
+
+        // Treasury accounting: revenue is recorded at purchase time.
+        let treasury = &mut ctx.accounts.treasury;
+        treasury.total_sol_received = treasury
+            .total_sol_received
+            .checked_add(total_cost_lamports)
+            .ok_or(ErrorCode::MathOverflow)?;
+
+        msg!("Purchased roll for Kwami mint");
+        msg!("Roll ID: {}", roll_id);
+        msg!("Buyer: {}", receipt.buyer);
+        msg!("Generation: #{}", current_generation);
+        msg!("Paid: {} lamports", total_cost_lamports);
+        Ok(())
+    }
+
+    /// Finalize a mint using a previously purchased roll receipt.
+    /// This does NOT transfer SOL (payment already happened in `purchase_roll`).
+    pub fn mint_kwami_with_receipt<'info>(
+        ctx: Context<'_, '_, '_, 'info, MintKwamiWithReceipt<'info>>,
+        roll_id: Pubkey,
+        dna_hash: [u8; 32],
+        name: String,
+        symbol: String,
+        uri: String,
+    ) -> Result<()> {
+        // Receipt checks
+        let receipt = &mut ctx.accounts.mint_receipt;
+        require_keys_eq!(receipt.roll_id, roll_id, ErrorCode::InvalidReceipt);
+        require_keys_eq!(receipt.buyer, ctx.accounts.owner.key(), ErrorCode::InvalidReceipt);
+        require!(!receipt.used, ErrorCode::ReceiptAlreadyUsed);
+
+        // Enforce same-generation finalization (prevents cheap prepay across generations).
+        let current_timestamp = Clock::get()?.unix_timestamp;
+        let (current_generation, current_max_supply) = get_current_generation_info(current_timestamp);
+        require!(receipt.generation == current_generation, ErrorCode::ReceiptExpired);
+
+        // Validate inputs
+        require!(name.len() <= 32, ErrorCode::NameTooLong);
+        require!(symbol.len() <= 10, ErrorCode::SymbolTooLong);
+        require!(uri.len() <= 200, ErrorCode::UriTooLong);
+
+        let dna_registry = &mut ctx.accounts.dna_registry;
+        let collection_authority = &mut ctx.accounts.collection_authority;
+        let treasury = &mut ctx.accounts.treasury;
+
+        // Supply caps
+        require!(
+            collection_authority.total_minted < current_max_supply,
+            ErrorCode::GenerationSupplyReached
+        );
+        require!(
+            collection_authority.total_minted < MAX_TOTAL_KWAMIS,
+            ErrorCode::MaxSupplyReached
+        );
+
+        // DNA uniqueness
+        require!(
+            !dna_registry.dna_hashes.contains(&dna_hash),
+            ErrorCode::DuplicateDNA
+        );
+        require!(
+            dna_registry.dna_count < MAX_DNA_PER_ACCOUNT as u64,
+            ErrorCode::RegistryFull
+        );
+
+        // Mint stats
+        treasury.nft_mints_count = treasury
+            .nft_mints_count
+            .checked_add(1)
+            .ok_or(ErrorCode::MathOverflow)?;
+
+        // Create Kwami NFT account
+        let kwami_nft = &mut ctx.accounts.kwami_nft;
+        kwami_nft.mint = ctx.accounts.mint.key();
+        kwami_nft.owner = ctx.accounts.owner.key();
+        kwami_nft.dna_hash = dna_hash;
+        kwami_nft.minted_at = current_timestamp;
+        kwami_nft.updated_at = current_timestamp;
+        kwami_nft.metadata_uri = uri.clone();
+        kwami_nft.mint_cost_lamports = receipt.price_lamports;
+        kwami_nft.bump = ctx.bumps.kwami_nft;
+
+        // Add DNA to registry
+        dna_registry.dna_hashes.push(dna_hash);
+        dna_registry.dna_count += 1;
+
+        // Increment collection counter before CPI
+        collection_authority.total_minted = collection_authority
+            .total_minted
+            .checked_add(1)
+            .ok_or(ErrorCode::MathOverflow)?;
+
+        // Consume receipt
+        receipt.used = true;
+
+        // Store values needed for CPI before dropping mutable borrows
+        let collection_mint = collection_authority.collection_mint;
+        let authority_bump = collection_authority.bump;
+        let current_total_minted = collection_authority.total_minted;
+        let paid_lamports = receipt.price_lamports;
+
+        // Drop mutable borrows before CPI
+        let _ = dna_registry;
+        let _ = collection_authority;
+        let _ = treasury;
+        let _ = kwami_nft;
+        let _ = receipt;
+
+        // Metaplex metadata
+        let collection_authority_seeds = &[
+            b"collection-authority",
+            collection_mint.as_ref(),
+            &[authority_bump],
+        ];
+        let collection_authority_signer = &[&collection_authority_seeds[..]];
+
+        CreateMetadataAccountV3Cpi::new(
+            &ctx.accounts.token_metadata_program.to_account_info(),
+            CreateMetadataAccountV3CpiAccounts {
+                metadata: &ctx.accounts.metadata.to_account_info(),
+                mint: &ctx.accounts.mint.to_account_info(),
+                mint_authority: &ctx.accounts.collection_authority.to_account_info(),
+                payer: &ctx.accounts.owner.to_account_info(),
+                update_authority: (&ctx.accounts.collection_authority.to_account_info(), true),
+                system_program: &ctx.accounts.system_program.to_account_info(),
+                rent: None,
+            },
+            CreateMetadataAccountV3InstructionArgs {
+                data: DataV2 {
+                    name,
+                    symbol,
+                    uri,
+                    seller_fee_basis_points: 500,
+                    creators: None,
+                    collection: Some(mpl_token_metadata::types::Collection {
+                        verified: false,
+                        key: collection_mint,
+                    }),
+                    uses: None,
+                },
+                is_mutable: true,
+                collection_details: None,
+            },
+        )
+        .invoke_signed(collection_authority_signer)?;
+
+        // Verify collection (required for wallet grouping) if the collection accounts are provided.
+        // Remaining accounts order:
+        // [0] collection_mint
+        // [1] collection_metadata PDA
+        // [2] collection_master_edition PDA
+        if ctx.remaining_accounts.len() >= 3 {
+            let collection_mint_ai = &ctx.remaining_accounts[0];
+            let collection_metadata_ai = &ctx.remaining_accounts[1];
+            let collection_master_edition_ai = &ctx.remaining_accounts[2];
+
+            VerifySizedCollectionItemCpi::new(
+                &ctx.accounts.token_metadata_program.to_account_info(),
+                VerifySizedCollectionItemCpiAccounts {
+                    metadata: &ctx.accounts.metadata.to_account_info(),
+                    collection_authority: &ctx.accounts.collection_authority.to_account_info(),
+                    payer: &ctx.accounts.owner.to_account_info(),
+                    collection_mint: collection_mint_ai,
+                    collection: collection_metadata_ai,
+                    collection_master_edition_account: collection_master_edition_ai,
+                    collection_authority_record: None,
+                },
+            )
+            .invoke_signed(collection_authority_signer)?;
+            msg!("Verified collection for minted item");
+        } else {
+            msg!("Skipping collection verification (collection accounts not provided)");
+        }
+
+        // Mint token
+        let mint_to_ctx = CpiContext::new_with_signer(
+            ctx.accounts.token_program.to_account_info(),
+            MintTo {
+                mint: ctx.accounts.mint.to_account_info(),
+                to: ctx.accounts.owner_token_account.to_account_info(),
+                authority: ctx.accounts.collection_authority.to_account_info(),
+            },
+            collection_authority_signer,
+        );
+        token::mint_to(mint_to_ctx, 1)?;
+
+        msg!("Finalized Kwami mint with receipt");
+        msg!("Roll ID: {}", roll_id);
+        msg!("Paid: {} lamports", paid_lamports);
+        msg!("DNA Hash: {:?}", dna_hash);
+        msg!("Mint: {}", ctx.accounts.mint.key());
+        msg!("Owner: {}", ctx.accounts.owner.key());
+        msg!("Total Minted: {}/{}", current_total_minted, current_max_supply);
+        Ok(())
+    }
+
+    /// Create the Metaplex Collection NFT (metadata + master edition) for the configured collection mint.
+    /// Wallets typically only group NFTs when the collection is *verified* against a real collection NFT.
+    pub fn create_collection_nft<'info>(
+        ctx: Context<'_, '_, '_, 'info, CreateCollectionNft<'info>>,
+        name: String,
+        symbol: String,
+        uri: String,
+    ) -> Result<()> {
+        // Only the configured authority may create the collection NFT.
+        require_keys_eq!(
+            ctx.accounts.authority.key(),
+            ctx.accounts.collection_authority.authority,
+            ErrorCode::InvalidCollectionAuthority
+        );
+
+        require!(name.len() <= 32, ErrorCode::NameTooLong);
+        require!(symbol.len() <= 10, ErrorCode::SymbolTooLong);
+        require!(uri.len() <= 200, ErrorCode::UriTooLong);
+
+        // Idempotent: if metadata already exists, assume collection is already created.
+        if !ctx.accounts.collection_metadata.data_is_empty()
+            && !ctx.accounts.collection_master_edition.data_is_empty()
+        {
+            msg!("Collection NFT already exists; skipping creation");
+            return Ok(());
+        }
+
+        let collection_mint = ctx.accounts.collection_mint.key();
+        let authority_bump = ctx.accounts.collection_authority.bump;
+
+        let collection_authority_seeds = &[
+            b"collection-authority",
+            collection_mint.as_ref(),
+            &[authority_bump],
+        ];
+        let collection_authority_signer = &[&collection_authority_seeds[..]];
+
+        // Mint exactly 1 token of the collection mint to the authority's ATA.
+        // (This is required to make the collection mint a real NFT.)
+        let mint_to_ctx = CpiContext::new_with_signer(
+            ctx.accounts.token_program.to_account_info(),
+            MintTo {
+                mint: ctx.accounts.collection_mint.to_account_info(),
+                to: ctx.accounts.authority_token_account.to_account_info(),
+                authority: ctx.accounts.collection_authority.to_account_info(),
+            },
+            collection_authority_signer,
+        );
+        token::mint_to(mint_to_ctx, 1)?;
+
+        // Create collection metadata with collection_details (Sized Collection).
+        CreateMetadataAccountV3Cpi::new(
+            &ctx.accounts.token_metadata_program.to_account_info(),
+            CreateMetadataAccountV3CpiAccounts {
+                metadata: &ctx.accounts.collection_metadata.to_account_info(),
+                mint: &ctx.accounts.collection_mint.to_account_info(),
+                mint_authority: &ctx.accounts.collection_authority.to_account_info(),
+                payer: &ctx.accounts.authority.to_account_info(),
+                update_authority: (&ctx.accounts.collection_authority.to_account_info(), true),
+                system_program: &ctx.accounts.system_program.to_account_info(),
+                rent: None,
+            },
+            CreateMetadataAccountV3InstructionArgs {
+                data: DataV2 {
+                    name,
+                    symbol,
+                    uri,
+                    seller_fee_basis_points: 0,
+                    creators: None,
+                    collection: None,
+                    uses: None,
+                },
+                is_mutable: true,
+                collection_details: Some(CollectionDetails::V1 { size: 0 }),
+            },
+        )
+        .invoke_signed(collection_authority_signer)?;
+
+        // Create master edition for collection NFT (max_supply = 0 => no prints).
+        CreateMasterEditionV3Cpi::new(
+            &ctx.accounts.token_metadata_program.to_account_info(),
+            CreateMasterEditionV3CpiAccounts {
+                edition: &ctx.accounts.collection_master_edition.to_account_info(),
+                mint: &ctx.accounts.collection_mint.to_account_info(),
+                update_authority: &ctx.accounts.collection_authority.to_account_info(),
+                mint_authority: &ctx.accounts.collection_authority.to_account_info(),
+                payer: &ctx.accounts.authority.to_account_info(),
+                metadata: &ctx.accounts.collection_metadata.to_account_info(),
+                token_program: &ctx.accounts.token_program.to_account_info(),
+                system_program: &ctx.accounts.system_program.to_account_info(),
+                rent: None,
+            },
+            CreateMasterEditionV3InstructionArgs {
+                max_supply: Some(0),
+            },
+        )
+        .invoke_signed(collection_authority_signer)?;
+
+        msg!("Created collection NFT (metadata + master edition)");
+        msg!("Collection mint: {}", collection_mint);
+        Ok(())
+    }
+
+    /// Update the collection NFT's Metaplex metadata (name/symbol/uri).
+    /// This is needed because the collection NFT update authority is the PDA.
+    pub fn update_collection_nft_metadata<'info>(
+        ctx: Context<'_, '_, '_, 'info, UpdateCollectionNftMetadata<'info>>,
+        name: String,
+        symbol: String,
+        uri: String,
+    ) -> Result<()> {
+        require_keys_eq!(
+            ctx.accounts.authority.key(),
+            ctx.accounts.collection_authority.authority,
+            ErrorCode::InvalidCollectionAuthority
+        );
+
+        require!(name.len() <= 32, ErrorCode::NameTooLong);
+        require!(symbol.len() <= 10, ErrorCode::SymbolTooLong);
+        require!(uri.len() <= 200, ErrorCode::UriTooLong);
+
+        let collection_mint = ctx.accounts.collection_mint.key();
+        let authority_bump = ctx.accounts.collection_authority.bump;
+
+        let collection_authority_seeds = &[
+            b"collection-authority",
+            collection_mint.as_ref(),
+            &[authority_bump],
+        ];
+        let collection_authority_signer = &[&collection_authority_seeds[..]];
+
+        UpdateMetadataAccountV2Cpi::new(
+            &ctx.accounts.token_metadata_program.to_account_info(),
+            UpdateMetadataAccountV2CpiAccounts {
+                metadata: &ctx.accounts.collection_metadata.to_account_info(),
+                update_authority: &ctx.accounts.collection_authority.to_account_info(),
+            },
+            UpdateMetadataAccountV2InstructionArgs {
+                data: Some(DataV2 {
+                    name,
+                    symbol,
+                    uri,
+                    seller_fee_basis_points: 0,
+                    creators: None,
+                    collection: None,
+                    uses: None,
+                }),
+                new_update_authority: None,
+                primary_sale_happened: None,
+                is_mutable: Some(true),
+            },
+        )
+        .invoke_signed(collection_authority_signer)?;
+
+        msg!("Updated collection NFT metadata");
+        Ok(())
+    }
+
     /// Mint a new Kwami NFT with unique DNA validation (requires SOL payment)
-    pub fn mint_kwami(
-        ctx: Context<MintKwami>,
+    pub fn mint_kwami<'info>(
+        ctx: Context<'_, '_, '_, 'info, MintKwami<'info>>,
         dna_hash: [u8; 32],
         name: String,
         symbol: String,
@@ -267,18 +693,30 @@ pub mod kwami_nft {
         )
         .invoke_signed(collection_authority_signer)?;
 
-        // OPTIONAL: verify collection so wallets group items under the same collection.
-        // This requires passing the collection mint + collection metadata PDA + master edition PDA
-        // as remaining accounts in this exact order:
+        // Verify collection (required for wallet grouping) if the collection accounts are provided.
+        // Remaining accounts order:
         // [0] collection_mint
         // [1] collection_metadata PDA
         // [2] collection_master_edition PDA
-        // NOTE: Collection verification is optional. The CPI helper types use `UncheckedAccount<'info>`
-        // which can trigger lifetime invariance issues in some toolchain configurations.
-        // We intentionally skip the verify CPI here; collection grouping still works for most wallets
-        // via the `collection` field set during metadata creation above.
         if ctx.remaining_accounts.len() >= 3 {
-            msg!("Collection verification accounts provided; skipping verify CPI");
+            let collection_mint_ai = &ctx.remaining_accounts[0];
+            let collection_metadata_ai = &ctx.remaining_accounts[1];
+            let collection_master_edition_ai = &ctx.remaining_accounts[2];
+
+            VerifySizedCollectionItemCpi::new(
+                &ctx.accounts.token_metadata_program.to_account_info(),
+                VerifySizedCollectionItemCpiAccounts {
+                    metadata: &ctx.accounts.metadata.to_account_info(),
+                    collection_authority: &ctx.accounts.collection_authority.to_account_info(),
+                    payer: &ctx.accounts.owner.to_account_info(),
+                    collection_mint: collection_mint_ai,
+                    collection: collection_metadata_ai,
+                    collection_master_edition_account: collection_master_edition_ai,
+                    collection_authority_record: None,
+                },
+            )
+            .invoke_signed(collection_authority_signer)?;
+            msg!("Verified collection for minted item");
         } else {
             msg!("Skipping collection verification (collection accounts not provided)");
         }
@@ -442,6 +880,47 @@ pub struct Initialize<'info> {
 }
 
 #[derive(Accounts)]
+pub struct InitializeCollection<'info> {
+    /// Collection mint must be created off-chain.
+    #[account(
+        mut,
+        constraint = collection_mint.decimals == 0 @ ErrorCode::InvalidCollectionMintDecimals,
+        constraint = collection_mint.mint_authority == COption::Some(collection_authority.key()) @ ErrorCode::InvalidCollectionMintAuthority,
+    )]
+    pub collection_mint: Box<Account<'info, Mint>>,
+
+    #[account(
+        init,
+        payer = payer,
+        space = 8 + CollectionAuthority::LEN,
+        seeds = [b"collection-authority", collection_mint.key().as_ref()],
+        bump,
+    )]
+    pub collection_authority: Box<Account<'info, CollectionAuthority>>,
+
+    #[account(
+        init,
+        payer = payer,
+        space = 8 + DnaRegistry::INITIAL_SIZE,
+        seeds = [b"dna-registry", collection_mint.key().as_ref()],
+        bump,
+    )]
+    pub dna_registry: Box<Account<'info, DnaRegistry>>,
+
+    #[account(
+        mut,
+        seeds = [b"kwami-treasury"],
+        bump = treasury.bump,
+    )]
+    pub treasury: Box<Account<'info, KwamiTreasury>>,
+
+    #[account(mut)]
+    pub payer: Signer<'info>,
+
+    pub system_program: Program<'info, System>,
+}
+
+#[derive(Accounts)]
 pub struct MintKwami<'info> {
     #[account(
         init,
@@ -508,6 +987,176 @@ pub struct MintKwami<'info> {
     pub token_program: Program<'info, Token>,
     pub associated_token_program: Program<'info, AssociatedToken>,
     
+    /// CHECK: Metaplex Token Metadata program
+    #[account(address = mpl_token_metadata::ID)]
+    pub token_metadata_program: UncheckedAccount<'info>,
+}
+
+#[derive(Accounts)]
+#[instruction(roll_id: Pubkey)]
+pub struct PurchaseRoll<'info> {
+    #[account(
+        init,
+        payer = buyer,
+        space = 8 + MintReceipt::LEN,
+        seeds = [b"mint-receipt", buyer.key().as_ref(), roll_id.as_ref()],
+        bump,
+    )]
+    pub mint_receipt: Box<Account<'info, MintReceipt>>,
+
+    #[account(
+        mut,
+        seeds = [b"kwami-treasury"],
+        bump = treasury.bump,
+    )]
+    pub treasury: Box<Account<'info, KwamiTreasury>>,
+
+    /// The wallet that receives SOL proceeds (must match `treasury.authority`).
+    #[account(mut)]
+    pub treasury_authority: SystemAccount<'info>,
+
+    #[account(mut)]
+    pub buyer: Signer<'info>,
+
+    pub system_program: Program<'info, System>,
+}
+
+#[derive(Accounts)]
+#[instruction(roll_id: Pubkey)]
+pub struct MintKwamiWithReceipt<'info> {
+    #[account(
+        mut,
+        close = owner,
+        seeds = [b"mint-receipt", owner.key().as_ref(), roll_id.as_ref()],
+        bump = mint_receipt.bump,
+    )]
+    pub mint_receipt: Box<Account<'info, MintReceipt>>,
+
+    #[account(
+        init,
+        payer = owner,
+        mint::decimals = 0,
+        mint::authority = collection_authority,
+    )]
+    pub mint: Box<Account<'info, Mint>>,
+
+    #[account(
+        init,
+        payer = owner,
+        space = 8 + KwamiNft::LEN,
+        seeds = [b"kwami-nft", mint.key().as_ref()],
+        bump,
+    )]
+    pub kwami_nft: Box<Account<'info, KwamiNft>>,
+
+    #[account(
+        mut,
+        seeds = [b"collection-authority", collection_authority.collection_mint.as_ref()],
+        bump = collection_authority.bump,
+    )]
+    pub collection_authority: Box<Account<'info, CollectionAuthority>>,
+
+    #[account(
+        mut,
+        realloc = 8 + DnaRegistry::space_for_hashes(dna_registry.dna_count as usize + 1),
+        realloc::payer = owner,
+        realloc::zero = false,
+        seeds = [b"dna-registry", collection_authority.collection_mint.as_ref()],
+        bump,
+    )]
+    pub dna_registry: Box<Account<'info, DnaRegistry>>,
+
+    #[account(
+        mut,
+        seeds = [b"kwami-treasury"],
+        bump = treasury.bump,
+    )]
+    pub treasury: Box<Account<'info, KwamiTreasury>>,
+
+    /// CHECK: Metaplex metadata account (created by CPI)
+    #[account(mut)]
+    pub metadata: UncheckedAccount<'info>,
+
+    /// Owner's token account to receive the minted NFT
+    #[account(
+        init,
+        payer = owner,
+        associated_token::mint = mint,
+        associated_token::authority = owner,
+    )]
+    pub owner_token_account: Box<Account<'info, TokenAccount>>,
+
+    #[account(mut)]
+    pub owner: Signer<'info>,
+
+    pub system_program: Program<'info, System>,
+    pub token_program: Program<'info, Token>,
+    pub associated_token_program: Program<'info, AssociatedToken>,
+
+    /// CHECK: Metaplex Token Metadata program
+    #[account(address = mpl_token_metadata::ID)]
+    pub token_metadata_program: UncheckedAccount<'info>,
+}
+
+#[derive(Accounts)]
+pub struct CreateCollectionNft<'info> {
+    #[account(mut)]
+    pub collection_mint: Box<Account<'info, Mint>>,
+
+    #[account(
+        mut,
+        seeds = [b"collection-authority", collection_authority.collection_mint.as_ref()],
+        bump = collection_authority.bump,
+    )]
+    pub collection_authority: Box<Account<'info, CollectionAuthority>>,
+
+    /// CHECK: Metaplex collection metadata PDA for `collection_mint`
+    #[account(mut)]
+    pub collection_metadata: UncheckedAccount<'info>,
+
+    /// CHECK: Metaplex master edition PDA for `collection_mint`
+    #[account(mut)]
+    pub collection_master_edition: UncheckedAccount<'info>,
+
+    #[account(
+        init,
+        payer = authority,
+        associated_token::mint = collection_mint,
+        associated_token::authority = authority,
+    )]
+    pub authority_token_account: Box<Account<'info, TokenAccount>>,
+
+    #[account(mut)]
+    pub authority: Signer<'info>,
+
+    pub system_program: Program<'info, System>,
+    pub token_program: Program<'info, Token>,
+    pub associated_token_program: Program<'info, AssociatedToken>,
+
+    /// CHECK: Metaplex Token Metadata program
+    #[account(address = mpl_token_metadata::ID)]
+    pub token_metadata_program: UncheckedAccount<'info>,
+}
+
+#[derive(Accounts)]
+pub struct UpdateCollectionNftMetadata<'info> {
+    #[account(mut)]
+    pub collection_mint: Box<Account<'info, Mint>>,
+
+    #[account(
+        mut,
+        seeds = [b"collection-authority", collection_authority.collection_mint.as_ref()],
+        bump = collection_authority.bump,
+    )]
+    pub collection_authority: Box<Account<'info, CollectionAuthority>>,
+
+    /// CHECK: Metaplex collection metadata PDA for `collection_mint`
+    #[account(mut)]
+    pub collection_metadata: UncheckedAccount<'info>,
+
+    #[account(mut)]
+    pub authority: Signer<'info>,
+
     /// CHECK: Metaplex Token Metadata program
     #[account(address = mpl_token_metadata::ID)]
     pub token_metadata_program: UncheckedAccount<'info>,
@@ -682,6 +1331,34 @@ impl KwamiTreasury {
         1;   // bump
 }
 
+#[account]
+pub struct MintReceipt {
+    /// Client-provided roll id to allow multiple receipts per buyer.
+    pub roll_id: Pubkey,
+    /// Buyer who paid for this roll.
+    pub buyer: Pubkey,
+    /// Generation at time of purchase.
+    pub generation: i64,
+    /// Amount paid (lamports).
+    pub price_lamports: u64,
+    /// Timestamp of payment.
+    pub paid_at: i64,
+    /// Whether this receipt has been consumed.
+    pub used: bool,
+    /// Bump seed.
+    pub bump: u8,
+}
+
+impl MintReceipt {
+    pub const LEN: usize = 32 + // roll_id
+        32 + // buyer
+        8 +  // generation
+        8 +  // price_lamports
+        8 +  // paid_at
+        1 +  // used
+        1;   // bump
+}
+
 // ========== Errors ==========
 
 #[error_code]
@@ -734,4 +1411,16 @@ pub enum ErrorCode {
 
     #[msg("Math overflow")]
     MathOverflow,
+
+    #[msg("Invalid mint receipt")]
+    InvalidReceipt,
+
+    #[msg("Mint receipt already used")]
+    ReceiptAlreadyUsed,
+
+    #[msg("Mint receipt expired (generation changed); please purchase again")]
+    ReceiptExpired,
+
+    #[msg("Invalid collection authority")]
+    InvalidCollectionAuthority,
 }
