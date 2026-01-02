@@ -112,6 +112,11 @@ type RollCandyMachineOptions = {
 type RandomizeOnceOptions = {
   showLoading?: boolean
   loadingText?: string
+  /**
+   * If true, do not push interim config/DNA changes into the NFT store.
+   * Useful for "slot machine" rolls that should not mutate mint state.
+   */
+  skipStoreSync?: boolean
 }
 
 const props = withDefaults(
@@ -281,13 +286,15 @@ const syncConfigFromKwami = () => {
   blobConfig.skin = blob.getCurrentSkin()
 }
 
-const generateDna = async () => {
+const generateDna = async (opts: { skipStoreSync?: boolean } = {}) => {
   const { calculateKwamiDNA } = await import('@/utils/calculateKwamiDNA')
   dna.value = calculateKwamiDNA(blobConfig)
 
-  const nftStore = useNFTStore()
-  nftStore.currentDna = dna.value
-  nftStore.setBlobConfig(getConfig())
+  if (!opts.skipStoreSync) {
+    const nftStore = useNFTStore()
+    nftStore.currentDna = dna.value
+    nftStore.setBlobConfig(getConfig())
+  }
 }
 
 const applyRandomConfig = () => {
@@ -317,13 +324,93 @@ const randomizeOnce = async (options: RandomizeOnceOptions = {}) => {
   }
 
   applyRandomConfig()
-  await generateDna()
+  await generateDna({ skipStoreSync: options.skipStoreSync })
 
   if (showLoading) {
     // Small delay so the user sees the effect.
     await sleep(220)
     loading.value = false
   }
+}
+
+const applyConfig = async (config: any) => {
+  const blob = kwami?.body?.blob
+  if (!blob || !config) return
+
+  try {
+    if (typeof config.resolution === 'number') {
+      blob.setResolution(config.resolution)
+    }
+    if (config.spikes) {
+      blob.setSpikes(config.spikes.x ?? 0, config.spikes.y ?? 0, config.spikes.z ?? 0)
+    }
+    if (config.amplitude) {
+      blob.setAmplitude(config.amplitude.x ?? 0, config.amplitude.y ?? 0, config.amplitude.z ?? 0)
+    }
+    if (config.time) {
+      blob.setTime(config.time.x ?? 0, config.time.y ?? 0, config.time.z ?? 0)
+    }
+    if (config.rotation) {
+      blob.setRotation(config.rotation.x ?? 0, config.rotation.y ?? 0, config.rotation.z ?? 0)
+    }
+    if (config.colors) {
+      blob.setColors(config.colors.x, config.colors.y, config.colors.z)
+    }
+    if (typeof config.baseScale === 'number') {
+      blob.setScale(config.baseScale)
+    }
+    if (typeof config.shininess === 'number') {
+      blob.setShininess(config.shininess)
+    }
+    if (typeof config.wireframe === 'boolean') {
+      blob.setWireframe(config.wireframe)
+    }
+    if (typeof config.opacity === 'number') {
+      blob.setOpacity(config.opacity)
+    }
+    if (typeof config.lightIntensity === 'number') {
+      // Not always present in older configs, but supported by kwami core.
+      ;(blob as any).setLightIntensity?.(config.lightIntensity)
+    }
+    if (config.skin) {
+      ;(blob as any).setSkin?.(config.skin.skin, config.skin.subtype)
+    }
+
+    syncConfigFromKwami()
+    await generateDna()
+  } catch (e) {
+    console.warn('[BlobPreview] Failed to applyConfig:', e)
+    syncConfigFromKwami()
+    await generateDna()
+  }
+}
+
+const rollToConfig = async (targetConfig: any, options: RollCandyMachineOptions = {}) => {
+  if (!kwami?.body?.blob) return
+  if (isRolling.value) return
+
+  const minSpins = Math.max(1, options.minSpins ?? 12)
+  const maxSpins = Math.max(minSpins, options.maxSpins ?? 24)
+  const spins = Math.floor(Math.random() * (maxSpins - minSpins + 1)) + minSpins
+
+  const minDelayMs = Math.max(0, options.minDelayMs ?? 60)
+  const maxDelayMs = Math.max(minDelayMs, options.maxDelayMs ?? 220)
+
+  isRolling.value = true
+  try {
+    for (let i = 0; i < spins; i++) {
+      await randomizeOnce({ showLoading: false, skipStoreSync: true })
+      const t = spins <= 1 ? 1 : i / (spins - 1)
+      const eased = t * t
+      const delay = Math.round(minDelayMs + (maxDelayMs - minDelayMs) * eased)
+      await sleep(delay)
+    }
+  } finally {
+    isRolling.value = false
+  }
+
+  // Snap back to the already-selected mint config and sync store DNA/config.
+  await applyConfig(targetConfig)
 }
 
 const rollCandyMachine = async (options: RollCandyMachineOptions = {}) => {
@@ -369,6 +456,8 @@ defineExpose({
   blobConfig,
   randomizeOnce,
   rollCandyMachine,
+  applyConfig,
+  rollToConfig,
 })
 
 const initKwami = async () => {

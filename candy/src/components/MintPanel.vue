@@ -69,7 +69,7 @@
 
     <!-- Cost Info -->
     <div class="text-center text-sm text-gray-500">
-      <p>Minting cost: ~0.01 SOL + network fees</p>
+      <p>Minting cost: ~{{ mintCostSol.toFixed(1) }} SOL + network fees</p>
     </div>
   </div>
 </template>
@@ -87,6 +87,14 @@ const props = defineProps<{
 
 const wallet = useWalletStore()
 const nftStore = useNFTStore()
+
+const mintCostSol = computed(() => {
+  // Linear schedule: 2026=0.1, 2027=0.2, 2028=0.3, ...
+  const year = new Date().getUTCFullYear()
+  const y = Math.max(2026, year)
+  const steps = y - 2025
+  return steps * 0.1
+})
 
 const safeName = computed(() => {
   // Use sequential numbering based on total minted
@@ -111,16 +119,9 @@ const handleMint = async () => {
   try {
     // Fetch latest total minted count for accurate numbering
     await nftStore.fetchStats()
-    
-    // Slot-machine roll: randomize 12–24 times before minting
-    if (props.blobPreviewRef?.rollCandyMachine) {
-      await props.blobPreviewRef.rollCandyMachine({
-        minSpins: 12,
-        maxSpins: 24,
-      })
-    }
 
-    // Get blob configuration and capture all formats
+    // Snapshot the selected blob config BEFORE asking the wallet to sign.
+    // The roll animation will run after signing and will always snap back to this config.
     let config: any
     let imageBuffer: Buffer | null = null
     let gifBuffer: Buffer | null = null
@@ -171,7 +172,17 @@ const handleMint = async () => {
       undefined,
       imageBuffer ?? null,
       gifBuffer,
-      modelBuffer
+      modelBuffer,
+      {
+        // After user approves SOL payment (signTransaction), we roll the candy machine for the reveal.
+        onSigned: async () => {
+          if (props.blobPreviewRef?.rollToConfig) {
+            await props.blobPreviewRef.rollToConfig(config, { minSpins: 12, maxSpins: 24 })
+          } else if (props.blobPreviewRef?.rollCandyMachine) {
+            await props.blobPreviewRef.rollCandyMachine({ minSpins: 12, maxSpins: 24 })
+          }
+        },
+      }
     )
   } catch (error: any) {
     console.error('Minting failed:', error)

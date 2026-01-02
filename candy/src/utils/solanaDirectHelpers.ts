@@ -17,13 +17,43 @@ import {
   ASSOCIATED_TOKEN_PROGRAM_ID,
 } from '@solana/spl-token'
 
-// Program ID
-const KWAMI_PROGRAM_ID = new PublicKey(
-  import.meta.env.VITE_KWAMI_NFT_PROGRAM_ID || 'DoAJAykwUrSDjraDegK4AJ1GCoztLYrTvKhUJHaFbSsD'
-)
+let _kwamiProgramId: PublicKey | null = null
+async function getKwamiProgramId(): Promise<PublicKey> {
+  if (_kwamiProgramId) return _kwamiProgramId
 
-// Known addresses from devnet deployment
-const COLLECTION_MINT = new PublicKey(import.meta.env.VITE_COLLECTION_MINT)
+  // Prefer the bundled IDL address (this prevents env drift from pointing to a different program).
+  try {
+    const res = await fetch('/idl/kwami_nft.json')
+    if (res.ok) {
+      const idl = await res.json()
+      const addr = idl?.address ?? idl?.metadata?.address
+      if (addr) {
+        _kwamiProgramId = new PublicKey(addr)
+        return _kwamiProgramId
+      }
+    }
+  } catch (e) {
+    console.warn('[Direct] Failed to load /idl/kwami_nft.json (falling back to env):', e)
+  }
+
+  const env = import.meta.env.VITE_KWAMI_NFT_PROGRAM_ID
+  if (!env) {
+    // Last resort fallback matches the IDL currently bundled in this repo.
+    _kwamiProgramId = new PublicKey('6W3VGmDkjwswpY8JNNDQH5f1VuCdqrttR6koWPkN7drr')
+    return _kwamiProgramId
+  }
+  _kwamiProgramId = new PublicKey(env)
+  return _kwamiProgramId
+}
+
+function getCollectionMint(): PublicKey {
+  const v = import.meta.env.VITE_COLLECTION_MINT
+  if (!v) {
+    throw new Error('VITE_COLLECTION_MINT is not set (cannot derive collection authority PDA)')
+  }
+  return new PublicKey(v)
+}
+
 const TOKEN_METADATA_PROGRAM_ID = new PublicKey('metaqbxxUerdq28cj1RbAWkYQm3ybzjb6a8bt518x1s')
 
 // Instruction discriminators (first 8 bytes of SHA256("global:instruction_name"))
@@ -38,7 +68,9 @@ const INSTRUCTION_DISCRIMINATORS = {
 export function getCollectionAuthorityPDA(collectionMint: PublicKey): [PublicKey, number] {
   return PublicKey.findProgramAddressSync(
     [Buffer.from('collection-authority'), collectionMint.toBuffer()],
-    KWAMI_PROGRAM_ID
+    // NOTE: This function is kept for backwards compatibility but should only
+    // be called after `getKwamiProgramId()` has been resolved.
+    _kwamiProgramId ?? new PublicKey('DoAJAykwUrSDjraDegK4AJ1GCoztLYrTvKhUJHaFbSsD')
   )
 }
 
@@ -48,7 +80,7 @@ export function getCollectionAuthorityPDA(collectionMint: PublicKey): [PublicKey
 export function getDnaRegistryPDA(collectionMint: PublicKey): [PublicKey, number] {
   return PublicKey.findProgramAddressSync(
     [Buffer.from('dna-registry'), collectionMint.toBuffer()],
-    KWAMI_PROGRAM_ID
+    _kwamiProgramId ?? new PublicKey('DoAJAykwUrSDjraDegK4AJ1GCoztLYrTvKhUJHaFbSsD')
   )
 }
 
@@ -58,7 +90,7 @@ export function getDnaRegistryPDA(collectionMint: PublicKey): [PublicKey, number
 export function getKwamiNftPDA(mint: PublicKey): [PublicKey, number] {
   return PublicKey.findProgramAddressSync(
     [Buffer.from('kwami-nft'), mint.toBuffer()],
-    KWAMI_PROGRAM_ID
+    _kwamiProgramId ?? new PublicKey('DoAJAykwUrSDjraDegK4AJ1GCoztLYrTvKhUJHaFbSsD')
   )
 }
 
@@ -68,7 +100,7 @@ export function getKwamiNftPDA(mint: PublicKey): [PublicKey, number] {
 export function getTreasuryPDA(): [PublicKey, number] {
   return PublicKey.findProgramAddressSync(
     [Buffer.from('kwami-treasury')],
-    KWAMI_PROGRAM_ID
+    _kwamiProgramId ?? new PublicKey('DoAJAykwUrSDjraDegK4AJ1GCoztLYrTvKhUJHaFbSsD')
   )
 }
 
@@ -154,12 +186,23 @@ export async function mintKwamiDirect(
   wallet: any,
   dna: string,
   metadataUri: string,
-  name: string
+  name: string,
+  opts?: {
+    /**
+     * Called after the wallet has signed the mint transaction (i.e. user approved SOL payment),
+     * but before the transaction is submitted to the cluster.
+     */
+    onSigned?: () => void | Promise<void>
+  }
 ): Promise<string> {
   try {
     if (!wallet.publicKey || !wallet.signTransaction) {
       throw new Error('Wallet not connected')
     }
+
+    // Resolve runtime config up-front so PDAs are derived against the correct program id.
+    const KWAMI_PROGRAM_ID = await getKwamiProgramId()
+    const COLLECTION_MINT = getCollectionMint()
 
     console.log('[Direct] Minting KWAMI NFT...')
     console.log('[Direct] DNA:', dna.substring(0, 16) + '...')
@@ -171,16 +214,28 @@ export async function mintKwamiDirect(
     console.log('[Direct] Mint:', mintKeypair.publicKey.toBase58())
 
     // Get PDAs
+    _kwamiProgramId = KWAMI_PROGRAM_ID
     const [collectionAuthority] = getCollectionAuthorityPDA(COLLECTION_MINT)
     const [dnaRegistry] = getDnaRegistryPDA(COLLECTION_MINT)
     const [kwamiNft] = getKwamiNftPDA(mintKeypair.publicKey)
     const [treasury] = getTreasuryPDA()
     const [metadata] = getMetadataPDA(mintKeypair.publicKey)
 
+    // Resolve the SOL proceeds destination (treasury_authority) from the on-chain KwamiTreasury account.
+    // Layout: 8-byte discriminator + 32-byte authority + ...
+    const treasuryInfo = await connection.getAccountInfo(treasury)
+    if (!treasuryInfo?.data || treasuryInfo.data.length < 8 + 32) {
+      throw new Error(
+        'KWAMI treasury account is not initialized on this cluster (cannot resolve treasury_authority).'
+      )
+    }
+    const treasuryAuthority = new PublicKey(treasuryInfo.data.slice(8, 8 + 32))
+
     console.log('[Direct] Collection Authority:', collectionAuthority.toBase58())
     console.log('[Direct] DNA Registry:', dnaRegistry.toBase58())
     console.log('[Direct] Kwami NFT PDA:', kwamiNft.toBase58())
     console.log('[Direct] Treasury:', treasury.toBase58())
+    console.log('[Direct] Treasury Authority:', treasuryAuthority.toBase58())
     console.log('[Direct] Metadata:', metadata.toBase58())
 
     // Get owner's token account for the NFT (where the NFT will be sent)
@@ -220,6 +275,7 @@ export async function mintKwamiDirect(
       { pubkey: collectionAuthority, isSigner: false, isWritable: true },        // collection_authority
       { pubkey: dnaRegistry, isSigner: false, isWritable: true },                // dna_registry (realloc)
       { pubkey: treasury, isSigner: false, isWritable: true },                   // treasury
+      { pubkey: treasuryAuthority, isSigner: false, isWritable: true },          // treasury_authority (SOL proceeds destination)
       { pubkey: metadata, isSigner: false, isWritable: true },                   // metadata (Metaplex)
       { pubkey: ownerTokenAccount, isSigner: false, isWritable: true },          // owner_token_account (init)
       { pubkey: wallet.publicKey, isSigner: true, isWritable: true },            // owner (signer, payer)
@@ -256,6 +312,15 @@ export async function mintKwamiDirect(
     
     console.log('[Direct] Requesting wallet signature...')
     const signedTx = await wallet.signTransaction(transaction)
+
+    // UX hook: at this point the user has approved paying the mint cost.
+    if (opts?.onSigned) {
+      try {
+        await opts.onSigned()
+      } catch (e) {
+        console.warn('[Direct] onSigned hook failed (continuing):', e)
+      }
+    }
 
     console.log('[Direct] Sending transaction...')
     const signature = await connection.sendRawTransaction(signedTx.serialize(), {
@@ -318,11 +383,19 @@ export async function getTotalMintedCountDirect(
   try {
     console.log('[Direct] Fetching total minted count...')
 
+    const KWAMI_PROGRAM_ID = await getKwamiProgramId()
+    const COLLECTION_MINT = getCollectionMint()
+    _kwamiProgramId = KWAMI_PROGRAM_ID
+
     const [collectionAuthority] = getCollectionAuthorityPDA(COLLECTION_MINT)
     const accountInfo = await connection.getAccountInfo(collectionAuthority, 'confirmed')
 
     if (!accountInfo?.data) {
-      throw new Error(`Collection authority account not found: ${collectionAuthority.toBase58()}`)
+      throw new Error(
+        `Collection authority account not found: ${collectionAuthority.toBase58()}. ` +
+          `This usually means KWAMI collection was not initialized on this cluster (run kwami-nft initialize on the same RPC), ` +
+          `or VITE_COLLECTION_MINT points to a different collection.`
+      )
     }
 
     // Anchor account layout for CollectionAuthority:

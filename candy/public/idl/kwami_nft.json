@@ -1,5 +1,5 @@
 {
-  "address": "DoAJAykwUrSDjraDegK4AJ1GCoztLYrTvKhUJHaFbSsD",
+  "address": "6W3VGmDkjwswpY8JNNDQH5f1VuCdqrttR6koWPkN7drr",
   "metadata": {
     "name": "kwami_nft",
     "version": "0.1.0",
@@ -451,6 +451,13 @@
               }
             ]
           }
+        },
+        {
+          "name": "treasury_authority",
+          "docs": [
+            "The wallet that receives SOL proceeds (must match `treasury.authority`)."
+          ],
+          "writable": true
         },
         {
           "name": "metadata",

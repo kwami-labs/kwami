@@ -199,7 +199,10 @@ export async function mintKwamiNft(
   wallet: any,
   dna: string,
   metadataUri: string,
-  name: string
+  name: string,
+  opts?: {
+    onSigned?: () => void | Promise<void>
+  }
 ): Promise<string> {
   try {
     if (!wallet || !wallet.publicKey) {
@@ -209,7 +212,7 @@ export async function mintKwamiNft(
     const connection = getSolanaConnection()
     
     console.log('[Solana] Minting KWAMI using direct web3.js...')
-    const mintAddress = await mintKwamiDirect(connection, wallet, dna, metadataUri, name)
+    const mintAddress = await mintKwamiDirect(connection, wallet, dna, metadataUri, name, opts)
     
     console.log('[Solana] KWAMI minted:', mintAddress)
     return mintAddress

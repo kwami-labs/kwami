@@ -117,7 +117,10 @@ export const useNFTStore = defineStore('nft', () => {
     soulConfig?: any,
     imageBuffer: Buffer | null = null,
     gifBuffer?: Buffer | null,
-    modelBuffer?: Buffer | null
+    modelBuffer?: Buffer | null,
+    opts?: {
+      onSigned?: () => void | Promise<void>
+    }
   ) => {
     if (!walletStore.connected || !walletStore.wallet) {
       throw new Error('Wallet not connected')
@@ -216,7 +219,8 @@ export const useNFTStore = defineStore('nft', () => {
         walletStore.wallet,
         dna,
         metadataResult.uri,
-        metadata.name
+        metadata.name,
+        opts
       )
       
       console.log('[NFT Store] KWAMI minted:', mintAddress)

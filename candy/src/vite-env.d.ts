@@ -12,6 +12,7 @@ interface ImportMetaEnv {
   readonly VITE_KWAMI_NFT_PROGRAM_ID: string
   readonly VITE_QWAMI_TOKEN_PROGRAM_ID: string
   readonly VITE_ARWEAVE_GATEWAY: string
+  readonly VITE_COLLECTION_MINT: string
 }
 
 interface ImportMeta {
