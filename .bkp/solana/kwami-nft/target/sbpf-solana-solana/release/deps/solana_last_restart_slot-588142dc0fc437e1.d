@@ -1,0 +1,8 @@
+/home/quantium/labs/kwami.io/kwami/solana/anchor/kwami/target/sbpf-solana-solana/release/deps/libsolana_last_restart_slot-588142dc0fc437e1.rmeta: /home/quantium/.cargo/registry/src/index.crates.io-6f17d22bba15001f/solana-last-restart-slot-2.2.1/src/lib.rs /home/quantium/.cargo/registry/src/index.crates.io-6f17d22bba15001f/solana-last-restart-slot-2.2.1/src/sysvar.rs
+
+/home/quantium/labs/kwami.io/kwami/solana/anchor/kwami/target/sbpf-solana-solana/release/deps/libsolana_last_restart_slot-588142dc0fc437e1.rlib: /home/quantium/.cargo/registry/src/index.crates.io-6f17d22bba15001f/solana-last-restart-slot-2.2.1/src/lib.rs /home/quantium/.cargo/registry/src/index.crates.io-6f17d22bba15001f/solana-last-restart-slot-2.2.1/src/sysvar.rs
+
+/home/quantium/labs/kwami.io/kwami/solana/anchor/kwami/target/sbpf-solana-solana/release/deps/solana_last_restart_slot-588142dc0fc437e1.d: /home/quantium/.cargo/registry/src/index.crates.io-6f17d22bba15001f/solana-last-restart-slot-2.2.1/src/lib.rs /home/quantium/.cargo/registry/src/index.crates.io-6f17d22bba15001f/solana-last-restart-slot-2.2.1/src/sysvar.rs
+
+/home/quantium/.cargo/registry/src/index.crates.io-6f17d22bba15001f/solana-last-restart-slot-2.2.1/src/lib.rs:
+/home/quantium/.cargo/registry/src/index.crates.io-6f17d22bba15001f/solana-last-restart-slot-2.2.1/src/sysvar.rs:

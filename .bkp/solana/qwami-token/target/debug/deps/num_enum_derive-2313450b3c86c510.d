@@ -1,0 +1,9 @@
+/home/quantium/labs/kwami.io/kwami/solana/anchor/qwami/target/debug/deps/num_enum_derive-2313450b3c86c510.d: /home/quantium/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/num_enum_derive-0.7.5/src/lib.rs /home/quantium/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/num_enum_derive-0.7.5/src/enum_attributes.rs /home/quantium/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/num_enum_derive-0.7.5/src/parsing.rs /home/quantium/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/num_enum_derive-0.7.5/src/utils.rs /home/quantium/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/num_enum_derive-0.7.5/src/variant_attributes.rs
+
+/home/quantium/labs/kwami.io/kwami/solana/anchor/qwami/target/debug/deps/libnum_enum_derive-2313450b3c86c510.so: /home/quantium/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/num_enum_derive-0.7.5/src/lib.rs /home/quantium/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/num_enum_derive-0.7.5/src/enum_attributes.rs /home/quantium/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/num_enum_derive-0.7.5/src/parsing.rs /home/quantium/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/num_enum_derive-0.7.5/src/utils.rs /home/quantium/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/num_enum_derive-0.7.5/src/variant_attributes.rs
+
+/home/quantium/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/num_enum_derive-0.7.5/src/lib.rs:
+/home/quantium/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/num_enum_derive-0.7.5/src/enum_attributes.rs:
+/home/quantium/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/num_enum_derive-0.7.5/src/parsing.rs:
+/home/quantium/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/num_enum_derive-0.7.5/src/utils.rs:
+/home/quantium/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/num_enum_derive-0.7.5/src/variant_attributes.rs:

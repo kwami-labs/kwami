@@ -1,0 +1,14 @@
+/home/quantium/labs/kwami.io/kwami/solana/kwami-dao/target/debug/deps/thiserror-01bb243ed7a134e9.d: /home/quantium/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/thiserror-2.0.17/src/lib.rs /home/quantium/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/thiserror-2.0.17/src/aserror.rs /home/quantium/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/thiserror-2.0.17/src/display.rs /home/quantium/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/thiserror-2.0.17/src/var.rs /home/quantium/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/thiserror-2.0.17/src/private.rs /home/quantium/labs/kwami.io/kwami/solana/kwami-dao/target/debug/build/thiserror-8e5640ba956b1299/out/private.rs
+
+/home/quantium/labs/kwami.io/kwami/solana/kwami-dao/target/debug/deps/libthiserror-01bb243ed7a134e9.rlib: /home/quantium/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/thiserror-2.0.17/src/lib.rs /home/quantium/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/thiserror-2.0.17/src/aserror.rs /home/quantium/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/thiserror-2.0.17/src/display.rs /home/quantium/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/thiserror-2.0.17/src/var.rs /home/quantium/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/thiserror-2.0.17/src/private.rs /home/quantium/labs/kwami.io/kwami/solana/kwami-dao/target/debug/build/thiserror-8e5640ba956b1299/out/private.rs
+
+/home/quantium/labs/kwami.io/kwami/solana/kwami-dao/target/debug/deps/libthiserror-01bb243ed7a134e9.rmeta: /home/quantium/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/thiserror-2.0.17/src/lib.rs /home/quantium/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/thiserror-2.0.17/src/aserror.rs /home/quantium/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/thiserror-2.0.17/src/display.rs /home/quantium/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/thiserror-2.0.17/src/var.rs /home/quantium/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/thiserror-2.0.17/src/private.rs /home/quantium/labs/kwami.io/kwami/solana/kwami-dao/target/debug/build/thiserror-8e5640ba956b1299/out/private.rs
+
+/home/quantium/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/thiserror-2.0.17/src/lib.rs:
+/home/quantium/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/thiserror-2.0.17/src/aserror.rs:
+/home/quantium/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/thiserror-2.0.17/src/display.rs:
+/home/quantium/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/thiserror-2.0.17/src/var.rs:
+/home/quantium/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/thiserror-2.0.17/src/private.rs:
+/home/quantium/labs/kwami.io/kwami/solana/kwami-dao/target/debug/build/thiserror-8e5640ba956b1299/out/private.rs:
+
+# env-dep:OUT_DIR=/home/quantium/labs/kwami.io/kwami/solana/kwami-dao/target/debug/build/thiserror-8e5640ba956b1299/out

@@ -1,0 +1,25 @@
+[package]
+name = "kwami-nft"
+version = "0.1.0"
+description = "Kwami NFT program with DNA-based uniqueness validation"
+edition = "2021"
+
+[lib]
+crate-type = ["cdylib", "lib"]
+name = "kwami_nft"
+
+[features]
+no-entrypoint = []
+no-idl = []
+no-log-ix-name = []
+cpi = ["no-entrypoint"]
+default = []
+idl-build = ["anchor-lang/idl-build", "anchor-spl/idl-build"]
+
+[dependencies]
+anchor-lang = "0.32.1"
+anchor-spl = "0.32.1"
+mpl-token-metadata = "5.0.0"
+
+#[dev-dependencies]
+#solana-program-test = "1.18.26"

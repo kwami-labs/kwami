@@ -1,0 +1,14 @@
+/home/quantium/labs/kwami.io/kwami/solana/kwami-dao/target/debug/deps/serde-7e532cdd8163a81e.d: /home/quantium/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/serde-1.0.228/src/lib.rs /home/quantium/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/serde-1.0.228/src/integer128.rs /home/quantium/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/serde-1.0.228/src/private/mod.rs /home/quantium/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/serde-1.0.228/src/private/de.rs /home/quantium/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/serde-1.0.228/src/private/ser.rs /home/quantium/labs/kwami.io/kwami/solana/kwami-dao/target/debug/build/serde-937c312d3391e7e1/out/private.rs
+
+/home/quantium/labs/kwami.io/kwami/solana/kwami-dao/target/debug/deps/libserde-7e532cdd8163a81e.rlib: /home/quantium/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/serde-1.0.228/src/lib.rs /home/quantium/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/serde-1.0.228/src/integer128.rs /home/quantium/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/serde-1.0.228/src/private/mod.rs /home/quantium/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/serde-1.0.228/src/private/de.rs /home/quantium/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/serde-1.0.228/src/private/ser.rs /home/quantium/labs/kwami.io/kwami/solana/kwami-dao/target/debug/build/serde-937c312d3391e7e1/out/private.rs
+
+/home/quantium/labs/kwami.io/kwami/solana/kwami-dao/target/debug/deps/libserde-7e532cdd8163a81e.rmeta: /home/quantium/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/serde-1.0.228/src/lib.rs /home/quantium/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/serde-1.0.228/src/integer128.rs /home/quantium/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/serde-1.0.228/src/private/mod.rs /home/quantium/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/serde-1.0.228/src/private/de.rs /home/quantium/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/serde-1.0.228/src/private/ser.rs /home/quantium/labs/kwami.io/kwami/solana/kwami-dao/target/debug/build/serde-937c312d3391e7e1/out/private.rs
+
+/home/quantium/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/serde-1.0.228/src/lib.rs:
+/home/quantium/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/serde-1.0.228/src/integer128.rs:
+/home/quantium/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/serde-1.0.228/src/private/mod.rs:
+/home/quantium/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/serde-1.0.228/src/private/de.rs:
+/home/quantium/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/serde-1.0.228/src/private/ser.rs:
+/home/quantium/labs/kwami.io/kwami/solana/kwami-dao/target/debug/build/serde-937c312d3391e7e1/out/private.rs:
+
+# env-dep:OUT_DIR=/home/quantium/labs/kwami.io/kwami/solana/kwami-dao/target/debug/build/serde-937c312d3391e7e1/out

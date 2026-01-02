@@ -1,0 +1,23 @@
+[toolchain]
+anchor_version = "0.32.1"
+
+[features]
+seeds = false
+skip-lint = false
+
+[programs.devnet]
+kwami_dao = "6j64Ct74mypeT3UKVhtFUjBW8RX144VvxWJjH9iBqbAv"
+
+[programs.localnet]
+kwami_dao = "6j64Ct74mypeT3UKVhtFUjBW8RX144VvxWJjH9iBqbAv"
+
+[registry]
+url = "https://api.apr.dev"
+
+[provider]
+cluster = "devnet"
+wallet = "~/.config/solana/id.json"
+
+[scripts]
+test = "npm run test"
+
