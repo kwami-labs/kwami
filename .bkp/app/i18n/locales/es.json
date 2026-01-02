@@ -1,0 +1,10 @@
+{
+  "error": {
+    "404": {
+      "title": "Página no encontrada",
+      "description": "La página que buscas no existe o ha sido movida.",
+      "description2": "Verifica la URL o vuelve al inicio.",
+      "btn": "Ir al inicio"
+    }
+  }
+}
