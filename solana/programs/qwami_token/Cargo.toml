@@ -1,20 +1,23 @@
 [package]
-name = "kwami-dao"
+name = "qwami-token"
 version = "0.1.0"
-description = "KWAMI DAO Governance Program"
+description = "QWAMI SPL Token - Integer token with 1 trillion supply, powering KWAMI AI ecosystem"
 edition = "2021"
 
 [lib]
 crate-type = ["cdylib", "lib"]
-name = "kwami_dao"
+name = "qwami_token"
 
 [features]
-default = []
-cpi = ["no-entrypoint"]
 no-entrypoint = []
 no-idl = []
 no-log-ix-name = []
+cpi = ["no-entrypoint"]
+default = []
 idl-build = ["anchor-lang/idl-build", "anchor-spl/idl-build"]
+anchor-debug = []
+custom-heap = []
+custom-panic = []
 
 [dependencies]
 anchor-lang = "0.32.1"

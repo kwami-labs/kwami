@@ -1,7 +1,7 @@
 use anchor_lang::prelude::*;
-use anchor_lang::system_program::{Transfer as SystemTransfer, transfer as system_transfer};
-use anchor_spl::token::{self, Mint, Token, TokenAccount, MintTo, Burn};
 use anchor_lang::solana_program::program_option::COption;
+use anchor_lang::system_program::{transfer as system_transfer, Transfer as SystemTransfer};
+use anchor_spl::token::{self, Burn, Mint, MintTo, Token, TokenAccount};
 
 declare_id!("6CAgdgpPq8Np78LsDwREJqFPh9rM5Jh6RSS8eZ37kZuv"); // Will be updated after deployment
 
@@ -10,7 +10,6 @@ const MAX_SUPPLY: u64 = 1_000_000_000_000; // 1 trillion whole tokens
 
 /// Base price in USD cents (1 cent = 0.01 USD)
 const BASE_PRICE_USD_CENTS: u64 = 1;
-
 
 #[program]
 pub mod qwami_token {
@@ -47,7 +46,8 @@ pub mod qwami_token {
         let token_authority = &mut ctx.accounts.token_authority;
 
         // Calculate current circulating supply
-        let circulating_supply = token_authority.total_minted
+        let circulating_supply = token_authority
+            .total_minted
             .checked_sub(token_authority.total_burned)
             .ok_or(ErrorCode::MathOverflow)?;
 
@@ -56,10 +56,7 @@ pub mod qwami_token {
             .checked_add(amount)
             .ok_or(ErrorCode::MathOverflow)?;
 
-        require!(
-            new_supply <= MAX_SUPPLY,
-            ErrorCode::MaxSupplyExceeded
-        );
+        require!(new_supply <= MAX_SUPPLY, ErrorCode::MaxSupplyExceeded);
 
         // Mint tokens
         let seeds = &[
@@ -81,7 +78,8 @@ pub mod qwami_token {
         token::mint_to(cpi_ctx, amount)?;
 
         // Update total minted
-        token_authority.total_minted = token_authority.total_minted
+        token_authority.total_minted = token_authority
+            .total_minted
             .checked_add(amount)
             .ok_or(ErrorCode::MathOverflow)?;
 
@@ -109,11 +107,13 @@ pub mod qwami_token {
         token::burn(cpi_ctx, amount)?;
 
         // Update total burned
-        token_authority.total_burned = token_authority.total_burned
+        token_authority.total_burned = token_authority
+            .total_burned
             .checked_add(amount)
             .ok_or(ErrorCode::MathOverflow)?;
 
-        let circulating_supply = token_authority.total_minted
+        let circulating_supply = token_authority
+            .total_minted
             .checked_sub(token_authority.total_burned)
             .ok_or(ErrorCode::MathOverflow)?;
 
@@ -125,13 +125,13 @@ pub mod qwami_token {
     }
 
     /// Update base price (authority only)
-    pub fn update_base_price(ctx: Context<UpdateBasePrice>, new_price_usd_cents: u64) -> Result<()> {
+    pub fn update_base_price(
+        ctx: Context<UpdateBasePrice>,
+        new_price_usd_cents: u64,
+    ) -> Result<()> {
         let token_authority = &mut ctx.accounts.token_authority;
 
-        require!(
-            new_price_usd_cents > 0,
-            ErrorCode::InvalidPrice
-        );
+        require!(new_price_usd_cents > 0, ErrorCode::InvalidPrice);
 
         token_authority.base_price_usd_cents = new_price_usd_cents;
 
@@ -141,13 +141,13 @@ pub mod qwami_token {
     }
 
     /// Transfer authority to a new address
-    pub fn transfer_authority(ctx: Context<TransferAuthority>, new_authority: Pubkey) -> Result<()> {
+    pub fn transfer_authority(
+        ctx: Context<TransferAuthority>,
+        new_authority: Pubkey,
+    ) -> Result<()> {
         let token_authority = &mut ctx.accounts.token_authority;
 
-        require!(
-            new_authority != Pubkey::default(),
-            ErrorCode::InvalidAuthority
-        );
+        require!(new_authority != Pubkey::default(), ErrorCode::InvalidAuthority);
 
         let old_authority = token_authority.authority;
         token_authority.authority = new_authority;
@@ -160,10 +160,7 @@ pub mod qwami_token {
     /// Mint QWAMI tokens by paying with SOL (SOL-only MVP).
     /// QWAMI amount is derived from lamports at a fixed ratio:
     /// 1 SOL (1,000,000,000 lamports) = 1,000 QWAMI.
-    pub fn mint_with_sol(
-        ctx: Context<MintWithSol>,
-        sol_lamports: u64,
-    ) -> Result<()> {
+    pub fn mint_with_sol(ctx: Context<MintWithSol>, sol_lamports: u64) -> Result<()> {
         let token_authority = &mut ctx.accounts.token_authority;
         let treasury = &mut ctx.accounts.treasury;
 
@@ -190,7 +187,8 @@ pub mod qwami_token {
         let qwami_amount = sol_lamports / 1_000_000; // 1 SOL (1B lamports) = 1,000 QWAMI
 
         // Check max supply
-        let circulating_supply = token_authority.total_minted
+        let circulating_supply = token_authority
+            .total_minted
             .checked_sub(token_authority.total_burned)
             .ok_or(ErrorCode::MathOverflow)?;
 
@@ -198,10 +196,7 @@ pub mod qwami_token {
             .checked_add(qwami_amount)
             .ok_or(ErrorCode::MathOverflow)?;
 
-        require!(
-            new_supply <= MAX_SUPPLY,
-            ErrorCode::MaxSupplyExceeded
-        );
+        require!(new_supply <= MAX_SUPPLY, ErrorCode::MaxSupplyExceeded);
 
         // Mint QWAMI tokens to buyer
         let seeds = &[
@@ -397,7 +392,7 @@ impl TokenAuthority {
         8 +  // total_minted
         8 +  // total_burned
         8 +  // base_price_usd_cents
-        1;   // bump
+        1; // bump
 }
 
 #[account]
@@ -410,7 +405,7 @@ pub struct QwamiTreasury {
 
     /// Number of QWAMI mints with SOL
     pub qwami_mints_with_sol: u64,
-    
+
     /// Bump seed
     pub bump: u8,
 }
@@ -419,7 +414,7 @@ impl QwamiTreasury {
     pub const LEN: usize = 32 + // authority
         8 +  // total_sol_received
         8 +  // qwami_mints_with_sol
-        1;   // bump
+        1; // bump
 }
 
 // ========== Errors ==========
@@ -447,3 +442,5 @@ pub enum ErrorCode {
     #[msg("Treasury authority wallet does not match the configured authority")]
     InvalidTreasuryAuthority,
 }
+
+

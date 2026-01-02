@@ -7,9 +7,13 @@ skip-lint = false
 
 [programs.devnet]
 qwami_token = "6CAgdgpPq8Np78LsDwREJqFPh9rM5Jh6RSS8eZ37kZuv"
+kwami_nft = "6W3VGmDkjwswpY8JNNDQH5f1VuCdqrttR6koWPkN7drr"
+kwami_dao = "6j64Ct74mypeT3UKVhtFUjBW8RX144VvxWJjH9iBqbAv"
 
 [programs.localnet]
 qwami_token = "6CAgdgpPq8Np78LsDwREJqFPh9rM5Jh6RSS8eZ37kZuv"
+kwami_nft = "6W3VGmDkjwswpY8JNNDQH5f1VuCdqrttR6koWPkN7drr"
+kwami_dao = "6j64Ct74mypeT3UKVhtFUjBW8RX144VvxWJjH9iBqbAv"
 
 [registry]
 url = "https://api.apr.dev"
@@ -17,6 +21,3 @@ url = "https://api.apr.dev"
 [provider]
 cluster = "devnet"
 wallet = "~/.config/solana/id.json"
-
-[scripts]
-test = "npm run test"
