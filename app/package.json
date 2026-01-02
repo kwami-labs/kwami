@@ -1,58 +1,21 @@
 {
-  "name": "kwami-app",
+  "name": "app",
+  "private": true,
   "version": "1.5.12",
   "type": "module",
-  "private": true,
   "scripts": {
-    "prebuild": "npm rebuild sharp --force || true",
-    "build": "nuxt build",
-    "dev": "nuxt dev",
-    "generate": "nuxt generate",
-    "preview": "nuxt preview",
-    "postinstall": "nuxt prepare && npm rebuild sharp @oxc-minify/binding-linux-x64-gnu @oxc-parser/binding-linux-x64-gnu @oxc-transform/binding-linux-x64-gnu --force || true"
+    "dev": "vite",
+    "build": "tsc && vite build",
+    "preview": "vite preview"
   },
   "dependencies": {
-    "@alexcolls/nuxt-ux": "0.6.0",
-    "@elevenlabs/elevenlabs-js": "^2.24.1",
-    "@iconify-json/circle-flags": "^1.2.10",
-    "@iconify-json/heroicons": "^1.2.3",
-    "@iconify-json/line-md": "^1.2.11",
-    "@iconify-json/material-symbols": "^1.2.42",
-    "@iconify-json/pepicons-pop": "^1.2.3",
-    "@iconify-json/svg-spinners": "^1.2.4",
-    "@nuxt/content": "3.7.1",
-    "@nuxt/eslint": "1.9.0",
-    "@nuxt/image": "1.11.0",
-    "@nuxt/scripts": "0.11.13",
-    "@nuxt/test-utils": "3.19.2",
-    "@nuxt/ui": "^4.0.0",
-    "@nuxtjs/google-fonts": "^3.2.0",
-    "@nuxtjs/i18n": "^10.1.0",
-    "@nuxtjs/supabase": "^2.0.0",
-    "@oxc-minify/binding-linux-x64-gnu": "^0.96.0",
-    "@oxc-parser/binding-linux-x64-gnu": "^0.96.0",
-    "@oxc-transform/binding-linux-x64-gnu": "^0.96.0",
-    "pinia-plugin-persistedstate": "^4.2.0",
-    "@pinia/nuxt": "^0.11.2",
-    "@types/three": "^0.180.0",
-    "@unhead/vue": "^2.0.3",
-    "better-sqlite3": "^12.3.0",
-    "eslint": "^9.0.0",
-    "kwami": "^1.5.7",
-    "nuxt": "^4.1.2",
-    "pinia": "^3.0.3",
-    "sharp": "^0.33.5",
-    "simplex-noise": "^4.0.3",
-    "three": "^0.180.0",
-    "typescript": "^5.6.3",
-    "vue": "^3.5.21",
-    "vue-router": "^4.5.1",
-    "ytdl-core": "^4.11.5"
+    "@metaplex-foundation/js": "^0.20.1",
+    "@solana/web3.js": "^1.98.4",
+    "kwami": "^1.5.12"
   },
-  "engines": {
-    "node": ">=18.0.0",
-    "bun": ">=1.0.0",
-    "deno": ">=1.0.0"
-  },
-  "packageManager": "npm@10.8.2"
+  "devDependencies": {
+    "typescript": "~5.9.3",
+    "vite": "^7.2.4",
+    "vite-plugin-node-polyfills": "^0.21.0"
+  }
 }

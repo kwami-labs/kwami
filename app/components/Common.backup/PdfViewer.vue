@@ -1,3 +1,0 @@
-<template>
-  Pdf Viewer
-</template>

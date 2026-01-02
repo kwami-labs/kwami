@@ -1,3 +1,0 @@
-<template>
-  VIDEO GALLERY
-</template>
