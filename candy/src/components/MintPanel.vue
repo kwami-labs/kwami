@@ -79,6 +79,7 @@ import { computed } from 'vue'
 import { useWalletStore } from '@/stores/wallet'
 import { useNFTStore } from '@/stores/nft'
 import KwamiGlassButton from '@/components/KwamiGlassButton.vue'
+import { purchaseRoll } from '@/utils/solanaHelpers'
 
 const props = defineProps<{
   blobPreviewRef?: any
@@ -117,75 +118,73 @@ const handleMint = async () => {
   if (nftStore.mintingStatus !== 'idle') return
 
   try {
+    // Clear any previous error
+    nftStore.error = null
+
     // Fetch latest total minted count for accurate numbering
     await nftStore.fetchStats()
 
-    // Snapshot the selected blob config BEFORE asking the wallet to sign.
-    // The roll animation will run after signing and will always snap back to this config.
-    let config: any
-    let imageBuffer: Buffer | null = null
-    let gifBuffer: Buffer | null = null
-    let modelBuffer: Buffer | null = null
+    // 1) Pay first (wallet tx appears immediately)
+    nftStore.mintingStatus = 'paying'
+    const { rollId } = await purchaseRoll(wallet.wallet)
+    nftStore.mintingStatus = 'confirming-payment'
+    console.log('[MintPanel] Roll purchased. rollId:', rollId)
 
-    if (props.blobPreviewRef) {
-      config = props.blobPreviewRef.getConfig()
-      
-      console.log('[MintPanel] Capturing all formats (image, GIF, 3D model)...')
-      const captures = await props.blobPreviewRef.captureAllFormats()
-      
-      if (!captures || !captures.image) {
-        throw new Error('Failed to capture media. Please try again.')
+    // 2) Roll to pick a config, then verify DNA; if duplicate, roll again.
+    nftStore.mintingStatus = 'rolling'
+    if (!props.blobPreviewRef?.rollCandyMachine) {
+      throw new Error('Blob preview not ready (cannot roll)')
+    }
+
+    let config: any | null = null
+    let dna: string | null = null
+    const maxAttempts = 8
+    for (let attempt = 1; attempt <= maxAttempts; attempt++) {
+      await props.blobPreviewRef.rollCandyMachine({ minSpins: 12, maxSpins: 24 })
+      config = props.blobPreviewRef.getConfig?.()
+      dna = props.blobPreviewRef.getDna?.()
+
+      if (!config || !dna) {
+        throw new Error('Failed to derive rolled config/DNA. Please try again.')
       }
-      
-      imageBuffer = captures.image
-      gifBuffer = captures.gif
-      modelBuffer = captures.model
-      
-      console.log('[MintPanel] All formats captured:', {
-        image: imageBuffer?.length,
-        gif: gifBuffer?.length,
-        model: modelBuffer?.length
-      })
-    } else {
-      console.warn('[MintPanel] BlobPreview ref not available, using default config')
-      config = {
-        resolution: 128,
-        colors: { x: 0.8, y: 0.2, z: 0.9 },
-        spikes: { x: 0.3, y: 0.3, z: 0.3 },
-        rotation: { x: 0.01, y: 0.01, z: 0.01 },
-        baseScale: 1.5,
-        shininess: 50,
-        opacity: 1.0,
+
+      nftStore.mintingStatus = 'checking'
+      const exists = await nftStore.checkDnaExists(dna)
+      console.log(`[MintPanel] DNA check attempt ${attempt}/${maxAttempts}:`, exists ? 'DUPLICATE' : 'OK')
+      if (!exists) break
+
+      nftStore.mintingStatus = 'rolling'
+      if (attempt === maxAttempts) {
+        throw new Error('Could not find a unique DNA after several rolls. Please try again.')
       }
     }
 
-    nftStore.setBlobConfig(config)
-    nftStore.setImageBuffer(imageBuffer)
+    // 3) Capture assets for the final rolled config
+    nftStore.mintingStatus = 'capturing'
+    const captures = await props.blobPreviewRef.captureAllFormats()
+    if (!captures || !captures.image) {
+      throw new Error('Failed to capture media. Please try again.')
+    }
 
-    // Mint KWAMI with all formats
+    // 4) Upload, then 5) finalize mint (wallet tx #2)
     await nftStore.mintKwami(
-      config,
+      config!,
       {
         name: safeName.value,
         description: 'A unique KWAMI NFT with animated GIF and interactive 3D model',
       },
       undefined,
-      imageBuffer ?? null,
-      gifBuffer,
-      modelBuffer,
+      captures.image ?? null,
+      captures.gif,
+      captures.model,
       {
-        // After user approves SOL payment (signTransaction), we roll the candy machine for the reveal.
-        onSigned: async () => {
-          if (props.blobPreviewRef?.rollToConfig) {
-            await props.blobPreviewRef.rollToConfig(config, { minSpins: 12, maxSpins: 24 })
-          } else if (props.blobPreviewRef?.rollCandyMachine) {
-            await props.blobPreviewRef.rollCandyMachine({ minSpins: 12, maxSpins: 24 })
-          }
-        },
+        rollId,
       }
     )
   } catch (error: any) {
     console.error('Minting failed:', error)
+    nftStore.error = error?.message ?? String(error)
+    nftStore.mintingStatus = 'error'
   }
 }
 
@@ -195,14 +194,34 @@ const handleReset = () => {
 
 const getMintingStatusText = () => {
   switch (nftStore.mintingStatus) {
+    case 'preparing':
+      return 'Preparing mint...'
+    case 'capturing':
+      return 'Capturing preview media...'
+    case 'paying':
+      return 'Paying mint cost...'
+    case 'confirming-payment':
+      return 'Confirming payment...'
+    case 'rolling':
+      return 'Rolling KWAMI...'
     case 'generating-dna':
       return 'Generating unique DNA...'
     case 'checking':
       return 'Checking DNA uniqueness...'
-    case 'uploading':
-      return 'Uploading to Arweave...'
+    case 'uploading-image':
+      return 'Uploading image to IPFS...'
+    case 'uploading-gif':
+      return 'Uploading GIF to IPFS...'
+    case 'uploading-model':
+      return 'Uploading 3D model to IPFS...'
+    case 'uploading-metadata':
+      return 'Uploading metadata to IPFS...'
     case 'minting':
       return 'Minting on Solana...'
+    case 'confirming-mint':
+      return 'Confirming mint...'
+    case 'refreshing':
+      return 'Finalizing & refreshing...'
     default:
       return 'Processing...'
   }

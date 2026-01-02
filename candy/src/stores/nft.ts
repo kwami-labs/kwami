@@ -2,7 +2,7 @@ import { defineStore } from 'pinia'
 import { ref } from 'vue'
 import type { PublicKey } from '@solana/web3.js'
 import { uploadImageToIpfs, uploadMetadataToIpfs, uploadGifToIpfs, upload3DModelToIpfs } from '@/utils/uploadIpfs'
-import { checkDnaExists as checkDnaOnChain, mintKwamiNft, fetchOwnedKwamis, getTotalMintedCount, burnKwamiNft } from '@/utils/solanaHelpers'
+import { checkDnaExists as checkDnaOnChain, mintKwamiWithReceipt, fetchOwnedKwamis, getTotalMintedCount, burnKwamiNft } from '@/utils/solanaHelpers'
 import { prepareKwamiMetadata, type SoulConfig } from '@/utils/prepareKwamiMetadata'
 import { calculateKwamiDNA } from '@/utils/calculateKwamiDNA'
 import { generateSoulFromDNA } from '@/utils/generateSoulFromDNA'
@@ -26,7 +26,25 @@ export const useNFTStore = defineStore('nft', () => {
   const ownedNfts = ref<KwamiNFT[]>([])
   const totalMinted = ref(0)
   const loading = ref(false)
-  const mintingStatus = ref<'idle' | 'generating-dna' | 'checking' | 'uploading' | 'minting' | 'success' | 'error'>('idle')
+  const mintingStatus = ref<
+    | 'idle'
+    | 'preparing'
+    | 'capturing'
+    | 'paying'
+    | 'confirming-payment'
+    | 'rolling'
+    | 'generating-dna'
+    | 'checking'
+    | 'uploading-image'
+    | 'uploading-gif'
+    | 'uploading-model'
+    | 'uploading-metadata'
+    | 'minting'
+    | 'confirming-mint'
+    | 'refreshing'
+    | 'success'
+    | 'error'
+  >('idle')
   const error = ref<string | null>(null)
   
   // Current KWAMI being created
@@ -119,6 +137,7 @@ export const useNFTStore = defineStore('nft', () => {
     gifBuffer?: Buffer | null,
     modelBuffer?: Buffer | null,
     opts?: {
+      rollId?: string
       onSigned?: () => void | Promise<void>
     }
   ) => {
@@ -128,21 +147,18 @@ export const useNFTStore = defineStore('nft', () => {
     
     try {
       error.value = null
-      
-      // Calculate DNA
+      // NOTE: mint flow is orchestrated by the UI now:
+      // 1) pay -> 2) roll -> 3) check dna loop -> 4) upload -> 5) finalize mint
+      // This method assumes `config` is already the final rolled selection.
+      mintingStatus.value = 'generating-dna'
+
       const dna = await calculateDNA(config)
-      
-      // Check if DNA already exists
-      const exists = await checkDnaExists(dna)
-      if (exists) {
-        throw new Error('This KWAMI DNA already exists! Try modifying the configuration.')
-      }
+      console.log('[NFT Store] Final selected DNA:', dna.substring(0, 16) + '...')
       
       // Upload image to IPFS (instant availability!)
-      mintingStatus.value = 'uploading'
-      
       let imageResult
       if (imageBuffer) {
+        mintingStatus.value = 'uploading-image'
         // Use actual image buffer from canvas
         imageResult = await uploadImageToIpfs(
           imageBuffer,
@@ -151,6 +167,7 @@ export const useNFTStore = defineStore('nft', () => {
         )
       } else {
         // Fallback to mock (for testing)
+        mintingStatus.value = 'uploading-image'
         console.warn('[NFT Store] No image buffer provided, using mock upload')
         imageResult = await uploadImageToIpfs(
           Buffer.from('mock'),
@@ -164,6 +181,7 @@ export const useNFTStore = defineStore('nft', () => {
       // Upload GIF if provided
       let gifResult
       if (gifBuffer) {
+        mintingStatus.value = 'uploading-gif'
         console.log('[NFT Store] Uploading GIF...')
         gifResult = await uploadGifToIpfs(gifBuffer, walletStore.wallet)
         console.log('[NFT Store] GIF uploaded:', gifResult.uri)
@@ -172,6 +190,7 @@ export const useNFTStore = defineStore('nft', () => {
       // Upload 3D model if provided
       let modelResult
       if (modelBuffer) {
+        mintingStatus.value = 'uploading-model'
         console.log('[NFT Store] Uploading 3D model...')
         modelResult = await upload3DModelToIpfs(modelBuffer, walletStore.wallet)
         console.log('[NFT Store] 3D model uploaded:', modelResult.uri)
@@ -205,6 +224,7 @@ export const useNFTStore = defineStore('nft', () => {
       }
       
       // Upload metadata to IPFS
+      mintingStatus.value = 'uploading-metadata'
       const metadataResult = await uploadMetadataToIpfs(
         metadataJson,
         walletStore.wallet
@@ -213,10 +233,16 @@ export const useNFTStore = defineStore('nft', () => {
       console.log('[NFT Store] Metadata uploaded:', metadataResult.uri)
       currentMetadata.value = metadataJson
       
-      // Mint NFT on-chain
+      // Finalize mint (requires a purchased roll id)
+      const rollId = opts?.rollId
+      if (!rollId) {
+        throw new Error('Missing rollId (must purchase roll before minting)')
+      }
+
       mintingStatus.value = 'minting'
-      const mintAddress = await mintKwamiNft(
+      const mintAddress = await mintKwamiWithReceipt(
         walletStore.wallet,
+        rollId,
         dna,
         metadataResult.uri,
         metadata.name,
@@ -228,8 +254,10 @@ export const useNFTStore = defineStore('nft', () => {
       mintingStatus.value = 'success'
       
       // Refresh owned NFTs
+      mintingStatus.value = 'refreshing'
       await fetchOwnedNfts()
       await fetchStats()
+      mintingStatus.value = 'success'
       
       return mintAddress
     } catch (err: any) {

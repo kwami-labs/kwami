@@ -117,6 +117,11 @@ type RandomizeOnceOptions = {
    * Useful for "slot machine" rolls that should not mutate mint state.
    */
   skipStoreSync?: boolean
+  /**
+   * If true, do not update the on-screen DNA text during interim spins.
+   * This prevents confusion where the UI shows a DNA that is NOT the mint-selected DNA.
+   */
+  skipUiUpdate?: boolean
 }
 
 const props = withDefaults(
@@ -286,13 +291,16 @@ const syncConfigFromKwami = () => {
   blobConfig.skin = blob.getCurrentSkin()
 }
 
-const generateDna = async (opts: { skipStoreSync?: boolean } = {}) => {
+const generateDna = async (opts: { skipStoreSync?: boolean; skipUiUpdate?: boolean } = {}) => {
   const { calculateKwamiDNA } = await import('@/utils/calculateKwamiDNA')
-  dna.value = calculateKwamiDNA(blobConfig)
+  const nextDna = calculateKwamiDNA(blobConfig)
+  if (!opts.skipUiUpdate) {
+    dna.value = nextDna
+  }
 
   if (!opts.skipStoreSync) {
     const nftStore = useNFTStore()
-    nftStore.currentDna = dna.value
+    nftStore.currentDna = nextDna
     nftStore.setBlobConfig(getConfig())
   }
 }
@@ -324,7 +332,7 @@ const randomizeOnce = async (options: RandomizeOnceOptions = {}) => {
   }
 
   applyRandomConfig()
-  await generateDna({ skipStoreSync: options.skipStoreSync })
+  await generateDna({ skipStoreSync: options.skipStoreSync, skipUiUpdate: options.skipUiUpdate })
 
   if (showLoading) {
     // Small delay so the user sees the effect.
@@ -399,7 +407,7 @@ const rollToConfig = async (targetConfig: any, options: RollCandyMachineOptions 
   isRolling.value = true
   try {
     for (let i = 0; i < spins; i++) {
-      await randomizeOnce({ showLoading: false, skipStoreSync: true })
+      await randomizeOnce({ showLoading: false, skipStoreSync: true, skipUiUpdate: true })
       const t = spins <= 1 ? 1 : i / (spins - 1)
       const eased = t * t
       const delay = Math.round(minDelayMs + (maxDelayMs - minDelayMs) * eased)

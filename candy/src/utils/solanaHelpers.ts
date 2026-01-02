@@ -9,6 +9,8 @@ import { AnchorProvider, Program, web3 } from '@coral-xyz/anchor'
 import { 
   checkDnaExistsDirect,
   mintKwamiDirect,
+  purchaseRollDirect,
+  mintKwamiWithReceiptDirect,
   fetchOwnedKwamisDirect,
   getTotalMintedCountDirect 
 } from './solanaDirectHelpers'
@@ -220,6 +222,38 @@ export async function mintKwamiNft(
     console.error('[Solana] Error minting KWAMI:', error)
     throw new Error(`Failed to mint KWAMI: ${error.message}`)
   }
+}
+
+/**
+ * Pay for a roll (wallet tx appears immediately).
+ */
+export async function purchaseRoll(
+  wallet: any,
+  opts?: { onSigned?: () => void | Promise<void> }
+): Promise<{ rollId: string; signature: string }> {
+  if (!wallet || !wallet.publicKey) {
+    throw new Error('Wallet not connected properly')
+  }
+  const connection = getSolanaConnection()
+  return await purchaseRollDirect(connection, wallet, opts)
+}
+
+/**
+ * Finalize mint after paying and uploading metadata.
+ */
+export async function mintKwamiWithReceipt(
+  wallet: any,
+  rollId: string,
+  dna: string,
+  metadataUri: string,
+  name: string,
+  opts?: { onSigned?: () => void | Promise<void> }
+): Promise<string> {
+  if (!wallet || !wallet.publicKey) {
+    throw new Error('Wallet not connected properly')
+  }
+  const connection = getSolanaConnection()
+  return await mintKwamiWithReceiptDirect(connection, wallet, rollId, dna, metadataUri, name, opts)
 }
 
 /**
