@@ -391,6 +391,9 @@ const applyRandomConfig = () => {
 
   // Keep scale consistent so the preview stays framed
   blob.setScale(4.0)
+  
+  // TEMP: Enable wireframe for all rolls for testing GLB export
+  blob.setWireframe(true)
 
   syncConfigFromKwami()
 }

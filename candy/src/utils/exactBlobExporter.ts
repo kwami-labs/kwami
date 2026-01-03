@@ -237,7 +237,10 @@ function createReplicaMaterial(srcMaterial: any, geometry: BufferGeometry): Mesh
   const materialParams: any = {
     transparent: opacity < 0.999,
     opacity,
-    wireframe: Boolean(srcMaterial?.wireframe),
+    // NOTE: Don't set wireframe: true on the material itself
+    // We'll use EdgesGeometry as a separate overlay instead
+    // because GLB doesn't support wireframe flag properly
+    wireframe: false,
     side: srcMaterial?.side ?? 2, // Default to DoubleSide for parity with preview
     depthWrite: srcMaterial?.depthWrite ?? opacity >= 0.999,
   }
@@ -271,11 +274,15 @@ function createWireframeOverlay(geometry: BufferGeometry, baseColor: Color): Lin
   const edges = new EdgesGeometry(geometry, 1)
   const lineMaterial = new LineBasicMaterial({
     color: baseColor,
-    transparent: true,
-    opacity: 0.65,
+    transparent: false,
+    opacity: 1.0,
+    depthTest: true,
+    depthWrite: true,
   })
   const lines = new LineSegments(edges, lineMaterial)
   lines.name = 'KWAMI_Blob_Wireframe'
+  
+  console.log('[GLB Export] Created wireframe with', edges.attributes.position.count / 2, 'lines')
   return lines
 }
 
@@ -454,13 +461,21 @@ export async function exportExactBlobReplica(params: {
 
   const exportScene = new Scene()
   exportScene.add(exportMesh)
+  
   // Preserve wireframe by adding an explicit edges layer (glTF has no wireframe flag)
   const wantsWireframe = Boolean((sourceMaterial as any)?.wireframe)
   if (wantsWireframe) {
+    console.log('[GLB Export] Wireframe detected - creating EdgesGeometry overlay')
     const c1 = getShaderUniformColor(sourceMaterial, '_color1', new Color('#ffffff'))
     const wireframe = createWireframeOverlay(exportGeometry, c1)
     // Attach wireframe to mesh so it inherits animations
     exportMesh.add(wireframe)
+    
+    // Make base mesh semi-transparent so wireframe stands out
+    exportMaterial.transparent = true
+    exportMaterial.opacity = 0.15
+    exportMaterial.depthWrite = false
+    console.log('[GLB Export] Set base mesh opacity to 0.15 for wireframe mode')
   }
 
   if (includeLights) {
