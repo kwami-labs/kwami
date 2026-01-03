@@ -112,59 +112,149 @@
             <!-- Left panel (slides with page) -->
             <aside class="hidden lg:block absolute left-6 top-0 bottom-0 w-[380px] z-10">
               <KwamiGlassCard class-name="h-full" :scroll-content="true">
-                <template #title>Latest Minted</template>
-                <template #headerRight>Live soon</template>
+                <template #title>Body</template>
+                <template #headerRight>Solana</template>
 
-                <div class="space-y-4">
-                  <div class="grid grid-cols-2 gap-3">
-                    <div class="p-3 rounded-lg border border-gray-200/60 dark:border-gray-800/60 bg-white/20 dark:bg-black/20">
-                      <div class="text-[11px] uppercase tracking-wider text-gray-500 dark:text-gray-400">Minted</div>
-                      <div class="mt-1 text-xl font-black text-gray-900 dark:text-white">
-                        {{ nftStore.totalMinted.toLocaleString() }}
-                      </div>
+                <div v-if="nftStore.currentBlobConfig" class="space-y-3">
+                  <!-- Skin Type & Subtype -->
+                  <div class="grid grid-cols-2 gap-2">
+                    <div class="p-2 rounded-lg border border-gray-200/60 dark:border-gray-800/60 bg-white/10 dark:bg-black/10">
+                      <div class="text-xs text-gray-500 dark:text-gray-400 mb-1">Skin Type</div>
+                      <div class="text-sm font-semibold text-gray-900 dark:text-white">Tricolor</div>
                     </div>
-                    <div class="p-3 rounded-lg border border-gray-200/60 dark:border-gray-800/60 bg-white/20 dark:bg-black/20">
-                      <div class="text-[11px] uppercase tracking-wider text-gray-500 dark:text-gray-400">Remaining</div>
-                      <div class="mt-1 text-xl font-black text-gray-900 dark:text-white">
-                        {{ remainingCount.toLocaleString() }}
+                    <div class="p-2 rounded-lg border border-gray-200/60 dark:border-gray-800/60 bg-white/10 dark:bg-black/10">
+                      <div class="text-xs text-gray-500 dark:text-gray-400 mb-1">Skin Subtype</div>
+                      <div class="text-sm font-semibold text-gray-900 dark:text-white capitalize">{{ getSkinSubtype(nftStore.currentBlobConfig.skin) }}</div>
+                    </div>
+                  </div>
+
+                  <!-- Skin Palette -->
+                  <div class="p-3 rounded-lg border border-gray-200/60 dark:border-gray-800/60 bg-white/10 dark:bg-black/10">
+                    <div class="text-xs text-gray-500 dark:text-gray-400 mb-2">Skin Palette</div>
+                    <div class="flex gap-2">
+                      <div class="flex-1 text-center">
+                        <div
+                          class="h-8 rounded border border-gray-300 dark:border-gray-600 mb-1"
+                          :style="{ backgroundColor: getColorValue(nftStore.currentBlobConfig.colors?.x) }"
+                        />
+                        <div class="text-xs text-gray-600 dark:text-gray-400 font-mono">{{ getColorValue(nftStore.currentBlobConfig.colors?.x) }}</div>
+                        <div class="text-xs text-gray-500 dark:text-gray-500">R:{{ getColorComponent(nftStore.currentBlobConfig.colors?.x, 'r') }}</div>
+                      </div>
+                      <div class="flex-1 text-center">
+                        <div
+                          class="h-8 rounded border border-gray-300 dark:border-gray-600 mb-1"
+                          :style="{ backgroundColor: getColorValue(nftStore.currentBlobConfig.colors?.y) }"
+                        />
+                        <div class="text-xs text-gray-600 dark:text-gray-400 font-mono">{{ getColorValue(nftStore.currentBlobConfig.colors?.y) }}</div>
+                        <div class="text-xs text-gray-500 dark:text-gray-500">G:{{ getColorComponent(nftStore.currentBlobConfig.colors?.y, 'g') }}</div>
+                      </div>
+                      <div class="flex-1 text-center">
+                        <div
+                          class="h-8 rounded border border-gray-300 dark:border-gray-600 mb-1"
+                          :style="{ backgroundColor: getColorValue(nftStore.currentBlobConfig.colors?.z) }"
+                        />
+                        <div class="text-xs text-gray-600 dark:text-gray-400 font-mono">{{ getColorValue(nftStore.currentBlobConfig.colors?.z) }}</div>
+                        <div class="text-xs text-gray-500 dark:text-gray-500">B:{{ getColorComponent(nftStore.currentBlobConfig.colors?.z, 'b') }}</div>
                       </div>
                     </div>
                   </div>
 
-                  <div class="h-px bg-gray-200/60 dark:bg-gray-800/60" />
+                  <!-- Resolution & Wireframe -->
+                  <div class="grid grid-cols-2 gap-2">
+                    <div class="p-2 rounded-lg border border-gray-200/60 dark:border-gray-800/60 bg-white/10 dark:bg-black/10">
+                      <div class="text-xs text-gray-500 dark:text-gray-400 mb-1">Resolution</div>
+                      <div class="text-sm font-semibold text-gray-900 dark:text-white">{{ nftStore.currentBlobConfig.resolution || '—' }}</div>
+                    </div>
+                    <div class="p-2 rounded-lg border border-gray-200/60 dark:border-gray-800/60 bg-white/10 dark:bg-black/10">
+                      <div class="text-xs text-gray-500 dark:text-gray-400 mb-1">Wireframe</div>
+                      <div class="text-sm font-semibold text-gray-900 dark:text-white">{{ nftStore.currentBlobConfig.wireframe ? 'Yes' : 'No' }}</div>
+                    </div>
+                  </div>
 
-                  <div class="space-y-3">
-                    <div
-                      v-for="item in latestMinted"
-                      :key="item.mint"
-                      class="p-3 rounded-lg border border-gray-200/60 dark:border-gray-800/60 bg-transparent"
-                    >
-                      <div class="flex items-center justify-between gap-3">
-                        <div class="min-w-0">
-                          <div class="text-sm font-semibold text-gray-900 dark:text-white truncate">
-                            {{ item.name }}
-                          </div>
-                          <div class="text-xs text-gray-500 dark:text-gray-400">
-                            {{ item.when }}
-                          </div>
-                        </div>
-                        <span class="px-2 py-1 text-[11px] font-semibold rounded-full border border-green-500/30 text-green-600 dark:text-green-400 bg-green-500/10">
-                          Minted
-                        </span>
+                  <!-- Shininess & Light Intensity -->
+                  <div class="grid grid-cols-2 gap-2">
+                    <div class="p-2 rounded-lg border border-gray-200/60 dark:border-gray-800/60 bg-white/10 dark:bg-black/10">
+                      <div class="text-xs text-gray-500 dark:text-gray-400 mb-1">Shininess</div>
+                      <div class="text-sm font-semibold text-gray-900 dark:text-white">{{ nftStore.currentBlobConfig.shininess || '—' }}</div>
+                    </div>
+                    <div class="p-2 rounded-lg border border-gray-200/60 dark:border-gray-800/60 bg-white/10 dark:bg-black/10">
+                      <div class="text-xs text-gray-500 dark:text-gray-400 mb-1">Light Intensity</div>
+                      <div class="text-sm font-semibold text-gray-900 dark:text-white">{{ nftStore.currentBlobConfig.lightIntensity?.toFixed(1) || '1.0' }}</div>
+                    </div>
+                  </div>
+
+                  <!-- Noise Frequency -->
+                  <div class="p-3 rounded-lg border border-gray-200/60 dark:border-gray-800/60 bg-white/10 dark:bg-black/10">
+                    <div class="text-xs text-gray-500 dark:text-gray-400 mb-2">Noise Frequency</div>
+                    <div class="grid grid-cols-3 gap-2 text-center">
+                      <div>
+                        <div class="text-xs text-gray-500 dark:text-gray-400 mb-1">X</div>
+                        <div class="text-sm font-mono text-gray-900 dark:text-white">{{ nftStore.currentBlobConfig.spikes?.x?.toFixed(2) || '—' }}</div>
                       </div>
-
-                      <div class="mt-2 space-y-1">
-                        <div class="text-[11px] text-gray-500 dark:text-gray-400">Mint</div>
-                        <div class="font-mono text-xs text-gray-700 dark:text-gray-200 break-all">
-                          {{ short(item.mint) }}
-                        </div>
+                      <div>
+                        <div class="text-xs text-gray-500 dark:text-gray-400 mb-1">Y</div>
+                        <div class="text-sm font-mono text-gray-900 dark:text-white">{{ nftStore.currentBlobConfig.spikes?.y?.toFixed(2) || '—' }}</div>
                       </div>
+                      <div>
+                        <div class="text-xs text-gray-500 dark:text-gray-400 mb-1">Z</div>
+                        <div class="text-sm font-mono text-gray-900 dark:text-white">{{ nftStore.currentBlobConfig.spikes?.z?.toFixed(2) || '—' }}</div>
+                      </div>
+                    </div>
+                  </div>
 
-                      <div class="mt-2 space-y-1">
-                        <div class="text-[11px] text-gray-500 dark:text-gray-400">DNA</div>
-                        <div class="font-mono text-xs text-gray-700 dark:text-gray-200 break-all">
-                          {{ short(item.dna) }}
-                        </div>
+                  <!-- Frequency Amplitude -->
+                  <div class="p-3 rounded-lg border border-gray-200/60 dark:border-gray-800/60 bg-white/10 dark:bg-black/10">
+                    <div class="text-xs text-gray-500 dark:text-gray-400 mb-2">Frequency Amplitude</div>
+                    <div class="grid grid-cols-3 gap-2 text-center">
+                      <div>
+                        <div class="text-xs text-gray-500 dark:text-gray-400 mb-1">X</div>
+                        <div class="text-sm font-mono text-gray-900 dark:text-white">{{ nftStore.currentBlobConfig.amplitude?.x?.toFixed(1) || '—' }}</div>
+                      </div>
+                      <div>
+                        <div class="text-xs text-gray-500 dark:text-gray-400 mb-1">Y</div>
+                        <div class="text-sm font-mono text-gray-900 dark:text-white">{{ nftStore.currentBlobConfig.amplitude?.y?.toFixed(1) || '—' }}</div>
+                      </div>
+                      <div>
+                        <div class="text-xs text-gray-500 dark:text-gray-400 mb-1">Z</div>
+                        <div class="text-sm font-mono text-gray-900 dark:text-white">{{ nftStore.currentBlobConfig.amplitude?.z?.toFixed(1) || '—' }}</div>
+                      </div>
+                    </div>
+                  </div>
+
+                  <!-- Animation Speed -->
+                  <div class="p-3 rounded-lg border border-gray-200/60 dark:border-gray-800/60 bg-white/10 dark:bg-black/10">
+                    <div class="text-xs text-gray-500 dark:text-gray-400 mb-2">Animation Speed</div>
+                    <div class="grid grid-cols-3 gap-2 text-center">
+                      <div>
+                        <div class="text-xs text-gray-500 dark:text-gray-400 mb-1">X</div>
+                        <div class="text-sm font-mono text-gray-900 dark:text-white">{{ nftStore.currentBlobConfig.time?.x?.toFixed(1) || '—' }}</div>
+                      </div>
+                      <div>
+                        <div class="text-xs text-gray-500 dark:text-gray-400 mb-1">Y</div>
+                        <div class="text-sm font-mono text-gray-900 dark:text-white">{{ nftStore.currentBlobConfig.time?.y?.toFixed(1) || '—' }}</div>
+                      </div>
+                      <div>
+                        <div class="text-xs text-gray-500 dark:text-gray-400 mb-1">Z</div>
+                        <div class="text-sm font-mono text-gray-900 dark:text-white">{{ nftStore.currentBlobConfig.time?.z?.toFixed(1) || '—' }}</div>
+                      </div>
+                    </div>
+                  </div>
+
+                  <!-- Auto Rotation -->
+                  <div class="p-3 rounded-lg border border-gray-200/60 dark:border-gray-800/60 bg-white/10 dark:bg-black/10">
+                    <div class="text-xs text-gray-500 dark:text-gray-400 mb-2">Auto Rotation</div>
+                    <div class="grid grid-cols-3 gap-2 text-center">
+                      <div>
+                        <div class="text-xs text-gray-500 dark:text-gray-400 mb-1">X</div>
+                        <div class="text-sm font-mono text-gray-900 dark:text-white">{{ nftStore.currentBlobConfig.rotation?.x?.toFixed(3) || '0.000' }}</div>
+                      </div>
+                      <div>
+                        <div class="text-xs text-gray-500 dark:text-gray-400 mb-1">Y</div>
+                        <div class="text-sm font-mono text-gray-900 dark:text-white">{{ nftStore.currentBlobConfig.rotation?.y?.toFixed(3) || '0.000' }}</div>
+                      </div>
+                      <div>
+                        <div class="text-xs text-gray-500 dark:text-gray-400 mb-1">Z</div>
+                        <div class="text-sm font-mono text-gray-900 dark:text-white">{{ nftStore.currentBlobConfig.rotation?.z?.toFixed(3) || '0.000' }}</div>
                       </div>
                     </div>
                   </div>
@@ -175,32 +265,12 @@
             <!-- Right panel (slides with page) -->
             <aside class="hidden lg:block absolute right-6 top-0 bottom-0 w-[380px] z-10">
               <KwamiGlassCard class-name="h-full" :scroll-content="true">
-                <template #title>NFT Metadata</template>
+                <template #title>Soul</template>
                 <template #headerRight>Solana</template>
 
                 <div class="space-y-5">
-                  <!-- DNA -->
-                  <div class="p-4 rounded-lg border border-gray-200/60 dark:border-gray-800/60 bg-white/20 dark:bg-black/20">
-                    <div class="flex items-center justify-between mb-2">
-                      <span class="text-sm text-gray-500 dark:text-gray-400">DNA Hash</span>
-                      <KwamiGlassButton
-                        :label="dnaCopied ? 'Copied!' : 'Copy'"
-                        mode="ghost"
-                        size="sm"
-                        :disabled="!nftStore.currentDna"
-                        @click="copyDna"
-                      />
-                    </div>
-                    <p class="font-mono text-xs break-all text-gray-700 dark:text-gray-200">
-                      {{ nftStore.currentDna || '—' }}
-                    </p>
-                  </div>
-
                   <!-- Soul Config -->
                   <div v-if="nftStore.currentSoulConfig" class="space-y-3">
-                    <div class="flex items-center gap-2">
-                      <span class="text-sm font-semibold text-gray-900 dark:text-white">✨ Soul</span>
-                    </div>
                     
                     <div class="space-y-3">
                       <div class="p-3 rounded-lg border border-gray-200/60 dark:border-gray-800/60 bg-white/10 dark:bg-black/10">
@@ -261,158 +331,6 @@
                     </div>
                   </div>
 
-                  <!-- Body Config -->
-                  <div v-if="nftStore.currentBlobConfig" class="space-y-3">
-                    <div class="flex items-center gap-2">
-                      <span class="text-sm font-semibold text-gray-900 dark:text-white">🧬 Body</span>
-                    </div>
-                    
-                    <div class="space-y-3">
-                      <!-- Skin Type & Subtype -->
-                      <div class="grid grid-cols-2 gap-2">
-                        <div class="p-2 rounded-lg border border-gray-200/60 dark:border-gray-800/60 bg-white/10 dark:bg-black/10">
-                          <div class="text-xs text-gray-500 dark:text-gray-400 mb-1">Skin Type</div>
-                          <div class="text-sm font-semibold text-gray-900 dark:text-white">Tricolor</div>
-                        </div>
-                        <div class="p-2 rounded-lg border border-gray-200/60 dark:border-gray-800/60 bg-white/10 dark:bg-black/10">
-                          <div class="text-xs text-gray-500 dark:text-gray-400 mb-1">Skin Subtype</div>
-                          <div class="text-sm font-semibold text-gray-900 dark:text-white capitalize">{{ getSkinSubtype(nftStore.currentBlobConfig.skin) }}</div>
-                        </div>
-                      </div>
-
-                      <!-- Skin Palette -->
-                      <div class="p-3 rounded-lg border border-gray-200/60 dark:border-gray-800/60 bg-white/10 dark:bg-black/10">
-                        <div class="text-xs text-gray-500 dark:text-gray-400 mb-2">Skin Palette</div>
-                        <div class="flex gap-2">
-                          <div class="flex-1 text-center">
-                            <div
-                              class="h-8 rounded border border-gray-300 dark:border-gray-600 mb-1"
-                              :style="{ backgroundColor: getColorValue(nftStore.currentBlobConfig.colors?.x) }"
-                            />
-                            <div class="text-xs text-gray-600 dark:text-gray-400 font-mono">{{ getColorValue(nftStore.currentBlobConfig.colors?.x) }}</div>
-                            <div class="text-xs text-gray-500 dark:text-gray-500">R:{{ getColorComponent(nftStore.currentBlobConfig.colors?.x, 'r') }}</div>
-                          </div>
-                          <div class="flex-1 text-center">
-                            <div
-                              class="h-8 rounded border border-gray-300 dark:border-gray-600 mb-1"
-                              :style="{ backgroundColor: getColorValue(nftStore.currentBlobConfig.colors?.y) }"
-                            />
-                            <div class="text-xs text-gray-600 dark:text-gray-400 font-mono">{{ getColorValue(nftStore.currentBlobConfig.colors?.y) }}</div>
-                            <div class="text-xs text-gray-500 dark:text-gray-500">G:{{ getColorComponent(nftStore.currentBlobConfig.colors?.y, 'g') }}</div>
-                          </div>
-                          <div class="flex-1 text-center">
-                            <div
-                              class="h-8 rounded border border-gray-300 dark:border-gray-600 mb-1"
-                              :style="{ backgroundColor: getColorValue(nftStore.currentBlobConfig.colors?.z) }"
-                            />
-                            <div class="text-xs text-gray-600 dark:text-gray-400 font-mono">{{ getColorValue(nftStore.currentBlobConfig.colors?.z) }}</div>
-                            <div class="text-xs text-gray-500 dark:text-gray-500">B:{{ getColorComponent(nftStore.currentBlobConfig.colors?.z, 'b') }}</div>
-                          </div>
-                        </div>
-                      </div>
-
-                      <!-- Resolution & Wireframe -->
-                      <div class="grid grid-cols-2 gap-2">
-                        <div class="p-2 rounded-lg border border-gray-200/60 dark:border-gray-800/60 bg-white/10 dark:bg-black/10">
-                          <div class="text-xs text-gray-500 dark:text-gray-400 mb-1">Resolution</div>
-                          <div class="text-sm font-semibold text-gray-900 dark:text-white">{{ nftStore.currentBlobConfig.resolution || '—' }}</div>
-                        </div>
-                        <div class="p-2 rounded-lg border border-gray-200/60 dark:border-gray-800/60 bg-white/10 dark:bg-black/10">
-                          <div class="text-xs text-gray-500 dark:text-gray-400 mb-1">Wireframe</div>
-                          <div class="text-sm font-semibold text-gray-900 dark:text-white">{{ nftStore.currentBlobConfig.wireframe ? 'Yes' : 'No' }}</div>
-                        </div>
-                      </div>
-
-                      <!-- Shininess & Light Intensity -->
-                      <div class="grid grid-cols-2 gap-2">
-                        <div class="p-2 rounded-lg border border-gray-200/60 dark:border-gray-800/60 bg-white/10 dark:bg-black/10">
-                          <div class="text-xs text-gray-500 dark:text-gray-400 mb-1">Shininess</div>
-                          <div class="text-sm font-semibold text-gray-900 dark:text-white">{{ nftStore.currentBlobConfig.shininess || '—' }}</div>
-                        </div>
-                        <div class="p-2 rounded-lg border border-gray-200/60 dark:border-gray-800/60 bg-white/10 dark:bg-black/10">
-                          <div class="text-xs text-gray-500 dark:text-gray-400 mb-1">Light Intensity</div>
-                          <div class="text-sm font-semibold text-gray-900 dark:text-white">{{ nftStore.currentBlobConfig.lightIntensity?.toFixed(1) || '1.0' }}</div>
-                        </div>
-                      </div>
-
-                      <!-- Noise Frequency -->
-                      <div class="p-3 rounded-lg border border-gray-200/60 dark:border-gray-800/60 bg-white/10 dark:bg-black/10">
-                        <div class="text-xs text-gray-500 dark:text-gray-400 mb-2">Noise Frequency</div>
-                        <div class="grid grid-cols-3 gap-2 text-center">
-                          <div>
-                            <div class="text-xs text-gray-500 dark:text-gray-400 mb-1">X</div>
-                            <div class="text-sm font-mono text-gray-900 dark:text-white">{{ nftStore.currentBlobConfig.spikes?.x?.toFixed(2) || '—' }}</div>
-                          </div>
-                          <div>
-                            <div class="text-xs text-gray-500 dark:text-gray-400 mb-1">Y</div>
-                            <div class="text-sm font-mono text-gray-900 dark:text-white">{{ nftStore.currentBlobConfig.spikes?.y?.toFixed(2) || '—' }}</div>
-                          </div>
-                          <div>
-                            <div class="text-xs text-gray-500 dark:text-gray-400 mb-1">Z</div>
-                            <div class="text-sm font-mono text-gray-900 dark:text-white">{{ nftStore.currentBlobConfig.spikes?.z?.toFixed(2) || '—' }}</div>
-                          </div>
-                        </div>
-                      </div>
-
-                      <!-- Frequency Amplitude -->
-                      <div class="p-3 rounded-lg border border-gray-200/60 dark:border-gray-800/60 bg-white/10 dark:bg-black/10">
-                        <div class="text-xs text-gray-500 dark:text-gray-400 mb-2">Frequency Amplitude</div>
-                        <div class="grid grid-cols-3 gap-2 text-center">
-                          <div>
-                            <div class="text-xs text-gray-500 dark:text-gray-400 mb-1">X</div>
-                            <div class="text-sm font-mono text-gray-900 dark:text-white">{{ nftStore.currentBlobConfig.amplitude?.x?.toFixed(1) || '—' }}</div>
-                          </div>
-                          <div>
-                            <div class="text-xs text-gray-500 dark:text-gray-400 mb-1">Y</div>
-                            <div class="text-sm font-mono text-gray-900 dark:text-white">{{ nftStore.currentBlobConfig.amplitude?.y?.toFixed(1) || '—' }}</div>
-                          </div>
-                          <div>
-                            <div class="text-xs text-gray-500 dark:text-gray-400 mb-1">Z</div>
-                            <div class="text-sm font-mono text-gray-900 dark:text-white">{{ nftStore.currentBlobConfig.amplitude?.z?.toFixed(1) || '—' }}</div>
-                          </div>
-                        </div>
-                      </div>
-
-                      <!-- Animation Speed -->
-                      <div class="p-3 rounded-lg border border-gray-200/60 dark:border-gray-800/60 bg-white/10 dark:bg-black/10">
-                        <div class="text-xs text-gray-500 dark:text-gray-400 mb-2">Animation Speed</div>
-                        <div class="grid grid-cols-3 gap-2 text-center">
-                          <div>
-                            <div class="text-xs text-gray-500 dark:text-gray-400 mb-1">X</div>
-                            <div class="text-sm font-mono text-gray-900 dark:text-white">{{ nftStore.currentBlobConfig.time?.x?.toFixed(1) || '—' }}</div>
-                          </div>
-                          <div>
-                            <div class="text-xs text-gray-500 dark:text-gray-400 mb-1">Y</div>
-                            <div class="text-sm font-mono text-gray-900 dark:text-white">{{ nftStore.currentBlobConfig.time?.y?.toFixed(1) || '—' }}</div>
-                          </div>
-                          <div>
-                            <div class="text-xs text-gray-500 dark:text-gray-400 mb-1">Z</div>
-                            <div class="text-sm font-mono text-gray-900 dark:text-white">{{ nftStore.currentBlobConfig.time?.z?.toFixed(1) || '—' }}</div>
-                          </div>
-                        </div>
-                      </div>
-
-                      <!-- Auto Rotation -->
-                      <div class="p-3 rounded-lg border border-gray-200/60 dark:border-gray-800/60 bg-white/10 dark:bg-black/10">
-                        <div class="text-xs text-gray-500 dark:text-gray-400 mb-2">Auto Rotation</div>
-                        <div class="grid grid-cols-3 gap-2 text-center">
-                          <div>
-                            <div class="text-xs text-gray-500 dark:text-gray-400 mb-1">X</div>
-                            <div class="text-sm font-mono text-gray-900 dark:text-white">{{ nftStore.currentBlobConfig.rotation?.x?.toFixed(3) || '0.000' }}</div>
-                          </div>
-                          <div>
-                            <div class="text-xs text-gray-500 dark:text-gray-400 mb-1">Y</div>
-                            <div class="text-sm font-mono text-gray-900 dark:text-white">{{ nftStore.currentBlobConfig.rotation?.y?.toFixed(3) || '0.000' }}</div>
-                          </div>
-                          <div>
-                            <div class="text-xs text-gray-500 dark:text-gray-400 mb-1">Z</div>
-                            <div class="text-sm font-mono text-gray-900 dark:text-white">{{ nftStore.currentBlobConfig.rotation?.z?.toFixed(3) || '0.000' }}</div>
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-
                   <!-- Minting cost -->
                   <div class="text-sm text-gray-600 dark:text-gray-300">
                     Minting cost: ~0.01 SOL + network fees
@@ -423,13 +341,31 @@
 
             <!-- Center blob preview (slides with page) -->
             <div class="absolute inset-0 flex items-center justify-center z-0 pointer-events-none">
-              <div class="pointer-events-auto w-[min(60vmin,520px)]">
+              <div class="pointer-events-auto w-[min(60vmin,520px)] space-y-3">
                 <BlobPreview
                   ref="blobPreviewRef"
                   :show-dna="false"
                   :show-randomize-button="false"
                   container-class="aspect-square"
                 />
+                <!-- DNA Hash below blob -->
+                <div class="px-4">
+                  <div class="p-3 rounded-lg border border-gray-200/60 dark:border-gray-800/60 bg-white/20 dark:bg-black/20 backdrop-blur-sm">
+                    <div class="flex items-center justify-between mb-2">
+                      <span class="text-xs text-gray-500 dark:text-gray-400">DNA Hash</span>
+                      <KwamiGlassButton
+                        :label="dnaCopied ? 'Copied!' : 'Copy'"
+                        mode="ghost"
+                        size="sm"
+                        :disabled="!nftStore.currentDna"
+                        @click="copyDna"
+                      />
+                    </div>
+                    <p class="font-mono text-xs break-all text-gray-700 dark:text-gray-200">
+                      {{ nftStore.currentDna || '—' }}
+                    </p>
+                  </div>
+                </div>
               </div>
             </div>
 
