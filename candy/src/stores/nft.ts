@@ -187,11 +187,12 @@ export const useNFTStore = defineStore('nft', () => {
         console.log('[NFT Store] GIF uploaded:', gifResult.uri)
       }
       
-      // Upload video if provided
+      // Upload video if provided (WebM file but we'll claim it's MP4 in metadata for Phantom compatibility)
       let videoResult
       if (videoBuffer) {
         mintingStatus.value = 'uploading-video'
         console.log('[NFT Store] Uploading video...')
+        // Upload as WebM (actual format)
         videoResult = await uploadVideoToIpfs(videoBuffer, walletStore.wallet, 'video/webm')
         console.log('[NFT Store] Video uploaded:', videoResult.uri)
       }
@@ -210,7 +211,8 @@ export const useNFTStore = defineStore('nft', () => {
         soulConfig,
         imageUri: imageResult.uri,
         animationUri: videoResult?.uri,
-        animationMimeType: videoResult ? 'video/webm' : undefined,
+        // Claim MP4 in metadata even though file is WebM (Phantom wallet hack)
+        animationMimeType: videoResult ? 'video/mp4' : undefined,
         creatorAddress: walletStore.publicKey!.toBase58(),
       })
       console.log('[NFT Store] Metadata prepared:', {
