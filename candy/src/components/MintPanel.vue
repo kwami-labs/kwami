@@ -167,7 +167,8 @@ const handleMint = async () => {
       throw new Error('Failed to capture image. Please try again.')
     }
 
-    const videoCapture = await props.blobPreviewRef.captureVideo?.({ durationMs: 10_000, fps: 30, download: false })
+    // Capture shorter 5-second video for better wallet compatibility and smaller file size
+    const videoCapture = await props.blobPreviewRef.captureVideo?.({ durationMs: 5_000, fps: 24, download: false })
     console.log('[MintPanel] Video capture result:', {
       hasBuffer: !!videoCapture?.buffer,
       bufferSize: videoCapture?.buffer?.length,

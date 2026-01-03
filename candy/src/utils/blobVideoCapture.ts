@@ -30,10 +30,11 @@ export type RecordCanvasVideoResult = {
 }
 
 function pickSupportedMime(preferred?: string): string {
+  // VP8 is more widely supported than VP9 in wallets/viewers
   const fallbacks = [
     preferred,
-    'video/webm;codecs=vp9',
     'video/webm;codecs=vp8',
+    'video/webm;codecs=vp9',
     'video/webm',
   ].filter(Boolean) as string[]
 
