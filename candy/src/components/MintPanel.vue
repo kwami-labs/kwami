@@ -80,6 +80,7 @@ import { useWalletStore } from '@/stores/wallet'
 import { useNFTStore } from '@/stores/nft'
 import KwamiGlassButton from '@/components/KwamiGlassButton.vue'
 import { purchaseRoll } from '@/utils/solanaHelpers'
+import { convertWebmToMp4 } from '@/utils/convertWebmToMp4'
 
 const props = defineProps<{
   blobPreviewRef?: any
@@ -175,21 +176,30 @@ const handleMint = async () => {
       mimeType: videoCapture?.mimeType,
       durationMs: videoCapture?.durationMs
     })
-    if (!videoCapture?.buffer) {
+    if (!videoCapture?.buffer || !videoCapture?.blob) {
       throw new Error('Failed to capture video. Please try again.')
     }
+
+    // Convert WebM to MP4 for better Phantom wallet compatibility
+    nftStore.mintingStatus = 'capturing'
+    console.log('[MintPanel] Converting WebM to MP4...')
+    const mp4Video = await convertWebmToMp4(videoCapture.blob)
+    console.log('[MintPanel] MP4 conversion complete:', {
+      mp4Size: mp4Video.buffer.length,
+      originalSize: videoCapture.buffer.length
+    })
 
     // 4) Upload, then 5) finalize mint (wallet tx #2)
     await nftStore.mintKwami(
       config!,
       {
         name: safeName.value,
-        description: 'A unique KWAMI NFT with animated video asset',
+        description: 'A unique KWAMI NFT with animated MP4 video',
       },
       undefined,
       image,
       undefined,
-      videoCapture.buffer,
+      mp4Video.buffer,
       {
         rollId,
       }
