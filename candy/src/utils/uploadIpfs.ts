@@ -168,7 +168,57 @@ export async function uploadGifToIpfs(
 }
 
 /**
+ * Upload GLB 3D model to IPFS via Pinata REST API
+ */
+export async function uploadModelToIpfs(
+  modelBuffer: Buffer,
+  wallet?: any,
+  contentType: string = 'model/gltf-binary'
+): Promise<UploadResult> {
+  try {
+    console.log('[IPFS] Uploading 3D model (GLB)...', { size: modelBuffer.length, contentType })
+
+    const formData = new FormData()
+    const bytes = new Uint8Array(modelBuffer)
+    const ab = bytes.buffer.slice(bytes.byteOffset, bytes.byteOffset + bytes.byteLength)
+    const blob = new Blob([ab], { type: contentType })
+    const file = new File([blob], 'kwami-model.glb', { type: contentType })
+    formData.append('file', file)
+
+    console.log('[IPFS] Uploading GLB to IPFS...')
+    const response = await fetch('https://api.pinata.cloud/pinning/pinFileToIPFS', {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${PINATA_JWT}`
+      },
+      body: formData
+    })
+
+    if (!response.ok) {
+      const errorData = await response.text()
+      throw new Error(`Pinata API error: ${response.status} - ${errorData}`)
+    }
+
+    const upload = await response.json()
+
+    const result = {
+      uri: `https://${PINATA_GATEWAY}/ipfs/${upload.IpfsHash}`,
+      txId: upload.IpfsHash,
+    }
+
+    console.log('[IPFS] ✅ 3D model uploaded successfully!')
+    console.log('[IPFS] URL:', result.uri)
+    return result
+
+  } catch (error: any) {
+    console.error('[IPFS] ❌ Upload failed:', error)
+    throw new Error(`Failed to upload 3D model to IPFS: ${error.message}`)
+  }
+}
+
+/**
  * Upload video (WebM) to IPFS via Pinata REST API
+ * @deprecated Use uploadModelToIpfs for 3D models instead
  */
 export async function uploadVideoToIpfs(
   videoBuffer: Buffer,

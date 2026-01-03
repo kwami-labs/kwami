@@ -329,6 +329,7 @@ function createAnimationClip(
   frames: SampleFrame[],
   durationMs: number,
   morphTargetCount: number,
+  morphTargetNames: string[],
 ): AnimationClip | null {
   if (frames.length === 0) return null
 
@@ -345,28 +346,32 @@ function createAnimationClip(
   tracks.push(new NumberKeyframeTrack(`${meshName}.scale[y]`, times, frames.map((f) => f.scale.y)))
   tracks.push(new NumberKeyframeTrack(`${meshName}.scale[z]`, times, frames.map((f) => f.scale.z)))
 
-  // Morph target tracks (one per sampled target)
+  // Morph target tracks - improved to distribute influence evenly across animation
   const morphCount = morphTargetCount
-  for (let i = 0; i < morphCount; i++) {
-    // Hold target i during its frame window, fade to the next
-    const values = frames.map((_, idx) => {
-      // Map source frame index to sampled target index
-      const sourceIndex = idx
-      const startFrame = (i + 1) * Math.floor((frames.length - 1) / morphCount)
-      const endFrame = startFrame + Math.floor((frames.length - 1) / morphCount)
-      if (sourceIndex < startFrame) return 0
-      if (sourceIndex === startFrame) return 1
-      if (sourceIndex <= endFrame) {
-        const t = (sourceIndex - startFrame) / Math.max(1, endFrame - startFrame)
-        return 1 - t
-      }
-      return 0
-    })
+  if (morphCount > 0) {
+    const step = (frames.length - 1) / morphCount
+    
+    for (let i = 0; i < morphCount; i++) {
+      const values = frames.map((_, frameIdx) => {
+        // Calculate which morph targets should be active for this frame
+        const targetFrameIndex = (i + 1) * step
+        const distance = Math.abs(frameIdx - targetFrameIndex)
+        
+        // Use smooth interpolation between adjacent targets
+        if (distance <= step) {
+          return Math.cos((distance / step) * Math.PI * 0.5) ** 2
+        }
+        return 0
+      })
 
-    const track = new NumberKeyframeTrack(`${meshName}.morphTargetInfluences[${i}]`, times, values)
-    track.setInterpolation(InterpolateLinear)
-    tracks.push(track)
+      // Use morph target name from the dictionary, not index
+      const morphName = morphTargetNames[i] || `frame_${i + 1}`
+      const track = new NumberKeyframeTrack(`${meshName}.morphTargetInfluences[${morphName}]`, times, values)
+      track.setInterpolation(InterpolateLinear)
+      tracks.push(track)
+    }
   }
+  
   const clipDuration = durationMs / 1000
   return new AnimationClip('BlobReplica', clipDuration, tracks)
 }
@@ -429,13 +434,19 @@ export async function exportExactBlobReplica(params: {
 
   const exportMesh = new Mesh(exportGeometry, exportMaterial)
   exportMesh.updateMorphTargets()
+  
+  // Build morph target dictionary and collect names
+  const morphTargetNames: string[] = []
   if (morphTargetCount > 0) {
     exportMesh.morphTargetInfluences = new Array(morphTargetCount).fill(0)
     exportMesh.morphTargetDictionary = {}
     for (let i = 0; i < morphTargetCount; i++) {
-      exportMesh.morphTargetDictionary[`frame_${i + 1}`] = i
+      const name = `frame_${i + 1}`
+      exportMesh.morphTargetDictionary[name] = i
+      morphTargetNames.push(name)
     }
   }
+  
   exportMesh.name = meshName
   exportMesh.position.copy(blobMesh.position)
   exportMesh.rotation.set(frames[0].rotation.x, frames[0].rotation.y, frames[0].rotation.z)
@@ -444,17 +455,29 @@ export async function exportExactBlobReplica(params: {
   const exportScene = new Scene()
   exportScene.add(exportMesh)
   // Preserve wireframe by adding an explicit edges layer (glTF has no wireframe flag)
-  const wantsWireframe = Boolean(sourceMaterial?.wireframe)
+  const wantsWireframe = Boolean((sourceMaterial as any)?.wireframe)
   if (wantsWireframe) {
     const c1 = getShaderUniformColor(sourceMaterial, '_color1', new Color('#ffffff'))
-    exportScene.add(createWireframeOverlay(exportGeometry, c1))
+    const wireframe = createWireframeOverlay(exportGeometry, c1)
+    // Attach wireframe to mesh so it inherits animations
+    exportMesh.add(wireframe)
   }
 
   if (includeLights) {
     const lights = cloneRelevantLights(scene, exportMesh.position.clone())
     lights.forEach((light) => exportScene.add(light))
   }
-  const clip = createAnimationClip(meshName, frames, durationMs, morphTargetCount)
+  const clip = createAnimationClip(meshName, frames, durationMs, morphTargetCount, morphTargetNames)
+  
+  // Add metadata to help viewers understand this is an animated blob
+  exportScene.userData = {
+    generator: 'Kwami Blob Exporter',
+    version: '1.0.0',
+    animated: true,
+    animationDuration: durationMs / 1000,
+    frameCount: frames.length,
+    morphTargetCount,
+  }
 
   const gltfExporter = new GLTFExporter()
 

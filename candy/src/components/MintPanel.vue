@@ -167,16 +167,35 @@ const handleMint = async () => {
       throw new Error('Failed to capture image. Please try again.')
     }
 
-    // Capture short 3-second video at 20fps for small file size
-    const videoCapture = await props.blobPreviewRef.captureVideo?.({ durationMs: 3_000, fps: 20, download: false })
-    console.log('[MintPanel] Video capture result:', {
-      hasBuffer: !!videoCapture?.buffer,
-      bufferSize: videoCapture?.buffer?.length,
-      mimeType: videoCapture?.mimeType,
-      durationMs: videoCapture?.durationMs
+    // Capture 3D model (GLB) with baked animation at 30fps for 3 seconds
+    const sceneAndMesh = props.blobPreviewRef.getSceneAndMesh?.()
+    if (!sceneAndMesh?.scene || !sceneAndMesh?.mesh || !sceneAndMesh?.canvas) {
+      throw new Error('Scene not ready for 3D export. Please try again.')
+    }
+
+    const { exportExactBlobReplica } = await import('@/utils/exactBlobExporter')
+    const modelResult = await exportExactBlobReplica({
+      canvas: sceneAndMesh.canvas,
+      scene: sceneAndMesh.scene,
+      blobMesh: sceneAndMesh.mesh,
+      options: {
+        durationMs: 3000,
+        sampleRate: 30,
+        includeLights: true,
+        bakeNormals: true,
+      }
     })
-    if (!videoCapture?.buffer) {
-      throw new Error('Failed to capture video. Please try again.')
+    
+    console.log('[MintPanel] 3D model export result:', {
+      hasGlb: !!modelResult?.glb,
+      glbSize: modelResult?.glb?.length,
+      frameCount: modelResult?.frameCount,
+      durationMs: modelResult?.durationMs,
+      sampleRate: modelResult?.sampleRate
+    })
+    
+    if (!modelResult?.glb) {
+      throw new Error('Failed to export 3D model. Please try again.')
     }
 
     // 4) Upload, then 5) finalize mint (wallet tx #2)
@@ -184,12 +203,12 @@ const handleMint = async () => {
       config!,
       {
         name: safeName.value,
-        description: 'A unique KWAMI NFT with animated video',
+        description: 'A unique KWAMI NFT with animated 3D model',
       },
       undefined,
       image,
       undefined,
-      videoCapture.buffer,
+      modelResult.glb,
       {
         rollId,
       }
@@ -225,8 +244,8 @@ const getMintingStatusText = () => {
       return 'Uploading image to IPFS...'
     case 'uploading-gif':
       return 'Uploading GIF to IPFS...'
-    case 'uploading-video':
-      return 'Uploading video to IPFS...'
+    case 'uploading-model':
+      return 'Uploading 3D model to IPFS...'
     case 'uploading-metadata':
       return 'Uploading metadata to IPFS...'
     case 'minting':

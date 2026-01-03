@@ -44,7 +44,7 @@ async function captureStaticImage(canvas: HTMLCanvasElement): Promise<Buffer> {
  * Capture animated GIF from canvas
  * Records multiple frames and encodes them into a GIF
  */
-async function captureAnimatedGif(
+export async function captureAnimatedGif(
   canvas: HTMLCanvasElement,
   duration: number = 3000,  // 3 seconds
   fps: number = 20  // Lower FPS for smaller file size

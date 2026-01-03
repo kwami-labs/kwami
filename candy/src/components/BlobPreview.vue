@@ -260,7 +260,10 @@ const captureAllFormats = async () => {
   }
 
   try {
-    const { captureAllFormats } = await import('@/utils/advancedCanvasCapture')
+    // Import both capture utilities
+    const { captureStaticOnly, captureAnimatedGif } = await import('@/utils/advancedCanvasCapture')
+    const { exportExactBlobReplica } = await import('@/utils/exactBlobExporter')
+    
     // NOTE: `KwamiBody` keeps its Scene internals private in newer `kwami` versions.
     // For capture tooling we need access to Three scene + renderer, so we intentionally
     // go through `any` to avoid depending on private TS fields.
@@ -269,10 +272,48 @@ const captureAllFormats = async () => {
     const blobMesh = bodyAny.blob?.getMesh?.() as any
     const renderer = (bodyAny.scene?.renderer ?? bodyAny.renderer) as any
     
-    return await captureAllFormats(canvas.value, scene, blobMesh, renderer, {
-      gifDuration: 3000,
-      gifFps: 20
+    console.log('[BlobPreview] Starting comprehensive capture...')
+    
+    // Capture static image
+    console.log('[BlobPreview] 1/3 - Capturing static image...')
+    const image = await captureStaticOnly(canvas.value)
+    
+    // Capture animated GIF (using the old utility for now)
+    console.log('[BlobPreview] 2/3 - Capturing animated GIF...')
+    const gif = await captureAnimatedGif(canvas.value, 3000, 20)
+    
+    // Export exact 3D model with morph target animation
+    console.log('[BlobPreview] 3/3 - Exporting exact blob replica as GLB...')
+    const modelResult = await exportExactBlobReplica({
+      canvas: canvas.value,
+      scene,
+      blobMesh,
+      renderer,
+      options: {
+        durationMs: 3000,
+        sampleRate: 30,
+        includeLights: true,
+        bakeNormals: true,
+      }
     })
+    
+    console.log('[BlobPreview] ✅ All formats captured successfully!')
+    console.log('[BlobPreview] GLB animation:', {
+      frames: modelResult.frameCount,
+      duration: `${modelResult.durationMs}ms`,
+      sampleRate: `${modelResult.sampleRate}fps`
+    })
+    
+    return { 
+      image, 
+      gif, 
+      model: modelResult.glb,
+      metadata: {
+        frameCount: modelResult.frameCount,
+        durationMs: modelResult.durationMs,
+        sampleRate: modelResult.sampleRate
+      }
+    }
   } catch (error) {
     console.error('[BlobPreview] Error capturing all formats:', error)
     return null

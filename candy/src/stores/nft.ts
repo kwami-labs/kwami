@@ -1,7 +1,7 @@
 import { defineStore } from 'pinia'
 import { ref } from 'vue'
 import type { PublicKey } from '@solana/web3.js'
-import { uploadImageToIpfs, uploadMetadataToIpfs, uploadGifToIpfs, uploadVideoToIpfs } from '@/utils/uploadIpfs'
+import { uploadImageToIpfs, uploadMetadataToIpfs, uploadGifToIpfs, uploadModelToIpfs } from '@/utils/uploadIpfs'
 import { checkDnaExists as checkDnaOnChain, mintKwamiWithReceipt, fetchOwnedKwamis, getTotalMintedCount, burnKwamiNft } from '@/utils/solanaHelpers'
 import { prepareKwamiMetadata, type SoulConfig } from '@/utils/prepareKwamiMetadata'
 import { calculateKwamiDNA } from '@/utils/calculateKwamiDNA'
@@ -37,7 +37,7 @@ export const useNFTStore = defineStore('nft', () => {
     | 'checking'
     | 'uploading-image'
     | 'uploading-gif'
-    | 'uploading-video'
+    | 'uploading-model'
     | 'uploading-metadata'
     | 'minting'
     | 'confirming-mint'
@@ -128,14 +128,14 @@ export const useNFTStore = defineStore('nft', () => {
     }
   }
   
-  // Mint a new KWAMI NFT with image + video asset
+  // Mint a new KWAMI NFT with image + 3D model asset
   const mintKwami = async (
     config: any,
     metadata: { name: string; description: string },
     soulConfig?: any,
     imageBuffer: Buffer | null = null,
     gifBuffer?: Buffer | null,
-    videoBuffer?: Buffer | null,
+    modelBuffer?: Buffer | null,
     opts?: {
       rollId?: string
       onSigned?: () => void | Promise<void>
@@ -187,20 +187,20 @@ export const useNFTStore = defineStore('nft', () => {
         console.log('[NFT Store] GIF uploaded:', gifResult.uri)
       }
       
-      // Upload video if provided (WebM file but we'll claim it's MP4 in metadata for Phantom compatibility)
-      let videoResult
-      if (videoBuffer) {
-        mintingStatus.value = 'uploading-video'
-        console.log('[NFT Store] Uploading video...')
-        // Upload as WebM (actual format)
-        videoResult = await uploadVideoToIpfs(videoBuffer, walletStore.wallet, 'video/webm')
-        console.log('[NFT Store] Video uploaded:', videoResult.uri)
+      // Upload 3D model (GLB) if provided
+      let modelResult
+      if (modelBuffer) {
+        mintingStatus.value = 'uploading-model'
+        console.log('[NFT Store] Uploading 3D model (GLB)...')
+        // Upload as GLB (model/gltf-binary)
+        modelResult = await uploadModelToIpfs(modelBuffer, walletStore.wallet, 'model/gltf-binary')
+        console.log('[NFT Store] 3D model uploaded:', modelResult.uri)
       }
 
-      // Prepare metadata (PNG as image + video as animation_url)
+      // Prepare metadata (PNG as image + GLB as animation_url)
       console.log('[NFT Store] Preparing metadata with:', {
-        hasVideo: !!videoResult,
-        videoUri: videoResult?.uri,
+        hasModel: !!modelResult,
+        modelUri: modelResult?.uri,
         imageUri: imageResult.uri
       })
       const metadataJson = prepareKwamiMetadata({
@@ -210,9 +210,9 @@ export const useNFTStore = defineStore('nft', () => {
         bodyConfig: config,
         soulConfig,
         imageUri: imageResult.uri,
-        animationUri: videoResult?.uri,
-        // Claim MP4 in metadata even though file is WebM (Phantom wallet hack)
-        animationMimeType: videoResult ? 'video/mp4' : undefined,
+        animationUri: modelResult?.uri,
+        // GLB files use model/gltf-binary MIME type
+        animationMimeType: modelResult ? 'model/gltf-binary' : undefined,
         creatorAddress: walletStore.publicKey!.toBase58(),
       })
       console.log('[NFT Store] Metadata prepared:', {
