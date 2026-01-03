@@ -187,12 +187,12 @@ export const useNFTStore = defineStore('nft', () => {
         console.log('[NFT Store] GIF uploaded:', gifResult.uri)
       }
       
-      // Upload video if provided (now MP4)
+      // Upload video if provided
       let videoResult
       if (videoBuffer) {
         mintingStatus.value = 'uploading-video'
         console.log('[NFT Store] Uploading video...')
-        videoResult = await uploadVideoToIpfs(videoBuffer, walletStore.wallet, 'video/mp4')
+        videoResult = await uploadVideoToIpfs(videoBuffer, walletStore.wallet, 'video/webm')
         console.log('[NFT Store] Video uploaded:', videoResult.uri)
       }
 
@@ -210,7 +210,7 @@ export const useNFTStore = defineStore('nft', () => {
         soulConfig,
         imageUri: imageResult.uri,
         animationUri: videoResult?.uri,
-        animationMimeType: videoResult ? 'video/mp4' : undefined,
+        animationMimeType: videoResult ? 'video/webm' : undefined,
         creatorAddress: walletStore.publicKey!.toBase58(),
       })
       console.log('[NFT Store] Metadata prepared:', {

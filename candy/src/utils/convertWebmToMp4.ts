@@ -40,13 +40,14 @@ export async function convertWebmToMp4(
   // Write input file
   await ffmpeg.writeFile('input.webm', await fetchFile(webmBlob))
 
-  // Convert to MP4 with good compatibility settings
+  // Convert to MP4 with fast settings for browser
   await ffmpeg.exec([
     '-i', 'input.webm',
-    '-c:v', 'libx264',      // H.264 codec (widely supported)
-    '-preset', 'fast',       // Faster encoding
-    '-crf', '23',            // Quality (lower = better, 23 is default)
-    '-movflags', '+faststart', // Enable streaming
+    '-c:v', 'libx264',           // H.264 codec (widely supported)
+    '-preset', 'ultrafast',      // Fastest encoding (trades file size for speed)
+    '-crf', '28',                // Lower quality but faster (28 is still acceptable)
+    '-movflags', '+faststart',   // Enable streaming
+    '-vf', 'scale=-2:480',       // Reduce to 480p for smaller file
     'output.mp4'
   ])
 

@@ -80,7 +80,6 @@ import { useWalletStore } from '@/stores/wallet'
 import { useNFTStore } from '@/stores/nft'
 import KwamiGlassButton from '@/components/KwamiGlassButton.vue'
 import { purchaseRoll } from '@/utils/solanaHelpers'
-import { convertWebmToMp4 } from '@/utils/convertWebmToMp4'
 
 const props = defineProps<{
   blobPreviewRef?: any
@@ -168,38 +167,29 @@ const handleMint = async () => {
       throw new Error('Failed to capture image. Please try again.')
     }
 
-    // Capture shorter 5-second video for better wallet compatibility and smaller file size
-    const videoCapture = await props.blobPreviewRef.captureVideo?.({ durationMs: 5_000, fps: 24, download: false })
+    // Capture short 3-second video at 20fps for small file size
+    const videoCapture = await props.blobPreviewRef.captureVideo?.({ durationMs: 3_000, fps: 20, download: false })
     console.log('[MintPanel] Video capture result:', {
       hasBuffer: !!videoCapture?.buffer,
       bufferSize: videoCapture?.buffer?.length,
       mimeType: videoCapture?.mimeType,
       durationMs: videoCapture?.durationMs
     })
-    if (!videoCapture?.buffer || !videoCapture?.blob) {
+    if (!videoCapture?.buffer) {
       throw new Error('Failed to capture video. Please try again.')
     }
-
-    // Convert WebM to MP4 for better Phantom wallet compatibility
-    nftStore.mintingStatus = 'capturing'
-    console.log('[MintPanel] Converting WebM to MP4...')
-    const mp4Video = await convertWebmToMp4(videoCapture.blob)
-    console.log('[MintPanel] MP4 conversion complete:', {
-      mp4Size: mp4Video.buffer.length,
-      originalSize: videoCapture.buffer.length
-    })
 
     // 4) Upload, then 5) finalize mint (wallet tx #2)
     await nftStore.mintKwami(
       config!,
       {
         name: safeName.value,
-        description: 'A unique KWAMI NFT with animated MP4 video',
+        description: 'A unique KWAMI NFT with animated video',
       },
       undefined,
       image,
       undefined,
-      mp4Video.buffer,
+      videoCapture.buffer,
       {
         rollId,
       }
