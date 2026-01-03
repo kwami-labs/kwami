@@ -3,8 +3,10 @@ import { createWalletConnectWidget, type WalletConnectWidgetHandle } from 'kwami
 import { getWalletConnector, type WalletConnector } from 'kwami/apps/wallet'
 import { createBackgroundRings } from 'kwami/ui/rings'
 import { createKwamiLogoSvg } from 'kwami/ui/logo'
+import { createGlassPopover } from 'kwami/ui'
 import type { PublicKey } from '@solana/web3.js'
 import { fetchOwnedKwamiNfts, type KwamiOwnedNft } from './lib/kwamiNfts'
+import { BlobView } from './lib/BlobView'
 
 function readEnv(key: string): string | undefined {
   const v = (import.meta as any).env?.[key]
@@ -30,12 +32,13 @@ function mustGet<T extends Element>(selector: string): T {
 root.innerHTML = `
   <div class="app-root">
     <header class="topbar">
-      <div class="topbar-left">
-        <button class="icon-btn" id="sheetToggleBtn" type="button" aria-label="Open login panel">
+      <div class="topbar-left" id="topbarLeft">
+        <button class="icon-btn" id="sheetToggleBtn" type="button" aria-label="Open login panel" style="display: none;">
           Login
         </button>
+        <div id="walletMount"></div>
       </div>
-      <div class="topbar-right" id="walletMount"></div>
+      <div class="topbar-right"></div>
     </header>
 
     <main class="hero">
@@ -52,6 +55,8 @@ root.innerHTML = `
         </div>
       </div>
     </main>
+
+    <div id="blob-container"></div>
 
     <section class="sheet" id="sheet" data-open="0" aria-label="Wallet login and NFT selection">
       <div class="sheet-inner">
@@ -89,9 +94,12 @@ const sheetToggleBtn = mustGet<HTMLButtonElement>('#sheetToggleBtn')
 const sheetCloseBtn = mustGet<HTMLButtonElement>('#sheetCloseBtn')
 const openSelectBtn = mustGet<HTMLButtonElement>('#openSelectBtn')
 const logoMount = mustGet<HTMLDivElement>('#logoMount')
+const blobContainer = mustGet<HTMLDivElement>('#blob-container')
 
 let kwamiNfts: KwamiOwnedNft[] = []
 let selectedMint: string | null = null
+let blobView: BlobView | null = null
+let activeKwamiButton: HTMLElement | null = null
 
 const storageKey = 'kwami-app:selectedKwamiMint'
 
@@ -113,9 +121,23 @@ function setStatus(text: string, kind: 'muted' | 'error' | 'ok' = 'muted') {
 function renderSession() {
   networkValue.textContent = connector.getNetwork()
   const pk = getPublicKey()
-  addressValue.textContent = pk ? shortAddress(pk.toBase58()) : '—'
+  const address = pk ? shortAddress(pk.toBase58()) : '—'
+  addressValue.textContent = address
   collectionValue.textContent = collectionMint ?? '(not set)'
   selectedValue.textContent = selectedMint ? shortAddress(selectedMint, 7, 7) : '—'
+
+  // Toggle visibility between Wallet Widget and Login Button
+  const isConnected = !!pk
+  const widgetEl = walletMount.firstElementChild as HTMLElement
+  
+  if (isConnected) {
+    if (widgetEl) widgetEl.style.display = 'none'
+    sheetToggleBtn.style.display = 'block'
+    sheetToggleBtn.textContent = address
+  } else {
+    if (widgetEl) widgetEl.style.display = 'block'
+    sheetToggleBtn.style.display = 'none'
+  }
 }
 
 function setSelectedMint(mint: string | null) {
@@ -124,6 +146,124 @@ function setSelectedMint(mint: string | null) {
   else localStorage.removeItem(storageKey)
   renderNfts()
   renderSession()
+}
+
+function handleNftSelection(mint: string, cardElement: HTMLElement) {
+  // 1. Clone the card for animation
+  const rect = cardElement.getBoundingClientRect()
+  const clone = cardElement.cloneNode(true) as HTMLElement
+  activeKwamiButton = clone
+  
+  // Set initial position
+  clone.style.position = 'fixed'
+  clone.style.left = `${rect.left}px`
+  clone.style.top = `${rect.top}px`
+  clone.style.width = `${rect.width}px`
+  clone.style.height = `${rect.height}px`
+  clone.style.margin = '0'
+  clone.style.zIndex = '1000'
+  
+  document.body.appendChild(clone)
+  
+  // Force layout
+  void clone.getBoundingClientRect()
+  
+  // 2. Trigger animations
+  clone.classList.add('nft--flying')
+  sheet.classList.add('sheet--hidden')
+  document.querySelector('.hero-center')?.classList.add('hero-center--hidden')
+  
+  // Hide the Login button (it will be replaced by the Kwami button)
+  sheetToggleBtn.style.opacity = '0'
+  sheetToggleBtn.style.pointerEvents = 'none'
+
+  // 3. Update state
+  selectedMint = mint
+  localStorage.setItem(storageKey, mint)
+  
+  // 4. Initialize and show Blob
+  const nft = kwamiNfts.find(n => n.mint === mint)
+  
+  if (!blobView) blobView = new BlobView(blobContainer)
+  blobView.initBlob(nft?.body ?? null)
+  blobView.start()
+  
+  blobContainer.classList.add('blob--visible')
+
+  // 5. Setup Interactive Popover on the Clone
+  setTimeout(() => {
+    clone.style.pointerEvents = 'auto'
+    clone.style.cursor = 'pointer'
+    
+    const popover = createGlassPopover({
+      width: 280,
+      header: 'Kwami Account',
+      content: () => {
+        const container = document.createElement('div')
+        container.style.display = 'flex'
+        container.style.flexDirection = 'column'
+        container.style.gap = '12px'
+
+        const info = document.createElement('div')
+        info.innerHTML = `
+          <div style="font-size: 14px; font-weight: 700; color: #fff; margin-bottom: 4px;">${nft?.name || 'Unnamed'}</div>
+          <div class="mono" style="font-size: 12px; opacity: 0.7;">${shortAddress(mint, 8, 8)}</div>
+        `
+        container.appendChild(info)
+
+        const logoutBtn = document.createElement('button')
+        logoutBtn.className = 'btn'
+        logoutBtn.style.width = '100%'
+        logoutBtn.style.background = 'rgba(239, 68, 68, 0.2)'
+        logoutBtn.style.borderColor = 'rgba(239, 68, 68, 0.3)'
+        logoutBtn.textContent = 'Logout'
+        logoutBtn.onclick = () => {
+           popover.hide()
+           logout()
+        }
+        container.appendChild(logoutBtn)
+        
+        return container
+      }
+    })
+
+    clone.addEventListener('click', (e) => {
+      const rect = clone.getBoundingClientRect()
+      // Position popover below the button
+      popover.show(rect.left + rect.width / 2, rect.bottom + 10)
+      e.stopPropagation()
+    })
+  }, 1000)
+}
+
+function logout() {
+  selectedMint = null
+  localStorage.removeItem(storageKey)
+  
+  // Clean up Blob
+  if (blobView) {
+    blobView.stop()
+  }
+  blobContainer.classList.remove('blob--visible')
+
+  // Clean up UI
+  if (activeKwamiButton) {
+    activeKwamiButton.remove()
+    activeKwamiButton = null
+  }
+  
+  sheet.classList.remove('sheet--hidden')
+  document.querySelector('.hero-center')?.classList.remove('hero-center--hidden')
+  
+  // Restore Login button
+  sheetToggleBtn.style.opacity = '1'
+  sheetToggleBtn.style.pointerEvents = 'auto'
+  
+  renderSession()
+  renderNfts()
+  
+  // Reset sheet state
+  setSheetOpen(false)
 }
 
 function renderNfts() {
@@ -172,7 +312,10 @@ function renderNfts() {
     btn.type = 'button'
     btn.textContent = selectedMint === nft.mint ? 'Selected' : 'Select'
     btn.disabled = selectedMint === nft.mint
-    btn.addEventListener('click', () => setSelectedMint(nft.mint))
+    btn.addEventListener('click', (e) => {
+      const card = (e.target as HTMLElement).closest('.nft') as HTMLElement
+      handleNftSelection(nft.mint, card)
+    })
 
     meta.appendChild(name)
     meta.appendChild(mint)
