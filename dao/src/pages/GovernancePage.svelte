@@ -58,7 +58,7 @@
             </div>
           </div>
 
-          <div class="p-4 rounded-xl border border-gray-200/60 bg-white/10 dark:border-gray-800/60 dark:bg-black/10">
+          <div class="kwami-subpanel p-4">
             <div class="text-xs uppercase tracking-wider text-gray-500 dark:text-gray-400 mb-1">Your access</div>
             <div class="text-sm text-gray-700 dark:text-gray-200">
               {#if $auth.status === 'member'}
@@ -104,7 +104,7 @@
       <KwamiGlassCard title="Proposals" headerRight="Public" className="w-full h-full" scrollContent={true} cursorGlow={false}>
         <div class="space-y-3">
           {#each proposals as p}
-            <article class="p-4 rounded-2xl border border-gray-200/60 bg-white/10 dark:border-gray-800/60 dark:bg-black/10">
+            <article class="kwami-subpanel p-4">
               <div class="flex items-start justify-between gap-3">
                 <div class="min-w-0">
                   <div class="text-sm font-semibold text-gray-900 dark:text-white">

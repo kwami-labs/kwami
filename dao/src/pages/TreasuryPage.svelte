@@ -34,7 +34,7 @@
           </div>
 
           <div class="grid grid-cols-2 gap-3">
-            <div class="p-4 rounded-xl border border-gray-200/60 bg-white/10 dark:border-gray-800/60 dark:bg-black/10">
+            <div class="kwami-subpanel p-4">
               <div class="text-xs text-gray-500 dark:text-gray-400 mb-1">Treasury (SOL)</div>
               <div class="text-xl font-black text-gray-900 dark:text-white">
                 {#if $treasuryMetrics.status === 'ready' && $treasuryMetrics.treasurySol != null}
@@ -44,7 +44,7 @@
                 {/if}
               </div>
             </div>
-            <div class="p-4 rounded-xl border border-gray-200/60 bg-white/10 dark:border-gray-800/60 dark:bg-black/10">
+            <div class="kwami-subpanel p-4">
               <div class="text-xs text-gray-500 dark:text-gray-400 mb-1">KWAMI minted</div>
               <div class="text-xl font-black text-gray-900 dark:text-white">
                 {#if $treasuryMetrics.status === 'ready' && $treasuryMetrics.totalKwamiMinted != null}
@@ -57,7 +57,7 @@
           </div>
 
           <div class="grid grid-cols-2 gap-3">
-            <div class="p-4 rounded-xl border border-gray-200/60 bg-white/10 dark:border-gray-800/60 dark:bg-black/10">
+            <div class="kwami-subpanel p-4">
               <div class="text-xs text-gray-500 dark:text-gray-400 mb-1">QWAMI minted</div>
               <div class="text-xl font-black text-gray-900 dark:text-white">
                 {#if $treasuryMetrics.status === 'ready' && $treasuryMetrics.totalQwamiMinted != null}
@@ -67,7 +67,7 @@
                 {/if}
               </div>
             </div>
-            <div class="p-4 rounded-xl border border-gray-200/60 bg-white/10 dark:border-gray-800/60 dark:bg-black/10">
+            <div class="kwami-subpanel p-4">
               <div class="text-xs text-gray-500 dark:text-gray-400 mb-1">QWAMI burned</div>
               <div class="text-xl font-black text-gray-900 dark:text-white">
                 {#if $treasuryMetrics.status === 'ready' && $treasuryMetrics.totalQwamiBurned != null}
@@ -80,7 +80,7 @@
           </div>
 
           {#if $treasuryMetrics.status === 'error' && $treasuryMetrics.errorMessage}
-            <div class="p-4 rounded-xl border border-rose-200/60 bg-rose-50/30 dark:border-rose-900/50 dark:bg-rose-950/20 text-sm text-rose-700 dark:text-rose-200">
+            <div class="p-4 rounded-2xl border border-rose-200/60 bg-rose-50/30 dark:border-rose-900/50 dark:bg-rose-950/20 text-sm text-rose-700 dark:text-rose-200">
               {$treasuryMetrics.errorMessage}
               {#if $treasuryMetrics.daoState}
                 <div class="mt-2 text-xs font-mono opacity-80">daoState: {$treasuryMetrics.daoState}</div>
@@ -88,7 +88,7 @@
             </div>
           {/if}
 
-          <div class="p-4 rounded-xl border border-gray-200/60 bg-white/10 dark:border-gray-800/60 dark:bg-black/10">
+          <div class="kwami-subpanel p-4">
             <div class="text-xs uppercase tracking-wider text-gray-500 dark:text-gray-400 mb-2">Actions</div>
             <div class="flex flex-wrap gap-2">
               <KwamiGlassButton
@@ -128,7 +128,7 @@
     <section>
       <KwamiGlassCard title="Activity" headerRight="Public" className="w-full h-full" scrollContent={true} cursorGlow={false}>
         <div class="space-y-3">
-          <article class="p-4 rounded-2xl border border-gray-200/60 bg-white/10 dark:border-gray-800/60 dark:bg-black/10">
+          <article class="kwami-subpanel p-4">
             <div class="flex items-center justify-between gap-3">
               <div class="text-sm font-semibold text-gray-900 dark:text-white">Treasury wallet</div>
               <span class="text-xs font-mono text-gray-500 dark:text-gray-400">Public</span>
@@ -142,7 +142,7 @@
             </div>
           </article>
 
-          <article class="p-4 rounded-2xl border border-gray-200/60 bg-white/10 dark:border-gray-800/60 dark:bg-black/10">
+          <article class="kwami-subpanel p-4">
             <div class="flex items-center justify-between gap-3">
               <div class="text-sm font-semibold text-gray-900 dark:text-white">DAO state</div>
               <span class="text-xs font-mono text-gray-500 dark:text-gray-400">PDA</span>
@@ -156,7 +156,7 @@
             </div>
           </article>
 
-          <article class="p-4 rounded-2xl border border-gray-200/60 bg-white/10 dark:border-gray-800/60 dark:bg-black/10">
+          <article class="kwami-subpanel p-4">
             <div class="flex items-center justify-between gap-3">
               <div class="text-sm font-semibold text-gray-900 dark:text-white">Last update</div>
               <span class="text-xs font-mono text-gray-500 dark:text-gray-400">Auto</span>

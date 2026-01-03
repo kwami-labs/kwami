@@ -24,7 +24,7 @@
           <span class="text-transparent bg-clip-text bg-gradient-to-r from-fuchsia-500 via-cyan-400 to-emerald-400">
             Fully open DAO
           </span>
-          <span class="text-white/80">, gated participation.</span>
+          <span class="text-gray-700/80 dark:text-white/80">, gated participation.</span>
         </div>
         <div class="text-sm text-gray-600 dark:text-gray-300">
           Browse everything. Connect a wallet with a KWAMI NFT to create proposals, vote, and execute treasury actions.
@@ -32,30 +32,30 @@
       </div>
 
       <div class="grid sm:grid-cols-3 gap-3">
-        <div class="p-4 rounded-xl bg-white/8 dark:bg-white/5 border border-white/15 dark:border-white/10">
+        <div class="kwami-subpanel p-4">
           <div class="text-[11px] uppercase tracking-[0.2em] text-gray-500 dark:text-gray-400">Network</div>
-          <div class="mt-2 text-lg font-black text-white">{$auth.network}</div>
+          <div class="mt-2 text-lg font-black text-gray-900 dark:text-white">{$auth.network}</div>
         </div>
-        <div class="p-4 rounded-xl bg-white/8 dark:bg-white/5 border border-white/15 dark:border-white/10">
+        <div class="kwami-subpanel p-4">
           <div class="text-[11px] uppercase tracking-[0.2em] text-gray-500 dark:text-gray-400">Mode</div>
-          <div class="mt-2 text-lg font-black text-white">
+          <div class="mt-2 text-lg font-black text-gray-900 dark:text-white">
             {$auth.status === 'member' ? 'Member' : $auth.status === 'connected' ? 'Connected' : 'Read-only'}
           </div>
         </div>
-        <div class="p-4 rounded-xl bg-white/8 dark:bg-white/5 border border-white/15 dark:border-white/10">
+        <div class="kwami-subpanel p-4">
           <div class="text-[11px] uppercase tracking-[0.2em] text-gray-500 dark:text-gray-400">KWAMI NFTs</div>
-          <div class="mt-2 text-lg font-black text-white">{$auth.kwamiNfts.length}</div>
+          <div class="mt-2 text-lg font-black text-gray-900 dark:text-white">{$auth.kwamiNfts.length}</div>
         </div>
       </div>
 
       <div class="grid sm:grid-cols-2 gap-3">
-        <div class="p-4 rounded-xl border border-white/15 dark:border-white/10 bg-white/10 dark:bg-white/5">
+        <div class="kwami-subpanel p-4">
           <div class="text-[11px] uppercase tracking-[0.2em] text-gray-500 dark:text-gray-400 mb-1">Public</div>
-          <div class="text-sm text-gray-200">DAO overview, proposals list + outcomes, treasury dashboards and history.</div>
+          <div class="text-sm text-gray-700 dark:text-gray-200">DAO overview, proposals list + outcomes, treasury dashboards and history.</div>
         </div>
-        <div class="p-4 rounded-xl border border-white/15 dark:border-white/10 bg-white/10 dark:bg-white/5">
+        <div class="kwami-subpanel p-4">
           <div class="text-[11px] uppercase tracking-[0.2em] text-gray-500 dark:text-gray-400 mb-1">Gated</div>
-          <div class="text-sm text-gray-200">Creating proposals, voting, and treasury actions.</div>
+          <div class="text-sm text-gray-700 dark:text-gray-200">Creating proposals, voting, and treasury actions.</div>
         </div>
       </div>
 
@@ -73,20 +73,20 @@
       </div>
 
       {#if $auth.status !== 'member'}
-        <div class="p-4 rounded-xl border border-white/15 dark:border-white/10 bg-white/10 dark:bg-white/5 space-y-1">
+        <div class="kwami-subpanel p-4 space-y-1">
           {#if $auth.status === 'disconnected'}
-            <div class="text-sm font-semibold text-white">Read-only mode</div>
-            <div class="text-sm text-gray-300">Connect a wallet to verify KWAMI NFT ownership.</div>
+            <div class="text-sm font-semibold text-gray-900 dark:text-white">Read-only mode</div>
+            <div class="text-sm text-gray-600 dark:text-gray-300">Connect a wallet to verify KWAMI NFT ownership.</div>
           {:else if $auth.status === 'checking'}
-            <div class="text-sm font-semibold text-white">Verifying…</div>
-            <div class="text-sm text-gray-300">Checking your wallet for verified KWAMI NFTs.</div>
+            <div class="text-sm font-semibold text-gray-900 dark:text-white">Verifying…</div>
+            <div class="text-sm text-gray-600 dark:text-gray-300">Checking your wallet for verified KWAMI NFTs.</div>
           {:else if $auth.status === 'connected'}
-            <div class="text-sm font-semibold text-white">No KWAMI NFT found</div>
-            <div class="text-sm text-gray-300">You can browse, but need a KWAMI NFT to participate.</div>
+            <div class="text-sm font-semibold text-gray-900 dark:text-white">No KWAMI NFT found</div>
+            <div class="text-sm text-gray-600 dark:text-gray-300">You can browse, but need a KWAMI NFT to participate.</div>
           {:else}
-            <div class="text-sm font-semibold text-white">Verification error</div>
-            <div class="rounded-xl border border-white/15 bg-white/5 p-3">
-              <pre class="whitespace-pre-wrap break-words text-[11px] leading-relaxed text-gray-200 font-mono">{($auth.errorMessage || 'Something went wrong.').trim()}</pre>
+            <div class="text-sm font-semibold text-gray-900 dark:text-white">Verification error</div>
+            <div class="rounded-xl border border-gray-200/60 bg-white/10 p-3 dark:border-gray-800/60 dark:bg-black/10">
+              <pre class="whitespace-pre-wrap break-words text-[11px] leading-relaxed text-gray-700 dark:text-gray-200 font-mono">{($auth.errorMessage || 'Something went wrong.').trim()}</pre>
             </div>
           {/if}
         </div>
@@ -98,11 +98,11 @@
       </div>
 
       {#if envCollection}
-        <div class="text-xs text-gray-400">
+        <div class="text-xs text-gray-500 dark:text-gray-400">
           Collection: <span class="font-mono">{short(envCollection)}</span>
         </div>
       {:else}
-        <div class="text-xs text-gray-400">
+        <div class="text-xs text-gray-500 dark:text-gray-400">
           Tip: set <span class="font-mono">VITE_KWAMI_COLLECTION_ADDRESS</span> for strict collection gating.
         </div>
       {/if}

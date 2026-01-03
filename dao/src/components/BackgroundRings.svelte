@@ -19,7 +19,12 @@
       baseRadius: 2,
       expansionFactor: 0.006,
       maxRingOpacity: 0.26,
-      centerOffset: { x: -0.5, y: 0.5 },
+    // Position rings bottom-left
+    // createBackgroundRings uses:
+    //   cx = width + width * centerOffset.x
+    //   cy = height * centerOffset.y
+    // Bottom-left corner => cx = 0 (x = -1), cy = height (y = 1)
+    centerOffset: { x: -1, y: 1 },
     })
 
     return () => {

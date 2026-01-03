@@ -63,56 +63,47 @@
   })
 </script>
 
-<div 
-  class="relative h-screen w-screen overflow-hidden bg-gradient-to-br from-gray-50 via-gray-100 to-gray-200 text-gray-900 transition-colors duration-300 dark:bg-gradient-to-br dark:from-gray-950 dark:via-black dark:to-gray-900 dark:text-white"
-  style="width: 100vw !important; min-width: 100vw !important; max-width: 100vw !important; overflow-x: hidden !important;"
->
+<div class="kwami-shell">
   <BackgroundRings />
 
   <!-- Header (overlay) -->
   <header class="fixed top-0 inset-x-0 z-30">
-    <div class="px-6">
-      <div class="py-5">
-        <div class="grid grid-cols-[1fr_auto_1fr] items-center">
+    <div class="kwami-header-backdrop" aria-hidden="true"></div>
+
+    <div class="relative px-6">
+      <div class="mx-auto max-w-6xl py-5">
+        <div class="relative flex items-center justify-between gap-4">
           <div class="flex items-center space-x-3 min-w-0">
             <a href="/" class="inline-flex items-center" aria-label="KWAMI DAO">
               <KwamiLogo />
             </a>
           </div>
 
-          <!-- Tabs -->
-          <div class="justify-self-center">
-            <div class="kwami-glass-surface inline-flex gap-1 rounded-full border border-gray-200/60 bg-white/15 p-1 dark:border-gray-800/60 dark:bg-black/15">
+          <!-- Tabs (hard-centered, with animated pill) -->
+          <div class="absolute left-1/2 -translate-x-1/2">
+            <div
+              class="kwami-tabbar"
+              style={`--tab-count: ${tabs.length}; --tab-index: ${tabIndex()};`}
+              aria-label="Page tabs"
+            >
+              <div class="kwami-tab-indicator" aria-hidden="true"></div>
+
               <button
-                class={`px-4 py-2 text-xs font-semibold tracking-wider rounded-full transition ${
-                  activeTab === 'info'
-                    ? 'bg-white/30 text-gray-900 dark:bg-white/10 dark:text-white'
-                    : 'text-gray-600 hover:bg-white/10 dark:text-gray-300 dark:hover:bg-white/5'
-                }`}
+                class={`kwami-tab ${activeTab === 'info' ? 'is-active' : ''}`}
                 type="button"
                 on:click={() => (activeTab = 'info')}
               >
                 Info
               </button>
-
               <button
-                class={`px-4 py-2 text-xs font-semibold tracking-wider rounded-full transition ${
-                  activeTab === 'governance'
-                    ? 'bg-white/30 text-gray-900 dark:bg-white/10 dark:text-white'
-                    : 'text-gray-600 hover:bg-white/10 dark:text-gray-300 dark:hover:bg-white/5'
-                }`}
+                class={`kwami-tab ${activeTab === 'governance' ? 'is-active' : ''}`}
                 type="button"
                 on:click={() => (activeTab = 'governance')}
               >
                 Governance
               </button>
-
               <button
-                class={`px-4 py-2 text-xs font-semibold tracking-wider rounded-full transition ${
-                  activeTab === 'treasury'
-                    ? 'bg-white/30 text-gray-900 dark:bg-white/10 dark:text-white'
-                    : 'text-gray-600 hover:bg-white/10 dark:text-gray-300 dark:hover:bg-white/5'
-                }`}
+                class={`kwami-tab ${activeTab === 'treasury' ? 'is-active' : ''}`}
                 type="button"
                 on:click={() => (activeTab = 'treasury')}
               >
@@ -131,27 +122,36 @@
   </header>
 
   <!-- Fullscreen (no page scroll) -->
-  <main class="h-screen overflow-hidden pt-24 pb-14" style="width: 100vw !important; max-width: 100vw !important;">
-    <div class="h-full overflow-hidden" style="width: 100vw !important; max-width: 100vw !important;">
+  <main class="h-screen overflow-hidden pt-24 pb-14">
+    <div class="h-full overflow-hidden">
       <div
-        class="h-full flex transition-transform duration-500 ease-out"
-        style={`transform: translateX(-${tabIndex() * 100}%); width: ${tabs.length * 100}vw !important;`}
+        class="kwami-page-slider h-full flex"
+        style={`transform: translateX(-${tabIndex() * 100}%);`}
       >
-        <section class="h-full relative flex items-center justify-center px-6" style="width: 100vw; flex-shrink: 0;">
-          <div class="w-[min(92vw,720px)]">
-            <InfoPage />
+        <!-- Info page -->
+        <section class="w-full shrink-0 h-full relative">
+          <div class="absolute inset-0 flex items-center justify-center px-6">
+            <div class="w-[min(92vw,720px)]">
+              <InfoPage />
+            </div>
           </div>
         </section>
 
-        <section class="h-full relative flex items-center justify-center px-6" style="width: 100vw; flex-shrink: 0;">
-          <div class="w-[min(96vw,1180px)]">
-            <GovernancePage />
+        <!-- Governance page -->
+        <section class="w-full shrink-0 h-full relative">
+          <div class="absolute inset-0 flex items-center justify-center px-6">
+            <div class="w-[min(96vw,1180px)]">
+              <GovernancePage />
+            </div>
           </div>
         </section>
 
-        <section class="h-full relative flex items-center justify-center px-6" style="width: 100vw; flex-shrink: 0;">
-          <div class="w-[min(96vw,1180px)]">
-            <TreasuryPage />
+        <!-- Treasury page -->
+        <section class="w-full shrink-0 h-full relative">
+          <div class="absolute inset-0 flex items-center justify-center px-6">
+            <div class="w-[min(96vw,1180px)]">
+              <TreasuryPage />
+            </div>
           </div>
         </section>
       </div>
@@ -159,9 +159,10 @@
   </main>
 
   <!-- Footer (thin, fixed; no scrolling) -->
-  <footer class="fixed bottom-0 inset-x-0 z-20 border-t border-gray-200/60 py-3 dark:border-gray-800/60">
-    <div class="px-6">
-      <div class="text-center text-xs text-gray-500">
+  <footer class="fixed bottom-0 inset-x-0 z-20">
+    <div class="kwami-footer-backdrop" aria-hidden="true"></div>
+    <div class="relative px-6 py-3">
+      <div class="mx-auto max-w-6xl text-center text-xs text-gray-500 dark:text-gray-400">
         © 2025 Kwami.io — KWAMI DAO
       </div>
     </div>
