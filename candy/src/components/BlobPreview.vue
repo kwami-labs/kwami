@@ -99,6 +99,7 @@ import { computed, ref, reactive, onMounted, onUnmounted, nextTick } from 'vue'
 import type { SphereGeometry } from 'three'
 import { Kwami } from 'kwami'
 import { captureAndPrepareForUpload } from '@/utils/canvasCapture'
+import { recordCanvasVideo } from '@/utils/blobVideoCapture'
 import { useNFTStore } from '@/stores/nft'
 import KwamiGlassButton from '@/components/KwamiGlassButton.vue'
 
@@ -143,6 +144,7 @@ const loading = ref(true)
 const loadingText = ref('Loading preview...')
 const isInitializing = ref(true)
 const isRolling = ref(false)
+const isRecordingVideo = ref(false)
 
 const dna = ref<string | null>(null)
 const copied = ref(false)
@@ -217,6 +219,37 @@ const captureImage = async (): Promise<Buffer | null> => {
   } catch (error) {
     console.error('[BlobPreview] Error capturing canvas:', error)
     return null
+  }
+}
+
+const captureVideo = async (opts?: { durationMs?: number; fps?: number; download?: boolean; filename?: string }) => {
+  if (!canvas.value) {
+    console.error('[BlobPreview] Canvas not available for video capture')
+    return null
+  }
+
+  const durationMs = opts?.durationMs ?? 10_000
+  const fps = opts?.fps ?? 30
+  const download = opts?.download ?? false
+  const filename = opts?.filename ?? 'kwami-blob.webm'
+
+  isRecordingVideo.value = true
+  try {
+    const { blob, buffer, mimeType } = await recordCanvasVideo(canvas.value, { durationMs, fps })
+    if (download) {
+      const url = URL.createObjectURL(blob)
+      const a = document.createElement('a')
+      a.href = url
+      a.download = filename
+      a.click()
+      URL.revokeObjectURL(url)
+    }
+    return { blob, buffer, mimeType, durationMs, fps }
+  } catch (error) {
+    console.error('[BlobPreview] Error recording video:', error)
+    return null
+  } finally {
+    isRecordingVideo.value = false
   }
 }
 
@@ -458,6 +491,7 @@ const onClickRandomize = async () => {
 defineExpose({
   captureImage,
   captureAllFormats,
+  captureVideo,
   getSceneAndMesh,
   getConfig,
   getDna,

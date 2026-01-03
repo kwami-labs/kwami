@@ -168,6 +168,55 @@ export async function uploadGifToIpfs(
 }
 
 /**
+ * Upload video (WebM) to IPFS via Pinata REST API
+ */
+export async function uploadVideoToIpfs(
+  videoBuffer: Buffer,
+  wallet?: any,
+  contentType: string = 'video/webm'
+): Promise<UploadResult> {
+  try {
+    console.log('[IPFS] Uploading video...', { size: videoBuffer.length, contentType })
+
+    const formData = new FormData()
+    const bytes = new Uint8Array(videoBuffer)
+    const ab = bytes.buffer.slice(bytes.byteOffset, bytes.byteOffset + bytes.byteLength)
+    const blob = new Blob([ab], { type: contentType })
+    const file = new File([blob], 'kwami-animation.webm', { type: contentType })
+    formData.append('file', file)
+
+    console.log('[IPFS] Uploading video to IPFS...')
+    const response = await fetch('https://api.pinata.cloud/pinning/pinFileToIPFS', {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${PINATA_JWT}`
+      },
+      body: formData
+    })
+
+    if (!response.ok) {
+      const errorData = await response.text()
+      throw new Error(`Pinata API error: ${response.status} - ${errorData}`)
+    }
+
+    const upload = await response.json()
+
+    const result = {
+      uri: `https://${PINATA_GATEWAY}/ipfs/${upload.IpfsHash}`,
+      txId: upload.IpfsHash,
+    }
+
+    console.log('[IPFS] ✅ Video uploaded successfully!')
+    console.log('[IPFS] URL:', result.uri)
+    return result
+
+  } catch (error: any) {
+    console.error('[IPFS] ❌ Upload failed:', error)
+    throw new Error(`Failed to upload video to IPFS: ${error.message}`)
+  }
+}
+
+/**
  * Upload 3D model (GLB) to IPFS via Pinata REST API
  */
 export async function upload3DModelToIpfs(

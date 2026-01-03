@@ -1,0 +1,13 @@
+{
+  "cluster": "devnet",
+  "rpcUrl": "https://api.devnet.solana.com",
+  "programId": "6W3VGmDkjwswpY8JNNDQH5f1VuCdqrttR6koWPkN7drr",
+  "wallet": "3TYRKswBCUy8agGNBF3wpg4AoiahZWKBKJB3ZJhybscf",
+  "collectionMint": "HSdJV4zAieS69cWa1EffK24D7X2hBYdpA4XpjL5jbBgV",
+  "collectionAuthority": "5sSkkjMVEV7LvCz8NUT8ULGQ2LWYGdXNyBBv2yzLpFD5",
+  "dnaRegistry": "AqJ55LeXq4GLrEi3wyu5BPyy2hPmEf5yvg66hntCyuGq",
+  "treasury": "7bsKPoNgzS6NqC2gfsAzH21vEV64ADvApuxfbs7bGjE5",
+  "treasuryAuthorityWallet": "3TYRKswBCUy8agGNBF3wpg4AoiahZWKBKJB3ZJhybscf",
+  "timestamp": "2026-01-02T20:52:30.951Z",
+  "note": "Treasury already existed; init skipped and existing addresses were discovered."
+}

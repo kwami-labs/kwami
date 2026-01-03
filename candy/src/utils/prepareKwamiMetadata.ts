@@ -77,7 +77,12 @@ export function prepareKwamiMetadata(params: {
   bodyConfig: BodyConfig
   soulConfig?: SoulConfig
   imageUri: string
+  /** Deprecated: use animationUri + animationMimeType. */
   glbUri?: string
+  /** Video/GIF/GLB URL to be used as `animation_url`. */
+  animationUri?: string
+  /** MIME type for the animation file. */
+  animationMimeType?: string
   creatorAddress?: string
 }): KwamiMetadata {
   const {
@@ -88,8 +93,13 @@ export function prepareKwamiMetadata(params: {
     soulConfig,
     imageUri,
     glbUri,
+    animationUri: animationUriRaw,
+    animationMimeType: animationMimeTypeRaw,
     creatorAddress,
   } = params
+
+  const animationUri = animationUriRaw ?? glbUri
+  const animationMimeType = animationMimeTypeRaw ?? (glbUri ? 'model/gltf-binary' : undefined)
 
   // Convert body config to attributes
   const attributes = bodyConfigToAttributes(bodyConfig)
@@ -105,21 +115,22 @@ export function prepareKwamiMetadata(params: {
     value: dna,
   })
 
-  // Prepare files array
-  const files: Array<{ uri: string; type: string }> = [
-    {
-      uri: imageUri,
-      type: 'image/png',
-    },
-  ]
-
-  // Add GLB model if provided
-  if (glbUri) {
+  // Prepare files array - put video first if present (some viewers prioritize first file)
+  const files: Array<{ uri: string; type: string }> = []
+  
+  // Add animation file (video/gif/glb) first if provided
+  if (animationUri && animationMimeType) {
     files.push({
-      uri: glbUri,
-      type: 'model/gltf-binary',
+      uri: animationUri,
+      type: animationMimeType,
     })
   }
+  
+  // Then add image as fallback
+  files.push({
+    uri: imageUri,
+    type: 'image/png',
+  })
 
   // Prepare creators array
   const creators = creatorAddress
@@ -132,16 +143,23 @@ export function prepareKwamiMetadata(params: {
       ]
     : undefined
 
+  const category = animationMimeType?.startsWith('video/')
+    ? 'video'
+    : animationMimeType?.startsWith('model/')
+      ? 'vr'
+      : 'image'
+
   return {
     name,
     symbol: 'KWAMI',
     description,
     image: imageUri,
+    animation_url: animationUri,
     external_url: 'https://kwami.io',
     attributes,
     properties: {
       files,
-      category: 'image',
+      category,
       creators,
     },
     dna,

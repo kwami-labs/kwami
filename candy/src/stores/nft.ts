@@ -1,7 +1,7 @@
 import { defineStore } from 'pinia'
 import { ref } from 'vue'
 import type { PublicKey } from '@solana/web3.js'
-import { uploadImageToIpfs, uploadMetadataToIpfs, uploadGifToIpfs, upload3DModelToIpfs } from '@/utils/uploadIpfs'
+import { uploadImageToIpfs, uploadMetadataToIpfs, uploadGifToIpfs, uploadVideoToIpfs } from '@/utils/uploadIpfs'
 import { checkDnaExists as checkDnaOnChain, mintKwamiWithReceipt, fetchOwnedKwamis, getTotalMintedCount, burnKwamiNft } from '@/utils/solanaHelpers'
 import { prepareKwamiMetadata, type SoulConfig } from '@/utils/prepareKwamiMetadata'
 import { calculateKwamiDNA } from '@/utils/calculateKwamiDNA'
@@ -37,7 +37,7 @@ export const useNFTStore = defineStore('nft', () => {
     | 'checking'
     | 'uploading-image'
     | 'uploading-gif'
-    | 'uploading-model'
+    | 'uploading-video'
     | 'uploading-metadata'
     | 'minting'
     | 'confirming-mint'
@@ -128,14 +128,14 @@ export const useNFTStore = defineStore('nft', () => {
     }
   }
   
-  // Mint a new KWAMI NFT with image, GIF, and 3D model
+  // Mint a new KWAMI NFT with image + video asset
   const mintKwami = async (
     config: any,
     metadata: { name: string; description: string },
     soulConfig?: any,
     imageBuffer: Buffer | null = null,
     gifBuffer?: Buffer | null,
-    modelBuffer?: Buffer | null,
+    videoBuffer?: Buffer | null,
     opts?: {
       rollId?: string
       onSigned?: () => void | Promise<void>
@@ -187,41 +187,39 @@ export const useNFTStore = defineStore('nft', () => {
         console.log('[NFT Store] GIF uploaded:', gifResult.uri)
       }
       
-      // Upload 3D model if provided
-      let modelResult
-      if (modelBuffer) {
-        mintingStatus.value = 'uploading-model'
-        console.log('[NFT Store] Uploading 3D model...')
-        modelResult = await upload3DModelToIpfs(modelBuffer, walletStore.wallet)
-        console.log('[NFT Store] 3D model uploaded:', modelResult.uri)
+      // Upload video if provided
+      let videoResult
+      if (videoBuffer) {
+        mintingStatus.value = 'uploading-video'
+        console.log('[NFT Store] Uploading video...')
+        videoResult = await uploadVideoToIpfs(videoBuffer, walletStore.wallet, 'video/webm')
+        console.log('[NFT Store] Video uploaded:', videoResult.uri)
       }
-      
-      // Prepare metadata with GIF as primary image
+
+      // Prepare metadata (PNG as image + video as animation_url)
+      console.log('[NFT Store] Preparing metadata with:', {
+        hasVideo: !!videoResult,
+        videoUri: videoResult?.uri,
+        imageUri: imageResult.uri
+      })
       const metadataJson = prepareKwamiMetadata({
         name: metadata.name,
         description: metadata.description,
         dna,
         bodyConfig: config,
         soulConfig,
-        imageUri: gifResult ? gifResult.uri : imageResult.uri,  // Use GIF as main image
+        imageUri: imageResult.uri,
+        animationUri: videoResult?.uri,
+        animationMimeType: videoResult ? 'video/webm' : undefined,
         creatorAddress: walletStore.publicKey!.toBase58(),
       })
-      
-      // Set animation_url to 3D model (GLB) for Phantom 3D viewer
-      if (modelResult) {
-        metadataJson.animation_url = modelResult.uri
-        console.log('[NFT Store] Set animation_url to 3D model for Phantom display')
-      }
-      
-      // Add static PNG to properties.files
-      if (imageResult) {
-        metadataJson.properties = metadataJson.properties || {}
-        metadataJson.properties.files = metadataJson.properties.files || []
-        metadataJson.properties.files.push({
-          uri: imageResult.uri,
-          type: 'image/png',
-        })
-      }
+      console.log('[NFT Store] Metadata prepared:', {
+        name: metadataJson.name,
+        hasAnimationUrl: !!metadataJson.animation_url,
+        animationUrl: metadataJson.animation_url,
+        category: metadataJson.properties.category,
+        filesCount: metadataJson.properties.files.length
+      })
       
       // Upload metadata to IPFS
       mintingStatus.value = 'uploading-metadata'

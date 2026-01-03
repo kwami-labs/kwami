@@ -161,9 +161,21 @@ const handleMint = async () => {
 
     // 3) Capture assets for the final rolled config
     nftStore.mintingStatus = 'capturing'
-    const captures = await props.blobPreviewRef.captureAllFormats()
-    if (!captures || !captures.image) {
-      throw new Error('Failed to capture media. Please try again.')
+
+    const image = await props.blobPreviewRef.captureImage?.()
+    if (!image) {
+      throw new Error('Failed to capture image. Please try again.')
+    }
+
+    const videoCapture = await props.blobPreviewRef.captureVideo?.({ durationMs: 10_000, fps: 30, download: false })
+    console.log('[MintPanel] Video capture result:', {
+      hasBuffer: !!videoCapture?.buffer,
+      bufferSize: videoCapture?.buffer?.length,
+      mimeType: videoCapture?.mimeType,
+      durationMs: videoCapture?.durationMs
+    })
+    if (!videoCapture?.buffer) {
+      throw new Error('Failed to capture video. Please try again.')
     }
 
     // 4) Upload, then 5) finalize mint (wallet tx #2)
@@ -171,12 +183,12 @@ const handleMint = async () => {
       config!,
       {
         name: safeName.value,
-        description: 'A unique KWAMI NFT with animated GIF and interactive 3D model',
+        description: 'A unique KWAMI NFT with animated video asset',
       },
       undefined,
-      captures.image ?? null,
-      captures.gif,
-      captures.model,
+      image,
+      undefined,
+      videoCapture.buffer,
       {
         rollId,
       }
@@ -212,8 +224,8 @@ const getMintingStatusText = () => {
       return 'Uploading image to IPFS...'
     case 'uploading-gif':
       return 'Uploading GIF to IPFS...'
-    case 'uploading-model':
-      return 'Uploading 3D model to IPFS...'
+    case 'uploading-video':
+      return 'Uploading video to IPFS...'
     case 'uploading-metadata':
       return 'Uploading metadata to IPFS...'
     case 'minting':
