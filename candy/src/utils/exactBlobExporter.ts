@@ -4,7 +4,7 @@ import {
   BufferAttribute,
   BufferGeometry,
   Color,
-  EdgesGeometry,
+  WireframeGeometry,
   InterpolateLinear,
   LineBasicMaterial,
   LineSegments,
@@ -270,19 +270,65 @@ function createReplicaMaterial(srcMaterial: any, geometry: BufferGeometry): Mesh
   return material as any
 }
 
-function createWireframeOverlay(geometry: BufferGeometry, baseColor: Color): LineSegments {
-  const edges = new EdgesGeometry(geometry, 1)
+function createWireframeOverlay(geometry: BufferGeometry): LineSegments {
+  // Use WireframeGeometry instead of EdgesGeometry for complete grid (no holes)
+  const wireGeo = new WireframeGeometry(geometry)
+  
+  // Transfer vertex colors from base geometry to wireframe lines
+  const baseColors = geometry.getAttribute('color')
+  if (baseColors) {
+    // WireframeGeometry creates line segments from triangles
+    // Each line needs color from its source vertices
+    const lineCount = wireGeo.attributes.position.count
+    const lineColors = new Float32Array(lineCount * 3)
+    
+    // WireframeGeometry duplicates positions - map back to original vertex colors
+    const positions = wireGeo.attributes.position
+    const basePositions = geometry.getAttribute('position')
+    
+    for (let i = 0; i < lineCount; i++) {
+      // Find closest vertex in base geometry for this line vertex
+      const px = positions.getX(i)
+      const py = positions.getY(i)
+      const pz = positions.getZ(i)
+      
+      // Linear search for exact match (wireframe vertices come from base)
+      let closestIdx = 0
+      let minDist = Infinity
+      for (let j = 0; j < basePositions.count; j++) {
+        const dx = basePositions.getX(j) - px
+        const dy = basePositions.getY(j) - py
+        const dz = basePositions.getZ(j) - pz
+        const dist = dx*dx + dy*dy + dz*dz
+        if (dist < minDist) {
+          minDist = dist
+          closestIdx = j
+          if (dist < 0.0001) break // Exact match
+        }
+      }
+      
+      // Copy color from matched base vertex
+      lineColors[i * 3 + 0] = baseColors.getX(closestIdx)
+      lineColors[i * 3 + 1] = baseColors.getY(closestIdx)
+      lineColors[i * 3 + 2] = baseColors.getZ(closestIdx)
+    }
+    
+    wireGeo.setAttribute('color', new BufferAttribute(lineColors, 3))
+  }
+  
   const lineMaterial = new LineBasicMaterial({
-    color: baseColor,
+    vertexColors: baseColors ? true : false,
+    color: baseColors ? 0xffffff : 0xffffff, // Fallback white
     transparent: false,
     opacity: 1.0,
     depthTest: true,
     depthWrite: true,
   })
-  const lines = new LineSegments(edges, lineMaterial)
+  
+  const lines = new LineSegments(wireGeo, lineMaterial)
   lines.name = 'KWAMI_Blob_Wireframe'
   
-  console.log('[GLB Export] Created wireframe with', edges.attributes.position.count / 2, 'lines')
+  console.log('[GLB Export] Created wireframe with', wireGeo.attributes.position.count / 2, 'line segments')
   return lines
 }
 
@@ -462,12 +508,11 @@ export async function exportExactBlobReplica(params: {
   const exportScene = new Scene()
   exportScene.add(exportMesh)
   
-  // Preserve wireframe by adding an explicit edges layer (glTF has no wireframe flag)
+  // Preserve wireframe by adding an explicit wireframe overlay (glTF has no wireframe flag)
   const wantsWireframe = Boolean((sourceMaterial as any)?.wireframe)
   if (wantsWireframe) {
-    console.log('[GLB Export] Wireframe detected - creating EdgesGeometry overlay')
-    const c1 = getShaderUniformColor(sourceMaterial, '_color1', new Color('#ffffff'))
-    const wireframe = createWireframeOverlay(exportGeometry, c1)
+    console.log('[GLB Export] Wireframe detected - creating WireframeGeometry with vertex colors')
+    const wireframe = createWireframeOverlay(exportGeometry)
     // Attach wireframe to mesh so it inherits animations
     exportMesh.add(wireframe)
     
