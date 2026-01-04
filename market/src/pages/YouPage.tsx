@@ -1,6 +1,6 @@
+import { useMemo, useState } from 'react'
 import { KwamiGlassCard } from '@/components/KwamiGlassCard'
 import { KwamiGlassButton } from '@/components/KwamiGlassButton'
-import { KwamiBlobPreview } from '@/components/KwamiBlobPreview'
 import { useWallet } from '@/state/wallet'
 
 function short(addr: string, left = 6, right = 6) {
@@ -21,6 +21,19 @@ export function YouPage() {
     setSelectedKwamiMint,
     refreshKwamiNfts,
   } = useWallet()
+
+  // Large wallets: don't auto-load hundreds of GIFs at once.
+  const [showPreviews, setShowPreviews] = useState(false)
+  const [visibleCount, setVisibleCount] = useState(24)
+
+  const orderedKwamiNfts = useMemo(() => {
+    if (!selectedKwamiMint) return kwamiNfts
+    const selected = kwamiNfts.find((n) => n.mint === selectedKwamiMint)
+    if (!selected) return kwamiNfts
+    return [selected, ...kwamiNfts.filter((n) => n.mint !== selectedKwamiMint)]
+  }, [kwamiNfts, selectedKwamiMint])
+
+  const visibleKwamiNfts = useMemo(() => orderedKwamiNfts.slice(0, visibleCount), [orderedKwamiNfts, visibleCount])
 
   return (
     <div className="absolute inset-0 px-6 py-6">
@@ -81,62 +94,85 @@ export function YouPage() {
           <div className="h-full overflow-hidden">
             <KwamiGlassCard className="h-full" title={<span>Your KWAMIs</span>} headerRight={<span>{kwamiNfts.length}</span>}>
               {hasKwamiNft ? (
-                <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-                  {kwamiNfts.map((nft) => {
-                    const selected = nft.mint === selectedKwamiMint
-                    return (
-                      <article
-                        key={nft.mint}
-                        className={[
-                          'rounded-2xl border bg-white/10 p-4 transition',
-                          selected
-                            ? 'border-primary-500/40 bg-primary-500/10'
-                            : 'border-gray-200/60 dark:border-gray-800/60 dark:bg-black/10',
-                        ].join(' ')}
-                      >
-                        <div className="flex items-start justify-between gap-3">
-                          <div className="min-w-0">
-                            <div className="truncate text-sm font-semibold text-gray-900 dark:text-white">
-                              {nft.name || 'KWAMI'}
-                            </div>
-                            <div className="mt-0.5 font-mono text-xs text-gray-500 dark:text-gray-400">
-                              {short(nft.mint)}
-                            </div>
-                          </div>
-                          {selected ? (
-                            <span className="rounded-full border border-primary-500/30 bg-primary-500/10 px-2 py-1 text-[11px] font-semibold text-primary-600 dark:text-primary-300">
-                              Selected
-                            </span>
-                          ) : null}
-                        </div>
+                <div className="space-y-4">
+                  <div className="flex flex-wrap items-center justify-between gap-2">
+                    <div className="flex items-center gap-2">
+                      <KwamiGlassButton
+                        label={showPreviews ? 'Hide previews' : 'Show previews'}
+                        mode={showPreviews ? 'primary' : 'outline'}
+                        size="sm"
+                        onClick={() => setShowPreviews((v) => !v)}
+                      />
+                      <KwamiGlassButton
+                        label={visibleCount >= orderedKwamiNfts.length ? 'All loaded' : `Load more (${Math.min(orderedKwamiNfts.length, visibleCount)}/${orderedKwamiNfts.length})`}
+                        mode="ghost"
+                        size="sm"
+                        disabled={visibleCount >= orderedKwamiNfts.length}
+                        onClick={() => setVisibleCount((n) => Math.min(orderedKwamiNfts.length, n + 24))}
+                      />
+                    </div>
+                    {!showPreviews ? (
+                      <div className="text-xs text-gray-500 dark:text-gray-400">Previews are off to keep the page fast.</div>
+                    ) : null}
+                  </div>
 
-                        {nft.body || nft.image ? (
-                          <div className="mt-3 overflow-hidden rounded-xl border border-white/20">
-                            <KwamiBlobPreview
-                              bodyConfig={nft.body as any}
-                              fallbackImageUrl={nft.image}
-                              alt={nft.name}
-                              className="h-40 w-full"
+                  <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+                    {visibleKwamiNfts.map((nft) => {
+                      const selected = nft.mint === selectedKwamiMint
+                      return (
+                        <article
+                          key={nft.mint}
+                          className={[
+                            'rounded-2xl border bg-white/10 p-4 transition',
+                            selected
+                              ? 'border-primary-500/40 bg-primary-500/10'
+                              : 'border-gray-200/60 dark:border-gray-800/60 dark:bg-black/10',
+                          ].join(' ')}
+                        >
+                          <div className="flex items-start justify-between gap-3">
+                            <div className="min-w-0">
+                              <div className="truncate text-sm font-semibold text-gray-900 dark:text-white">
+                                {nft.name || 'KWAMI'}
+                              </div>
+                              <div className="mt-0.5 font-mono text-xs text-gray-500 dark:text-gray-400">{short(nft.mint)}</div>
+                            </div>
+                            {selected ? (
+                              <span className="rounded-full border border-primary-500/30 bg-primary-500/10 px-2 py-1 text-[11px] font-semibold text-primary-600 dark:text-primary-300">
+                                Selected
+                              </span>
+                            ) : null}
+                          </div>
+
+                          {showPreviews && nft.image ? (
+                            <div className="mt-3 overflow-hidden rounded-xl border border-white/20">
+                              {/* Image-only preview (metadata points to a GIF). Avoid canvas-per-card for perf. */}
+                              <img
+                                src={nft.image}
+                                alt={nft.name || 'KWAMI'}
+                                className="h-40 w-full object-cover"
+                                loading="lazy"
+                                decoding="async"
+                              />
+                            </div>
+                          ) : (
+                            <div className="mt-3 flex h-40 items-center justify-center rounded-xl border border-gray-200/60 bg-white/10 text-xs text-gray-500 dark:border-gray-800/60 dark:bg-black/10 dark:text-gray-400">
+                              {showPreviews ? 'No image' : 'Preview disabled'}
+                            </div>
+                          )}
+
+                          <div className="mt-3 flex items-center gap-2">
+                            <KwamiGlassButton
+                              label="Use this KWAMI"
+                              mode={selected ? 'primary' : 'outline'}
+                              size="sm"
+                              block
+                              onClick={() => setSelectedKwamiMint(nft.mint)}
                             />
                           </div>
-                        ) : (
-                          <div className="mt-3 flex h-40 items-center justify-center rounded-xl border border-gray-200/60 bg-white/10 text-xs text-gray-500 dark:border-gray-800/60 dark:bg-black/10 dark:text-gray-400">
-                            No metadata
-                          </div>
-                        )}
-
-                        <div className="mt-3 flex items-center gap-2">
-                          <KwamiGlassButton
-                            label="Use this KWAMI"
-                            mode={selected ? 'primary' : 'outline'}
-                            size="sm"
-                            block
-                            onClick={() => setSelectedKwamiMint(nft.mint)}
-                          />
-                        </div>
-                      </article>
-                    )
-                  })}
+                        </article>
+                      )
+                    })}
+                  </div>
                 </div>
               ) : (
                 <div className="text-sm text-gray-600 dark:text-gray-300">
