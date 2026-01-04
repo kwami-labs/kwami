@@ -29,7 +29,15 @@ const initial: TreasuryMetricsState = {
 export const treasuryMetrics = writable<TreasuryMetricsState>(initial)
 
 function getConnectionForNetwork(network: string): Connection {
-  if (network === 'localnet') return new Connection('http://127.0.0.1:8899', 'confirmed')
+  if (network === 'localnet') return new Connection('http://localhost:8899', 'confirmed')
+
+  const envRpc = (import.meta as any).env?.VITE_SOLANA_RPC_URL as string | undefined
+  const envNetwork = (import.meta as any).env?.VITE_SOLANA_NETWORK || 'mainnet-beta'
+
+  if (envRpc && network === envNetwork) {
+    return new Connection(envRpc, 'confirmed')
+  }
+
   if (network === 'devnet' || network === 'testnet' || network === 'mainnet-beta') {
     return new Connection(clusterApiUrl(network), 'confirmed')
   }

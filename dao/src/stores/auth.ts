@@ -131,7 +131,9 @@ export function initAuth(): void {
   if (initialized) return
   initialized = true
 
-  const wallet = getWalletConnector()
+  const rpcEndpoint = (import.meta as any).env?.VITE_SOLANA_RPC_URL as string | undefined
+  const network = (import.meta as any).env?.VITE_SOLANA_NETWORK as 'mainnet-beta' | 'devnet' | 'testnet' | undefined
+  const wallet = getWalletConnector({ rpcEndpoint, network })
 
   wallet.on('connect', () => {
     void refreshFromWallet()
