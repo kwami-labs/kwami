@@ -469,364 +469,721 @@
   </div>
 
   <!-- Mind Section (AI Agent Configuration) -->
+  <!-- Mind Section (AI Agent Configuration) -->
   <template id="mind-template">
+    <!-- COMPREHENSIVE MIND MENU - ELEVEN LABS AGENT PLATFORM -->
     <div class="sidebar-content">
       <h2>🧠 Mind</h2>
-      <p class="subtitle">Conversational AI Agents</p>
-
-      <!-- Provider Tabs -->
+      <p class="subtitle">Eleven Labs Agent Platform</p>
+    
+      <!-- ========== 1. API AUTHENTICATION ========== -->
       <div class="section">
-        <div class="provider-tabs" id="provider-tabs">
-          <button class="provider-tab active" data-provider="elevenlabs" onclick="switchProvider('elevenlabs')">
-            <span class="provider-icon">
-              <img src="/img/logo/elevenlabs.webp" alt="ElevenLabs" class="provider-logo">
-            </span>
-            <span class="provider-name">ElevenLabs</span>
-          </button>
-          <button class="provider-tab" data-provider="openai" onclick="switchProvider('openai')" disabled title="Coming Soon">
-            <span class="provider-icon">
-              <img src="/img/logo/openai.webp" alt="OpenAI" class="provider-logo">
-            </span>
-            <span class="provider-name">OpenAI</span>
-          </button>
-        </div>
-      </div>
-
-      <!-- ElevenLabs Provider Content -->
-      <div id="provider-elevenlabs" class="provider-content active">
-        <!-- API Key (Required First) -->
-        <div class="section">
-          <div class="section-title">🔑 API Authentication</div>
-          <p style="color: #ffa500; font-size: 14px; margin: 10px 0; font-weight: 500;">
-            ⚠️ Enter your API key to unlock all agent features below
-          </p>
-          
-          <div class="input-group">
-            <label>ElevenLabs API Key (Required)</label>
-            <input type="password" id="api-key-agent" placeholder="Enter your ElevenLabs API Key">
-            <small style="display: block; color: #888; margin-top: 5px;">Get it from <a href="https://elevenlabs.io/app/agents/settings" target="_blank" rel="noopener noreferrer" style="color: #667eea; text-decoration: none;">elevenlabs.io/app/agents/settings</a></small>
-          </div>
-          
-          <button onclick="initializeAgentManager()" id="init-agent-manager-btn">🚀 Initialize Agent Manager</button>
-          <div id="agent-manager-status" style="margin-top: 10px; display: none;">
-            <small style="color: #4CAF50;">✅ Agent Manager Ready</small>
-          </div>
-        </div>
-
-      <!-- Agent Creation (Primary Feature) -->
-      <div class="section disabled-section" id="agent-creation-section">
-        <div class="section-title">✨ Create New Agent</div>
-        <p style="color: #888; font-size: 14px; margin-bottom: 15px;">
-          Create a conversational AI agent with custom personality and voice
+        <div class="section-title">🔑 API Credentials</div>
+        <p style="color: #ffa500; font-size: 13px; margin: 10px 0 15px; font-weight: 500;">
+          ⚠️ Required to access all Eleven Labs Agent Platform features
         </p>
         
         <div class="input-group">
-          <label>Agent Name</label>
-          <input type="text" id="agent-name" placeholder="My AI Agent">
-        </div>
-        
-        <div class="input-group">
-          <label>System Prompt (Agent's Personality)</label>
-          <textarea id="agent-prompt" placeholder="You are a helpful, friendly AI assistant..." style="min-height: 100px;"></textarea>
-          <small style="display: block; color: #888; margin-top: 2px;">
-            Define how the agent behaves and responds
+          <label>ElevenLabs API Key</label>
+          <input type="password" id="elevenlabs-api-key" placeholder="sk_...">
+          <small style="display: block; color: #888; margin-top: 5px;">
+            Get your API key from 
+            <a href="https://elevenlabs.io/app/settings/api-keys" target="_blank" rel="noopener noreferrer" style="color: #667eea; text-decoration: none;">
+              elevenlabs.io/settings
+            </a>
           </small>
         </div>
         
-        <div class="input-group">
-          <label>First Message (Greeting)</label>
-          <input type="text" id="agent-first-message" placeholder="Hello! How can I help you today?" value="Hello! How can I help you today?">
-        </div>
+        <button onclick="initializeElevenLabsAPI()" id="init-api-btn">🚀 Connect to Eleven Labs</button>
         
-        <div class="input-group">
-          <label>Language Model (LLM)</label>
-          <select id="agent-llm-model">
-            <option value="gpt-4">GPT-4 (Recommended)</option>
-            <option value="gpt-4-turbo">GPT-4 Turbo (Faster)</option>
-            <option value="gpt-3.5-turbo">GPT-3.5 Turbo (Economical)</option>
-            <option value="claude-3-opus">Claude 3 Opus</option>
-            <option value="claude-3-sonnet">Claude 3 Sonnet</option>
-            <option value="claude-3-haiku">Claude 3 Haiku (Fast)</option>
-          </select>
-        </div>
-        
-        <div class="input-group">
-          <label>Temperature <span class="value-display" id="agent-temperature-value">0.7</span></label>
-          <input type="range" id="agent-temperature" min="0" max="1" step="0.1" value="0.7">
-          <small style="display: block; color: #888; margin-top: 2px;">
-            Lower = More focused | Higher = More creative
-          </small>
-        </div>
-        
-        <div class="input-group">
-          <label>Max Response Tokens</label>
-          <input type="number" id="agent-max-tokens" min="50" max="2000" value="500" placeholder="500">
-        </div>
-        
-        <!-- Voice Configuration for Agent -->
-        <div class="parameter-group">
-          <div class="parameter-group-title">🎙️ Voice Configuration</div>
-          
-          <div class="input-group">
-            <label>Voice Selection</label>
-            <select id="agent-voice-id">
-              <option value="pNInz6obpgDQGcFmaJgB">Adam (Deep, Professional)</option>
-              <option value="EXAVITQu4vr4xnSDxMaL">Bella (Soft, Female)</option>
-              <option value="ErXwobaYiN019PkySvjV">Antoni (Well-rounded, Male)</option>
-              <option value="MF3mGyEYCl7XYWbV9V6O">Elli (Emotional, Female)</option>
-              <option value="TxGEqnHWrfWFTfGW9XjX">Josh (Young, Male)</option>
-            </select>
-          </div>
-          
-          <div class="input-group">
-            <label>TTS Model</label>
-            <select id="agent-tts-model">
-              <option value="eleven_turbo_v2" selected>Eleven Turbo v2 (Recommended)</option>
-              <option value="eleven_turbo_v2_5">Eleven Turbo v2.5</option>
-              <option value="eleven_multilingual_v2">Eleven Multilingual v2</option>
-            </select>
-          </div>
-          
-          <div class="slider-control">
-            <label>Voice Stability <span class="value-display" id="agent-stability-value">0.5</span></label>
-            <input type="range" id="agent-stability" min="0" max="1" step="0.05" value="0.5">
-          </div>
-          
-          <div class="slider-control">
-            <label>Similarity Boost <span class="value-display" id="agent-similarity-value">0.75</span></label>
-            <input type="range" id="agent-similarity" min="0" max="1" step="0.05" value="0.75">
-          </div>
-        </div>
-
-        <!-- Advanced Capabilities -->
-        <div class="parameter-group">
-          <div class="parameter-group-title">🧠 Advanced Capabilities</div>
-          
-          <div class="input-group">
-            <label>Knowledge Bases</label>
-            <div class="multiselect-container kb-multiselect">
-              <!-- Populated via JS -->
-              <small style="color: #888;">No knowledge bases available</small>
-            </div>
-          </div>
-
-          <div class="input-group">
-            <label>Tools</label>
-            <div class="multiselect-container tool-multiselect">
-              <!-- Populated via JS -->
-              <small style="color: #888;">No tools available</small>
-            </div>
-          </div>
-        </div>
-        
-        <button onclick="createNewAgent()" id="create-agent-btn" disabled>✨ Create Agent</button>
-        <div id="agent-creation-status" style="margin-top: 10px; display: none;"></div>
-      </div>
-
-      <!-- My Agents List -->
-      <div class="section disabled-section" id="agents-list-section">
-        <div class="section-title">📋 My Agents</div>
-        <button class="button-secondary" onclick="refreshAgentsList()" id="refresh-agents-btn" disabled style="margin-bottom: 10px;">🔄 Refresh List</button>
-        
-        <div id="agents-list-container">
-          <div id="agents-list" class="agents-list">
-            <!-- Agents will be populated here -->
-          </div>
-          <div id="agents-list-empty" style="color: #888; padding: 20px; text-align: center; display: none;">
-            No agents found. Create your first agent above! 👆
-          </div>
+        <div id="api-status" style="margin-top: 10px; display: none;">
+          <small style="color: #4CAF50;">✅ API Connected</small>
         </div>
       </div>
-
-      <!-- Knowledge Base Management -->
-      <div class="section disabled-section" id="kb-management-section">
-        <div class="section-title">📚 Knowledge Base</div>
-        <p style="color: #888; font-size: 14px; margin-bottom: 15px;">
-          Upload documents for your agent to reference
-        </p>
-
+    
+      <!-- ========== 2. AGENT MANAGEMENT ========== -->
+      <div class="section disabled-section" id="agent-management-section">
+        <div class="section-title">🎯 Agent Management</div>
+        
+        <!-- Create New Agent Accordion -->
         <div class="accordion">
-          <div class="accordion-header" onclick="this.nextElementSibling.style.display = this.nextElementSibling.style.display === 'none' ? 'block' : 'none'">
-            ➕ Create New Knowledge Base
+          <div class="accordion-header" onclick="toggleAccordion(this)">
+            <span>➕ Create New Agent</span>
           </div>
           <div class="accordion-content" style="display: none;">
             <div class="input-group">
-              <label>Name</label>
-              <input type="text" id="new-kb-name" placeholder="e.g. Product Manuals">
+              <label>Agent Name</label>
+              <input type="text" id="agent-name" placeholder="Customer Support Agent">
             </div>
+            
             <div class="input-group">
-              <label>Description</label>
-              <input type="text" id="new-kb-desc" placeholder="Optional description">
+              <label>Description (Optional)</label>
+              <textarea id="agent-description" placeholder="Brief description of your agent..." style="min-height: 60px;"></textarea>
             </div>
-            <button onclick="createNewKnowledgeBase()">Create KB</button>
+            
+            <button onclick="openAgentConfigModal()" class="button-secondary">⚙️ Configure Agent Details</button>
+            <button onclick="createAgent()" id="create-agent-btn" style="margin-top: 8px;">✨ Create Agent</button>
           </div>
         </div>
-
-        <button class="button-secondary" onclick="refreshKnowledgeBasesList()" style="margin: 10px 0;">🔄 Refresh KBs</button>
         
-        <div id="kb-list" class="item-list">
-          <!-- Populated by JS -->
+        <!-- List Agents -->
+        <div style="margin-top: 15px;">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+            <label style="margin: 0; font-size: 13px; font-weight: 600;">My Agents</label>
+            <button onclick="refreshAgentsList()" class="small-btn">🔄 Refresh</button>
+          </div>
+          <div id="agents-list" class="item-list">
+            <!-- Populated dynamically -->
+            <small style="color: #888;">No agents yet. Create one above!</small>
+          </div>
         </div>
-        <div id="kb-list-empty" style="display: none; color: #888; text-align: center;">No Knowledge Bases found</div>
+        
+        <!-- Selected Agent Actions -->
+        <div id="selected-agent-card" style="display: none; margin-top: 15px; padding: 15px; background: rgba(102, 126, 234, 0.1); border: 2px solid rgba(102, 126, 234, 0.3); border-radius: 12px;">
+          <div style="font-size: 12px; color: #888; margin-bottom: 5px;">ACTIVE AGENT</div>
+          <div style="font-weight: bold; font-size: 14px; color: #e0e0e0; margin-bottom: 3px;" id="selected-agent-name">-</div>
+          <div style="font-size: 11px; color: #666; font-family: monospace; margin-bottom: 12px;" id="selected-agent-id">-</div>
+          
+          <div class="button-row" style="gap: 6px;">
+            <button onclick="editSelectedAgent()" class="button-secondary" style="flex: 1;">✏️ Edit</button>
+            <button onclick="duplicateSelectedAgent()" class="button-secondary" style="flex: 1;">📋 Duplicate</button>
+            <button onclick="deleteSelectedAgent()" class="button-secondary" style="flex: 1;">🗑️ Delete</button>
+          </div>
+        </div>
       </div>
-
-      <!-- Tools Management -->
-      <div class="section disabled-section" id="tools-management-section">
-        <div class="section-title">🛠️ Tools</div>
-        <p style="color: #888; font-size: 14px; margin-bottom: 15px;">
-          Define custom tools for your agent to use
-        </p>
-
+    
+      <!-- ========== 3. AGENT CONFIGURATION (Modal Dialog) ========== -->
+      <div class="section disabled-section" id="agent-config-section">
+        <div class="section-title">🤖 LLM & Prompt Configuration</div>
+        
         <div class="accordion">
-          <div class="accordion-header" onclick="this.nextElementSibling.style.display = this.nextElementSibling.style.display === 'none' ? 'block' : 'none'">
-            ➕ Create New Tool
+          <div class="accordion-header" onclick="toggleAccordion(this)">
+            <span>💭 System Prompt & Behavior</span>
           </div>
           <div class="accordion-content" style="display: none;">
             <div class="input-group">
-              <label>Name</label>
-              <input type="text" id="new-tool-name" placeholder="e.g. get_weather">
+              <label>First Message (Greeting)</label>
+              <input type="text" id="agent-first-message" placeholder="Hello! How can I help you today?" value="Hello! How can I help you today?">
             </div>
+            
             <div class="input-group">
-              <label>Description</label>
-              <input type="text" id="new-tool-desc" placeholder="What does this tool do?">
+              <label>Primary Language</label>
+              <select id="agent-language">
+                <option value="en">English</option>
+                <option value="es">Spanish</option>
+                <option value="fr">French</option>
+                <option value="de">German</option>
+                <option value="it">Italian</option>
+                <option value="pt">Portuguese</option>
+                <option value="pl">Polish</option>
+                <option value="zh">Chinese</option>
+                <option value="ja">Japanese</option>
+                <option value="ko">Korean</option>
+              </select>
             </div>
+            
             <div class="input-group">
-              <label>Schema (JSON)</label>
-              <textarea id="new-tool-schema" placeholder='{"parameters": {...}}' style="font-family: monospace; font-size: 12px;"></textarea>
+              <label>System Prompt (Instructions)</label>
+              <textarea id="agent-system-prompt" placeholder="You are a helpful AI assistant. Be friendly, professional, and concise..." style="min-height: 120px; font-family: monospace; font-size: 12px;"></textarea>
+              <small style="display: block; color: #888; margin-top: 5px;">
+                Define your agent's personality, tone, and behavioral guidelines
+              </small>
             </div>
-            <button onclick="createNewTool()">Create Tool</button>
-          </div>
-        </div>
-
-        <button class="button-secondary" onclick="refreshToolsList()" style="margin: 10px 0;">🔄 Refresh Tools</button>
-        
-        <div id="tools-list" class="item-list">
-          <!-- Populated by JS -->
-        </div>
-        <div id="tools-list-empty" style="display: none; color: #888; text-align: center;">No Tools found</div>
-      </div>
-
-      <!-- Selected Agent Actions -->
-      <div class="section disabled-section" id="agent-actions-section">
-        <div class="section-title">🎯 Active Agent</div>
-        
-        <div id="selected-agent-info" style="padding: 15px; background: #1a1a1a; border-radius: 12px; margin-bottom: 15px;">
-          <div style="font-weight: bold; margin-bottom: 5px;">
-            <span id="selected-agent-name">No agent selected</span>
-          </div>
-          <div style="font-size: 12px; color: #888;">
-            <span id="selected-agent-id"></span>
           </div>
         </div>
         
-        <button onclick="startConversationWithAgent()" id="start-agent-conversation-btn" disabled>
-          🎙️ Start Conversation
-        </button>
-        <button onclick="stopConversation()" id="stop-agent-conversation-btn" disabled style="display: none;">
-          ⏹️ Stop Conversation
-        </button>
-      </div>
-
-      <!-- Agent Testing (Commented out for cleanup) -->
-      <!--
-      <div class="section disabled-section" id="agent-testing-section">
-        <div class="section-title">🧪 Test Agent</div>
-        <p style="color: #888; font-size: 14px; margin-bottom: 15px;">
-          Test your agent with simulated conversations before going live
-        </p>
-        
-        <div class="input-group">
-          <label>Test Message</label>
-          <textarea id="test-message" placeholder="What can you help me with?">Hello! Tell me about yourself.</textarea>
-        </div>
-        
-        <button onclick="testAgent()" id="test-agent-btn" disabled>🧪 Test Agent</button>
-        
-        <div id="test-results" style="margin-top: 15px; display: none;">
-          <div style="padding: 15px; background: #1a1a1a; border-radius: 12px;">
-            <div style="font-weight: bold; margin-bottom: 10px;">Test Results:</div>
-            <div id="test-agent-response" style="color: #4CAF50; margin-bottom: 10px;"></div>
-            <div id="test-agent-metadata" style="font-size: 12px; color: #888;"></div>
+        <div class="accordion">
+          <div class="accordion-header" onclick="toggleAccordion(this)">
+            <span>🧠 Language Model (LLM)</span>
           </div>
-        </div>
-      </div>
-      -->
-
-      <!-- Cost Calculator (Commented out for cleanup) -->
-      <!--
-      <div class="section disabled-section" id="cost-calculator-section">
-        <div class="section-title">💰 Cost Calculator</div>
-        <p style="color: #888; font-size: 14px; margin-bottom: 15px;">
-          Estimate token usage and costs for your agent
-        </p>
-        
-        <div class="input-group">
-          <label>Expected Conversation Turns</label>
-          <input type="number" id="cost-calc-turns" min="1" max="1000" value="10" placeholder="10">
-          <small style="display: block; color: #888; margin-top: 2px;">
-            Number of back-and-forth exchanges
-          </small>
-        </div>
-        
-        <div class="input-group">
-          <label>Average Message Length (characters)</label>
-          <input type="number" id="cost-calc-length" min="10" max="500" value="50" placeholder="50">
-        </div>
-        
-        <button onclick="calculateAgentCost()" id="calculate-cost-btn" disabled>💰 Calculate Cost</button>
-        
-        <div id="cost-results" style="margin-top: 15px; display: none;">
-          <div style="padding: 15px; background: #1a1a1a; border-radius: 12px;">
-            <div style="font-weight: bold; margin-bottom: 10px;">Estimated Costs:</div>
-            <div style="color: #888; font-size: 14px;">
-              <div>Prompt Tokens: <span id="cost-prompt-tokens">-</span></div>
-              <div>Completion Tokens: <span id="cost-completion-tokens">-</span></div>
-              <div>Total Tokens: <span id="cost-total-tokens">-</span></div>
-              <div style="margin-top: 10px; font-size: 16px; color: #4CAF50;">
-                Cost per Conversation: <span id="cost-per-conversation">$-</span>
+          <div class="accordion-content" style="display: none;">
+            <div class="input-group">
+              <label>LLM Model</label>
+              <select id="agent-llm-model">
+                <option value="gpt-4o-mini" selected>GPT-4o Mini (Recommended)</option>
+                <option value="gpt-4o">GPT-4o (Most Capable)</option>
+                <option value="gpt-4-turbo">GPT-4 Turbo</option>
+                <option value="gpt-4">GPT-4</option>
+                <option value="gpt-3.5-turbo">GPT-3.5 Turbo (Economical)</option>
+                <option value="claude-3-opus">Claude 3 Opus</option>
+                <option value="claude-3-sonnet">Claude 3 Sonnet</option>
+                <option value="claude-3-haiku">Claude 3 Haiku</option>
+              </select>
+            </div>
+            
+            <div class="input-group">
+              <label>Temperature <span class="value-display" id="agent-temperature-value">0.7</span></label>
+              <input type="range" id="agent-temperature" min="0" max="1" step="0.05" value="0.7" oninput="updateValueDisplay('agent-temperature-value', this.value, 2)">
+              <small style="display: block; color: #888; margin-top: 5px;">
+                Lower = More focused & deterministic | Higher = More creative & varied
+              </small>
+            </div>
+            
+            <div class="input-group">
+              <label>Max Response Tokens</label>
+              <input type="number" id="agent-max-tokens" min="50" max="4000" value="1000" placeholder="1000">
+              <small style="display: block; color: #888; margin-top: 5px;">
+                Maximum length of agent responses (higher = longer but costlier)
+              </small>
+            </div>
+            
+            <!-- Backup LLM Config -->
+            <div class="input-group">
+              <label>
+                <input type="checkbox" id="enable-backup-llm" style="width: auto; margin-right: 5px;">
+                Enable Backup LLM (Fallback)
+              </label>
+            </div>
+            
+            <div id="backup-llm-config" style="display: none; padding: 10px; background: rgba(0, 0, 0, 0.2); border-radius: 8px; margin-top: 10px;">
+              <div class="input-group">
+                <label>Backup LLM Model</label>
+                <select id="backup-llm-model">
+                  <option value="gpt-3.5-turbo">GPT-3.5 Turbo</option>
+                  <option value="gpt-4o-mini">GPT-4o Mini</option>
+                </select>
               </div>
-              <div>Model: <span id="cost-model">-</span></div>
             </div>
           </div>
         </div>
       </div>
-      -->
-
-      <!-- Agent Link (Commented out for cleanup) -->
-      <!--
-      <div class="section disabled-section" id="agent-link-section">
-        <div class="section-title">🔗 Share Agent</div>
+    
+      <!-- ========== 4. VOICE & SPEECH CONFIGURATION ========== -->
+      <div class="section disabled-section" id="voice-config-section">
+        <div class="section-title">🗣️ Voice & Speech (TTS)</div>
         
-        <button onclick="getAgentShareLink()" id="get-link-btn" disabled>🔗 Get Shareable Link</button>
-        
-        <div id="agent-link-result" style="margin-top: 15px; display: none;">
-          <div style="padding: 15px; background: #1a1a1a; border-radius: 12px;">
-            <div style="font-weight: bold; margin-bottom: 10px;">Shareable Link:</div>
-            <div style="display: flex; gap: 10px; align-items: center;">
-              <input type="text" id="agent-link-url" readonly style="flex: 1; background: #0a0a0a; padding: 8px; border-radius: 6px; border: 1px solid #333;">
-              <button onclick="copyAgentLink()" class="button-secondary">📋 Copy</button>
+        <div class="accordion">
+          <div class="accordion-header" onclick="toggleAccordion(this)">
+            <span>🎤 Voice Selection</span>
+          </div>
+          <div class="accordion-content" style="display: none;">
+            <div class="input-group">
+              <label>Voice</label>
+              <select id="agent-voice-id">
+                <option value="21m00Tcm4TlvDq8ikWAM">Rachel (Calm, Female)</option>
+                <option value="pNInz6obpgDQGcFmaJgB">Adam (Deep, Male)</option>
+                <option value="EXAVITQu4vr4xnSDxMaL">Bella (Soft, Female)</option>
+                <option value="ErXwobaYiN019PkySvjV">Antoni (Well-rounded, Male)</option>
+                <option value="MF3mGyEYCl7XYWbV9V6O">Elli (Emotional, Female)</option>
+                <option value="TxGEqnHWrfWFTfGW9XjX">Josh (Young, Male)</option>
+                <option value="VR6AewLTigWG4xSOukaG">Arnold (Crisp, Male)</option>
+                <option value="pFZP5JQG7iQjIQuC4Bku">Lily (Warm, Female)</option>
+                <option value="custom">🎨 Custom Voice ID...</option>
+              </select>
             </div>
-            <small style="display: block; color: #888; margin-top: 8px;">
-              Link Status: <span id="agent-link-status">-</span>
-            </small>
+            
+            <div id="custom-voice-container" style="display: none;">
+              <div class="input-group">
+                <label>Custom Voice ID</label>
+                <input type="text" id="custom-voice-id" placeholder="Enter voice ID">
+                <small style="display: block; color: #888; margin-top: 5px;">
+                  Or <button onclick="loadMyVoices()" class="small-btn" style="display: inline-block; width: auto; padding: 2px 8px;">Load My Voices</button>
+                </small>
+              </div>
+            </div>
+            
+            <div class="input-group">
+              <label>TTS Model</label>
+              <select id="agent-tts-model">
+                <option value="eleven_turbo_v2_5" selected>Eleven Turbo v2.5 (Fastest, Recommended)</option>
+                <option value="eleven_turbo_v2">Eleven Turbo v2</option>
+                <option value="eleven_multilingual_v2">Eleven Multilingual v2</option>
+                <option value="eleven_monolingual_v1">Eleven Monolingual v1</option>
+              </select>
+            </div>
+            
+            <button onclick="previewVoice()" class="button-secondary">🔊 Preview Voice</button>
+          </div>
+        </div>
+        
+        <div class="accordion">
+          <div class="accordion-header" onclick="toggleAccordion(this)">
+            <span>⚙️ Voice Settings (Fine-tuning)</span>
+          </div>
+          <div class="accordion-content" style="display: none;">
+            <!-- Voice Presets -->
+            <div class="input-group">
+              <label>Quick Presets</label>
+              <div class="button-row" style="gap: 6px;">
+                <button onclick="applyVoicePreset('natural')" class="button-secondary" style="flex: 1; font-size: 11px;">🌿 Natural</button>
+                <button onclick="applyVoicePreset('expressive')" class="button-secondary" style="flex: 1; font-size: 11px;">🎭 Expressive</button>
+                <button onclick="applyVoicePreset('stable')" class="button-secondary" style="flex: 1; font-size: 11px;">🎯 Stable</button>
+              </div>
+            </div>
+            
+            <div class="input-group">
+              <label>Stability <span class="value-display" id="voice-stability-value">0.5</span></label>
+              <input type="range" id="voice-stability" min="0" max="1" step="0.05" value="0.5" oninput="updateValueDisplay('voice-stability-value', this.value, 2)">
+              <small style="display: block; color: #888; margin-top: 5px;">
+                Lower = More variable | Higher = More consistent
+              </small>
+            </div>
+            
+            <div class="input-group">
+              <label>Similarity Boost <span class="value-display" id="voice-similarity-value">0.75</span></label>
+              <input type="range" id="voice-similarity" min="0" max="1" step="0.05" value="0.75" oninput="updateValueDisplay('voice-similarity-value', this.value, 2)">
+              <small style="display: block; color: #888; margin-top: 5px;">
+                Higher = Closer to original voice
+              </small>
+            </div>
+            
+            <div class="input-group">
+              <label>Style <span class="value-display" id="voice-style-value">0.0</span></label>
+              <input type="range" id="voice-style" min="0" max="1" step="0.05" value="0" oninput="updateValueDisplay('voice-style-value', this.value, 2)">
+              <small style="display: block; color: #888; margin-top: 5px;">
+                Higher = More exaggerated (experimental)
+              </small>
+            </div>
+            
+            <div class="input-group">
+              <label>
+                <input type="checkbox" id="voice-speaker-boost" checked style="width: auto; margin-right: 5px;">
+                Use Speaker Boost
+              </label>
+              <small style="display: block; color: #888; margin-top: 5px;">
+                Enhances similarity to the original speaker
+              </small>
+            </div>
           </div>
         </div>
       </div>
-      -->
+    
+      <!-- ========== 5. KNOWLEDGE BASE MANAGEMENT ========== -->
+      <div class="section disabled-section" id="knowledge-base-section">
+        <div class="section-title">📚 Knowledge Base</div>
+        <p style="color: #888; font-size: 12px; margin-bottom: 15px;">
+          Upload documents to give your agent context and specialized knowledge
+        </p>
+        
+        <div class="accordion">
+          <div class="accordion-header" onclick="toggleAccordion(this)">
+            <span>➕ Create Knowledge Base</span>
+          </div>
+          <div class="accordion-content" style="display: none;">
+            <div class="input-group">
+              <label>Knowledge Base Name</label>
+              <input type="text" id="kb-name" placeholder="e.g. Product Documentation">
+            </div>
+            
+            <div class="input-group">
+              <label>Upload Method</label>
+              <div class="media-tabs" style="margin-bottom: 10px;">
+                <button class="media-tab active" onclick="switchKBUploadTab('file')">📄 File</button>
+                <button class="media-tab" onclick="switchKBUploadTab('text')">📝 Text</button>
+                <button class="media-tab" onclick="switchKBUploadTab('url')">🌐 URL</button>
+              </div>
+              
+              <div id="kb-upload-file" class="kb-upload-tab active">
+                <input type="file" id="kb-file-input" accept=".pdf,.txt,.doc,.docx" style="margin-bottom: 10px;">
+                <small style="display: block; color: #888; margin-bottom: 10px;">
+                  Supported: PDF, TXT, DOC, DOCX
+                </small>
+                <button onclick="uploadKBFile()">📤 Upload File</button>
+              </div>
+              
+              <div id="kb-upload-text" class="kb-upload-tab" style="display: none;">
+                <textarea id="kb-text-input" placeholder="Paste your text content here..." style="min-height: 120px; font-family: monospace; font-size: 12px;"></textarea>
+                <button onclick="createKBFromText()" style="margin-top: 10px;">✨ Create from Text</button>
+              </div>
+              
+              <div id="kb-upload-url" class="kb-upload-tab" style="display: none;">
+                <input type="url" id="kb-url-input" placeholder="https://example.com/docs" style="margin-bottom: 10px;">
+                <button onclick="createKBFromURL()">🌐 Import from URL</button>
+              </div>
+            </div>
+          </div>
+        </div>
+        
+        <div style="margin-top: 15px;">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+            <label style="margin: 0; font-size: 13px; font-weight: 600;">My Knowledge Bases</label>
+            <button onclick="refreshKBList()" class="small-btn">🔄 Refresh</button>
+          </div>
+          <div id="kb-list" class="item-list">
+            <small style="color: #888;">No knowledge bases yet</small>
+          </div>
+        </div>
+        
+        <!-- RAG Configuration -->
+        <div class="accordion" style="margin-top: 15px;">
+          <div class="accordion-header" onclick="toggleAccordion(this)">
+            <span>🔍 RAG Settings (Advanced)</span>
+          </div>
+          <div class="accordion-content" style="display: none;">
+            <div class="input-group">
+              <label>RAG Prompt Template</label>
+              <textarea id="rag-prompt-template" placeholder="Use the following context to answer: {context}\n\nQuestion: {question}" style="min-height: 80px; font-family: monospace; font-size: 11px;"></textarea>
+              <small style="display: block; color: #888; margin-top: 5px;">
+                Use {context} and {question} as placeholders
+              </small>
+            </div>
+            
+            <div class="input-group">
+              <label>Knowledge Base Usage Mode</label>
+              <select id="kb-usage-mode">
+                <option value="auto">Auto (Agent decides when to use)</option>
+                <option value="always">Always (Use for all queries)</option>
+                <option value="manual">Manual (Explicit invocation)</option>
+              </select>
+            </div>
+          </div>
+        </div>
       </div>
-
-      <!-- Placeholder for other providers (coming soon) -->
-      <div id="provider-openai" class="provider-content" style="display: none;">
-        <div class=\"section\">
-          <div class=\"section-title\">🧠 OpenAI Agents</div>
-          <p style=\"color: #888; font-size: 14px; padding: 40px 20px; text-align: center;\">
-            OpenAI conversational agent integration coming soon!<br>
-            <small style=\"color: #666;\">Stay tuned for GPT-4 powered voice agents.</small>
+    
+      <!-- ========== 6. TOOLS & INTEGRATIONS ========== -->
+      <div class="section disabled-section" id="tools-section">
+        <div class="section-title">🛠️ Tools & Webhooks</div>
+        <p style="color: #888; font-size: 12px; margin-bottom: 15px;">
+          Define custom tools for your agent to interact with external APIs
+        </p>
+        
+        <div class="accordion">
+          <div class="accordion-header" onclick="toggleAccordion(this)">
+            <span>➕ Create Webhook Tool</span>
+          </div>
+          <div class="accordion-content" style="display: none;">
+            <div class="input-group">
+              <label>Tool Name</label>
+              <input type="text" id="tool-name" placeholder="e.g. get_weather">
+              <small style="display: block; color: #888; margin-top: 5px;">
+                Use snake_case (e.g. check_order_status)
+              </small>
+            </div>
+            
+            <div class="input-group">
+              <label>Description</label>
+              <textarea id="tool-description" placeholder="What does this tool do? Be specific..." style="min-height: 60px;"></textarea>
+              <small style="display: block; color: #888; margin-top: 5px;">
+                The agent uses this to decide when to call the tool
+              </small>
+            </div>
+            
+            <div class="input-group">
+              <label>Webhook URL</label>
+              <input type="url" id="tool-webhook-url" placeholder="https://api.example.com/endpoint">
+            </div>
+            
+            <div class="input-group">
+              <label>HTTP Method</label>
+              <select id="tool-http-method">
+                <option value="GET">GET</option>
+                <option value="POST" selected>POST</option>
+                <option value="PUT">PUT</option>
+                <option value="PATCH">PATCH</option>
+                <option value="DELETE">DELETE</option>
+              </select>
+            </div>
+            
+            <div class="input-group">
+              <label>Request Headers (JSON)</label>
+              <textarea id="tool-headers" placeholder='{"Authorization": "Bearer YOUR_TOKEN"}' style="min-height: 60px; font-family: monospace; font-size: 11px;"></textarea>
+            </div>
+            
+            <div class="input-group">
+              <label>API Schema (JSON)</label>
+              <textarea id="tool-api-schema" placeholder='{\n  "parameters": {\n    "location": {"type": "string"}\n  }\n}' style="min-height: 100px; font-family: monospace; font-size: 11px;"></textarea>
+              <small style="display: block; color: #888; margin-top: 5px;">
+                Define input parameters for the tool
+              </small>
+            </div>
+            
+            <div class="input-group">
+              <label>Response Timeout (seconds)</label>
+              <input type="number" id="tool-timeout" min="1" max="60" value="10" placeholder="10">
+            </div>
+            
+            <div class="input-group">
+              <label>
+                <input type="checkbox" id="tool-disable-interruptions" style="width: auto; margin-right: 5px;">
+                Disable interruptions during tool execution
+              </label>
+            </div>
+            
+            <button onclick="createWebhookTool()">✨ Create Tool</button>
+          </div>
+        </div>
+        
+        <div style="margin-top: 15px;">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+            <label style="margin: 0; font-size: 13px; font-weight: 600;">My Tools</label>
+            <button onclick="refreshToolsList()" class="small-btn">🔄 Refresh</button>
+          </div>
+          <div id="tools-list" class="item-list">
+            <small style="color: #888;">No tools yet</small>
+          </div>
+        </div>
+        
+        <!-- MCP Server Integration -->
+        <div class="accordion" style="margin-top: 15px;">
+          <div class="accordion-header" onclick="toggleAccordion(this)">
+            <span>🔌 MCP Servers (Advanced)</span>
+          </div>
+          <div class="accordion-content" style="display: none;">
+            <p style="color: #888; font-size: 12px; margin-bottom: 10px;">
+              Model Context Protocol server integration for advanced tooling
+            </p>
+            <div class="input-group">
+              <label>MCP Server IDs</label>
+              <textarea id="mcp-server-ids" placeholder="server-123, server-456..." style="min-height: 60px; font-family: monospace; font-size: 11px;"></textarea>
+              <small style="display: block; color: #888; margin-top: 5px;">
+                Comma-separated list of MCP server identifiers
+              </small>
+            </div>
+            <button onclick="addMCPServers()" class="button-secondary">➕ Add MCP Servers</button>
+          </div>
+        </div>
+      </div>
+    
+      <!-- ========== 7. CONVERSATION MANAGEMENT ========== -->
+      <div class="section disabled-section" id="conversation-section">
+        <div class="section-title">💬 Conversation Controls</div>
+        
+        <div class="accordion">
+          <div class="accordion-header" onclick="toggleAccordion(this)">
+            <span>⚙️ Conversation Settings</span>
+          </div>
+          <div class="accordion-content" style="display: none;">
+            <div class="input-group">
+              <label>Max Duration (seconds)</label>
+              <input type="number" id="conversation-max-duration" min="30" max="3600" value="300" placeholder="300">
+              <small style="display: block; color: #888; margin-top: 5px;">
+                Automatically end conversation after this duration
+              </small>
+            </div>
+            
+            <div class="input-group">
+              <label>
+                <input type="checkbox" id="conversation-allow-interruption" checked style="width: auto; margin-right: 5px;">
+                Allow user interruptions
+              </label>
+              <small style="display: block; color: #888; margin-top: 5px;">
+                Users can interrupt the agent while it's speaking
+              </small>
+            </div>
+            
+            <div class="input-group">
+              <label>Timezone</label>
+              <select id="conversation-timezone">
+                <option value="UTC">UTC</option>
+                <option value="America/New_York">America/New_York (EST)</option>
+                <option value="America/Los_Angeles">America/Los_Angeles (PST)</option>
+                <option value="Europe/London">Europe/London (GMT)</option>
+                <option value="Europe/Paris">Europe/Paris (CET)</option>
+                <option value="Asia/Tokyo">Asia/Tokyo (JST)</option>
+                <option value="Asia/Shanghai">Asia/Shanghai (CST)</option>
+                <option value="Australia/Sydney">Australia/Sydney (AEST)</option>
+              </select>
+            </div>
+          </div>
+        </div>
+        
+        <!-- Live Conversation Controls -->
+        <div style="margin-top: 15px; padding: 15px; background: rgba(76, 175, 80, 0.05); border: 2px solid rgba(76, 175, 80, 0.2); border-radius: 12px;">
+          <div style="font-size: 12px; color: #888; margin-bottom: 10px;">CONVERSATION STATUS</div>
+          <div id="conversation-status-display" style="font-size: 14px; font-weight: 600; color: #888; margin-bottom: 15px;">
+            <span id="conversation-status-text">Not connected</span>
+          </div>
+          
+          <button onclick="startConversationWithSelectedAgent()" id="start-conversation-btn" disabled style="margin-bottom: 8px;">
+            🎙️ Start Conversation
+          </button>
+          <button onclick="stopConversationSession()" id="stop-conversation-btn" disabled style="display: none; margin-bottom: 8px;">
+            ⏹️ Stop Conversation
+          </button>
+          
+          <div id="conversation-transcript-container" style="display: none; margin-top: 15px;">
+            <div style="font-size: 11px; color: #888; margin-bottom: 8px; text-transform: uppercase; letter-spacing: 0.5px;">Transcript</div>
+            <div id="conversation-transcript" style="max-height: 200px; overflow-y: auto; padding: 10px; background: rgba(0, 0, 0, 0.3); border-radius: 8px; font-size: 12px;">
+              <!-- Transcript entries added dynamically -->
+            </div>
+          </div>
+        </div>
+        
+        <!-- Test Agent (Simulation) -->
+        <div class="accordion" style="margin-top: 15px;">
+          <div class="accordion-header" onclick="toggleAccordion(this)">
+            <span>🧪 Test Agent (Simulation)</span>
+          </div>
+          <div class="accordion-content" style="display: none;">
+            <p style="color: #888; font-size: 12px; margin-bottom: 10px;">
+              Test your agent without a live WebSocket connection
+            </p>
+            <div class="input-group">
+              <label>Test Message</label>
+              <textarea id="test-message-input" placeholder="Hello! Tell me about yourself." style="min-height: 60px;"></textarea>
+            </div>
+            <button onclick="simulateAgentConversation()" id="test-agent-btn">🧪 Simulate Response</button>
+            
+            <div id="test-response-container" style="display: none; margin-top: 15px; padding: 12px; background: rgba(0, 0, 0, 0.3); border-radius: 8px;">
+              <div style="font-size: 11px; color: #888; margin-bottom: 5px;">AGENT RESPONSE:</div>
+              <div id="test-response-text" style="font-size: 13px; color: #4CAF50;"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    
+      <!-- ========== 8. ANALYTICS & MONITORING ========== -->
+      <div class="section disabled-section" id="analytics-section">
+        <div class="section-title">📊 Analytics & Usage</div>
+        
+        <div class="accordion">
+          <div class="accordion-header" onclick="toggleAccordion(this)">
+            <span>💰 API Usage & Costs</span>
+          </div>
+          <div class="accordion-content" style="display: none;">
+            <button onclick="fetchAPIUsage()" class="button-secondary" style="margin-bottom: 15px;">🔄 Refresh Usage Data</button>
+            
+            <div id="usage-stats-container" style="display: none;">
+              <div style="padding: 15px; background: rgba(0, 0, 0, 0.3); border-radius: 12px;">
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
+                  <div>
+                    <div style="font-size: 11px; color: #888; margin-bottom: 5px;">CHARACTERS USED</div>
+                    <div id="usage-characters" style="font-size: 20px; font-weight: bold; color: #e0e0e0;">-</div>
+                  </div>
+                  <div>
+                    <div style="font-size: 11px; color: #888; margin-bottom: 5px;">REMAINING</div>
+                    <div id="usage-remaining" style="font-size: 20px; font-weight: bold; color: #4CAF50;">-</div>
+                  </div>
+                </div>
+                <div style="margin-top: 15px; padding-top: 15px; border-top: 1px solid rgba(255, 255, 255, 0.1);">
+                  <div style="font-size: 11px; color: #888; margin-bottom: 5px;">MONTHLY LIMIT</div>
+                  <div id="usage-limit" style="font-size: 16px; font-weight: 600; color: #e0e0e0;">-</div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        
+        <div class="accordion">
+          <div class="accordion-header" onclick="toggleAccordion(this)">
+            <span>💵 Cost Calculator</span>
+          </div>
+          <div class="accordion-content" style="display: none;">
+            <p style="color: #888; font-size: 12px; margin-bottom: 10px;">
+              Estimate LLM token usage and costs for your agent
+            </p>
+            
+            <div class="input-group">
+              <label>Sample Prompt</label>
+              <textarea id="cost-calc-prompt" placeholder="Enter a sample prompt to estimate tokens..." style="min-height: 80px;"></textarea>
+            </div>
+            
+            <button onclick="calculateLLMCost()" class="button-secondary">💰 Calculate Tokens</button>
+            
+            <div id="cost-calc-result" style="display: none; margin-top: 15px; padding: 12px; background: rgba(0, 0, 0, 0.3); border-radius: 8px;">
+              <div style="font-size: 11px; color: #888; margin-bottom: 8px;">ESTIMATED TOKENS</div>
+              <div id="cost-calc-tokens" style="font-size: 18px; font-weight: bold; color: #4CAF50;">-</div>
+            </div>
+          </div>
+        </div>
+        
+        <div class="accordion">
+          <div class="accordion-header" onclick="toggleAccordion(this)">
+            <span>📜 Conversation History</span>
+          </div>
+          <div class="accordion-content" style="display: none;">
+            <button onclick="loadConversationHistory()" class="button-secondary" style="margin-bottom: 10px;">📥 Load History</button>
+            <div id="conversation-history-list" class="item-list">
+              <small style="color: #888;">No conversation history available</small>
+            </div>
+          </div>
+        </div>
+      </div>
+    
+      <!-- ========== 9. PHONE INTEGRATION (Optional) ========== -->
+      <div class="section disabled-section" id="phone-section">
+        <div class="section-title">☎️ Phone Integration</div>
+        <p style="color: #888; font-size: 12px; margin-bottom: 15px;">
+          Connect your agent to phone numbers for telephony
+        </p>
+        
+        <div class="accordion">
+          <div class="accordion-header" onclick="toggleAccordion(this)">
+            <span>📞 Phone Numbers</span>
+          </div>
+          <div class="accordion-content" style="display: none;">
+            <button onclick="loadPhoneNumbers()" class="button-secondary" style="margin-bottom: 10px;">📥 Load Phone Numbers</button>
+            <div id="phone-numbers-list" class="item-list">
+              <small style="color: #888;">No phone numbers configured</small>
+            </div>
+            <p style="color: #666; font-size: 11px; margin-top: 10px;">
+              Phone integration requires additional setup. Contact Eleven Labs support for details.
+            </p>
+          </div>
+        </div>
+      </div>
+    
+      <!-- ========== 10. CONFIGURATION MANAGEMENT ========== -->
+      <div class="section disabled-section" id="config-management-section">
+        <div class="section-title">⚙️ Configuration</div>
+        
+        <div class="accordion">
+          <div class="accordion-header" onclick="toggleAccordion(this)">
+            <span>💾 Export / Import</span>
+          </div>
+          <div class="accordion-content" style="display: none;">
+            <p style="color: #888; font-size: 12px; margin-bottom: 10px;">
+              Save and restore your complete agent configuration
+            </p>
+            
+            <button onclick="exportAgentConfig()" class="button-secondary" style="margin-bottom: 8px;">
+              💾 Export Configuration (JSON)
+            </button>
+            
+            <div style="margin-top: 15px; padding-top: 15px; border-top: 1px solid rgba(255, 255, 255, 0.1);">
+              <label class="button-secondary" for="import-config-file" style="cursor: pointer; text-align: center; margin-bottom: 0;">
+                📂 Import Configuration
+              </label>
+              <input type="file" id="import-config-file" accept=".json" style="display: none;" onchange="importAgentConfig(event)">
+            </div>
+          </div>
+        </div>
+        
+        <div class="accordion">
+          <div class="accordion-header" onclick="toggleAccordion(this)">
+            <span>🗣️ Pronunciation Dictionary</span>
+          </div>
+          <div class="accordion-content" style="display: none;">
+            <p style="color: #888; font-size: 12px; margin-bottom: 10px;">
+              Customize how specific words are pronounced
+            </p>
+            <div class="input-group">
+              <label>Pronunciation Rules</label>
+              <textarea id="pronunciation-dict" placeholder="OpenAI: oh-pen-ay-eye\nKwami: kwah-mee" style="min-height: 100px; font-family: monospace; font-size: 11px;"></textarea>
+              <small style="display: block; color: #888; margin-top: 5px;">
+                Format: Word: phonetic-pronunciation (one per line)
+              </small>
+            </div>
+            <button onclick="applyPronunciationRules()" class="button-secondary">✅ Apply Rules</button>
+          </div>
+        </div>
+      </div>
+    
+      <!-- ========== HELP & DOCUMENTATION ========== -->
+      <div class="section">
+        <div class="section-title">📖 Help & Resources</div>
+        <div style="font-size: 12px; color: #888; line-height: 1.6;">
+          <p style="margin-bottom: 10px;">
+            <a href="https://elevenlabs.io/docs/conversational-ai" target="_blank" rel="noopener noreferrer" style="color: #667eea; text-decoration: none;">
+              📚 Agent Platform Documentation
+            </a>
+          </p>
+          <p style="margin-bottom: 10px;">
+            <a href="https://elevenlabs.io/docs/api-reference" target="_blank" rel="noopener noreferrer" style="color: #667eea; text-decoration: none;">
+              🔧 API Reference
+            </a>
+          </p>
+          <p style="margin-bottom: 10px;">
+            <a href="https://elevenlabs.io/app/settings/api-keys" target="_blank" rel="noopener noreferrer" style="color: #667eea; text-decoration: none;">
+              🔑 Manage API Keys
+            </a>
+          </p>
+          <p>
+            <a href="https://elevenlabs.io/discord" target="_blank" rel="noopener noreferrer" style="color: #667eea; text-decoration: none;">
+              💬 Join Discord Community
+            </a>
           </p>
         </div>
-      </div>
-
-      <!-- Skills Section (Commented out for cleanup) -->
       </div>
     </div>
   </template>

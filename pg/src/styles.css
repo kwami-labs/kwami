@@ -3772,3 +3772,58 @@ body:has(#left-sidebar:not(.hidden)) .sidebar-close-btn {
   margin-bottom: 15px;
   background: #111;
 }
+
+/* Knowledge Base Upload Tabs */
+.kb-upload-tab {
+  display: none;
+}
+
+.kb-upload-tab.active {
+  display: block;
+}
+
+/* Agent Cards */
+.agent-card {
+  padding: 15px;
+  background: var(--bg-section);
+  border-radius: 12px;
+  border: 2px solid var(--border-section);
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.agent-card:hover {
+  background: var(--bg-button-hover);
+  border-color: #4CAF50;
+  transform: translateX(4px);
+}
+
+.agent-card.selected {
+  border-color: #4CAF50;
+  background: rgba(76, 175, 80, 0.1);
+}
+
+.agent-card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: start;
+  margin-bottom: 8px;
+}
+
+.agent-name {
+  font-weight: bold;
+  font-size: 14px;
+  color: var(--text-primary);
+}
+
+.agent-desc {
+  font-size: 12px;
+  color: var(--text-secondary);
+  margin-bottom: 8px;
+}
+
+.agent-meta {
+  font-size: 10px;
+  color: var(--text-tertiary);
+  font-family: monospace;
+}
