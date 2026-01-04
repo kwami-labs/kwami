@@ -1,5 +1,5 @@
 import type { PublicKey } from '@solana/web3.js'
-import { createContext, useContext, useEffect, useMemo, useState } from 'react'
+import { createContext, useContext, useEffect, useMemo, useRef, useState } from 'react'
 import { getWalletConnector, type WalletConnector } from 'kwami/apps/wallet'
 import { fetchOwnedKwamiNfts, type KwamiOwnedNft } from '@/lib/kwamiNfts'
 
@@ -40,6 +40,10 @@ export function WalletProvider(props: { children: React.ReactNode }) {
   const [kwamiNfts, setKwamiNfts] = useState<KwamiOwnedNft[]>([])
   const [kwamiLoading, setKwamiLoading] = useState(false)
   const [kwamiError, setKwamiError] = useState<string | undefined>(undefined)
+
+  // De-dupe + mild throttling to avoid RPC bursts (Metaplex calls are expensive and can 429).
+  const kwamiRefreshInFlightRef = useRef<Promise<void> | null>(null)
+  const kwamiLastRefreshAtRef = useRef<number>(0)
   const [selectedKwamiMint, setSelectedKwamiMintState] = useState<string | null>(() => {
     const saved = localStorage.getItem('kwami-market:selectedKwamiMint')
     return saved && saved.length ? saved : null
@@ -59,21 +63,39 @@ export function WalletProvider(props: { children: React.ReactNode }) {
       return
     }
 
-    setKwamiLoading(true)
-    setKwamiError(undefined)
+    // If we already have a refresh in-flight, re-use it.
+    if (kwamiRefreshInFlightRef.current) return kwamiRefreshInFlightRef.current
+
+    // Basic throttle: if called repeatedly (connect + accountChange + widget init, etc.),
+    // coalesce into one refresh.
+    const now = Date.now()
+    if (now - kwamiLastRefreshAtRef.current < 750) return
+    kwamiLastRefreshAtRef.current = now
+
+    const run = (async () => {
+      setKwamiLoading(true)
+      setKwamiError(undefined)
+      try {
+        const nfts = await fetchOwnedKwamiNfts({
+          connection: connector.getConnection(),
+          owner,
+          collectionMint,
+        })
+        setKwamiNfts(nfts)
+      } catch (e) {
+        const msg = e instanceof Error ? e.message : 'Failed to load NFTs'
+        setKwamiError(msg)
+        setKwamiNfts([])
+      } finally {
+        setKwamiLoading(false)
+      }
+    })()
+
+    kwamiRefreshInFlightRef.current = run
     try {
-      const nfts = await fetchOwnedKwamiNfts({
-        connection: connector.getConnection(),
-        owner,
-        collectionMint,
-      })
-      setKwamiNfts(nfts)
-    } catch (e) {
-      const msg = e instanceof Error ? e.message : 'Failed to load NFTs'
-      setKwamiError(msg)
-      setKwamiNfts([])
+      await run
     } finally {
-      setKwamiLoading(false)
+      kwamiRefreshInFlightRef.current = null
     }
   }
 

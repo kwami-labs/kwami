@@ -1,11 +1,11 @@
 import { useEffect, useRef } from 'react'
-import { createWalletConnectWidget, type WalletConnectWidgetHandle } from 'kwami/ui/wallet'
+import { createWalletConnectWidget, type WalletConnectWidgetConnector, type WalletConnectWidgetHandle } from 'kwami/ui/wallet'
 import { useWallet } from '@/state/wallet'
 
 export function WalletConnect() {
   const mountRef = useRef<HTMLDivElement | null>(null)
   const widgetRef = useRef<WalletConnectWidgetHandle | null>(null)
-  const { connector, refreshKwamiNfts } = useWallet()
+  const { connector } = useWallet()
 
   useEffect(() => {
     const mount = mountRef.current
@@ -16,13 +16,9 @@ export function WalletConnect() {
       connectLabel: 'Connect Wallet',
       showBalanceInButton: true,
       autoRefreshBalanceMs: 30_000,
-      wallet: connector as any,
-      onConnected: () => {
-        void refreshKwamiNfts()
-      },
-      onAccountChange: () => {
-        void refreshKwamiNfts()
-      },
+      wallet: connector as unknown as WalletConnectWidgetConnector,
+      // NOTE: NFT refresh is handled centrally by WalletProvider via connector events.
+      // Keeping it out of the widget avoids duplicate RPC bursts on connect/account change.
     })
 
     mount.innerHTML = ''
@@ -32,7 +28,7 @@ export function WalletConnect() {
       widgetRef.current?.destroy()
       widgetRef.current = null
     }
-  }, [connector, refreshKwamiNfts])
+  }, [connector])
 
   return <div ref={mountRef} className="inline-flex items-center" />
 }
