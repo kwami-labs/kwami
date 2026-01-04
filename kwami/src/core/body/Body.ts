@@ -1227,6 +1227,16 @@ export class KwamiBody {
 
     if (mediaState.type === 'image' && mediaState.imageUrl) {
       this.backgroundMediaFit = mediaState.imageFit ?? 'cover';
+
+      // Prevent infinite loop: if texture is already loaded and assigned, don't reload
+      if (
+        this.currentMediaImageUrl === mediaState.imageUrl &&
+        this.backgroundMediaTexture &&
+        material.map === this.backgroundMediaTexture
+      ) {
+        return;
+      }
+
       this.loadMediaImageTexture(mediaState.imageUrl, material);
       return;
     }

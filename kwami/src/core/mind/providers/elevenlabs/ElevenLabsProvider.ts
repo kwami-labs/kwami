@@ -53,8 +53,38 @@ export class ElevenLabsProvider implements MindProvider {
   private audioContext: AudioContext | null = null;
   private mediaStreamSource: MediaStreamAudioSourceNode | null = null;
   private scriptProcessor: ScriptProcessorNode | null = null;
+  private audioWorkletNode: AudioWorkletNode | null = null;
   private conversationActive = false;
   private conversationCallbacks: MindConversationCallbacks = {};
+  private nextStartTime = 0;
+
+  // AudioWorklet processor code as a string to avoid external file dependencies
+  private readonly audioProcessorCode = `
+    class AudioProcessor extends AudioWorkletProcessor {
+      constructor() {
+        super();
+        this.bufferSize = 4096;
+        this.buffer = new Float32Array(this.bufferSize);
+        this.bufferIndex = 0;
+      }
+
+      process(inputs, outputs, parameters) {
+        const input = inputs[0];
+        if (!input || !input.length) return true;
+        
+        const channel = input[0];
+        for (let i = 0; i < channel.length; i++) {
+          this.buffer[this.bufferIndex++] = channel[i];
+          if (this.bufferIndex === this.bufferSize) {
+            this.port.postMessage(this.buffer.slice());
+            this.bufferIndex = 0;
+          }
+        }
+        return true;
+      }
+    }
+    registerProcessor('eleven-labs-processor', AudioProcessor);
+  `;
 
   constructor(dependencies: MindProviderDependencies, config: MindConfig) {
     this.audio = dependencies.audio;
@@ -144,6 +174,8 @@ export class ElevenLabsProvider implements MindProvider {
       return;
     }
 
+    this.conversationActive = true;
+
     const agentId = this.config.conversational?.agentId;
     if (!agentId) {
       throw new Error('Agent ID is required. Please enter your ElevenLabs agent ID in the Mind menu.');
@@ -166,51 +198,59 @@ export class ElevenLabsProvider implements MindProvider {
       this.currentAudioStream = stream;
 
       this.audioContext = new AudioContext({ sampleRate: 16000 });
-      this.mediaStreamSource = this.audioContext.createMediaStreamSource(stream);
-      const scriptProcessor = this.audioContext.createScriptProcessor(4096, 1, 1);
-      this.mediaStreamSource.connect(scriptProcessor);
-      scriptProcessor.connect(this.audioContext.destination);
+      this.nextStartTime = 0;
+      if (this.audioContext.state === 'suspended') {
+        logger.info('🔊 Resuming suspended AudioContext...');
+        await this.audioContext.resume();
+      }
 
+      // Initialize AudioWorklet
+      const blob = new Blob([this.audioProcessorCode], { type: 'application/javascript' });
+      const workletUrl = URL.createObjectURL(blob);
+      await this.audioContext.audioWorklet.addModule(workletUrl);
+      URL.revokeObjectURL(workletUrl);
+      
+      this.mediaStreamSource = this.audioContext.createMediaStreamSource(stream);
+      this.audioWorkletNode = new AudioWorkletNode(this.audioContext, 'eleven-labs-processor');
+      
+      this.mediaStreamSource.connect(this.audioWorkletNode);
+      this.audioWorkletNode.connect(this.audioContext.destination);
+
+      logger.info(`🎤 Audio initialized. Sample rate: ${this.audioContext.sampleRate}Hz`);
       this.conversationWebSocket = new WebSocket(this.signedUrl!);
       this.setupWebSocketHandlers();
-
       await this.waitForWebSocketConnection();
 
-      let audioPacketCount = 0;
-      let isConversationReady = false;
-      (this as any).audioProcessor = scriptProcessor;
+      if (!this.conversationActive) {
+        logger.warn('Conversation stopped or invalid state after connection setup');
+        return;
+      }
 
-      scriptProcessor.onaudioprocess = (event) => {
-        if (
-          !isConversationReady ||
-          !this.conversationActive ||
-          !this.conversationWebSocket ||
-          this.conversationWebSocket.readyState !== WebSocket.OPEN
-        ) {
-          return;
-        }
-
-        const float32 = event.inputBuffer.getChannelData(0);
-        const pcm16 = this.float32ToPCM16(float32);
-
-        try {
-          this.conversationWebSocket.send(pcm16.buffer);
-          audioPacketCount++;
-
-          if (audioPacketCount % 100 === 0) {
-            logger.info(`Sent ${audioPacketCount} audio packets (${pcm16.byteLength} bytes each)`);
-          }
-        } catch (error) {
-          logger.error('Error sending audio data:', error);
-        }
+      // Setup Worklet message handler
+      this.audioWorkletNode.port.onmessage = (event) => {
+        this.handleAudioInput(event.data);
       };
+
+      // Re-enable scriptProcessor logic removed below...
+      let isConversationReady = false;
+
+      // Safety timeout: if we don't receive metadata event within 5 seconds, assume ready
+      setTimeout(() => {
+        if (!isConversationReady && this.conversationActive) {
+          logger.warn('⚠️ No conversation metadata received after 5s, forcing ready state');
+          if ((this as any).setConversationReady) {
+            (this as any).setConversationReady();
+          }
+        }
+      }, 5000);
 
       (this as any).setConversationReady = () => {
         isConversationReady = true;
         logger.info('🎤 Audio streaming enabled');
       };
 
-      this.conversationActive = true;
+      // Helper function to check readiness inside the audio handler
+      (this as any).isReadyToStream = () => isConversationReady && this.conversationActive && this.conversationWebSocket?.readyState === WebSocket.OPEN;
 
       if (callbacks?.onAgentResponse) {
         callbacks.onAgentResponse(
@@ -221,9 +261,9 @@ export class ElevenLabsProvider implements MindProvider {
         callbacks.onTurnEnd();
       }
 
-      logger.info('🎤 Microphone active, WebSocket connected. You can now speak!');
+      console.log('🎤 Microphone active, WebSocket connected. You can now speak!');
     } catch (error) {
-      logger.error('Error starting conversation:', error);
+      console.error('Error starting conversation:', error);
       this.cleanupConversation();
       throw error;
     }
@@ -792,12 +832,12 @@ export class ElevenLabsProvider implements MindProvider {
   private signedUrl: string | null = null;
 
   private async ensureSignedConversation(agentId: string): Promise<void> {
-    logger.info('🔑 Getting signed URL from ElevenLabs...');
-    logger.info('Agent ID:', agentId);
-    logger.info('API Key:', this.config.apiKey ? '✓ Present' : '✗ Missing');
+    console.log('🔑 Getting signed URL from ElevenLabs...');
+    console.log('Agent ID:', agentId);
+    console.log('API Key:', this.config.apiKey ? '✓ Present' : '✗ Missing');
 
-    const signedUrlEndpoint = `https://api.elevenlabs.io/v1/convai/conversation/get_signed_url?agent_id=${agentId}`;
-    logger.info('Requesting:', signedUrlEndpoint);
+    const signedUrlEndpoint = `https://api.elevenlabs.io/v1/convai/conversation/get-signed-url?agent_id=${agentId}`;
+    console.log('Requesting:', signedUrlEndpoint);
 
     const signedUrlResponse = await fetch(signedUrlEndpoint, {
       method: 'GET',
@@ -807,8 +847,8 @@ export class ElevenLabsProvider implements MindProvider {
       },
     });
 
-    logger.info('Response status:', signedUrlResponse.status);
-    logger.info('Response headers:', Object.fromEntries(signedUrlResponse.headers.entries()));
+    console.log('Response status:', signedUrlResponse.status);
+    console.log('Response headers:', Object.fromEntries(signedUrlResponse.headers.entries()));
 
     if (!signedUrlResponse.ok) {
       let errorDetails = '';
@@ -819,7 +859,7 @@ export class ElevenLabsProvider implements MindProvider {
         errorDetails = await signedUrlResponse.text();
       }
 
-      logger.error('Failed to get signed URL:', {
+      console.error('Failed to get signed URL:', {
         status: signedUrlResponse.status,
         statusText: signedUrlResponse.statusText,
         error: errorDetails,
@@ -837,12 +877,12 @@ export class ElevenLabsProvider implements MindProvider {
     }
 
     const signedUrlData = await signedUrlResponse.json();
-    logger.info('Signed URL response:', JSON.stringify(signedUrlData, null, 2));
+    console.log('Signed URL response:', JSON.stringify(signedUrlData, null, 2));
 
     const signedUrl = signedUrlData.signed_url || signedUrlData.url;
 
     if (!signedUrl) {
-      logger.error('No signed URL in response:', signedUrlData);
+      console.error('No signed URL in response:', signedUrlData);
       throw new Error('No signed URL received from ElevenLabs. Response: ' + JSON.stringify(signedUrlData));
     }
 
@@ -861,7 +901,7 @@ export class ElevenLabsProvider implements MindProvider {
 
       this.conversationWebSocket!.onopen = () => {
         clearTimeout(timeout);
-        logger.info('✅ WebSocket connected successfully!');
+        console.log('✅ WebSocket connected successfully! State:', this.conversationWebSocket?.readyState);
         resolve();
       };
 
@@ -871,6 +911,27 @@ export class ElevenLabsProvider implements MindProvider {
         reject(new Error('Failed to connect to ElevenLabs conversation. Please check your agent is active.'));
       };
     });
+  }
+
+  private downsampleBuffer(buffer: Float32Array, inputRate: number, outputRate: number): Float32Array {
+    if (inputRate === outputRate) return buffer;
+    if (inputRate < outputRate) return buffer;
+
+    const sampleRateRatio = inputRate / outputRate;
+    const newLength = Math.round(buffer.length / sampleRateRatio);
+    const result = new Float32Array(newLength);
+    
+    for (let i = 0; i < newLength; i++) {
+      const offset = i * sampleRateRatio;
+      const index = Math.floor(offset);
+      const nextIndex = Math.min(buffer.length - 1, index + 1);
+      const ratio = offset - index;
+      
+      // Linear interpolation
+      result[i] = buffer[index] * (1 - ratio) + buffer[nextIndex] * ratio;
+    }
+    
+    return result;
   }
 
   private float32ToPCM16(float32: Float32Array): Int16Array {
@@ -971,29 +1032,51 @@ export class ElevenLabsProvider implements MindProvider {
     if (!this.conversationWebSocket) return;
 
     this.conversationWebSocket.onmessage = async (event) => {
-      logger.info('WebSocket message received:', {
-        type: event.data instanceof ArrayBuffer ? 'binary' : 'text',
-        size: event.data instanceof ArrayBuffer ? event.data.byteLength : event.data.length,
-      });
+      // console.log('WebSocket message received:', {
+      //   type: event.data instanceof ArrayBuffer ? 'binary' : 'text',
+      //   size: event.data instanceof ArrayBuffer ? event.data.byteLength : event.data.length,
+      // });
 
-      if (event.data instanceof ArrayBuffer) {
-        logger.info('Received audio data, size:', event.data.byteLength);
-        await this.handleAgentAudio(event.data);
-      } else if (event.data instanceof Blob) {
-        const arrayBuffer = await event.data.arrayBuffer();
-        logger.info('Received audio blob, converted size:', arrayBuffer.byteLength);
-        await this.handleAgentAudio(arrayBuffer);
-      } else {
+      let data = event.data;
+      
+      // Handle JSON message with audio_event
+      if (typeof data === 'string') {
         try {
-          const message = typeof event.data === 'string' ? JSON.parse(event.data) : event.data;
-          logger.info('Received JSON message:', message);
+          const message = JSON.parse(data);
+          
+          if (message.type === 'audio') {
+            const base64Audio = message.audio_event?.audio_base_64;
+            if (base64Audio) {
+              const binaryString = atob(base64Audio);
+              const len = binaryString.length;
+              const bytes = new Uint8Array(len);
+              for (let i = 0; i < len; i++) {
+                bytes[i] = binaryString.charCodeAt(i);
+              }
+              console.log('🔊 Received audio event (base64), decoded size:', bytes.length);
+              await this.handleAgentAudio(bytes.buffer);
+            } else {
+              console.warn('⚠️ Received audio message but no audio_base_64 content', message);
+            }
+            return;
+          }
+          
+          console.log('📩 Received JSON message type:', message.type);
+          if (message.type !== 'audio') {
+             console.log('Full message:', message);
+          }
           this.handleWebSocketMessage(message);
         } catch (error) {
-          logger.info('Received text message:', event.data);
-          if (typeof event.data === 'string') {
-            this.conversationCallbacks.onAgentResponse?.(event.data);
-          }
+          console.log('Received text message:', data);
+          this.conversationCallbacks.onAgentResponse?.(data);
         }
+      } else if (data instanceof ArrayBuffer) {
+        console.log('Received audio data, size:', data.byteLength);
+        await this.handleAgentAudio(data);
+      } else if (data instanceof Blob) {
+        const arrayBuffer = await data.arrayBuffer();
+        console.log('Received audio blob, converted size:', arrayBuffer.byteLength);
+        await this.handleAgentAudio(arrayBuffer);
       }
     };
 
@@ -1080,16 +1163,76 @@ export class ElevenLabsProvider implements MindProvider {
   }
 
   private async handleAgentAudio(audioData: ArrayBuffer): Promise<void> {
+    if (!this.audioContext) return;
+
     try {
-      const wavBlob = this.pcm16ToWav(audioData);
-      const audioUrl = URL.createObjectURL(wavBlob);
+      // Create Float32 buffer for playback
+      const int16Array = new Int16Array(audioData);
+      const float32Array = new Float32Array(int16Array.length);
+      
+      for (let i = 0; i < int16Array.length; i++) {
+        // Convert int16 to float32 (-1.0 to 1.0)
+        float32Array[i] = int16Array[i] < 0 ? int16Array[i] / 0x8000 : int16Array[i] / 0x7FFF;
+      }
 
-      this.audio.loadAudioSource(audioUrl);
-      await this.audio.play();
+      // Create AudioBuffer (assuming 16kHz mono from ElevenLabs)
+      const buffer = this.audioContext.createBuffer(1, float32Array.length, 16000);
+      buffer.getChannelData(0).set(float32Array);
 
-      setTimeout(() => URL.revokeObjectURL(audioUrl), 10000);
+      // Create source
+      const source = this.audioContext.createBufferSource();
+      source.buffer = buffer;
+      source.connect(this.audioContext.destination);
+
+      // Schedule playback
+      const currentTime = this.audioContext.currentTime;
+      
+      // If nextStartTime is behind current time (gap/latency), reset it
+      if (this.nextStartTime < currentTime) {
+        this.nextStartTime = currentTime;
+      }
+
+      source.start(this.nextStartTime);
+      
+      // Advance next start time
+      this.nextStartTime += buffer.duration;
     } catch (error) {
       logger.error('Error playing agent audio:', error);
+    }
+  }
+
+  private handleAudioInput(float32Data: Float32Array): void {
+    if (!(this as any).isReadyToStream || !(this as any).isReadyToStream()) {
+      return;
+    }
+
+    // Resample if necessary (e.g. 48kHz -> 16kHz)
+    let processedAudio = float32Data;
+    if (this.audioContext && this.audioContext.sampleRate !== 16000) {
+      processedAudio = this.downsampleBuffer(float32Data, this.audioContext.sampleRate, 16000);
+    }
+
+    const pcm16 = this.float32ToPCM16(processedAudio);
+
+    try {
+      // Send base64 encoded audio in JSON
+      const base64Audio = btoa(
+        String.fromCharCode(...new Uint8Array(pcm16.buffer))
+      );
+      
+      // Log every ~50th chunk to avoid spamming but confirm activity
+      if (Math.random() < 0.02) {
+        console.log(`🎤 Sending audio chunk: ${pcm16.byteLength} bytes`);
+      }
+
+      this.conversationWebSocket?.send(JSON.stringify({
+        type: 'user_audio_chunk',
+        audio_event: {
+          audio_base_64: base64Audio
+        }
+      }));
+    } catch (error) {
+      console.error('Error sending audio data:', error);
     }
   }
 
@@ -1170,6 +1313,11 @@ export class ElevenLabsProvider implements MindProvider {
       this.mediaRecorder = null;
     }
 
+    if (this.audioWorkletNode) {
+      this.audioWorkletNode.disconnect();
+      this.audioWorkletNode.port.onmessage = null;
+      this.audioWorkletNode = null;
+    }
     if (this.scriptProcessor) {
       this.scriptProcessor.disconnect();
       this.scriptProcessor.onaudioprocess = null;
