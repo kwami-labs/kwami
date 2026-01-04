@@ -57,6 +57,14 @@ export class ElevenLabsProvider implements MindProvider {
   private conversationActive = false;
   private conversationCallbacks: MindConversationCallbacks = {};
   private nextStartTime = 0;
+  private _audioNotReadyLogged = false;
+  private conversationReady = false;
+
+  // Negotiated at runtime via conversation_initiation_metadata
+  private userInputAudioFormat: string | null = null;
+  private agentOutputAudioFormat: string | null = null;
+  private userInputSampleRate = 16000;
+  private agentOutputSampleRate = 44100;
 
   // AudioWorklet processor code as a string to avoid external file dependencies
   private readonly audioProcessorCode = `
@@ -185,6 +193,13 @@ export class ElevenLabsProvider implements MindProvider {
 
     try {
       this.conversationCallbacks = callbacks || {};
+      this.conversationReady = false;
+      this._audioNotReadyLogged = false;
+      this.userInputAudioFormat = null;
+      this.agentOutputAudioFormat = null;
+      this.userInputSampleRate = 16000;
+      this.agentOutputSampleRate = 44100;
+
       await this.ensureSignedConversation(agentId);
 
       const stream = await navigator.mediaDevices.getUserMedia({
@@ -197,7 +212,8 @@ export class ElevenLabsProvider implements MindProvider {
       });
       this.currentAudioStream = stream;
 
-      this.audioContext = new AudioContext({ sampleRate: 16000 });
+      // Use default device sample rate for better playback quality; resample mic input as needed
+      this.audioContext = new AudioContext();
       this.nextStartTime = 0;
       if (this.audioContext.state === 'suspended') {
         logger.info('🔊 Resuming suspended AudioContext...');
@@ -221,6 +237,11 @@ export class ElevenLabsProvider implements MindProvider {
       this.setupWebSocketHandlers();
       await this.waitForWebSocketConnection();
 
+      // Required by ElevenLabs WS protocol to start client-side streaming
+      this.conversationWebSocket.send(JSON.stringify({
+        type: 'conversation_initiation_client_data',
+      }));
+
       if (!this.conversationActive) {
         logger.warn('Conversation stopped or invalid state after connection setup');
         return;
@@ -231,26 +252,13 @@ export class ElevenLabsProvider implements MindProvider {
         this.handleAudioInput(event.data);
       };
 
-      // Re-enable scriptProcessor logic removed below...
-      let isConversationReady = false;
-
       // Safety timeout: if we don't receive metadata event within 5 seconds, assume ready
       setTimeout(() => {
-        if (!isConversationReady && this.conversationActive) {
+        if (!this.conversationReady && this.conversationActive) {
           logger.warn('⚠️ No conversation metadata received after 5s, forcing ready state');
-          if ((this as any).setConversationReady) {
-            (this as any).setConversationReady();
-          }
+          this.setConversationReady();
         }
       }, 5000);
-
-      (this as any).setConversationReady = () => {
-        isConversationReady = true;
-        logger.info('🎤 Audio streaming enabled');
-      };
-
-      // Helper function to check readiness inside the audio handler
-      (this as any).isReadyToStream = () => isConversationReady && this.conversationActive && this.conversationWebSocket?.readyState === WebSocket.OPEN;
 
       if (callbacks?.onAgentResponse) {
         callbacks.onAgentResponse(
@@ -267,6 +275,22 @@ export class ElevenLabsProvider implements MindProvider {
       this.cleanupConversation();
       throw error;
     }
+  }
+
+  private setConversationReady(): void {
+    this.conversationReady = true;
+    console.log('✅ AUDIO STREAMING ENABLED - Ready to send microphone audio');
+    console.log('State check:', {
+      isReady: this.conversationReady,
+      conversationActive: this.conversationActive,
+      wsState: this.conversationWebSocket?.readyState,
+      wsOpen: this.conversationWebSocket?.readyState === WebSocket.OPEN
+    });
+    logger.info('🎙️ Audio streaming enabled');
+  }
+
+  private isReadyToStream(): boolean {
+    return this.conversationReady && this.conversationActive && this.conversationWebSocket?.readyState === WebSocket.OPEN;
   }
 
   async stopConversation(): Promise<void> {
@@ -322,9 +346,10 @@ export class ElevenLabsProvider implements MindProvider {
       return;
     }
 
+    // ElevenLabs expects `user_message` for client-sent text events
     this.conversationWebSocket.send(
       JSON.stringify({
-        type: 'user_text',
+        type: 'user_message',
         text,
       })
     );
@@ -913,6 +938,20 @@ export class ElevenLabsProvider implements MindProvider {
     });
   }
 
+  private parsePcmSampleRate(format: unknown): number | null {
+    if (typeof format !== 'string') {
+      return null;
+    }
+
+    const match = /^pcm_(\d+)$/.exec(format.trim());
+    if (!match) {
+      return null;
+    }
+
+    const rate = Number(match[1]);
+    return Number.isFinite(rate) ? rate : null;
+  }
+
   private downsampleBuffer(buffer: Float32Array, inputRate: number, outputRate: number): Float32Array {
     if (inputRate === outputRate) return buffer;
     if (inputRate < outputRate) return buffer;
@@ -1175,8 +1214,9 @@ export class ElevenLabsProvider implements MindProvider {
         float32Array[i] = int16Array[i] < 0 ? int16Array[i] / 0x8000 : int16Array[i] / 0x7FFF;
       }
 
-      // Create AudioBuffer (assuming 16kHz mono from ElevenLabs)
-      const buffer = this.audioContext.createBuffer(1, float32Array.length, 16000);
+      // Create AudioBuffer using negotiated output sample rate (e.g. pcm_44100)
+      const outputRate = this.agentOutputSampleRate || 16000;
+      const buffer = this.audioContext.createBuffer(1, float32Array.length, outputRate);
       buffer.getChannelData(0).set(float32Array);
 
       // Create source
@@ -1202,35 +1242,41 @@ export class ElevenLabsProvider implements MindProvider {
   }
 
   private handleAudioInput(float32Data: Float32Array): void {
-    if (!(this as any).isReadyToStream || !(this as any).isReadyToStream()) {
+    if (!this.isReadyToStream()) {
+      // Only log first few times to avoid spam
+      if (!this._audioNotReadyLogged) {
+        console.warn('⚠️ Audio input received but conversation not ready to stream yet');
+        this._audioNotReadyLogged = true;
+      }
       return;
     }
 
-    // Resample if necessary (e.g. 48kHz -> 16kHz)
+    // Resample if necessary (e.g. 48kHz -> negotiated user input rate)
     let processedAudio = float32Data;
-    if (this.audioContext && this.audioContext.sampleRate !== 16000) {
-      processedAudio = this.downsampleBuffer(float32Data, this.audioContext.sampleRate, 16000);
+    const targetRate = this.userInputSampleRate || 16000;
+    if (this.audioContext && this.audioContext.sampleRate !== targetRate) {
+      processedAudio = this.downsampleBuffer(float32Data, this.audioContext.sampleRate, targetRate);
     }
 
     const pcm16 = this.float32ToPCM16(processedAudio);
 
     try {
       // Send base64 encoded audio in JSON
-      const base64Audio = btoa(
-        String.fromCharCode(...new Uint8Array(pcm16.buffer))
-      );
-      
+      const base64Audio = btoa(String.fromCharCode(...new Uint8Array(pcm16.buffer)));
+
       // Log every ~50th chunk to avoid spamming but confirm activity
       if (Math.random() < 0.02) {
-        console.log(`🎤 Sending audio chunk: ${pcm16.byteLength} bytes`);
+        console.log(`🎤 Sending audio chunk: ${pcm16.byteLength} bytes (target ${this.userInputSampleRate}Hz)`);
       }
 
-      this.conversationWebSocket?.send(JSON.stringify({
-        type: 'user_audio_chunk',
-        audio_event: {
-          audio_base_64: base64Audio
-        }
-      }));
+      // ElevenLabs expects `user_audio_chunk` as a top-level field (not `type: user_audio_chunk`)
+      this.conversationWebSocket?.send(
+        JSON.stringify({
+          user_audio_chunk: {
+            audio_base_64: base64Audio,
+          },
+        })
+      );
     } catch (error) {
       console.error('Error sending audio data:', error);
     }
@@ -1239,13 +1285,19 @@ export class ElevenLabsProvider implements MindProvider {
   private handleWebSocketMessage(message: any): void {
     switch (message.type) {
       case 'agent_response':
-        logger.info('Agent response:', message.text);
-        this.conversationCallbacks.onAgentResponse?.(message.text);
+        const agentText = message.agent_response_event?.agent_response;
+        logger.info('Agent response:', agentText);
+        if (agentText) {
+          this.conversationCallbacks.onAgentResponse?.(agentText);
+        }
         break;
 
       case 'user_transcript':
-        logger.info('User transcript:', message.text);
-        this.conversationCallbacks.onUserTranscript?.(message.text);
+        const transcript = message.user_transcription_event?.user_transcript;
+        logger.info('User transcript:', transcript);
+        if (transcript) {
+          this.conversationCallbacks.onUserTranscript?.(transcript);
+        }
         break;
 
       case 'turn_start':
@@ -1274,27 +1326,49 @@ export class ElevenLabsProvider implements MindProvider {
         this.stopConversation();
         break;
 
-      case 'conversation_initiation_metadata':
-        logger.info('✅ Conversation initialized:', {
-          conversationId: message.conversation_initiation_metadata_event?.conversation_id,
-          audioFormat: message.conversation_initiation_metadata_event?.user_input_audio_format,
-          agentFormat: message.conversation_initiation_metadata_event?.agent_output_audio_format,
+      case 'conversation_initiation_metadata': {
+        const meta = message.conversation_initiation_metadata_event;
+        const conversationId = meta?.conversation_id;
+        const userFmt = meta?.user_input_audio_format;
+        const agentFmt = meta?.agent_output_audio_format;
+
+        this.userInputAudioFormat = userFmt ?? null;
+        this.agentOutputAudioFormat = agentFmt ?? null;
+
+        // Formats come like "pcm_16000" / "pcm_44100"
+        const userRate = this.parsePcmSampleRate(userFmt) ?? 16000;
+        const agentRate = this.parsePcmSampleRate(agentFmt) ?? 44100;
+        this.userInputSampleRate = userRate;
+        this.agentOutputSampleRate = agentRate;
+
+        console.log('🎛️ Conversation initialized:', {
+          conversationId,
+          user_input_audio_format: userFmt,
+          agent_output_audio_format: agentFmt,
+          userInputSampleRate: this.userInputSampleRate,
+          agentOutputSampleRate: this.agentOutputSampleRate,
         });
 
-        if ((this as any).setConversationReady) {
-          (this as any).setConversationReady();
-        }
+        this.setConversationReady();
 
         if (this.conversationCallbacks.onAgentResponse) {
           this.conversationCallbacks.onAgentResponse('🎙️ Connected! Start speaking...');
         }
         break;
+      }
 
-      case 'ping':
-        if (this.conversationWebSocket?.readyState === WebSocket.OPEN) {
-          this.conversationWebSocket.send(JSON.stringify({ type: 'pong' }));
-        }
+      case 'ping': {
+        const eventId = message.ping_event?.event_id;
+        const delayMs = message.ping_event?.ping_ms ?? 0;
+
+        // ElevenLabs expects pong to include the ping event_id, optionally delayed by ping_ms
+        setTimeout(() => {
+          if (this.conversationWebSocket?.readyState === WebSocket.OPEN && eventId !== undefined) {
+            this.conversationWebSocket.send(JSON.stringify({ type: 'pong', event_id: eventId }));
+          }
+        }, delayMs);
         break;
+      }
 
       default:
         logger.info('Unhandled message type:', message.type, message);
@@ -1347,6 +1421,8 @@ export class ElevenLabsProvider implements MindProvider {
     }
 
     this.conversationActive = false;
+    this.conversationReady = false;
+    this._audioNotReadyLogged = false;
     this.conversationCallbacks = {};
     this.signedUrl = null;
   }
