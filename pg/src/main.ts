@@ -5,6 +5,7 @@ import { initializeGitHubStarButton } from './features/github-stars.js';
 import { initializeExportImport } from './features/export-import.js';
 import { initializeKeyboardShortcuts } from './features/keyboard-shortcuts.js';
 import { initializeMindControls } from './features/mind-ui.js';
+import { initializeAdvancedAgentUI } from './features/agent-advanced-ui.js';
 import { setBlobMediaType } from './features/blob-media.js';
 import { initializeCameraControls } from './features/camera-controls.js';
 import {

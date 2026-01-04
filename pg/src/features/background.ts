@@ -180,16 +180,13 @@ function setBackgroundImage(imageValue: string, { silent = false }: { silent?: b
     if (gradientElement) gradientElement.style.display = 'none';
 
     if (resolved) {
-      mediaLoadingManager.show('Loading background image...');
 
       window.kwami.body.setBackgroundImage(resolved, {
         opacity: 1,
         onLoad: () => {
-          mediaLoadingManager.hide();
           if (!silent) updateStatus('🖼️ Background image loaded!');
         },
         onError: (error: any) => {
-          mediaLoadingManager.hide();
           console.error('Failed to load background image:', error);
           updateError('Failed to load background image');
         },
@@ -210,7 +207,6 @@ function setBackgroundVideo(videoValue: string, { silent = false }: { silent?: b
     if (gradientElement) gradientElement.style.display = 'none';
 
     if (resolved) {
-      mediaLoadingManager.show('Loading background video...');
 
       window.kwami.body.setBackgroundVideo(resolved, {
         opacity: 1,
@@ -218,11 +214,9 @@ function setBackgroundVideo(videoValue: string, { silent = false }: { silent?: b
         loop: true,
         muted: true,
         onLoad: () => {
-          mediaLoadingManager.hide();
           if (!silent) updateStatus('🎞️ Background video loaded!');
         },
         onError: (error: any) => {
-          mediaLoadingManager.hide();
           console.error('Failed to load background video:', error);
           updateError('Failed to load background video');
         },

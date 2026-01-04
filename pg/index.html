@@ -597,6 +597,27 @@
             <input type="range" id="agent-similarity" min="0" max="1" step="0.05" value="0.75">
           </div>
         </div>
+
+        <!-- Advanced Capabilities -->
+        <div class="parameter-group">
+          <div class="parameter-group-title">🧠 Advanced Capabilities</div>
+          
+          <div class="input-group">
+            <label>Knowledge Bases</label>
+            <div class="multiselect-container kb-multiselect">
+              <!-- Populated via JS -->
+              <small style="color: #888;">No knowledge bases available</small>
+            </div>
+          </div>
+
+          <div class="input-group">
+            <label>Tools</label>
+            <div class="multiselect-container tool-multiselect">
+              <!-- Populated via JS -->
+              <small style="color: #888;">No tools available</small>
+            </div>
+          </div>
+        </div>
         
         <button onclick="createNewAgent()" id="create-agent-btn" disabled>✨ Create Agent</button>
         <div id="agent-creation-status" style="margin-top: 10px; display: none;"></div>
@@ -615,6 +636,74 @@
             No agents found. Create your first agent above! 👆
           </div>
         </div>
+      </div>
+
+      <!-- Knowledge Base Management -->
+      <div class="section disabled-section" id="kb-management-section">
+        <div class="section-title">📚 Knowledge Base</div>
+        <p style="color: #888; font-size: 14px; margin-bottom: 15px;">
+          Upload documents for your agent to reference
+        </p>
+
+        <div class="accordion">
+          <div class="accordion-header" onclick="this.nextElementSibling.style.display = this.nextElementSibling.style.display === 'none' ? 'block' : 'none'">
+            ➕ Create New Knowledge Base
+          </div>
+          <div class="accordion-content" style="display: none;">
+            <div class="input-group">
+              <label>Name</label>
+              <input type="text" id="new-kb-name" placeholder="e.g. Product Manuals">
+            </div>
+            <div class="input-group">
+              <label>Description</label>
+              <input type="text" id="new-kb-desc" placeholder="Optional description">
+            </div>
+            <button onclick="createNewKnowledgeBase()">Create KB</button>
+          </div>
+        </div>
+
+        <button class="button-secondary" onclick="refreshKnowledgeBasesList()" style="margin: 10px 0;">🔄 Refresh KBs</button>
+        
+        <div id="kb-list" class="item-list">
+          <!-- Populated by JS -->
+        </div>
+        <div id="kb-list-empty" style="display: none; color: #888; text-align: center;">No Knowledge Bases found</div>
+      </div>
+
+      <!-- Tools Management -->
+      <div class="section disabled-section" id="tools-management-section">
+        <div class="section-title">🛠️ Tools</div>
+        <p style="color: #888; font-size: 14px; margin-bottom: 15px;">
+          Define custom tools for your agent to use
+        </p>
+
+        <div class="accordion">
+          <div class="accordion-header" onclick="this.nextElementSibling.style.display = this.nextElementSibling.style.display === 'none' ? 'block' : 'none'">
+            ➕ Create New Tool
+          </div>
+          <div class="accordion-content" style="display: none;">
+            <div class="input-group">
+              <label>Name</label>
+              <input type="text" id="new-tool-name" placeholder="e.g. get_weather">
+            </div>
+            <div class="input-group">
+              <label>Description</label>
+              <input type="text" id="new-tool-desc" placeholder="What does this tool do?">
+            </div>
+            <div class="input-group">
+              <label>Schema (JSON)</label>
+              <textarea id="new-tool-schema" placeholder='{"parameters": {...}}' style="font-family: monospace; font-size: 12px;"></textarea>
+            </div>
+            <button onclick="createNewTool()">Create Tool</button>
+          </div>
+        </div>
+
+        <button class="button-secondary" onclick="refreshToolsList()" style="margin: 10px 0;">🔄 Refresh Tools</button>
+        
+        <div id="tools-list" class="item-list">
+          <!-- Populated by JS -->
+        </div>
+        <div id="tools-list-empty" style="display: none; color: #888; text-align: center;">No Tools found</div>
       </div>
 
       <!-- Selected Agent Actions -->
@@ -638,7 +727,8 @@
         </button>
       </div>
 
-      <!-- Agent Testing -->
+      <!-- Agent Testing (Commented out for cleanup) -->
+      <!--
       <div class="section disabled-section" id="agent-testing-section">
         <div class="section-title">🧪 Test Agent</div>
         <p style="color: #888; font-size: 14px; margin-bottom: 15px;">
@@ -660,8 +750,10 @@
           </div>
         </div>
       </div>
+      -->
 
-      <!-- Cost Calculator -->
+      <!-- Cost Calculator (Commented out for cleanup) -->
+      <!--
       <div class="section disabled-section" id="cost-calculator-section">
         <div class="section-title">💰 Cost Calculator</div>
         <p style="color: #888; font-size: 14px; margin-bottom: 15px;">
@@ -698,8 +790,10 @@
           </div>
         </div>
       </div>
+      -->
 
-      <!-- Agent Link -->
+      <!-- Agent Link (Commented out for cleanup) -->
+      <!--
       <div class="section disabled-section" id="agent-link-section">
         <div class="section-title">🔗 Share Agent</div>
         
@@ -718,140 +812,22 @@
           </div>
         </div>
       </div>
-
+      -->
       </div>
 
       <!-- Placeholder for other providers (coming soon) -->
       <div id="provider-openai" class="provider-content" style="display: none;">
-        <div class="section">
-          <div class="section-title">🧠 OpenAI Agents</div>
-          <p style="color: #888; font-size: 14px; padding: 40px 20px; text-align: center;">
+        <div class=\"section\">
+          <div class=\"section-title\">🧠 OpenAI Agents</div>
+          <p style=\"color: #888; font-size: 14px; padding: 40px 20px; text-align: center;\">
             OpenAI conversational agent integration coming soon!<br>
-            <small style="color: #666;">Stay tuned for GPT-4 powered voice agents.</small>
+            <small style=\"color: #666;\">Stay tuned for GPT-4 powered voice agents.</small>
           </p>
         </div>
       </div>
 
-      <!-- Skills Section -->
-      <div class="section" style="margin-top: 40px; border-top: 2px solid var(--border-section); padding-top: 30px;">
-        <div class="section-title">👩🏻‍💻 Skills</div>
-        <p class="subtitle">Program Kwami's Behavior</p>
-
-        <!-- Available Skills -->
-        <div class="section">
-          <div class="parameter-group">
-            <div class="parameter-group-title">Available Skills</div>
-            <p style="color: #888; font-size: 12px; margin-bottom: 10px;">
-              Pre-built behavior templates
-            </p>
-            
-            <div class="input-group">
-              <label>Select Skill</label>
-              <select id="skill-selector">
-                <option value="">-- Choose a skill --</option>
-                <option value="minimize-top-right">🔽 Minimize to Top Right</option>
-                <option value="rainbow-transition">🌈 Rainbow Transition</option>
-                <option value="energetic-mode">⚡ Energetic Mode</option>
-                <option value="calm-meditation">🧘 Calm Meditation</option>
-                <option value="focus-session">🎯 Focus Session</option>
-                <option value="party-mode">🎉 Party Mode</option>
-              </select>
-            </div>
-
-            <div id="skill-description" style="padding: 12px; background: var(--bg-section); border-radius: 8px; margin: 10px 0; display: none;">
-              <div style="font-size: 12px; color: var(--text-secondary); margin-bottom: 8px;">
-                <strong id="skill-description-name"></strong>
-              </div>
-              <div style="font-size: 11px; color: var(--text-tertiary);" id="skill-description-text"></div>
-              <div style="font-size: 10px; color: var(--text-tertiary); margin-top: 8px; padding-top: 8px; border-top: 1px solid var(--border-input);">
-                <div><strong>Actions:</strong> <span id="skill-description-actions">0</span></div>
-                <div><strong>Auto-reverse:</strong> <span id="skill-description-reverse">No</span></div>
-              </div>
-            </div>
-
-            <button onclick="executeSelectedSkill()" id="execute-skill-btn" disabled>
-              ▶️ Execute Skill
-            </button>
-
-            <div id="skill-execution-status" style="margin-top: 10px; display: none;">
-              <div style="padding: 10px; background: var(--bg-section); border-radius: 8px; border-left: 3px solid #4CAF50;">
-                <div style="font-size: 12px; color: #4CAF50; font-weight: 600;">
-                  <span id="skill-execution-message">Skill executed successfully</span>
-                </div>
-                <div style="font-size: 11px; color: var(--text-tertiary); margin-top: 4px;">
-                  Duration: <span id="skill-execution-duration">0ms</span>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <!-- Custom Skill Creator -->
-        <div class="section">
-          <div class="parameter-group">
-            <div class="parameter-group-title">Skills templates</div>
-            <p style="color: #888; font-size: 12px; margin-bottom: 10px;">
-              Some examples of Kwami's skills with configurable templates
-            </p>
-
-            <div class="button-row">
-              <button class="button-secondary" onclick="quickSkillMinimize()" title="Minimize Kwami">
-                🔽 Minimize
-              </button>
-              <button class="button-secondary" onclick="quickSkillCenter()" title="Center Kwami">
-                🎯 Center
-              </button>
-            </div>
-
-            <div class="button-row" style="margin-top: 8px;">
-              <button class="button-secondary" onclick="quickSkillEnergize()" title="Energetic mode">
-                ⚡ Energize
-              </button>
-              <button class="button-secondary" onclick="quickSkillCalm()" title="Calm mode">
-                🧘 Calm
-              </button>
-            </div>
-
-            <div class="button-row" style="margin-top: 8px;">
-              <button class="button-secondary" onclick="quickSkillParty()" title="Party mode">
-                🎉 Party
-              </button>
-              <button class="button-secondary" onclick="quickSkillReset()" title="Reset to default">
-                🔄 Reset
-              </button>
-            </div>
-          </div>
-        </div>
-
-        <!-- Load Custom Skill -->
-        <div class="section">
-          <div class="parameter-group">
-            <div class="parameter-group-title">Load Custom Skill</div>
-            <p style="color: #888; font-size: 12px; margin-bottom: 10px;">
-              You can create your own skills by loading them from JSON or YAML files or URLs
-            </p>
-
-            <div class="input-group">
-              <label>Skill URL</label>
-              <input type="text" id="custom-skill-url" placeholder="https://example.com/skill.json">
-            </div>
-
-            <button class="button-secondary" onclick="loadCustomSkill()" id="load-skill-btn">
-              📥 Load Skill
-            </button>
-
-            <div style="margin-top: 10px;">
-              <small style="color: #888;">
-                Or upload: <input type="file" id="skill-file-input" accept=".json" style="display: none;" onchange="loadSkillFromFile(event)">
-                <button class="button-secondary" onclick="document.getElementById('skill-file-input').click()" style="width: auto; padding: 6px 12px; margin: 0; font-size: 12px;">
-                  📁 Choose File
-                </button>
-              </small>
-            </div>
-          </div>
-        </div>
+      <!-- Skills Section (Commented out for cleanup) -->
       </div>
-
     </div>
   </template>
 
@@ -968,7 +944,6 @@
         </div>
       </div>
 
-      <!-- Geometry & Motion -->
       <div class="section">
         <div class="section-title">🔮 Geometry & Motion</div>
         
@@ -1527,6 +1502,126 @@
 
         <button class="button-primary" onclick="savePersonalityConfig()">💾 Save Personality</button>
         <button class="button-secondary" onclick="deleteSavedPersonality()">🗑️ Delete Selected</button>
+      </div>
+
+      <!-- Skills Section -->
+      <div class="section" style="margin-top: 20px; border-top: 2px solid var(--border-section); padding-top: 20px;">
+        <div class="section-title">👩🏻‍💻 Skills</div>
+        <p class="subtitle">Program Kwami's Behavior</p>
+
+        <!-- Available Skills -->
+        <div class="section">
+          <div class="parameter-group">
+            <div class="parameter-group-title">Available Skills</div>
+            <p style="color: #888; font-size: 12px; margin-bottom: 10px;">
+              Pre-built behavior templates
+            </p>
+            
+            <div class="input-group">
+              <label>Select Skill</label>
+              <select id="skill-selector">
+                <option value="">-- Choose a skill --</option>
+                <option value="minimize-top-right">🔽 Minimize to Top Right</option>
+                <option value="rainbow-transition">🌈 Rainbow Transition</option>
+                <option value="energetic-mode">⚡ Energetic Mode</option>
+                <option value="calm-meditation">🧘 Calm Meditation</option>
+                <option value="focus-session">🎯 Focus Session</option>
+                <option value="party-mode">🎉 Party Mode</option>
+              </select>
+            </div>
+
+            <div id="skill-description" style="padding: 12px; background: var(--bg-section); border-radius: 8px; margin: 10px 0; display: none;">
+              <div style="font-size: 12px; color: var(--text-secondary); margin-bottom: 8px;">
+                <strong id="skill-description-name"></strong>
+              </div>
+              <div style="font-size: 11px; color: var(--text-tertiary);" id="skill-description-text"></div>
+              <div style="font-size: 10px; color: var(--text-tertiary); margin-top: 8px; padding-top: 8px; border-top: 1px solid var(--border-input);">
+                <div><strong>Actions:</strong> <span id="skill-description-actions">0</span></div>
+                <div><strong>Auto-reverse:</strong> <span id="skill-description-reverse">No</span></div>
+              </div>
+            </div>
+
+            <button onclick="executeSelectedSkill()" id="execute-skill-btn" disabled>
+              ▶️ Execute Skill
+            </button>
+
+            <div id="skill-execution-status" style="margin-top: 10px; display: none;">
+              <div style="padding: 10px; background: var(--bg-section); border-radius: 8px; border-left: 3px solid #4CAF50;">
+                <div style="font-size: 12px; color: #4CAF50; font-weight: 600;">
+                  <span id="skill-execution-message">Skill executed successfully</span>
+                </div>
+                <div style="font-size: 11px; color: var(--text-tertiary); margin-top: 4px;">
+                  Duration: <span id="skill-execution-duration">0ms</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Custom Skill Creator -->
+        <div class="section">
+          <div class="parameter-group">
+            <div class="parameter-group-title">Skills templates</div>
+            <p style="color: #888; font-size: 12px; margin-bottom: 10px;">
+              Some examples of Kwami's skills with configurable templates
+            </p>
+
+            <div class="button-row">
+              <button class="button-secondary" onclick="quickSkillMinimize()" title="Minimize Kwami">
+                🔽 Minimize
+              </button>
+              <button class="button-secondary" onclick="quickSkillCenter()" title="Center Kwami">
+                🎯 Center
+              </button>
+            </div>
+
+            <div class="button-row" style="margin-top: 8px;">
+              <button class="button-secondary" onclick="quickSkillEnergize()" title="Energetic mode">
+                ⚡ Energize
+              </button>
+              <button class="button-secondary" onclick="quickSkillCalm()" title="Calm mode">
+                🧘 Calm
+              </button>
+            </div>
+
+            <div class="button-row" style="margin-top: 8px;">
+              <button class="button-secondary" onclick="quickSkillParty()" title="Party mode">
+                🎉 Party
+              </button>
+              <button class="button-secondary" onclick="quickSkillReset()" title="Reset to default">
+                🔄 Reset
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Load Custom Skill -->
+        <div class="section">
+          <div class="parameter-group">
+            <div class="parameter-group-title">Load Custom Skill</div>
+            <p style="color: #888; font-size: 12px; margin-bottom: 10px;">
+              You can create your own skills by loading them from JSON or YAML files or URLs
+            </p>
+
+            <div class="input-group">
+              <label>Skill URL</label>
+              <input type="text" id="custom-skill-url" placeholder="https://example.com/skill.json">
+            </div>
+
+            <button class="button-secondary" onclick="loadCustomSkill()" id="load-skill-btn">
+              📥 Load Skill
+            </button>
+
+            <div style="margin-top: 10px;">
+              <small style="color: #888;">
+                Or upload: <input type="file" id="skill-file-input" accept=".json" style="display: none;" onchange="loadSkillFromFile(event)">
+                <button class="button-secondary" onclick="document.getElementById('skill-file-input').click()" style="width: auto; padding: 6px 12px; margin: 0; font-size: 12px;">
+                  📁 Choose File
+                </button>
+              </small>
+            </div>
+          </div>
+        </div>
       </div>
     </div>
   </template>

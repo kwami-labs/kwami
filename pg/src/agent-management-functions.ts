@@ -182,6 +182,11 @@ window.initializeAgentManager = async function() {
     // Load existing agents
     await refreshAgentsList();
     
+    // Initialize Advanced UI features (Voices, Tools, Knowledge Bases)
+    if (window.loadVoicesIntoSelect) window.loadVoicesIntoSelect();
+    if (window.refreshToolsList) window.refreshToolsList();
+    if (window.refreshKnowledgeBasesList) window.refreshKnowledgeBasesList();
+
     // Setup slider listeners for agent creation
     setupAgentSliderListeners();
     
@@ -289,6 +294,17 @@ window.createNewAgent = async function() {
   const stability = parseFloat(document.getElementById('agent-stability').value);
   const similarityBoost = parseFloat(document.getElementById('agent-similarity').value);
   
+  // Collect selected Tools and Knowledge Bases
+  const selectedTools = [];
+  document.querySelectorAll('.tool-multiselect input:checked').forEach(checkbox => {
+    selectedTools.push({ tool_id: checkbox.value });
+  });
+
+  const selectedKBs = [];
+  document.querySelectorAll('.kb-multiselect input:checked').forEach(checkbox => {
+    selectedKBs.push({ knowledge_base_id: checkbox.value });
+  });
+  
   if (!prompt) {
     showError('Please enter a system prompt for your agent');
     return;
@@ -305,7 +321,9 @@ window.createNewAgent = async function() {
             prompt: prompt,
             llm: llmModel,
             temperature: temperature,
-            max_tokens: maxTokens
+            max_tokens: maxTokens,
+            tools: selectedTools.length > 0 ? selectedTools : undefined,
+            knowledge_base: selectedKBs.length > 0 ? selectedKBs : undefined
           },
           first_message: firstMessage || 'Hello! How can I help you today?',
           language: 'en'

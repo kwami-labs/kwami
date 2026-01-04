@@ -75,11 +75,7 @@
     <div class="input-group">
       <label>Voice Selection</label>
       <select id="agent-voice-id">
-        <option value="pNInz6obpgDQGcFmaJgB">Adam (Deep, Professional)</option>
-        <option value="EXAVITQu4vr4xnSDxMaL">Bella (Soft, Female)</option>
-        <option value="ErXwobaYiN019PkySvjV">Antoni (Well-rounded, Male)</option>
-        <option value="MF3mGyEYCl7XYWbV9V6O">Elli (Emotional, Female)</option>
-        <option value="TxGEqnHWrfWFTfGW9XjX">Josh (Young, Male)</option>
+        <option value="" disabled selected>Loading voices...</option>
       </select>
     </div>
     
@@ -102,6 +98,27 @@
       <input type="range" id="agent-similarity" min="0" max="1" step="0.05" value="0.75">
     </div>
   </div>
+
+  <!-- Advanced Capabilities -->
+  <div class="parameter-group">
+    <div class="parameter-group-title">🧠 Advanced Capabilities</div>
+    
+    <div class="input-group">
+      <label>Knowledge Bases</label>
+      <div class="multiselect-container kb-multiselect">
+        <!-- Populated via JS -->
+        <small style="color: #888;">No knowledge bases available</small>
+      </div>
+    </div>
+
+    <div class="input-group">
+      <label>Tools</label>
+      <div class="multiselect-container tool-multiselect">
+        <!-- Populated via JS -->
+        <small style="color: #888;">No tools available</small>
+      </div>
+    </div>
+  </div>
   
   <button onclick="createNewAgent()" id="create-agent-btn">✨ Create Agent</button>
   <div id="agent-creation-status" style="margin-top: 10px; display: none;"></div>
@@ -120,6 +137,74 @@
       No agents found. Create your first agent above! 👆
     </div>
   </div>
+</div>
+
+<!-- Knowledge Base Management -->
+<div class="section" id="kb-management-section" style="display: none;">
+  <div class="section-title">📚 Knowledge Base</div>
+  <p style="color: #888; font-size: 14px; margin-bottom: 15px;">
+    Upload documents for your agent to reference
+  </p>
+
+  <div class="accordion">
+    <div class="accordion-header" onclick="this.nextElementSibling.style.display = this.nextElementSibling.style.display === 'none' ? 'block' : 'none'">
+      ➕ Create New Knowledge Base
+    </div>
+    <div class="accordion-content" style="display: none;">
+      <div class="input-group">
+        <label>Name</label>
+        <input type="text" id="new-kb-name" placeholder="e.g. Product Manuals">
+      </div>
+      <div class="input-group">
+        <label>Description</label>
+        <input type="text" id="new-kb-desc" placeholder="Optional description">
+      </div>
+      <button onclick="createNewKnowledgeBase()">Create KB</button>
+    </div>
+  </div>
+
+  <button class="button-secondary" onclick="refreshKnowledgeBasesList()" style="margin: 10px 0;">🔄 Refresh KBs</button>
+  
+  <div id="kb-list" class="item-list">
+    <!-- Populated by JS -->
+  </div>
+  <div id="kb-list-empty" style="display: none; color: #888; text-align: center;">No Knowledge Bases found</div>
+</div>
+
+<!-- Tools Management -->
+<div class="section" id="tools-management-section" style="display: none;">
+  <div class="section-title">🛠️ Tools</div>
+  <p style="color: #888; font-size: 14px; margin-bottom: 15px;">
+    Define custom tools for your agent to use
+  </p>
+
+  <div class="accordion">
+    <div class="accordion-header" onclick="this.nextElementSibling.style.display = this.nextElementSibling.style.display === 'none' ? 'block' : 'none'">
+      ➕ Create New Tool
+    </div>
+    <div class="accordion-content" style="display: none;">
+      <div class="input-group">
+        <label>Name</label>
+        <input type="text" id="new-tool-name" placeholder="e.g. get_weather">
+      </div>
+      <div class="input-group">
+        <label>Description</label>
+        <input type="text" id="new-tool-desc" placeholder="What does this tool do?">
+      </div>
+      <div class="input-group">
+        <label>Schema (JSON)</label>
+        <textarea id="new-tool-schema" placeholder='{"parameters": {...}}' style="font-family: monospace; font-size: 12px;"></textarea>
+      </div>
+      <button onclick="createNewTool()">Create Tool</button>
+    </div>
+  </div>
+
+  <button class="button-secondary" onclick="refreshToolsList()" style="margin: 10px 0;">🔄 Refresh Tools</button>
+  
+  <div id="tools-list" class="item-list">
+    <!-- Populated by JS -->
+  </div>
+  <div id="tools-list-empty" style="display: none; color: #888; text-align: center;">No Tools found</div>
 </div>
 
 <!-- Selected Agent Actions -->
@@ -299,5 +384,121 @@
   font-size: 11px;
   color: #666;
   margin-top: 5px;
+}
+
+/* Advanced UI Styles */
+.multiselect-container {
+  background: #1a1a1a;
+  border: 1px solid #333;
+  border-radius: 6px;
+  padding: 8px;
+  max-height: 150px;
+  overflow-y: auto;
+}
+
+.checkbox-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 4px 0;
+  font-size: 13px;
+  cursor: pointer;
+}
+
+.checkbox-item:hover {
+  background: #222;
+}
+
+.item-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.kb-card, .tool-card {
+  background: #1a1a1a;
+  border: 1px solid #333;
+  border-radius: 8px;
+  padding: 12px;
+}
+
+.kb-header, .tool-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 5px;
+}
+
+.kb-name, .tool-name {
+  font-weight: bold;
+  color: #e0e0e0;
+}
+
+.kb-desc, .tool-desc {
+  font-size: 12px;
+  color: #888;
+  margin-bottom: 8px;
+}
+
+.kb-meta, .tool-meta {
+  font-size: 10px;
+  color: #555;
+  font-family: monospace;
+}
+
+.kb-upload-zone {
+  margin-top: 10px;
+  border-top: 1px solid #333;
+  padding-top: 8px;
+}
+
+.small-btn {
+  padding: 4px 8px;
+  font-size: 11px;
+  background: #333;
+  border: none;
+  border-radius: 4px;
+  color: #ccc;
+  cursor: pointer;
+}
+
+.small-btn:hover {
+  background: #444;
+  color: #fff;
+}
+
+.delete-btn {
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-size: 14px;
+  padding: 4px;
+}
+
+.delete-btn:hover {
+  opacity: 0.8;
+}
+
+.accordion-header {
+  background: #222;
+  padding: 10px;
+  border-radius: 6px;
+  cursor: pointer;
+  margin-bottom: 5px;
+  font-size: 13px;
+  font-weight: bold;
+  user-select: none;
+}
+
+.accordion-header:hover {
+  background: #333;
+}
+
+.accordion-content {
+  padding: 10px;
+  border: 1px solid #333;
+  border-radius: 6px;
+  margin-bottom: 15px;
+  background: #111;
 }
 </style>

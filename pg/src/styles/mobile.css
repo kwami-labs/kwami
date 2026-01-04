@@ -270,6 +270,10 @@
   .media-loader-image {
     width: 100px;
     height: 100px;
+    border-radius: 50%;
+    mix-blend-mode: screen;
+    -webkit-mask-image: radial-gradient(closest-side, black 85%, transparent 100%);
+    mask-image: radial-gradient(closest-side, black 85%, transparent 100%);
   }
   
   .media-loader-text {
