@@ -37,7 +37,17 @@
     <div id="canvas-container">
       <!-- Menu Toggle Button -->
       <button id="menu-toggle-btn" class="menu-toggle-btn" onclick="toggleMenus()" title="Toggle Sidebars">
-        <span id="menu-toggle-icon">👻</span>
+        <div class="menu-icon-container">
+          <svg class="icon-hamburger" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <line x1="3" y1="12" x2="21" y2="12"></line>
+            <line x1="3" y1="6" x2="21" y2="6"></line>
+            <line x1="3" y1="18" x2="21" y2="18"></line>
+          </svg>
+          <svg class="icon-close" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <line x1="18" y1="6" x2="6" y2="18"></line>
+            <line x1="6" y1="6" x2="18" y2="18"></line>
+          </svg>
+        </div>
       </button>
       
       <!-- Color Picker Button -->
@@ -417,14 +427,14 @@
           <span id="volume-icon">🔊</span>
           <input type="range" id="volume-slider" min="0" max="100" value="80" title="Volume">
         </div>
-        
-        <!-- Media Loader Modal (hidden by default) -->
-        <div id="audio-loader-modal" class="audio-loader-modal hidden">
-          <div class="audio-loader-modal-content">
-            <button class="audio-loader-close" onclick="closeAudioLoaderModal()">✕</button>
-            <h3 style="margin-top: 0; color: var(--text-primary);">Load Audio</h3>
-            <div id="audio-media-loader"></div>
-          </div>
+      </div>
+
+      <!-- Audio Loader Modal (Moved out of audio-player to avoid transform clipping) -->
+      <div id="audio-loader-modal" class="audio-loader-modal hidden">
+        <div class="audio-loader-modal-content">
+          <button class="audio-loader-close" onclick="closeAudioLoaderModal()">✕</button>
+          <h3 style="margin-top: 0; color: var(--text-primary);">Load Audio</h3>
+          <div id="audio-media-loader"></div>
         </div>
       </div>
 

@@ -98,9 +98,10 @@
   }
   
   .mobile-sidebar-tab.active {
-    background: var(--bg-button);
-    color: var(--text-primary);
-    border-bottom: 3px solid var(--scrollbar-thumb);
+    background: var(--app-primary-gradient, var(--scrollbar-thumb));
+    color: white;
+    border-bottom: none;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.2);
   }
   
   /* Hide swap buttons on mobile */

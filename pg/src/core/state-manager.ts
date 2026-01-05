@@ -23,7 +23,7 @@ export const sidebarState = {
   left: 'mind',
   right: 'body',
   hidden: 'soul',
-  menusCollapsed: false
+  menusCollapsed: true
 };
 
 export const sectionLabels = {

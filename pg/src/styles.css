@@ -85,7 +85,7 @@ body {
   top: 0;
   height: 100vh;
   z-index: 1000;
-  transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.3s ease, width 0.3s ease, padding 0.3s ease, box-shadow 0.3s ease, background 0.3s ease;
+  transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.4s ease, width 0.3s ease, padding 0.3s ease, box-shadow 0.3s ease, background 0.3s ease;
   
   /* Firefox scrollbar styling */
   scrollbar-width: thin;
@@ -259,7 +259,7 @@ canvas.conversation-ready {
   top: 20px;
   left: 20px;
   z-index: 1001;
-  background: var(--bg-button);
+  background: var(--app-primary-gradient, var(--scrollbar-thumb));
   backdrop-filter: blur(10px);
   border: none;
   width: 40px;
@@ -270,9 +270,9 @@ canvas.conversation-ready {
   align-items: center;
   justify-content: center;
   box-shadow: 0 4px 20px var(--shadow-button);
-  transition: left 0.3s cubic-bezier(0.4, 0, 0.2, 1), background 0.3s ease, box-shadow 0.3s ease, transform 0.3s ease;
+  transition: left 0.4s cubic-bezier(0.4, 0, 0.2, 1), background 0.3s ease, box-shadow 0.3s ease, transform 0.3s ease;
   font-size: 18px;
-  color: var(--scrollbar-thumb);
+  color: white;
   padding: 0;
 }
 
@@ -282,27 +282,50 @@ body:has(#left-sidebar:not(.hidden)) .menu-toggle-btn {
 }
 
 .menu-toggle-btn:hover {
-  background: var(--bg-button-hover);
-  box-shadow: 0 6px 25px var(--shadow-button-hover);
   transform: scale(1.1);
+  box-shadow: 0 6px 25px rgba(0, 0, 0, 0.3);
 }
 
 .menu-toggle-btn:active {
   transform: scale(0.95);
 }
 
-#menu-toggle-icon {
-  font-size: 20px;
-  transition: transform 0.3s ease;
+/* Icon container for swapping SVGs */
+.menu-icon-container {
+  position: relative;
+  width: 20px;
+  height: 20px;
   display: flex;
   align-items: center;
   justify-content: center;
-  line-height: 1;
 }
 
-/* Rotate ghost 180° when sidebars are open (not hidden) */
-body:has(#left-sidebar:not(.hidden)) #menu-toggle-icon {
-  transform: rotate(180deg);
+.icon-hamburger,
+.icon-close {
+  position: absolute;
+  transition: opacity 0.3s ease, transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Default state (Closed menu -> Show Hamburger) */
+.icon-hamburger {
+  opacity: 1;
+  transform: rotate(0deg) scale(1);
+}
+
+.icon-close {
+  opacity: 0;
+  transform: rotate(-90deg) scale(0.5);
+}
+
+/* Open state (Sidebar visible -> Show Close/X) */
+body:has(#left-sidebar:not(.hidden)) .icon-hamburger {
+  opacity: 0;
+  transform: rotate(90deg) scale(0.5);
+}
+
+body:has(#left-sidebar:not(.hidden)) .icon-close {
+  opacity: 1;
+  transform: rotate(0deg) scale(1);
 }
 
 /* Color Picker Button */
@@ -322,7 +345,7 @@ body:has(#left-sidebar:not(.hidden)) #menu-toggle-icon {
   align-items: center;
   justify-content: center;
   box-shadow: 0 4px 20px var(--shadow-button);
-  transition: right 0.3s ease, background 0.3s ease, box-shadow 0.3s ease, transform 0.3s ease;
+  transition: right 0.4s cubic-bezier(0.4, 0, 0.2, 1), background 0.3s ease, box-shadow 0.3s ease, transform 0.3s ease;
   font-size: 18px;
   padding: 0;
 }
@@ -361,7 +384,7 @@ body:has(#right-sidebar:not(.hidden)) .color-picker-btn {
   max-width: 340px;
   max-height: 80vh;
   overflow-y: auto;
-  transition: opacity 0.2s ease, transform 0.2s ease, right 0.3s ease;
+  transition: opacity 0.2s ease, transform 0.2s ease, right 0.4s cubic-bezier(0.4, 0, 0.2, 1);
   opacity: 1;
   transform: translateY(0);
   
@@ -919,7 +942,7 @@ body.glass-ui .audio-toggle-btn:hover {
   align-items: center;
   justify-content: center;
   box-shadow: 0 4px 20px var(--shadow-button);
-  transition: right 0.3s ease, background 0.3s ease, box-shadow 0.3s ease, transform 0.3s ease;
+  transition: right 0.4s cubic-bezier(0.4, 0, 0.2, 1), background 0.3s ease, box-shadow 0.3s ease, transform 0.3s ease;
   font-size: 18px;
   padding: 0;
 }
@@ -959,7 +982,7 @@ body:has(#right-sidebar:not(.hidden)) .theme-toggle-btn {
   align-items: center;
   gap: 6px;
   box-shadow: 0 4px 20px var(--shadow-button);
-  transition: right 0.3s ease, background 0.3s ease, box-shadow 0.3s ease, transform 0.3s ease, color 0.3s ease;
+  transition: right 0.4s cubic-bezier(0.4, 0, 0.2, 1), background 0.3s ease, box-shadow 0.3s ease, transform 0.3s ease, color 0.3s ease;
   font-size: 13px;
   color: var(--text-primary);
   text-decoration: none;
@@ -1019,7 +1042,7 @@ body:has(#right-sidebar:not(.hidden)) .github-star-btn {
   justify-content: center;
   cursor: pointer;
   color: var(--scrollbar-thumb);
-  transition: all 0.3s ease;
+  transition: top 0.4s cubic-bezier(0.4, 0, 0.2, 1), bottom 0.4s cubic-bezier(0.4, 0, 0.2, 1), left 0.4s cubic-bezier(0.4, 0, 0.2, 1), right 0.4s cubic-bezier(0.4, 0, 0.2, 1), background 0.3s ease, box-shadow 0.3s ease, transform 0.3s ease, opacity 0.3s ease;
   padding: 0;
   z-index: 1001;
   opacity: 1;
@@ -1064,7 +1087,7 @@ body:has(#right-sidebar:not(.hidden)) .github-star-btn {
   align-items: center;
   gap: 12px;
   box-shadow: 0 4px 20px var(--shadow-button);
-  transition: all 0.3s ease;
+  transition: top 0.4s cubic-bezier(0.4, 0, 0.2, 1), bottom 0.4s cubic-bezier(0.4, 0, 0.2, 1), left 0.4s cubic-bezier(0.4, 0, 0.2, 1), right 0.4s cubic-bezier(0.4, 0, 0.2, 1), background 0.3s ease, box-shadow 0.3s ease, transform 0.3s ease, opacity 0.3s ease;
   opacity: 1;
   pointer-events: auto;
 }
@@ -1298,7 +1321,7 @@ textarea {
 button:not(.color-preset):not(.menu-toggle-btn):not(.theme-toggle-btn):not(.color-picker-btn):not(.audio-toggle-btn):not(.player-btn):not(.audio-close-btn):not(.audio-loader-close):not(.media-tab):not(.provider-tab):not(.randomize-colors-btn) {
   width: 100%;
   padding: 12px;
-  background: var(--scrollbar-thumb);
+  background: var(--app-primary-gradient, var(--scrollbar-thumb));
   color: white;
   border: none;
   border-radius: 8px;
@@ -1326,8 +1349,8 @@ button:not(.color-preset):not(.menu-toggle-btn):not(.theme-toggle-btn):not(.colo
 }
 
 .button-secondary {
-  background: #f0f0f0;
-  color: #333;
+  background: var(--app-primary-color, #f0f0f0);
+  color: white;
 }
 
 .button-secondary:hover {
@@ -1349,7 +1372,7 @@ button:not(.color-preset):not(.menu-toggle-btn):not(.theme-toggle-btn):not(.colo
   letter-spacing: 1.2px;
   backdrop-filter: blur(10px);
   box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
-  transition: all 0.3s ease;
+  transition: top 0.4s cubic-bezier(0.4, 0, 0.2, 1), bottom 0.4s cubic-bezier(0.4, 0, 0.2, 1), left 0.4s cubic-bezier(0.4, 0, 0.2, 1), right 0.4s cubic-bezier(0.4, 0, 0.2, 1), background 0.3s ease, box-shadow 0.3s ease, transform 0.3s ease, opacity 0.3s ease;
   pointer-events: none;
   opacity: 0;
   max-height: 0;
@@ -1462,7 +1485,7 @@ button:not(.color-preset):not(.menu-toggle-btn):not(.theme-toggle-btn):not(.colo
   box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
   opacity: 0;
   transform: translateY(10px);
-  transition: all 0.3s ease;
+  transition: top 0.4s cubic-bezier(0.4, 0, 0.2, 1), bottom 0.4s cubic-bezier(0.4, 0, 0.2, 1), left 0.4s cubic-bezier(0.4, 0, 0.2, 1), right 0.4s cubic-bezier(0.4, 0, 0.2, 1), background 0.3s ease, box-shadow 0.3s ease, transform 0.3s ease, opacity 0.3s ease;
   pointer-events: auto;
   max-height: 0;
   overflow: hidden;
@@ -1545,7 +1568,7 @@ button:not(.color-preset):not(.menu-toggle-btn):not(.theme-toggle-btn):not(.colo
   font-size: 20px;
   user-select: none;
   opacity: 0.7;
-  transition: opacity 0.2s ease, transform 0.2s ease;
+  transition: opacity 0.2s ease, transform 0.2s ease, right 0.4s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .trait-emoji-left {
@@ -1882,7 +1905,7 @@ input[type="checkbox"] {
   padding: 12px 20px;
   margin-top: 0;
   margin-bottom: 20px;
-  background: var(--bg-section);
+  background: var(--app-primary-gradient, var(--bg-section));
   color: var(--text-secondary);
   border: 2px solid var(--border-input);
   font-size: 13px;
@@ -1934,7 +1957,7 @@ input[type="checkbox"] {
   right: 20px;
   opacity: 0;
   transform: translate(-8px, -50%);
-  transition: all 0.3s ease;
+  transition: top 0.4s cubic-bezier(0.4, 0, 0.2, 1), bottom 0.4s cubic-bezier(0.4, 0, 0.2, 1), left 0.4s cubic-bezier(0.4, 0, 0.2, 1), right 0.4s cubic-bezier(0.4, 0, 0.2, 1), background 0.3s ease, box-shadow 0.3s ease, transform 0.3s ease, opacity 0.3s ease;
   font-size: 16px;
   line-height: 1;
   font-weight: bold;
@@ -2019,8 +2042,8 @@ input[type="checkbox"] {
 }
 
 .media-tab.active {
-  background: var(--scrollbar-thumb);
-  border-color: var(--scrollbar-thumb);
+  background: var(--app-primary-gradient, var(--scrollbar-thumb));
+  border-color: transparent;
   color: white;
 }
 
@@ -2152,7 +2175,7 @@ input[type="checkbox"] {
   border-radius: 12px;
   border: 2px solid #333;
   cursor: pointer;
-  transition: all 0.3s ease;
+  transition: top 0.4s cubic-bezier(0.4, 0, 0.2, 1), bottom 0.4s cubic-bezier(0.4, 0, 0.2, 1), left 0.4s cubic-bezier(0.4, 0, 0.2, 1), right 0.4s cubic-bezier(0.4, 0, 0.2, 1), background 0.3s ease, box-shadow 0.3s ease, transform 0.3s ease, opacity 0.3s ease;
 }
 
 .agent-card:hover {
@@ -2232,7 +2255,7 @@ input[type="checkbox"] {
   border: 2px solid var(--border-input);
   border-radius: 12px;
   cursor: pointer;
-  transition: all 0.3s ease;
+  transition: top 0.4s cubic-bezier(0.4, 0, 0.2, 1), bottom 0.4s cubic-bezier(0.4, 0, 0.2, 1), left 0.4s cubic-bezier(0.4, 0, 0.2, 1), right 0.4s cubic-bezier(0.4, 0, 0.2, 1), background 0.3s ease, box-shadow 0.3s ease, transform 0.3s ease, opacity 0.3s ease;
   font-size: 12px;
   font-weight: 500;
   color: var(--text-secondary);
@@ -2246,8 +2269,8 @@ input[type="checkbox"] {
 }
 
 .provider-tab.active {
-  background: var(--scrollbar-thumb);
-  border-color: var(--scrollbar-thumb);
+  background: var(--app-primary-gradient, var(--scrollbar-thumb));
+  border-color: transparent;
   color: white;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
 }
@@ -2429,7 +2452,7 @@ input[type="checkbox"] {
   font-size: 13px;
   font-weight: 600;
   cursor: pointer;
-  transition: all 0.3s ease;
+  transition: top 0.4s cubic-bezier(0.4, 0, 0.2, 1), bottom 0.4s cubic-bezier(0.4, 0, 0.2, 1), left 0.4s cubic-bezier(0.4, 0, 0.2, 1), right 0.4s cubic-bezier(0.4, 0, 0.2, 1), background 0.3s ease, box-shadow 0.3s ease, transform 0.3s ease, opacity 0.3s ease;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
 }
 
@@ -2459,7 +2482,7 @@ input[type="checkbox"] {
   border-radius: 12px;
   background: var(--bg-section);
   cursor: pointer;
-  transition: all 0.3s ease;
+  transition: top 0.4s cubic-bezier(0.4, 0, 0.2, 1), bottom 0.4s cubic-bezier(0.4, 0, 0.2, 1), left 0.4s cubic-bezier(0.4, 0, 0.2, 1), right 0.4s cubic-bezier(0.4, 0, 0.2, 1), background 0.3s ease, box-shadow 0.3s ease, transform 0.3s ease, opacity 0.3s ease;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -2481,7 +2504,7 @@ input[type="checkbox"] {
   font-size: 13px;
   font-weight: 600;
   cursor: pointer;
-  transition: all 0.3s ease;
+  transition: top 0.4s cubic-bezier(0.4, 0, 0.2, 1), bottom 0.4s cubic-bezier(0.4, 0, 0.2, 1), left 0.4s cubic-bezier(0.4, 0, 0.2, 1), right 0.4s cubic-bezier(0.4, 0, 0.2, 1), background 0.3s ease, box-shadow 0.3s ease, transform 0.3s ease, opacity 0.3s ease;
   min-height: 44px;
   order: 2;
 }
@@ -2517,7 +2540,7 @@ input[type="checkbox"] {
 .media-loader-dropzone-icon {
   font-size: 48px;
   opacity: 0.6;
-  transition: all 0.3s ease;
+  transition: top 0.4s cubic-bezier(0.4, 0, 0.2, 1), bottom 0.4s cubic-bezier(0.4, 0, 0.2, 1), left 0.4s cubic-bezier(0.4, 0, 0.2, 1), right 0.4s cubic-bezier(0.4, 0, 0.2, 1), background 0.3s ease, box-shadow 0.3s ease, transform 0.3s ease, opacity 0.3s ease;
 }
 
 .media-loader-dropzone:hover .media-loader-dropzone-icon,
@@ -3014,7 +3037,7 @@ input[type="checkbox"] {
   font-size: 18px;
   font-weight: 400;
   cursor: pointer;
-  transition: all 0.3s ease;
+  transition: top 0.4s cubic-bezier(0.4, 0, 0.2, 1), bottom 0.4s cubic-bezier(0.4, 0, 0.2, 1), left 0.4s cubic-bezier(0.4, 0, 0.2, 1), right 0.4s cubic-bezier(0.4, 0, 0.2, 1), background 0.3s ease, box-shadow 0.3s ease, transform 0.3s ease, opacity 0.3s ease;
   padding: 0;
   align-items: center;
   justify-content: center;
@@ -3789,7 +3812,7 @@ body:has(#left-sidebar:not(.hidden)) .sidebar-close-btn {
   border-radius: 12px;
   border: 2px solid var(--border-section);
   cursor: pointer;
-  transition: all 0.3s ease;
+  transition: top 0.4s cubic-bezier(0.4, 0, 0.2, 1), bottom 0.4s cubic-bezier(0.4, 0, 0.2, 1), left 0.4s cubic-bezier(0.4, 0, 0.2, 1), right 0.4s cubic-bezier(0.4, 0, 0.2, 1), background 0.3s ease, box-shadow 0.3s ease, transform 0.3s ease, opacity 0.3s ease;
 }
 
 .agent-card:hover {

@@ -88,48 +88,12 @@ function applyAppColor(color: string): void {
   root.style.setProperty('--app-primary-color', color);
   root.style.setProperty('--app-primary-dark', darkerShade);
   root.style.setProperty('--app-primary-light', lighterShade);
+  
+  const gradient = `linear-gradient(135deg, ${color} 0%, ${darkerShade} 100%)`;
+  root.style.setProperty('--app-primary-gradient', gradient);
 
   // Firefox
   (document.documentElement.style as any).scrollbarColor = `${color} var(--scrollbar-track)`;
-
-  // Update button gradient colors
-  document
-    .querySelectorAll('button:not(.button-secondary):not(.color-preset)')
-    .forEach((button) => {
-      const el = button as HTMLElement;
-      if (
-        !el.classList.contains('menu-toggle-btn') &&
-        !el.classList.contains('theme-toggle-btn') &&
-        !el.classList.contains('color-picker-btn') &&
-        !el.classList.contains('github-star-btn') &&
-        !el.classList.contains('audio-toggle-btn') &&
-        !el.classList.contains('player-btn') &&
-        !el.classList.contains('audio-close-btn') &&
-        !el.classList.contains('audio-loader-close') &&
-        !el.classList.contains('media-tab') &&
-        !el.classList.contains('provider-tab') &&
-        !el.classList.contains('randomize-colors-btn')
-      ) {
-        el.style.background = `linear-gradient(135deg, ${color} 0%, ${darkerShade} 100%)`;
-      }
-    });
-
-  // Swap buttons
-  document.querySelectorAll('.swap-button').forEach((button) => {
-    (button as HTMLElement).style.background = `linear-gradient(135deg, ${color} 0%, ${darkerShade} 100%)`;
-  });
-
-  // Secondary buttons
-  document.querySelectorAll('.button-secondary').forEach((button) => {
-    const el = button as HTMLElement;
-    el.style.background = color;
-    el.style.color = 'white';
-  });
-
-  // Media loader Load buttons
-  document.querySelectorAll('.media-loader-url-btn').forEach((button) => {
-    (button as HTMLElement).style.background = color;
-  });
 
   // Replace old dynamic style
   const oldStyle = document.getElementById('dynamic-app-color-styles');
