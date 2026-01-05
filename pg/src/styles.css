@@ -497,16 +497,57 @@ body.glass-ui .audio-toggle-btn:hover {
 }
 
 .color-picker-header {
-  margin-bottom: 15px;
-  padding-bottom: 10px;
-  border-bottom: 1px solid var(--border-input);
+  margin-bottom: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
 }
 
 .color-picker-title {
-  font-size: 14px;
+  font-size: 13px;
   font-weight: 600;
   color: var(--text-primary);
   margin: 0;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+/* Theme Segmented Control */
+.theme-segmented-control {
+  display: flex;
+  background: var(--bg-input);
+  border: 1px solid var(--border-input);
+  border-radius: 6px;
+  padding: 2px;
+  width: 100px;
+}
+
+.theme-option {
+  flex: 1;
+  border: none;
+  background: transparent;
+  color: var(--text-secondary);
+  font-size: 14px;
+  padding: 4px;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  line-height: 1;
+}
+
+.theme-option.active {
+  background: var(--bg-button);
+  color: var(--text-primary);
+  box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+  font-weight: 600;
+}
+
+.theme-option:hover:not(.active) {
+  background: rgba(0,0,0,0.05);
+  color: var(--text-primary);
 }
 
 .color-picker-controls {
@@ -1318,7 +1359,7 @@ textarea {
   font-family: inherit;
 }
 
-button:not(.color-preset):not(.menu-toggle-btn):not(.theme-toggle-btn):not(.color-picker-btn):not(.audio-toggle-btn):not(.player-btn):not(.audio-close-btn):not(.audio-loader-close):not(.media-tab):not(.provider-tab):not(.randomize-colors-btn) {
+button:not(.color-preset):not(.menu-toggle-btn):not(.theme-toggle-btn):not(.color-picker-btn):not(.audio-toggle-btn):not(.player-btn):not(.audio-close-btn):not(.audio-loader-close):not(.media-tab):not(.provider-tab):not(.randomize-colors-btn):not(.small-btn) {
   width: 100%;
   padding: 12px;
   background: var(--app-primary-gradient, var(--scrollbar-thumb));
@@ -3747,6 +3788,7 @@ body:has(#left-sidebar:not(.hidden)) .sidebar-close-btn {
 }
 
 .small-btn {
+  width: auto;
   padding: 4px 8px;
   font-size: 11px;
   background: #333;
@@ -3759,6 +3801,21 @@ body:has(#left-sidebar:not(.hidden)) .sidebar-close-btn {
 .small-btn:hover {
   background: #444;
   color: #fff;
+}
+
+/* Icon-only small button (used for refresh buttons in headers) */
+.small-btn.icon-square-btn {
+  width: 26px !important;
+  height: 26px !important;
+  min-width: 26px;
+  max-width: 26px;
+  padding: 0 !important;
+  margin: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  line-height: 1;
+  font-size: 14px;
 }
 
 .delete-btn {

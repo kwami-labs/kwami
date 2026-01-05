@@ -61,12 +61,28 @@
           <h3 class="color-picker-title">🖌️ Pick you fav color</h3>
         </div>
         <div class="color-picker-controls">
-          <input type="color" id="app-color-input" class="color-picker-input" value="#667eea">
-          <button id="random-color-btn" class="random-color-btn" type="button" title="Random Color">🎲</button>
-          <label class="glass-effect-toggle">
-            <input type="checkbox" id="glass-effect-checkbox">
-            <span class="glass-effect-label">🪟 Glass</span>
-          </label>
+          <div class="color-selection-row">
+            <div class="color-preview-wrapper">
+              <input type="color" id="app-color-input" class="color-picker-input" value="#667eea">
+              <div class="color-preview-display" id="color-preview-display">
+                <span>Pick Color</span>
+              </div>
+            </div>
+            <button id="random-color-btn" class="random-color-btn" type="button" title="Random Color">🎲</button>
+          </div>
+          
+          <div class="glass-controls-container">
+            <div class="glass-effect-row">
+              <span class="glass-effect-label">🪟 Glass Effect</span>
+              <label class="glass-toggle-switch">
+                <input type="checkbox" id="glass-effect-checkbox">
+                <span class="glass-slider-round"></span>
+              </label>
+            </div>
+            <div class="glass-opacity-slider-container" id="glass-opacity-container">
+              <input type="range" id="glass-opacity-slider" class="glass-opacity-slider" min="0.1" max="0.95" step="0.05" value="0.7">
+            </div>
+          </div>
         </div>
         <div class="color-picker-presets">
         
@@ -540,7 +556,7 @@
         <div style="margin-top: 15px;">
           <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
             <label style="margin: 0; font-size: 13px; font-weight: 600;">My Agents</label>
-            <button onclick="refreshAgentsList()" class="small-btn">🔄 Refresh</button>
+            <button onclick="refreshAgentsList()" class="small-btn icon-square-btn" title="Refresh" aria-label="Refresh">🔄</button>
           </div>
           <div id="agents-list" class="item-list">
             <!-- Populated dynamically -->
@@ -807,7 +823,7 @@
         <div style="margin-top: 15px;">
           <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
             <label style="margin: 0; font-size: 13px; font-weight: 600;">My Knowledge Bases</label>
-            <button onclick="refreshKBList()" class="small-btn">🔄 Refresh</button>
+            <button onclick="refreshKBList()" class="small-btn icon-square-btn" title="Refresh" aria-label="Refresh">🔄</button>
           </div>
           <div id="kb-list" class="item-list">
             <small style="color: #888;">No knowledge bases yet</small>
@@ -916,7 +932,7 @@
         <div style="margin-top: 15px;">
           <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
             <label style="margin: 0; font-size: 13px; font-weight: 600;">My Tools</label>
-            <button onclick="refreshToolsList()" class="small-btn">🔄 Refresh</button>
+            <button onclick="refreshToolsList()" class="small-btn icon-square-btn" title="Refresh" aria-label="Refresh">🔄</button>
           </div>
           <div id="tools-list" class="item-list">
             <small style="color: #888;">No tools yet</small>
