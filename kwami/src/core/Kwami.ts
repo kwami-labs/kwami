@@ -88,31 +88,11 @@ export class Kwami {
    */
   setState(state: KwamiState): void {
     this.state = state;
-    // Update blob animation based on state
-    // Different states could trigger different animation patterns
-    switch (state) {
-      case 'listening':
-        // More responsive, higher spike values
-        this.body.blob.setSpikes(0.4, 0.4, 0.4);
-        this.body.blob.setTime(1.5, 1.5, 1.5);
-        break;
-      case 'thinking':
-        // Slower, more contemplative movement
-        this.body.blob.setSpikes(0.15, 0.15, 0.15);
-        this.body.blob.setTime(0.5, 0.5, 0.5);
-        break;
-      case 'speaking':
-        // Active, dynamic movement
-        this.body.blob.setSpikes(0.3, 0.3, 0.3);
-        this.body.blob.setTime(1.2, 1.2, 1.2);
-        break;
-      case 'idle':
-      default:
-        // Default, calm movement
-        this.body.blob.setSpikes(0.2, 0.2, 0.2);
-        this.body.blob.setTime(1, 1, 1);
-        break;
-    }
+    // We no longer override blob parameters (spikes, time, etc.) based on state.
+    // This allows the user's custom configuration or randomization to persist
+    // regardless of whether the agent is listening, thinking, or speaking.
+    // Visual feedback should be handled by the animation loop (animation.ts) 
+    // or by overlay effects, not by resetting geometry parameters.
   }
 
   /**
@@ -200,7 +180,14 @@ export class Kwami {
     } catch (error) {
       logger.error('Error starting conversation:', error);
       this.setState('idle');
-      throw error;
+      
+      // Use the provided onError callback if available to handle the error gracefully
+      // otherwise re-throw to let the caller handle it
+      if (callbacks?.onError) {
+        callbacks.onError(error instanceof Error ? error : new Error(String(error)));
+      } else {
+        throw error;
+      }
     }
   }
 
@@ -236,11 +223,24 @@ export class Kwami {
    */
   enableBlobInteraction(conversationCallbacks?: any): void {
     this.body.enableBlobInteraction(async () => {
-      // Toggle conversation on double-click
-      if (this.isConversationActive()) {
-        await this.stopConversation();
-      } else {
-        await this.startConversation(conversationCallbacks);
+      try {
+        // Toggle conversation on double-click
+        if (this.isConversationActive()) {
+          await this.stopConversation();
+        } else {
+          await this.startConversation(conversationCallbacks);
+        }
+      } catch (error) {
+        // If startConversation threw (because no onError callback was provided or handled),
+        // catch it here to prevent Uncaught Promise Rejection in the event handler.
+        // We can check if it was already handled by checking if the state is idle
+        // but safe to log if it wasn't.
+        if (conversationCallbacks?.onError) {
+           // It should have been handled inside startConversation if we updated it, 
+           // but just in case it bubbled up.
+        } else {
+           logger.error('Unhandled conversation toggle error:', error);
+        }
       }
     });
   }

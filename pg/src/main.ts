@@ -377,7 +377,12 @@ try {
       }
     },
     onError: (error) => {
-      showError('Conversation error: ' + error.message);
+      // Don't show redundant error for known API key missing issues
+      if (error.message.includes('API key not provided')) {
+        showError('Please enter your ElevenLabs API key in the Mind menu to start a conversation.');
+      } else {
+        showError('Conversation error: ' + error.message);
+      }
       window.stopConversation?.();
     }
   };

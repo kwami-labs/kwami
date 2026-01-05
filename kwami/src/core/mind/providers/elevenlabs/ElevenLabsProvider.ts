@@ -59,6 +59,7 @@ export class ElevenLabsProvider implements MindProvider {
   private nextStartTime = 0;
   private _audioNotReadyLogged = false;
   private conversationReady = false;
+  private ownsAudioContext = false;
 
   // Negotiated at runtime via conversation_initiation_metadata
   private userInputAudioFormat: string | null = null;
@@ -213,7 +214,17 @@ export class ElevenLabsProvider implements MindProvider {
       this.currentAudioStream = stream;
 
       // Use default device sample rate for better playback quality; resample mic input as needed
-      this.audioContext = new AudioContext();
+      const existingContext = this.audio.getAudioContext();
+      if (existingContext) {
+        this.audioContext = existingContext;
+        this.ownsAudioContext = false;
+        logger.info('🔊 Reusing existing Kwami AudioContext');
+      } else {
+        this.audioContext = new AudioContext();
+        this.ownsAudioContext = true;
+        logger.info('🔊 Created new AudioContext (KwamiAudio context not available)');
+      }
+
       this.nextStartTime = 0;
       if (this.audioContext.state === 'suspended') {
         logger.info('🔊 Resuming suspended AudioContext...');
@@ -1121,11 +1132,13 @@ export class ElevenLabsProvider implements MindProvider {
 
     this.conversationWebSocket.onerror = (error) => {
       logger.error('WebSocket error:', error);
+      console.error('🔥 WebSocket ERROR:', error);
       this.conversationCallbacks.onError?.(new Error('WebSocket connection error'));
       this.stopConversation();
     };
 
     this.conversationWebSocket.onclose = (event) => {
+      console.error('🔥 WebSocket CLOSED. Code:', event.code, 'Reason:', event.reason);
       logger.info('WebSocket connection closed:', {
         code: event.code,
         reason: event.reason,
@@ -1222,7 +1235,18 @@ export class ElevenLabsProvider implements MindProvider {
       // Create source
       const source = this.audioContext.createBufferSource();
       source.buffer = buffer;
-      source.connect(this.audioContext.destination);
+
+      // Connect to KwamiAudio analyser if available to drive visualization
+      const analyser = this.audio.getAnalyser();
+      const kwamiContext = this.audio.getAudioContext();
+      
+      if (analyser && kwamiContext === this.audioContext) {
+        // Connect to analyser, which is already connected to destination
+        source.connect(analyser);
+      } else {
+        // Fallback: connect directly to destination
+        source.connect(this.audioContext.destination);
+      }
 
       // Schedule playback
       const currentTime = this.audioContext.currentTime;
@@ -1246,6 +1270,12 @@ export class ElevenLabsProvider implements MindProvider {
       // Only log first few times to avoid spam
       if (!this._audioNotReadyLogged) {
         console.warn('⚠️ Audio input received but conversation not ready to stream yet');
+        console.warn('Debug state:', {
+          isReady: this.conversationReady,
+          isActive: this.conversationActive,
+          wsState: this.conversationWebSocket?.readyState,
+          wsOpen: this.conversationWebSocket?.readyState === WebSocket.OPEN
+        });
         this._audioNotReadyLogged = true;
       }
       return;
@@ -1264,17 +1294,17 @@ export class ElevenLabsProvider implements MindProvider {
       // Send base64 encoded audio in JSON
       const base64Audio = btoa(String.fromCharCode(...new Uint8Array(pcm16.buffer)));
 
+      if (base64Audio.length === 0) return;
+
       // Log every ~50th chunk to avoid spamming but confirm activity
       if (Math.random() < 0.02) {
         console.log(`🎤 Sending audio chunk: ${pcm16.byteLength} bytes (target ${this.userInputSampleRate}Hz)`);
       }
 
-      // ElevenLabs expects `user_audio_chunk` as a top-level field (not `type: user_audio_chunk`)
+      // ElevenLabs expects `user_audio_chunk` as a base64 string
       this.conversationWebSocket?.send(
         JSON.stringify({
-          user_audio_chunk: {
-            audio_base_64: base64Audio,
-          },
+          user_audio_chunk: base64Audio,
         })
       );
     } catch (error) {
@@ -1404,7 +1434,9 @@ export class ElevenLabsProvider implements MindProvider {
     }
 
     if (this.audioContext && this.audioContext.state !== 'closed') {
-      this.audioContext.close();
+      if (this.ownsAudioContext) {
+        this.audioContext.close();
+      }
       this.audioContext = null;
     }
 
