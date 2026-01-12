@@ -810,6 +810,8 @@ export function createWalletConnectWidget(options: WalletConnectWidgetOptions = 
 
     try {
       const batchSize = options.nftLoginOptions.batchSize ?? 20;
+      const initialCount = state.kwamiNfts?.length || 0;
+      
       const nfts = await fetchOwnedKwamiNfts({
         connection: wallet.getConnection(),
         owner,
@@ -817,13 +819,27 @@ export function createWalletConnectWidget(options: WalletConnectWidgetOptions = 
         symbol: options.nftLoginOptions.symbol,
         limit: batchSize,
         offset: nftLoadOffset,
+        onProgress: (nft) => {
+          // Add NFT incrementally as it loads (if not already added)
+          if (!state.kwamiNfts?.some(n => n.mint === nft.mint)) {
+            state.kwamiNfts = [...(state.kwamiNfts || []), nft];
+            applyStateToUi();
+          }
+        },
       });
 
       if (nfts.length < batchSize) {
         allNftsLoaded = true;
       }
 
-      state.kwamiNfts = [...(state.kwamiNfts || []), ...nfts];
+      // Ensure all NFTs are added (in case onProgress didn't fire for some)
+      const finalNfts = [...(state.kwamiNfts || [])];
+      nfts.forEach(nft => {
+        if (!finalNfts.some(n => n.mint === nft.mint)) {
+          finalNfts.push(nft);
+        }
+      });
+      state.kwamiNfts = finalNfts;
       nftLoadOffset += nfts.length;
 
       // Restore selected NFT from localStorage (only on first load)
@@ -864,6 +880,18 @@ export function createWalletConnectWidget(options: WalletConnectWidgetOptions = 
 
     nftsSection.style.display = '';
     nftsSection.innerHTML = '';
+
+    // Show loading state
+    if (isLoadingMoreNfts && (!state.kwamiNfts || state.kwamiNfts.length === 0)) {
+      const loading = document.createElement('div');
+      loading.style.textAlign = 'center';
+      loading.style.padding = '2rem';
+      loading.style.color = 'rgba(148,163,184,0.7)';
+      loading.style.fontSize = '0.9rem';
+      loading.innerHTML = '🔍 Loading your KWAMIs...';
+      nftsSection.appendChild(loading);
+      return;
+    }
 
     if (!state.kwamiNfts || state.kwamiNfts.length === 0) {
       const empty = createText('No KWAMI NFTs found in this wallet.', { muted: true });
@@ -996,36 +1024,76 @@ export function createWalletConnectWidget(options: WalletConnectWidgetOptions = 
     buttonHandle.element.style.borderRadius = '50%';
     buttonHandle.element.style.padding = '0';
     buttonHandle.element.style.overflow = 'hidden';
+    buttonHandle.element.style.minWidth = '48px';
 
-    // Clear button content and add NFT image
-    const btnInner = buttonHandle.element.querySelector('.kwami-glass-button-inner');
-    if (btnInner) {
-      btnInner.innerHTML = '';
-      
-      if (nft.image) {
-        const img = document.createElement('img');
-        img.src = nft.image;
-        img.alt = nft.name;
-        img.style.width = '100%';
-        img.style.height = '100%';
-        img.style.objectFit = 'cover';
-        img.style.display = 'block';
-        btnInner.appendChild(img);
-      } else {
-        // Fallback: show initials
-        const initials = document.createElement('div');
-        initials.textContent = (nft.name || 'K').substring(0, 2).toUpperCase();
-        initials.style.width = '100%';
-        initials.style.height = '100%';
-        initials.style.display = 'flex';
-        initials.style.alignItems = 'center';
-        initials.style.justifyContent = 'center';
-        initials.style.fontSize = '18px';
-        initials.style.fontWeight = '700';
-        initials.style.color = '#fff';
-        btnInner.appendChild(initials);
-      }
+    // Find the button content wrapper
+    const btn = buttonHandle.element;
+    btn.innerHTML = '';
+    
+    if (nft.image) {
+      const img = document.createElement('img');
+      img.src = nft.image;
+      img.alt = nft.name;
+      img.style.width = '100%';
+      img.style.height = '100%';
+      img.style.objectFit = 'cover';
+      img.style.display = 'block';
+      btn.appendChild(img);
+    } else {
+      // Fallback: show initials
+      const initials = document.createElement('div');
+      initials.textContent = (nft.name || 'K').substring(0, 2).toUpperCase();
+      initials.style.width = '100%';
+      initials.style.height = '100%';
+      initials.style.display = 'flex';
+      initials.style.alignItems = 'center';
+      initials.style.justifyContent = 'center';
+      initials.style.fontSize = '18px';
+      initials.style.fontWeight = '700';
+      initials.style.color = '#fff';
+      btn.appendChild(initials);
     }
+
+    // Update popover to show KWAMI info instead of wallet info
+    updateAvatarPopover(nft, walletAddress);
+  }
+
+  function updateAvatarPopover(nft: KwamiOwnedNft, walletAddress: string): void {
+    // Recreate actions section with KWAMI info
+    actionsSection.innerHTML = '';
+    actionsSection.style.display = '';
+
+    // KWAMI info
+    const info = document.createElement('div');
+    info.style.display = 'flex';
+    info.style.flexDirection = 'column';
+    info.style.gap = '0.75rem';
+    info.style.padding = '0.5rem 0';
+
+    const nameRow = createRow('KWAMI', createText(nft.name || 'Unnamed', {}));
+    const addressRow = createRow('WALLET', createText(truncateAddress(walletAddress, 6, 4), { mono: true }));
+
+    info.appendChild(nameRow);
+    info.appendChild(addressRow);
+    info.appendChild(createDivider());
+
+    // Logout button
+    const logoutBtn = createGlassButton({
+      label: 'Logout',
+      icon: '⏻',
+      mode: 'outline',
+      size: 'md',
+      theme: options.theme,
+      appearance: { borderRadius: '16px' },
+      onClick: () => {
+        popover.hide();
+        void disconnect();
+      },
+    });
+    logoutBtn.element.style.width = '100%';
+    info.appendChild(logoutBtn.element);
+
+    actionsSection.appendChild(info);
   }
 
   function revertFromAvatar(): void {

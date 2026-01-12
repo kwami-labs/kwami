@@ -41,6 +41,7 @@ export async function fetchOwnedKwamiNfts(args: {
   symbol?: string;
   limit?: number;
   offset?: number;
+  onProgress?: (nft: KwamiOwnedNft) => void;
 }): Promise<KwamiOwnedNft[]> {
   const metaplex = Metaplex.make(args.connection);
 
@@ -60,14 +61,14 @@ export async function fetchOwnedKwamiNfts(args: {
   const limit = args.limit ?? filtered.length;
   const paginated = filtered.slice(offset, offset + limit);
 
-  // Load metadata with delays to avoid rate limiting
+  // Load metadata one by one for progressive display
   const loaded: KwamiOwnedNft[] = [];
   for (let i = 0; i < paginated.length; i++) {
     const m = paginated[i];
     try {
       const nft = await metaplex.nfts().load({ metadata: m as any });
       const json = nft.json ?? (await tryFetchJson(nft.uri));
-      loaded.push({
+      const nftData = {
         mint: nft.address.toBase58(),
         name: nft.name,
         uri: nft.uri,
@@ -76,11 +77,15 @@ export async function fetchOwnedKwamiNfts(args: {
         attributes: Array.isArray(json?.attributes) ? (json.attributes as any) : undefined,
         dna: (json as any)?.dna,
         body: (json as any)?.body,
-      });
+      };
+      loaded.push(nftData);
       
-      // Add small delay every 5 NFTs to avoid rate limiting
-      if ((i + 1) % 5 === 0 && i < paginated.length - 1) {
-        await delay(100);
+      // Call progress callback for incremental display
+      args.onProgress?.(nftData);
+      
+      // Small delay between each NFT for progressive loading
+      if (i < paginated.length - 1) {
+        await delay(50);
       }
     } catch (error) {
       console.warn(`Failed to load NFT metadata:`, error);
