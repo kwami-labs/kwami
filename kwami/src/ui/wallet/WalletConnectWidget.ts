@@ -699,7 +699,10 @@ export function createWalletConnectWidget(options: WalletConnectWidgetOptions = 
         break;
       case 'connected':
         buttonHandle.setDisabled(false);
-        setButtonLabelConnected();
+        // Don't update button label if NFT is logged in (avatar is showing)
+        if (!state.selectedNft) {
+          setButtonLabelConnected();
+        }
         break;
       case 'error':
         buttonHandle.setDisabled(false);
