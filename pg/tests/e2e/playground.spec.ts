@@ -208,19 +208,26 @@ test.describe('Kwami Playground - Theme & Colors', () => {
   });
 
   test('should toggle theme', async ({ page }) => {
-    const themeToggle = page.locator('#theme-toggle-btn');
-    
-    await expect(themeToggle).toBeVisible();
-    await themeToggle.click();
-    await page.waitForTimeout(300);
-    
-    // Check theme changed (body should have dark class)
+    const colorPickerBtn = page.locator('#color-picker-btn');
+    await expect(colorPickerBtn).toBeVisible();
+
+    await colorPickerBtn.click();
+    await page.waitForTimeout(150);
+
     const body = page.locator('body');
-    const hasThemeClass = await body.evaluate(el => {
-      return el.classList.contains('dark-theme') || el.classList.contains('light-theme');
-    });
-    
-    expect(hasThemeClass).toBeTruthy();
+    const themeModeToggle = page.locator('#theme-mode-toggle');
+    await expect(themeModeToggle).toBeAttached();
+
+    const isDark = await body.evaluate(el => el.classList.contains('dark-mode'));
+
+    await themeModeToggle.click();
+    await page.waitForTimeout(200);
+
+    if (isDark) {
+      await expect(body).not.toHaveClass(/dark-mode/);
+    } else {
+      await expect(body).toHaveClass(/dark-mode/);
+    }
   });
 
   test('should open color picker', async ({ page }) => {

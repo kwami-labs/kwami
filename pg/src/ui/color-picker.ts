@@ -10,6 +10,7 @@ const STORAGE_KEYS = {
   light: 'kwami-app-color-light',
   dark: 'kwami-app-color-dark',
   glass: 'kwami-ui-glass-effect',
+  glassOpacity: 'kwami-ui-glass-opacity',
 } as const;
 
 type Theme = 'light' | 'dark';
@@ -91,6 +92,12 @@ function applyAppColor(color: string): void {
   
   const gradient = `linear-gradient(135deg, ${color} 0%, ${darkerShade} 100%)`;
   root.style.setProperty('--app-primary-gradient', gradient);
+
+  // Update color preview display background
+  const colorPreviewDisplay = document.getElementById('color-preview-display');
+  if (colorPreviewDisplay) {
+    colorPreviewDisplay.style.background = gradient;
+  }
 
   // Firefox
   (document.documentElement.style as any).scrollbarColor = `${color} var(--scrollbar-track)`;
@@ -242,6 +249,10 @@ export function initializeColorPicker(): void {
     return;
   }
 
+  const glassEffectCheckbox = document.getElementById('glass-effect-checkbox') as HTMLInputElement | null;
+  const glassOpacitySlider = document.getElementById('glass-opacity-slider') as HTMLInputElement | null;
+  const glassOpacityContainer = document.getElementById('glass-opacity-container') as HTMLElement | null;
+
   // Load saved colors
   try {
     colorPickerState.lightModeColor = localStorage.getItem(STORAGE_KEYS.light) || '#667eea';
@@ -255,6 +266,16 @@ export function initializeColorPicker(): void {
 
   colorInput.value = savedColor;
   applyAppColor(savedColor);
+
+  const applyGlassOpacity = (value: number) => {
+    const alpha = Math.max(0.1, Math.min(0.95, value));
+    document.documentElement.style.setProperty('--glass-ui-alpha', alpha.toString());
+    try {
+      localStorage.setItem(STORAGE_KEYS.glassOpacity, alpha.toString());
+    } catch {
+      // ignore
+    }
+  };
 
   colorPickerButton.addEventListener('click', (e) => {
     e.stopPropagation();
@@ -290,12 +311,14 @@ export function initializeColorPicker(): void {
     });
   }
 
-  // Glass effect toggle
-  const glassEffectCheckbox = document.getElementById('glass-effect-checkbox') as HTMLInputElement | null;
+  // Glass effect toggle + opacity
   if (glassEffectCheckbox) {
+    let savedGlassEnabled = false;
+
     try {
       const savedGlassEffect = localStorage.getItem(STORAGE_KEYS.glass);
       if (savedGlassEffect === 'true') {
+        savedGlassEnabled = true;
         glassEffectCheckbox.checked = true;
         document.body.classList.add('glass-ui');
       }
@@ -303,10 +326,43 @@ export function initializeColorPicker(): void {
       // ignore
     }
 
+    // Load / apply saved opacity (works even if glass is currently disabled).
+    if (glassOpacitySlider) {
+      try {
+        const savedOpacity = localStorage.getItem(STORAGE_KEYS.glassOpacity);
+        if (savedOpacity) {
+          const parsed = parseFloat(savedOpacity);
+          if (Number.isFinite(parsed)) {
+            glassOpacitySlider.value = parsed.toString();
+            applyGlassOpacity(parsed);
+          }
+        } else {
+          applyGlassOpacity(parseFloat(glassOpacitySlider.value));
+        }
+      } catch {
+        // ignore
+      }
+
+      glassOpacitySlider.addEventListener('input', (e) => {
+        e.stopPropagation();
+        const value = parseFloat((e.target as HTMLInputElement).value);
+        if (Number.isFinite(value)) {
+          applyGlassOpacity(value);
+        }
+      });
+    }
+
+    if (glassOpacityContainer) {
+      glassOpacityContainer.style.display = savedGlassEnabled ? 'flex' : 'none';
+    }
+
     glassEffectCheckbox.addEventListener('change', (e) => {
       e.stopPropagation();
       const enabled = (e.target as HTMLInputElement).checked;
       document.body.classList.toggle('glass-ui', enabled);
+      if (glassOpacityContainer) {
+        glassOpacityContainer.style.display = enabled ? 'flex' : 'none';
+      }
       try {
         localStorage.setItem(STORAGE_KEYS.glass, enabled ? 'true' : 'false');
       } catch {

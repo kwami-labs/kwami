@@ -43,6 +43,12 @@ export function applyTheme(theme) {
     toggleButton.setAttribute('title', label);
   }
 
+  // Update theme toggle checkbox
+  const themeModeToggle = document.getElementById('theme-mode-toggle') as HTMLInputElement | null;
+  if (themeModeToggle) {
+    themeModeToggle.checked = theme === 'dark';
+  }
+
   // Notify any listeners (e.g., color picker) that theme changed.
   try {
     document.dispatchEvent(new CustomEvent('kwami:theme-changed', { detail: { theme } }));
@@ -91,6 +97,16 @@ export function initializeThemeToggle() {
   const toggleButton = document.getElementById('theme-toggle-btn');
   if (toggleButton) {
     toggleButton.addEventListener('click', toggleTheme);
+  }
+
+  // Listen for theme toggle
+  const themeModeToggle = document.getElementById('theme-mode-toggle') as HTMLInputElement | null;
+  if (themeModeToggle) {
+    themeModeToggle.addEventListener('change', (e) => {
+      e.stopPropagation();
+      const isChecked = (e.target as HTMLInputElement).checked;
+      applyTheme(isChecked ? 'dark' : 'light');
+    });
   }
   
   // Listen for system theme changes

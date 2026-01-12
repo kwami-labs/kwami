@@ -152,6 +152,7 @@
     width: 90%;
     max-width: 350px;
     left: 50%;
+    right: auto;
     transform: translateX(-50%);
   }
   
