@@ -1,5 +1,6 @@
 import type { BaseGlassProps, GlassContent } from '../types';
 import type { ConnectedWallet } from '../../apps/wallet/WalletConnector';
+import type { KwamiOwnedNft } from '../../apps/wallet/kwamiNfts';
 import type { PublicKey } from '@solana/web3.js';
 
 export type WalletUiStatus = 'disconnected' | 'connecting' | 'connected' | 'error';
@@ -37,6 +38,7 @@ export interface WalletConnectWidgetConnector {
   getPublicKey: () => PublicKey | null;
   getSolBalance: (publicKey?: PublicKey) => Promise<number>;
   getNetwork: () => string;
+  getConnection: () => any; // Connection from @solana/web3.js
 
   // Optional/extended APIs (supported by Kwami's WalletConnector)
   getTokenBalances?: (publicKey?: PublicKey) => Promise<Array<{ mint: string; uiAmount: number; decimals: number }>>;
@@ -52,6 +54,31 @@ export type WalletTrackedToken = {
    * or resolve the mint yourself before passing it here.)
    */
   mint: string;
+};
+
+export type KwamiNftOptions = {
+  /**
+   * Enable KWAMI NFT login feature.
+   */
+  enabled: boolean;
+  /**
+   * Collection mint address to filter NFTs (optional).
+   */
+  collectionMint?: string;
+  /**
+   * NFT symbol to filter by (optional).
+   */
+  symbol?: string;
+  /**
+   * localStorage key for persisting selected NFT mint.
+   * Defaults to 'kwami-selected-nft'.
+   */
+  storageKey?: string;
+  /**
+   * Show selected NFT indicator in the wallet button.
+   * Defaults to false.
+   */
+  showInButton?: boolean;
 };
 
 export interface WalletConnectWidgetOptions extends BaseGlassProps {
@@ -81,6 +108,11 @@ export interface WalletConnectWidgetOptions extends BaseGlassProps {
   autoRefreshBalanceMs?: number;
 
   /**
+   * KWAMI NFT login options.
+   */
+  nftLoginOptions?: KwamiNftOptions;
+
+  /**
    * Called after a wallet connects successfully.
    */
   onConnected?: (wallet: ConnectedWallet) => void;
@@ -104,6 +136,11 @@ export interface WalletConnectWidgetOptions extends BaseGlassProps {
    * Called when an error happens (connect / balance / disconnect).
    */
   onError?: (error: unknown) => void;
+
+  /**
+   * Called when a KWAMI NFT is selected.
+   */
+  onNftSelected?: (nft: KwamiOwnedNft) => void;
 }
 
 export interface WalletConnectWidgetState {
@@ -119,6 +156,8 @@ export interface WalletConnectWidgetState {
     readyState?: string;
   }>;
   errorMessage?: string;
+  kwamiNfts?: KwamiOwnedNft[];
+  selectedNft?: KwamiOwnedNft | null;
 }
 
 export interface WalletConnectWidgetHandle {

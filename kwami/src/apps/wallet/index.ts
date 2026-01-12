@@ -13,3 +13,6 @@ export type {
   TransactionResult,
 } from './WalletConnector';
 
+export { fetchOwnedKwamiNfts } from './kwamiNfts';
+export type { KwamiOwnedNft } from './kwamiNfts';
+

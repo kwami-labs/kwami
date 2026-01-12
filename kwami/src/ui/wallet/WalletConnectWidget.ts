@@ -1,5 +1,6 @@
 import type { ConnectedWallet } from '../../apps/wallet/WalletConnector';
 import { getWalletConnector } from '../../apps/wallet/WalletConnector';
+import { fetchOwnedKwamiNfts, type KwamiOwnedNft } from '../../apps/wallet/kwamiNfts';
 import { createGlassButton } from '../components/GlassButton';
 import { createGlassPopover } from '../components/GlassPopover';
 import type { GlassContent } from '../types';
@@ -115,12 +116,12 @@ export function createWalletConnectWidget(options: WalletConnectWidgetOptions = 
     const walletWithEvents = wallet as any;
     if (typeof walletWithEvents.on === 'function') {
       walletWithEvents.on('accountChange', (data: any) => {
-        void refreshConnectionState().then(() => refreshBalances()).then(() => applyStateToUi());
+        void refreshConnectionState().then(() => refreshBalances()).then(() => refreshKwamiNfts()).then(() => applyStateToUi());
         options.onAccountChange?.(data);
       });
       
       walletWithEvents.on('connect', (data: any) => {
-        void refreshConnectionState().then(() => refreshBalances()).then(() => applyStateToUi());
+        void refreshConnectionState().then(() => refreshBalances()).then(() => refreshKwamiNfts()).then(() => applyStateToUi());
       });
       
       walletWithEvents.on('disconnect', () => {
@@ -131,7 +132,7 @@ export function createWalletConnectWidget(options: WalletConnectWidgetOptions = 
       
       walletWithEvents.on('networkChange', (data: any) => {
         currentNetwork = data.network;
-        void refreshConnectionState().then(() => refreshBalances()).then(() => applyStateToUi());
+        void refreshConnectionState().then(() => refreshBalances()).then(() => refreshKwamiNfts()).then(() => applyStateToUi());
         options.onNetworkChange?.(data);
       });
       
@@ -162,6 +163,8 @@ export function createWalletConnectWidget(options: WalletConnectWidgetOptions = 
     availablePublicKeys: [],
     tokenBalancesByMint: {},
     connectedWalletName: null,
+    kwamiNfts: [],
+    selectedNft: null,
   };
 
   let refreshTimer: ReturnType<typeof setInterval> | null = null;
@@ -220,10 +223,15 @@ export function createWalletConnectWidget(options: WalletConnectWidgetOptions = 
   errorBox.style.color = 'rgba(248,113,113,0.95)';
   errorBox.style.fontSize = '0.85rem';
 
+  const nftsSection = document.createElement('div');
+  nftsSection.id = 'kwami-nfts-section';
+  nftsSection.style.display = 'none';
+
   content.appendChild(errorBox);
   content.appendChild(createDivider());
   content.appendChild(walletsSection);
   content.appendChild(actionsSection);
+  content.appendChild(nftsSection);
 
   const popover = createGlassPopover({
     header: 'Select your favorite wallet',
@@ -647,6 +655,7 @@ export function createWalletConnectWidget(options: WalletConnectWidgetOptions = 
 
     rebuildWalletButtons();
     rebuildActions();
+    renderNftsSection();
   }
 
   async function refreshAvailableWallets(): Promise<void> {
@@ -756,6 +765,145 @@ export function createWalletConnectWidget(options: WalletConnectWidgetOptions = 
     state.tokenBalancesByMint = byMint;
   }
 
+  async function refreshKwamiNfts(): Promise<void> {
+    if (!options.nftLoginOptions?.enabled) {
+      state.kwamiNfts = [];
+      state.selectedNft = null;
+      return;
+    }
+
+    if (!wallet.isWalletConnected()) {
+      state.kwamiNfts = [];
+      return;
+    }
+
+    const owner = wallet.getPublicKey();
+    if (!owner) {
+      state.kwamiNfts = [];
+      return;
+    }
+
+    try {
+      const nfts = await fetchOwnedKwamiNfts({
+        connection: wallet.getConnection(),
+        owner,
+        collectionMint: options.nftLoginOptions.collectionMint,
+        symbol: options.nftLoginOptions.symbol,
+      });
+
+      state.kwamiNfts = nfts;
+
+      // Restore selected NFT from localStorage
+      const storageKey = options.nftLoginOptions.storageKey ?? 'kwami-selected-nft';
+      const savedMint = typeof localStorage !== 'undefined' ? localStorage.getItem(storageKey) : null;
+      if (savedMint && nfts.some((n) => n.mint === savedMint)) {
+        state.selectedNft = nfts.find((n) => n.mint === savedMint) ?? null;
+      } else if (state.selectedNft && !nfts.some((n) => n.mint === state.selectedNft!.mint)) {
+        // Selected NFT is no longer owned
+        state.selectedNft = null;
+        if (typeof localStorage !== 'undefined') {
+          localStorage.removeItem(storageKey);
+        }
+      }
+    } catch (error) {
+      const message = error instanceof Error ? error.message : 'Failed to load NFTs';
+      setError(message);
+      options.onError?.(error);
+      state.kwamiNfts = [];
+    }
+  }
+
+  function selectNft(nft: KwamiOwnedNft): void {
+    state.selectedNft = nft;
+    const storageKey = options.nftLoginOptions?.storageKey ?? 'kwami-selected-nft';
+    if (typeof localStorage !== 'undefined') {
+      localStorage.setItem(storageKey, nft.mint);
+    }
+    options.onNftSelected?.(nft);
+    applyStateToUi();
+  }
+
+  function renderNftsSection(): void {
+    const nftsSection = document.getElementById('kwami-nfts-section');
+    if (!nftsSection) return;
+
+    if (!options.nftLoginOptions?.enabled || state.status !== 'connected') {
+      nftsSection.style.display = 'none';
+      return;
+    }
+
+    nftsSection.style.display = '';
+    nftsSection.innerHTML = '';
+
+    const title = createText('KWAMI NFT Login', { muted: true });
+    title.style.fontSize = '0.75rem';
+    title.style.fontWeight = '600';
+    title.style.textTransform = 'uppercase';
+    title.style.letterSpacing = '0.05em';
+    nftsSection.appendChild(title);
+
+    if (!state.kwamiNfts || state.kwamiNfts.length === 0) {
+      const empty = createText('No KWAMI NFTs found in this wallet.', { muted: true });
+      empty.style.fontSize = '0.85rem';
+      empty.style.padding = '0.75rem 0';
+      nftsSection.appendChild(empty);
+      return;
+    }
+
+    const grid = document.createElement('div');
+    grid.style.display = 'grid';
+    grid.style.gridTemplateColumns = 'repeat(2, 1fr)';
+    grid.style.gap = '0.5rem';
+    grid.style.marginTop = '0.5rem';
+
+    for (const nft of state.kwamiNfts) {
+      const card = document.createElement('button');
+      card.type = 'button';
+      card.className = 'kwami-glass-surface';
+      card.style.display = 'flex';
+      card.style.flexDirection = 'column';
+      card.style.gap = '0.4rem';
+      card.style.padding = '0.6rem';
+      card.style.cursor = 'pointer';
+      card.style.transition = 'all 0.2s';
+      card.style.border = state.selectedNft?.mint === nft.mint ? '2px solid rgba(99, 102, 241, 0.6)' : '';
+
+      const img = document.createElement('div');
+      img.style.width = '100%';
+      img.style.aspectRatio = '1';
+      img.style.borderRadius = '8px';
+      img.style.overflow = 'hidden';
+      img.style.background = 'rgba(148,163,184,0.1)';
+
+      if (nft.image) {
+        const imgEl = document.createElement('img');
+        imgEl.src = nft.image;
+        imgEl.alt = nft.name;
+        imgEl.loading = 'lazy';
+        imgEl.style.width = '100%';
+        imgEl.style.height = '100%';
+        imgEl.style.objectFit = 'cover';
+        img.appendChild(imgEl);
+      }
+
+      const name = createText(nft.name || 'Unnamed', {});
+      name.style.fontSize = '0.8rem';
+      name.style.fontWeight = '600';
+      name.style.textAlign = 'center';
+      name.style.overflow = 'hidden';
+      name.style.textOverflow = 'ellipsis';
+      name.style.whiteSpace = 'nowrap';
+
+      card.appendChild(img);
+      card.appendChild(name);
+
+      card.addEventListener('click', () => selectNft(nft));
+      grid.appendChild(card);
+    }
+
+    nftsSection.appendChild(grid);
+  }
+
   async function refreshConnectionState(): Promise<void> {
     if (wallet.isWalletConnected() && wallet.getPublicKey()) {
       state.status = 'connected';
@@ -784,6 +932,8 @@ export function createWalletConnectWidget(options: WalletConnectWidgetOptions = 
       state.availablePublicKeys = [];
       state.connectedWalletName = null;
       state.connectingWalletName = undefined;
+      state.kwamiNfts = [];
+      state.selectedNft = null;
     }
   }
 
@@ -794,6 +944,7 @@ export function createWalletConnectWidget(options: WalletConnectWidgetOptions = 
       await refreshAvailableWallets();
       if (state.status === 'connected') {
         await refreshBalances();
+        await refreshKwamiNfts();
       }
       applyStateToUi();
     } catch (error) {
@@ -836,6 +987,7 @@ export function createWalletConnectWidget(options: WalletConnectWidgetOptions = 
       state.selectedPublicKey = connected.publicKey;
       state.status = 'connected';
       await refreshBalances();
+      await refreshKwamiNfts();
       state.connectingWalletName = undefined;
       applyStateToUi();
       options.onConnected?.(connected);
@@ -879,6 +1031,8 @@ export function createWalletConnectWidget(options: WalletConnectWidgetOptions = 
       state.availablePublicKeys = [];
       state.connectedWalletName = null;
       state.connectingWalletName = undefined;
+      state.kwamiNfts = [];
+      state.selectedNft = null;
       if (refreshTimer) {
         clearInterval(refreshTimer);
         refreshTimer = null;
