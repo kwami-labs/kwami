@@ -1,6 +1,7 @@
 import './style.css'
-import { createKwamiNftLoginPanel, type KwamiNftLoginResult } from 'kwami/ui/nft-login'
+import { createWalletConnectWidget } from 'kwami/ui/wallet'
 import { getWalletConnector } from 'kwami/apps/wallet'
+import type { KwamiOwnedNft } from 'kwami/apps/wallet'
 import { createBackgroundRings } from 'kwami/ui/rings'
 import { createKwamiLogoSvg } from 'kwami/ui/logo'
 import { BlobView } from './lib/BlobView'
@@ -30,7 +31,7 @@ root.innerHTML = `
   <div class="app-root">
     <header class="topbar">
       <div class="topbar-left" id="topbarLeft">
-        <div id="loginMount"></div>
+        <div id="walletMount"></div>
       </div>
       <div class="topbar-right"></div>
     </header>
@@ -38,7 +39,7 @@ root.innerHTML = `
     <main class="hero">
       <div class="hero-center">
         <div id="logoMount" class="logo-mount" aria-label="KWAMI"></div>
-        <div class="hero-sub">Connect with your KWAMI NFT</div>
+        <div class="hero-sub">Connect wallet · Select your KWAMI</div>
       </div>
     </main>
 
@@ -46,23 +47,21 @@ root.innerHTML = `
   </div>
 `
 
-const loginMount = mustGet<HTMLDivElement>('#loginMount')
+const walletMount = mustGet<HTMLDivElement>('#walletMount')
 const logoMount = mustGet<HTMLDivElement>('#logoMount')
 const blobContainer = mustGet<HTMLDivElement>('#blob-container')
 
 let blobView: BlobView | null = null
 
-function handleLogin(result: KwamiNftLoginResult) {
-  console.log('✅ Logged in with KWAMI:', result.nft.name)
-  console.log('📍 Wallet:', result.walletAddress)
-  console.log('🎨 NFT Mint:', result.nftMint)
+function handleNftLogin(nft: KwamiOwnedNft) {
+  console.log('✅ Logged in with KWAMI:', nft.name)
   
   // Hide hero center
   document.querySelector('.hero-center')?.classList.add('hero-center--hidden')
   
   // Initialize and show Blob
   if (!blobView) blobView = new BlobView(blobContainer)
-  blobView.initBlob(result.nft.body ?? null)
+  blobView.initBlob(nft.body ?? null)
   blobView.start()
   
   blobContainer.classList.add('blob--visible')
@@ -81,23 +80,31 @@ function handleLogout() {
   document.querySelector('.hero-center')?.classList.remove('hero-center--hidden')
 }
 
-// Create NFT Login Panel
-const loginPanel = createKwamiNftLoginPanel({
+// Create Wallet Widget with NFT Login
+const widget = createWalletConnectWidget({
   wallet: connector as any,
-  collectionMint,
-  symbol,
-  avatarPosition: 'top-left',
-  batchSize: 20,
-  storageKey: 'kwami-app:nft-login',
-  autoRestore: true,
-  onLogin: handleLogin,
-  onLogout: handleLogout,
-  onError: (err: unknown) => {
-    console.error('❌ NFT Login error:', err)
+  connectLabel: 'Connect Wallet',
+  showBalanceInButton: false,
+  nftLoginOptions: {
+    enabled: true,
+    collectionMint,
+    symbol,
+    storageKey: 'kwami-app:nft-login',
+    avatarPosition: 'top-left',
+    batchSize: 20,
+  },
+  onNftLogin: (result) => {
+    handleNftLogin(result.nft)
+  },
+  onDisconnected: () => {
+    handleLogout()
+  },
+  onError: (err) => {
+    console.error('❌ Wallet error:', err)
   },
 })
 
-loginMount.appendChild(loginPanel.element)
+walletMount.appendChild(widget.element)
 
 // Background rings (same approach as web/)
 const rings = createBackgroundRings({

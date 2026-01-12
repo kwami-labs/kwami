@@ -1,0 +1,11 @@
+export { KwamiConsole, type KwamiConsoleOptions } from './KwamiConsole';
+export { TabBar, type ConsoleTab, type TabBarOptions } from './components/TabBar';
+export { Sidebar, type SidebarSection, type SidebarOptions } from './components/Sidebar';
+export { MiniPreview, type MiniPreviewOptions } from './components/MiniPreview';
+export { BodySection, type BodySectionOptions } from './sections/BodySection';
+export { MindSection, type MindSectionOptions } from './sections/MindSection';
+export { SoulSection, type SoulSectionOptions } from './sections/SoulSection';
+export { AppsSection, type AppsSectionOptions } from './sections/AppsSection';
+export { MemorySection, type MemorySectionOptions } from './sections/MemorySection';
+export { MediaSection, type MediaSectionOptions } from './sections/MediaSection';
+export { SettingsSection, type SettingsSectionOptions } from './sections/SettingsSection';

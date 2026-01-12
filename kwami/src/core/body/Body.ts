@@ -27,9 +27,7 @@ import { Scene } from './scene/Scene.js';
 import { ContextMenu } from './ContextMenu';
 import type { BackgroundMediaFit, BodyConfig, BlobSkinSelection, SceneBackgroundConfig } from '../../types/index';
 import { isYouTubeUrl, createYouTubeIframe } from '../utils/YouTubeHelper';
-import { AppDashboard } from '../apps/AppDashboard';
-import { KwamiControlPanel } from '../apps/KwamiControlPanel';
-import { getAppConnectors } from '../../apps/registry';
+import { KwamiConsole } from '../../ui/console';
 import { logger } from '../../utils/logger';
 
 type BackgroundDirection = 'vertical' | 'horizontal' | 'radial' | 'diagonal';
@@ -154,9 +152,7 @@ export class KwamiBody {
   
   // Overlay support
   private contextMenu: ContextMenu | null = null;
-  private appDashboard: AppDashboard | null = null;
-  private controlPanel: KwamiControlPanel | null = null;
-  private readonly appConnectors = getAppConnectors();
+  private console: KwamiConsole | null = null;
   private kwamiInstance: any = null; // Reference to parent Kwami instance
   private pointerVector = new Vector2();
   private pointerRaycaster = new Raycaster();
@@ -218,9 +214,6 @@ export class KwamiBody {
    */
   setKwamiInstance(kwami: any): void {
     this.kwamiInstance = kwami;
-    if (!this.appDashboard) {
-      this.appDashboard = new AppDashboard(this.appConnectors, { kwami });
-    }
   }
 
   /**
@@ -482,21 +475,20 @@ export class KwamiBody {
     const clickedOnBlob = this.isPointerOnBlob(event);
     const hasActions = Boolean(this.kwamiInstance?.actions);
 
-    // INVERTED: Clicking on blob shows Control Panel
+    // INVERTED: Clicking on blob shows Console
     if (clickedOnBlob) {
-      if (!this.controlPanel) {
-        this.controlPanel = new KwamiControlPanel({
+      if (!this.console) {
+        this.console = new KwamiConsole({
           kwami: this.kwamiInstance,
           onClose: () => {
-            // Optional: callback when panel closes
+            // Optional: callback when console closes
           },
         });
       }
       // Hide other menus
       this.contextMenu?.hide();
-      this.appDashboard?.hide();
-      // Show the control panel (centered, ignoring x/y)
-      this.controlPanel.show();
+      // Show the console (centered)
+      this.console.show();
       return;
     }
 
@@ -513,8 +505,7 @@ export class KwamiBody {
           parentElement: this.canvas.parentElement || undefined,
         });
       }
-      this.controlPanel?.hide();
-      this.appDashboard?.hide();
+      this.console?.hide();
       this.contextMenu.show(event.clientX, event.clientY);
     }
   };
@@ -2269,9 +2260,10 @@ export class KwamiBody {
       this.resizeRafId = null;
     }
 
-    if (this.appDashboard) {
-      this.appDashboard.hide();
-      this.appDashboard = null;
+    // Dispose console
+    if (this.console) {
+      this.console.dispose();
+      this.console = null;
     }
 
     // Dispose context menu

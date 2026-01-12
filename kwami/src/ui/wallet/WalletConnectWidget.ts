@@ -902,6 +902,92 @@ export function createWalletConnectWidget(options: WalletConnectWidgetOptions = 
     }
 
     nftsSection.appendChild(grid);
+
+    // Login button (shown when NFT is selected)
+    if (state.selectedNft) {
+      nftsSection.appendChild(createDivider());
+      
+      const loginBtn = createGlassButton({
+        label: `Login with ${state.selectedNft.name || 'KWAMI'}`,
+        icon: '🔐',
+        mode: 'primary',
+        size: 'md',
+        theme: options.theme,
+        onClick: () => handleNftLogin(),
+      });
+      loginBtn.element.style.width = '100%';
+      loginBtn.element.style.marginTop = '0.5rem';
+      nftsSection.appendChild(loginBtn.element);
+    }
+  }
+
+  function handleNftLogin(): void {
+    if (!state.selectedNft) return;
+
+    const walletAddress = wallet.getPublicKey()?.toBase58();
+    if (!walletAddress) return;
+
+    // Close popover
+    popover.hide();
+
+    // Transform button to avatar
+    transformToAvatar(state.selectedNft, walletAddress);
+
+    // Call callback
+    options.onNftLogin?.({
+      walletAddress,
+      nftMint: state.selectedNft.mint,
+      nft: state.selectedNft,
+    });
+  }
+
+  function transformToAvatar(nft: KwamiOwnedNft, walletAddress: string): void {
+    // Change button to circular avatar style
+    buttonHandle.element.style.width = '48px';
+    buttonHandle.element.style.height = '48px';
+    buttonHandle.element.style.borderRadius = '50%';
+    buttonHandle.element.style.padding = '0';
+    buttonHandle.element.style.overflow = 'hidden';
+
+    // Clear button content and add NFT image
+    const btnInner = buttonHandle.element.querySelector('.kwami-glass-button-inner');
+    if (btnInner) {
+      btnInner.innerHTML = '';
+      
+      if (nft.image) {
+        const img = document.createElement('img');
+        img.src = nft.image;
+        img.alt = nft.name;
+        img.style.width = '100%';
+        img.style.height = '100%';
+        img.style.objectFit = 'cover';
+        img.style.display = 'block';
+        btnInner.appendChild(img);
+      } else {
+        // Fallback: show initials
+        const initials = document.createElement('div');
+        initials.textContent = (nft.name || 'K').substring(0, 2).toUpperCase();
+        initials.style.width = '100%';
+        initials.style.height = '100%';
+        initials.style.display = 'flex';
+        initials.style.alignItems = 'center';
+        initials.style.justifyContent = 'center';
+        initials.style.fontSize = '18px';
+        initials.style.fontWeight = '700';
+        initials.style.color = '#fff';
+        btnInner.appendChild(initials);
+      }
+    }
+  }
+
+  function revertFromAvatar(): void {
+    // Revert button to normal wallet button style
+    buttonHandle.element.style.width = '';
+    buttonHandle.element.style.height = '';
+    buttonHandle.element.style.borderRadius = '';
+    buttonHandle.element.style.padding = '';
+    buttonHandle.element.style.overflow = '';
+    setButtonLabelDisconnected();
   }
 
   async function refreshConnectionState(): Promise<void> {
@@ -1037,6 +1123,7 @@ export function createWalletConnectWidget(options: WalletConnectWidgetOptions = 
         clearInterval(refreshTimer);
         refreshTimer = null;
       }
+      revertFromAvatar();
       applyStateToUi();
       if (ok) {
         options.onDisconnected?.();
