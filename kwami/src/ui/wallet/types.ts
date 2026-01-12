@@ -56,9 +56,25 @@ export type WalletTrackedToken = {
   mint: string;
 };
 
+export type KwamiNftLoginResult = {
+  /**
+   * Wallet public key address.
+   */
+  walletAddress: string;
+  /**
+   * Selected KWAMI NFT mint address.
+   */
+  nftMint: string;
+  /**
+   * Full NFT data.
+   */
+  nft: KwamiOwnedNft;
+};
+
 export type KwamiNftOptions = {
   /**
    * Enable KWAMI NFT login feature.
+   * When enabled, replaces standard wallet UI with NFT selection panel.
    */
   enabled: boolean;
   /**
@@ -75,10 +91,15 @@ export type KwamiNftOptions = {
    */
   storageKey?: string;
   /**
-   * Show selected NFT indicator in the wallet button.
-   * Defaults to false.
+   * Position where the selected KWAMI avatar appears after login.
+   * Defaults to 'top-left'.
    */
-  showInButton?: boolean;
+  avatarPosition?: 'top-left' | 'top-right' | 'bottom-left' | 'bottom-right';
+  /**
+   * Number of NFTs to load per batch (for lazy loading).
+   * Defaults to 20.
+   */
+  batchSize?: number;
 };
 
 export interface WalletConnectWidgetOptions extends BaseGlassProps {
@@ -138,9 +159,15 @@ export interface WalletConnectWidgetOptions extends BaseGlassProps {
   onError?: (error: unknown) => void;
 
   /**
-   * Called when a KWAMI NFT is selected.
+   * Called when a KWAMI NFT is selected (before confirmation).
    */
   onNftSelected?: (nft: KwamiOwnedNft) => void;
+
+  /**
+   * Called when KWAMI NFT login is confirmed.
+   * Receives wallet address and NFT mint.
+   */
+  onNftLogin?: (result: KwamiNftLoginResult) => void;
 }
 
 export interface WalletConnectWidgetState {

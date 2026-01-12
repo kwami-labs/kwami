@@ -28,6 +28,7 @@ import { ContextMenu } from './ContextMenu';
 import type { BackgroundMediaFit, BodyConfig, BlobSkinSelection, SceneBackgroundConfig } from '../../types/index';
 import { isYouTubeUrl, createYouTubeIframe } from '../utils/YouTubeHelper';
 import { AppDashboard } from '../apps/AppDashboard';
+import { KwamiControlPanel } from '../apps/KwamiControlPanel';
 import { getAppConnectors } from '../../apps/registry';
 import { logger } from '../../utils/logger';
 
@@ -154,6 +155,7 @@ export class KwamiBody {
   // Overlay support
   private contextMenu: ContextMenu | null = null;
   private appDashboard: AppDashboard | null = null;
+  private controlPanel: KwamiControlPanel | null = null;
   private readonly appConnectors = getAppConnectors();
   private kwamiInstance: any = null; // Reference to parent Kwami instance
   private pointerVector = new Vector2();
@@ -469,6 +471,9 @@ export class KwamiBody {
 
   /**
    * Handle right-click on canvas
+   * INVERTED BEHAVIOR:
+   * - Right-click on BLOB -> Show Kwami Control Panel (Body/Mind/Soul config)
+   * - Right-click on CANVAS -> Show Action Context Menu (blob actions)
    */
   private handleContextMenu = (event: MouseEvent): void => {
     event.preventDefault();
@@ -477,7 +482,26 @@ export class KwamiBody {
     const clickedOnBlob = this.isPointerOnBlob(event);
     const hasActions = Boolean(this.kwamiInstance?.actions);
 
-    if (clickedOnBlob && hasActions) {
+    // INVERTED: Clicking on blob shows Control Panel
+    if (clickedOnBlob) {
+      if (!this.controlPanel) {
+        this.controlPanel = new KwamiControlPanel({
+          kwami: this.kwamiInstance,
+          onClose: () => {
+            // Optional: callback when panel closes
+          },
+        });
+      }
+      // Hide other menus
+      this.contextMenu?.hide();
+      this.appDashboard?.hide();
+      // Show the control panel (centered, ignoring x/y)
+      this.controlPanel.show();
+      return;
+    }
+
+    // INVERTED: Clicking on canvas shows Action Context Menu
+    if (hasActions) {
       if (!this.contextMenu) {
         this.contextMenu = new ContextMenu({
           onActionSelect: (actionId: string) => {
@@ -489,16 +513,10 @@ export class KwamiBody {
           parentElement: this.canvas.parentElement || undefined,
         });
       }
+      this.controlPanel?.hide();
       this.appDashboard?.hide();
       this.contextMenu.show(event.clientX, event.clientY);
-      return;
     }
-
-    if (!this.appDashboard) {
-      this.appDashboard = new AppDashboard(this.appConnectors, { kwami: this.kwamiInstance });
-    }
-    this.contextMenu?.hide();
-    this.appDashboard?.show(event.clientX, event.clientY);
   };
 
   /**

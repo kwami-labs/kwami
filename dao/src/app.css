@@ -152,9 +152,7 @@ html.dark .kwami-header-backdrop {
 html.dark .kwami-footer-backdrop {
   border-top-color: rgba(148, 163, 184, 0.18);
   background: rgba(0, 0, 0, 0.22);
-}
-
-/* Tabs: equal-width buttons with animated pill indicator */
+}/* Tabs: equal-width buttons with animated pill indicator */
 .kwami-tabbar {
   position: relative;
   display: grid;
