@@ -56,21 +56,6 @@ export type WalletTrackedToken = {
   mint: string;
 };
 
-export type KwamiNftLoginResult = {
-  /**
-   * Wallet public key address.
-   */
-  walletAddress: string;
-  /**
-   * Selected KWAMI NFT mint address.
-   */
-  nftMint: string;
-  /**
-   * Full NFT data.
-   */
-  nft: KwamiOwnedNft;
-};
-
 export type KwamiNftOptions = {
   /**
    * Enable KWAMI NFT login feature.
@@ -167,7 +152,7 @@ export interface WalletConnectWidgetOptions extends BaseGlassProps {
    * Called when KWAMI NFT login is confirmed.
    * Receives wallet address and NFT mint.
    */
-  onNftLogin?: (result: KwamiNftLoginResult) => void;
+  onNftLogin?: (result: { walletAddress: string; nftMint: string; nft: KwamiOwnedNft }) => void;
 }
 
 export interface WalletConnectWidgetState {

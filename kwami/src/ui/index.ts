@@ -4,6 +4,7 @@ export * from './rings';
 export * from './logo';
 export * from './welcome';
 export * from './wallet';
+export * from './nft-login';
 export { ensureBaseUiStyles } from './baseUiStyles';
 export { normalizeIconifyName } from './iconNames';
 export { createGlassButton } from './components/GlassButton';
