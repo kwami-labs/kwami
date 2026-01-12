@@ -94,6 +94,10 @@
       "import": "./dist/src/ui/wallet/index.js",
       "types": "./dist/src/ui/wallet/index.d.ts"
     },
+    "./ui/nft-login": {
+      "import": "./dist/src/ui/nft-login/index.js",
+      "types": "./dist/src/ui/nft-login/index.d.ts"
+    },
     "./apps/wallet": {
       "import": "./dist/src/apps/wallet/index.js",
       "types": "./dist/src/apps/wallet/index.d.ts"

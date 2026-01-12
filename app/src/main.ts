@@ -1,10 +1,8 @@
 import './style.css'
-import { createWalletConnectWidget, type WalletConnectWidgetHandle } from 'kwami/ui/wallet'
-import { getWalletConnector, type WalletConnector } from 'kwami/apps/wallet'
-import type { KwamiOwnedNft } from 'kwami/apps/wallet'
+import { createKwamiNftLoginPanel, type KwamiNftLoginResult } from 'kwami/ui/nft-login'
+import { getWalletConnector } from 'kwami/apps/wallet'
 import { createBackgroundRings } from 'kwami/ui/rings'
 import { createKwamiLogoSvg } from 'kwami/ui/logo'
-import type { PublicKey } from '@solana/web3.js'
 import { BlobView } from './lib/BlobView'
 
 function readEnv(key: string): string | undefined {
@@ -17,7 +15,7 @@ const rpcEndpoint = readEnv('VITE_SOLANA_RPC_URL')
 const collectionMint = readEnv('VITE_KWAMI_COLLECTION_ADDRESS') ?? readEnv('VITE_COLLECTION_MINT')
 const symbol = readEnv('VITE_KWAMI_SYMBOL') ?? 'KWAMI'
 
-const connector: WalletConnector = getWalletConnector({ network: network as any, rpcEndpoint })
+const connector = getWalletConnector({ network: network as any, rpcEndpoint })
 
 const root = document.querySelector<HTMLDivElement>('#app')
 if (!root) throw new Error('Missing #app mount element')
@@ -32,7 +30,7 @@ root.innerHTML = `
   <div class="app-root">
     <header class="topbar">
       <div class="topbar-left" id="topbarLeft">
-        <div id="walletMount"></div>
+        <div id="loginMount"></div>
       </div>
       <div class="topbar-right"></div>
     </header>
@@ -40,12 +38,7 @@ root.innerHTML = `
     <main class="hero">
       <div class="hero-center">
         <div id="logoMount" class="logo-mount" aria-label="KWAMI"></div>
-        <div class="hero-sub">Connect a wallet · Select your Kwami NFT</div>
-        <div class="hero-meta">
-          <div class="meta-pill"><span class="meta-k">Network</span><span class="mono" id="networkValue"></span></div>
-          <div class="meta-pill"><span class="meta-k">Wallet</span><span class="mono" id="addressValue"></span></div>
-          <div class="meta-pill"><span class="meta-k">Selected</span><span class="mono" id="selectedValue"></span></div>
-        </div>
+        <div class="hero-sub">Connect with your KWAMI NFT</div>
       </div>
     </main>
 
@@ -53,83 +46,58 @@ root.innerHTML = `
   </div>
 `
 
-const walletMount = mustGet<HTMLDivElement>('#walletMount')
-const networkValue = mustGet<HTMLDivElement>('#networkValue')
-const addressValue = mustGet<HTMLDivElement>('#addressValue')
-const selectedValue = mustGet<HTMLSpanElement>('#selectedValue')
+const loginMount = mustGet<HTMLDivElement>('#loginMount')
 const logoMount = mustGet<HTMLDivElement>('#logoMount')
 const blobContainer = mustGet<HTMLDivElement>('#blob-container')
 
-let selectedNft: KwamiOwnedNft | null = null
 let blobView: BlobView | null = null
 
-function shortAddress(value: string, left = 6, right = 6) {
-  if (!value) return '—'
-  if (value.length <= left + right + 3) return value
-  return `${value.slice(0, left)}…${value.slice(-right)}`
-}
-
-function getPublicKey(): PublicKey | null {
-  return connector.getPublicKey()
-}
-
-function renderSession() {
-  networkValue.textContent = connector.getNetwork()
-  const pk = getPublicKey()
-  const address = pk ? shortAddress(pk.toBase58()) : '—'
-  addressValue.textContent = address
-  selectedValue.textContent = selectedNft ? shortAddress(selectedNft.mint, 7, 7) : '—'
-}
-
-function handleNftSelected(nft: KwamiOwnedNft) {
-  selectedNft = nft
+function handleLogin(result: KwamiNftLoginResult) {
+  console.log('✅ Logged in with KWAMI:', result.nft.name)
+  console.log('📍 Wallet:', result.walletAddress)
+  console.log('🎨 NFT Mint:', result.nftMint)
   
   // Hide hero center
   document.querySelector('.hero-center')?.classList.add('hero-center--hidden')
   
   // Initialize and show Blob
   if (!blobView) blobView = new BlobView(blobContainer)
-  blobView.initBlob(nft.body ?? null)
+  blobView.initBlob(result.nft.body ?? null)
   blobView.start()
   
   blobContainer.classList.add('blob--visible')
-  
-  renderSession()
 }
 
-const widget: WalletConnectWidgetHandle = createWalletConnectWidget({
-  connectLabel: 'Connect Wallet',
-  showBalanceInButton: true,
-  autoRefreshBalanceMs: 30_000,
+function handleLogout() {
+  console.log('👋 Logged out')
+  
+  // Clean up Blob
+  if (blobView) {
+    blobView.stop()
+  }
+  blobContainer.classList.remove('blob--visible')
+  
+  // Show hero center
+  document.querySelector('.hero-center')?.classList.remove('hero-center--hidden')
+}
+
+// Create NFT Login Panel
+const loginPanel = createKwamiNftLoginPanel({
   wallet: connector as any,
-  nftLoginOptions: {
-    enabled: true,
-    collectionMint,
-    symbol,
-    storageKey: 'kwami-app:selectedKwamiMint',
-  },
-  onConnected: () => {
-    renderSession()
-  },
-  onDisconnected: () => {
-    selectedNft = null
-    if (blobView) {
-      blobView.stop()
-    }
-    blobContainer.classList.remove('blob--visible')
-    document.querySelector('.hero-center')?.classList.remove('hero-center--hidden')
-    renderSession()
-  },
-  onNftSelected: (nft) => {
-    handleNftSelected(nft)
-  },
-  onError: (err) => {
-    console.error('Wallet error:', err)
+  collectionMint,
+  symbol,
+  avatarPosition: 'top-left',
+  batchSize: 20,
+  storageKey: 'kwami-app:nft-login',
+  autoRestore: true,
+  onLogin: handleLogin,
+  onLogout: handleLogout,
+  onError: (err: unknown) => {
+    console.error('❌ NFT Login error:', err)
   },
 })
 
-walletMount.appendChild(widget.element)
-renderSession()
+loginMount.appendChild(loginPanel.element)
 
 // Background rings (same approach as web/)
 const rings = createBackgroundRings({
