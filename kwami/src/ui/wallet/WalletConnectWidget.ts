@@ -850,6 +850,9 @@ export function createWalletConnectWidget(options: WalletConnectWidgetOptions = 
 
     if (isLoadingMoreNfts) return;
     isLoadingMoreNfts = true;
+    
+    // Trigger UI update to show loading state immediately
+    applyStateToUi();
 
     try {
       const batchSize = options.nftLoginOptions.batchSize ?? 20;
@@ -885,14 +888,8 @@ export function createWalletConnectWidget(options: WalletConnectWidgetOptions = 
       state.kwamiNfts = finalNfts;
       nftLoadOffset += nfts.length;
 
-      // Restore selected NFT from localStorage (only on first load)
-      if (reset) {
-        const storageKey = options.nftLoginOptions.storageKey ?? 'kwami-selected-nft';
-        const savedMint = typeof localStorage !== 'undefined' ? localStorage.getItem(storageKey) : null;
-        if (savedMint && state.kwamiNfts.some((n) => n.mint === savedMint)) {
-          state.selectedNft = state.kwamiNfts.find((n) => n.mint === savedMint) ?? null;
-        }
-      }
+      // Note: We don't auto-restore selectedNft from localStorage here.
+      // User must manually select and login each time.
     } catch (error) {
       const message = error instanceof Error ? error.message : 'Failed to load NFTs';
       setError(message);
@@ -930,8 +927,8 @@ export function createWalletConnectWidget(options: WalletConnectWidgetOptions = 
     nftsSection.style.display = '';
     nftsSection.innerHTML = '';
 
-    // Show loading state
-    if (isLoadingMoreNfts && (!state.kwamiNfts || state.kwamiNfts.length === 0)) {
+    // Show loading state (check loading BEFORE checking if array is empty)
+    if (isLoadingMoreNfts && state.kwamiNfts.length === 0) {
       const loading = document.createElement('div');
       loading.style.textAlign = 'center';
       loading.style.padding = '2rem';
@@ -942,7 +939,8 @@ export function createWalletConnectWidget(options: WalletConnectWidgetOptions = 
       return;
     }
 
-    if (!state.kwamiNfts || state.kwamiNfts.length === 0) {
+    // Show empty state only when NOT loading and no NFTs found
+    if (!isLoadingMoreNfts && state.kwamiNfts.length === 0) {
       const empty = createText('No KWAMI NFTs found in this wallet.', { muted: true });
       empty.style.fontSize = '0.85rem';
       empty.style.padding = '1.5rem 0';
