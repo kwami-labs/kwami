@@ -152,6 +152,8 @@ export function createWalletConnectWidget(options: WalletConnectWidgetOptions = 
     availablePublicKeys?: PublicKey[];
     tokenBalancesByMint?: Record<string, number | null>;
     connectedWalletName?: string | null;
+    kwamiNfts: KwamiOwnedNft[];
+    selectedNft: KwamiOwnedNft | null;
   } = {
     status: 'disconnected',
     connectedWallet: null,
@@ -555,14 +557,51 @@ export function createWalletConnectWidget(options: WalletConnectWidgetOptions = 
 
   function rebuildActions(): void {
     actionsSection.innerHTML = '';
+    actionsSection.style.display = '';
 
-    // Hide actions section when NFT login is enabled and connected
-    if (options.nftLoginOptions?.enabled && state.status === 'connected') {
-      actionsSection.style.display = 'none';
+    // If NFT is logged in, show KWAMI info instead of wallet info
+    if (options.nftLoginOptions?.enabled && state.status === 'connected' && state.selectedNft) {
+      const walletAddress = wallet.getPublicKey()?.toBase58();
+      if (!walletAddress) return;
+
+      const info = document.createElement('div');
+      info.style.display = 'flex';
+      info.style.flexDirection = 'column';
+      info.style.gap = '0.75rem';
+      info.style.padding = '0.5rem 0';
+
+      const nameRow = createRow('KWAMI', createText(state.selectedNft.name || 'Unnamed', {}));
+      const addressRow = createRow('WALLET', createText(truncateAddress(walletAddress, 6, 4), { mono: true }));
+
+      info.appendChild(nameRow);
+      info.appendChild(addressRow);
+      info.appendChild(createDivider());
+
+      // Logout button
+      const logoutBtn = createGlassButton({
+        label: 'Logout',
+        icon: '⏻',
+        mode: 'outline',
+        size: 'md',
+        theme: options.theme,
+        appearance: { borderRadius: '16px' },
+        onClick: () => {
+          popover.hide();
+          void disconnect();
+        },
+      });
+      logoutBtn.element.style.width = '100%';
+      info.appendChild(logoutBtn.element);
+
+      actionsSection.appendChild(info);
       return;
     }
 
-    actionsSection.style.display = '';
+    // If NFT login is enabled but not logged in yet, hide actions (show NFT grid instead)
+    if (options.nftLoginOptions?.enabled && state.status === 'connected' && !state.selectedNft) {
+      actionsSection.style.display = 'none';
+      return;
+    }
 
     if (state.status === 'connected') {
       const walletName =
@@ -640,8 +679,12 @@ export function createWalletConnectWidget(options: WalletConnectWidgetOptions = 
   function applyStateToUi(): void {
     // Header changes
     if (state.status === 'connected') {
-      // When NFT login is enabled, show "Your KWAMIs" instead of "Your Wallet"
-      if (options.nftLoginOptions?.enabled) {
+      // When NFT is logged in, show "Your KWAMI" header
+      // Otherwise if NFT login enabled but not logged in, show "Your KWAMIs"
+      // Otherwise show "Your Wallet"
+      if (options.nftLoginOptions?.enabled && state.selectedNft) {
+        popover.setHeader('Your KWAMI');
+      } else if (options.nftLoginOptions?.enabled) {
         popover.setHeader('Your KWAMIs');
       } else {
         popover.setHeader('Your Wallet');
@@ -878,6 +921,12 @@ export function createWalletConnectWidget(options: WalletConnectWidgetOptions = 
       return;
     }
 
+    // If NFT is already logged in, don't show the NFT grid (show KWAMI info in actions instead)
+    if (state.selectedNft) {
+      nftsSection.style.display = 'none';
+      return;
+    }
+
     nftsSection.style.display = '';
     nftsSection.innerHTML = '';
 
@@ -921,7 +970,8 @@ export function createWalletConnectWidget(options: WalletConnectWidgetOptions = 
       card.style.padding = '0.6rem';
       card.style.cursor = 'pointer';
       card.style.transition = 'all 0.2s';
-      card.style.border = state.selectedNft?.mint === nft.mint ? '2px solid rgba(99, 102, 241, 0.6)' : '';
+      const selectedMint = (state.selectedNft as KwamiOwnedNft | null)?.mint;
+      card.style.border = selectedMint === nft.mint ? '2px solid rgba(99, 102, 241, 0.6)' : '';
 
       const img = document.createElement('div');
       img.style.width = '100%';
@@ -980,11 +1030,12 @@ export function createWalletConnectWidget(options: WalletConnectWidgetOptions = 
     }
 
     // Login button (shown when NFT is selected)
-    if (state.selectedNft) {
+    const selectedNft = state.selectedNft as KwamiOwnedNft | null;
+    if (selectedNft) {
       nftsSection.appendChild(createDivider());
       
       const loginBtn = createGlassButton({
-        label: `Login with ${state.selectedNft.name || 'KWAMI'}`,
+        label: `Login with ${selectedNft.name || 'KWAMI'}`,
         icon: '🔐',
         mode: 'primary',
         size: 'md',
@@ -1018,6 +1069,9 @@ export function createWalletConnectWidget(options: WalletConnectWidgetOptions = 
   }
 
   function transformToAvatar(nft: KwamiOwnedNft, walletAddress: string): void {
+    // Add smooth transition
+    buttonHandle.element.style.transition = 'all 0.4s cubic-bezier(0.4, 0, 0.2, 1)';
+    
     // Change button to circular avatar style
     buttonHandle.element.style.width = '48px';
     buttonHandle.element.style.height = '48px';
@@ -1054,49 +1108,14 @@ export function createWalletConnectWidget(options: WalletConnectWidgetOptions = 
       btn.appendChild(initials);
     }
 
-    // Update popover to show KWAMI info instead of wallet info
-    updateAvatarPopover(nft, walletAddress);
-  }
-
-  function updateAvatarPopover(nft: KwamiOwnedNft, walletAddress: string): void {
-    // Recreate actions section with KWAMI info
-    actionsSection.innerHTML = '';
-    actionsSection.style.display = '';
-
-    // KWAMI info
-    const info = document.createElement('div');
-    info.style.display = 'flex';
-    info.style.flexDirection = 'column';
-    info.style.gap = '0.75rem';
-    info.style.padding = '0.5rem 0';
-
-    const nameRow = createRow('KWAMI', createText(nft.name || 'Unnamed', {}));
-    const addressRow = createRow('WALLET', createText(truncateAddress(walletAddress, 6, 4), { mono: true }));
-
-    info.appendChild(nameRow);
-    info.appendChild(addressRow);
-    info.appendChild(createDivider());
-
-    // Logout button
-    const logoutBtn = createGlassButton({
-      label: 'Logout',
-      icon: '⏻',
-      mode: 'outline',
-      size: 'md',
-      theme: options.theme,
-      appearance: { borderRadius: '16px' },
-      onClick: () => {
-        popover.hide();
-        void disconnect();
-      },
-    });
-    logoutBtn.element.style.width = '100%';
-    info.appendChild(logoutBtn.element);
-
-    actionsSection.appendChild(info);
+    // Trigger UI update to show KWAMI info in popover
+    applyStateToUi();
   }
 
   function revertFromAvatar(): void {
+    // Add smooth transition
+    buttonHandle.element.style.transition = 'all 0.4s cubic-bezier(0.4, 0, 0.2, 1)';
+    
     // Revert button to normal wallet button style
     buttonHandle.element.style.width = '';
     buttonHandle.element.style.height = '';
