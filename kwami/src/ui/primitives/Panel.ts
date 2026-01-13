@@ -1,4 +1,4 @@
-import { getThemeEngine } from '../core/theme/ThemeEngine';
+import { getThemeEngine } from '../theme/ThemeEngine';
 
 /**
  * Panel Component (New Theme System)

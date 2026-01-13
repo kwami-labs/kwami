@@ -1,12 +1,12 @@
 import type { KwamiNftLoginOptions, KwamiNftLoginHandle, KwamiNftLoginResult, NftLoginState } from './types';
 import type { KwamiOwnedNft } from '../../apps/wallet/kwamiNfts';
 import { fetchOwnedKwamiNfts } from '../../apps/wallet/kwamiNfts';
-import { createGlassModal } from '../components/GlassModal';
-import { createGlassButton } from '../components/GlassButton';
+import { createGlassModal } from '../primitives/GlassModal';
+import { createGlassButton } from '../primitives/GlassButton';
 import { createKwamiNftGrid } from './KwamiNftGrid';
 import { createKwamiAvatar } from './KwamiAvatar';
 import { animateToCorner, fadeOut } from './animations';
-import { createIcon } from '../components/Icon';
+import { createIcon } from '../primitives/Icon';
 
 export function createKwamiNftLoginPanel(options: KwamiNftLoginOptions): KwamiNftLoginHandle {
   const batchSize = options.batchSize ?? 20;

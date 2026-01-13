@@ -1,6 +1,6 @@
 import type { KwamiOwnedNft } from '../../apps/wallet/kwamiNfts';
 import { findNftCandidates, hydrateNftBatch } from '../../apps/wallet/kwamiNfts';
-import { createGlassButton } from '../components/GlassButton';
+import { createGlassButton } from '../primitives/GlassButton';
 import type { WalletConnectWidgetOptions } from './types';
 import type { ExtendedWidgetState } from './state-manager';
 import { createDivider, createText } from './utils';

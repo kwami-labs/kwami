@@ -1,9 +1,9 @@
 import type { ConnectedWallet } from '../../apps/wallet/WalletConnector';
 import { getWalletConnector } from '../../apps/wallet/WalletConnector';
-import { createGlassButton } from '../components/GlassButton';
-import { createGlassPopover } from '../components/GlassPopover';
-import { createIcon } from '../components/Icon';
-import type { GlassContent } from '../types';
+import { createGlassButton } from '../primitives/GlassButton';
+import { createGlassPopover } from '../primitives/GlassPopover';
+import { createIcon } from '../primitives/Icon';
+import type { GlassContent } from '../legacy/types';
 import type {
   WalletConnectWidgetConnector,
   WalletConnectWidgetHandle,

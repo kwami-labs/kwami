@@ -1,6 +1,6 @@
 import type { KwamiNftGridOptions } from './types';
-import { createGlassButton } from '../components/GlassButton';
-import { createIcon } from '../components/Icon';
+import { createGlassButton } from '../primitives/GlassButton';
+import { createIcon } from '../primitives/Icon';
 
 export function createKwamiNftGrid(options: KwamiNftGridOptions): HTMLDivElement {
   const container = document.createElement('div');

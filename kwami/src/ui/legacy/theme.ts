@@ -1,4 +1,4 @@
-import type { GlassMode, GlassTheme } from './types';
+import type { GlassMode, GlassTheme } from '../legacy/types';
 
 const lightTheme: GlassTheme = {
   mode: 'light',

@@ -1,5 +1,5 @@
-import { createGlassButton } from '../components/GlassButton';
-import type { GlassPopoverHandle } from '../components/GlassPopover';
+import { createGlassButton } from '../primitives/GlassButton';
+import type { GlassPopoverHandle } from '../primitives/GlassPopover';
 import type { WalletConnectWidgetOptions } from './types';
 import type { ExtendedWidgetState } from './state-manager';
 import { getWalletConnector } from '../../apps/wallet/WalletConnector';

@@ -1,4 +1,4 @@
-import type { BaseGlassProps, GlassContent } from '../types';
+import type { BaseGlassProps, GlassContent } from '../legacy/types';
 import type { ConnectedWallet } from '../../apps/wallet/WalletConnector';
 import type { KwamiOwnedNft } from '../../apps/wallet/kwamiNfts';
 import type { PublicKey } from '@solana/web3.js';

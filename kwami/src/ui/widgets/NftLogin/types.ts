@@ -1,6 +1,6 @@
 import type { KwamiOwnedNft } from '../../apps/wallet/kwamiNfts';
 import type { WalletConnectWidgetConnector } from '../wallet/types';
-import type { BaseGlassProps } from '../types';
+import type { BaseGlassProps } from '../legacy/types';
 
 export type NftLoginState = 'disconnected' | 'connecting' | 'loading-nfts' | 'selecting' | 'confirming' | 'logged-in';
 

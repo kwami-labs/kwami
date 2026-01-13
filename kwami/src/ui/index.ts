@@ -1,25 +1,28 @@
-// New Theme System (recommended)
-export * from './core/theme';
-
-// New Components (theme-aware)
-export { createButton, createGlassButton, type ButtonOptions, type ButtonHandle } from './components/Button';
-export { createCard, createGlassCard, type CardOptions, type CardHandle } from './components/Card';
-export { createModal, createGlassModal, type ModalOptions, type ModalHandle } from './components/Modal';
-export { createPopover, createGlassPopover, type PopoverOptions, type PopoverHandle } from './components/Popover';
-export { createPanel, createGlassPanel, type PanelOptions } from './components/Panel';
-
-// Legacy types and theme
-export * from './types';
+// Theme System
 export * from './theme';
 
-// Other exports
-export * from './rings';
-export * from './logo';
-export * from './welcome';
-export * from './wallet';
-export * from './nft-login';
-export { ensureBaseUiStyles } from './baseUiStyles';
-export { normalizeIconifyName } from './iconNames';
+// Primitives
+export { createButton, createGlassButton, type ButtonOptions, type ButtonHandle } from './primitives/Button';
+export { createCard, createGlassCard, type CardOptions, type CardHandle } from './primitives/Card';
+export { createModal, createGlassModal, type ModalOptions, type ModalHandle } from './primitives/Modal';
+export { createPopover, createGlassPopover, type PopoverOptions, type PopoverHandle } from './primitives/Popover';
+export { createPanel, createGlassPanel, type PanelOptions } from './primitives/Panel';
+export { createIcon, type IconHandle, type IconOptions } from './primitives/Icon';
 
-// Other components
-export { createIcon, type IconHandle, type IconOptions } from './components/Icon';
+// Widgets
+export * from './widgets/Console';
+export * from './widgets/Wallet';
+export * from './widgets/NftLogin';
+
+// Effects
+export * from './effects/Rings';
+export * from './effects/Logo';
+export * from './effects/Welcome';
+
+// Utils
+export { normalizeIconifyName } from './utils/iconNames';
+
+// Legacy (for backward compatibility)
+export { ensureBaseUiStyles } from './legacy/baseUiStyles';
+export * from './legacy/types';
+export * from './legacy/theme';

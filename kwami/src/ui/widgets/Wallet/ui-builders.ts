@@ -1,6 +1,6 @@
-import type { GlassContent } from '../types';
-import type { GlassButtonHandle } from '../components/GlassButton';
-import { createGlassButton } from '../components/GlassButton';
+import type { GlassContent } from '../legacy/types';
+import type { GlassButtonHandle } from '../primitives/GlassButton';
+import { createGlassButton } from '../primitives/GlassButton';
 import type { WalletConnectWidgetOptions, WalletTrackedToken } from './types';
 import type { ExtendedWidgetState } from './state-manager';
 import { createDivider, createRow, createText, formatSol, truncateAddress } from './utils';
