@@ -5,6 +5,7 @@ import type { KwamiOwnedNft } from 'kwami/apps/wallet'
 import { createBackgroundRings } from 'kwami/ui/rings'
 import { createKwamiLogoSvg } from 'kwami/ui/logo'
 import { BlobView } from './lib/BlobView'
+import { KwamiAuthApi, signAuthMessage } from './lib/authApi'
 
 function readEnv(key: string): string | undefined {
   const v = (import.meta as any).env?.[key]
@@ -15,8 +16,10 @@ const network = readEnv('VITE_SOLANA_NETWORK') ?? 'devnet'
 const rpcEndpoint = readEnv('VITE_SOLANA_RPC_URL')
 const collectionMint = readEnv('VITE_KWAMI_COLLECTION_ADDRESS') ?? readEnv('VITE_COLLECTION_MINT')
 const symbol = readEnv('VITE_KWAMI_SYMBOL') ?? 'KWAMI'
+const authServerUrl = readEnv('VITE_AUTH_SERVER_URL') ?? 'http://localhost:3000'
 
 const connector = getWalletConnector({ network: network as any, rpcEndpoint })
+const authApi = new KwamiAuthApi(authServerUrl)
 
 const root = document.querySelector<HTMLDivElement>('#app')
 if (!root) throw new Error('Missing #app mount element')
@@ -53,8 +56,62 @@ const blobContainer = mustGet<HTMLDivElement>('#blob-container')
 
 let blobView: BlobView | null = null
 
+async function authenticateWithServer(nft: KwamiOwnedNft) {
+  try {
+    const wallet = connector.getWallet()
+    if (!wallet || !wallet.publicKey || !wallet.signMessage) {
+      throw new Error('Wallet not connected or does not support message signing')
+    }
+
+    console.log('🔐 Authenticating with server...')
+    
+    // Check server health
+    const healthy = await authApi.healthCheck()
+    if (!healthy) {
+      console.warn('⚠️  Auth server is not reachable at', authServerUrl)
+      return
+    }
+
+    const pubkey = wallet.publicKey.toBase58()
+    
+    // Request nonce
+    const { nonce, message } = await authApi.requestNonce(pubkey)
+    console.log('📝 Signing message:', message)
+    
+    // Sign message
+    const signature = await signAuthMessage(wallet.signMessage.bind(wallet), message)
+    
+    // Login
+    const loginResult = await authApi.login({
+      pubkey,
+      signature,
+      message,
+      nonce
+    })
+    
+    console.log('✅ Authenticated with server, JWT token received')
+    console.log('🎨 Server found', loginResult.owned_kwamis.length, 'KWAMIs')
+    
+    // Select the current NFT
+    const selectResult = await authApi.selectKwami(nft.mint)
+    console.log('✨ Selected KWAMI:', selectResult.kwami_mint)
+    
+    // Store token in localStorage
+    localStorage.setItem('kwami-auth-token', authApi.getToken() || '')
+    
+  } catch (error) {
+    console.error('❌ Authentication failed:', error)
+    // Continue with local-only mode
+  }
+}
+
 function handleNftLogin(nft: KwamiOwnedNft) {
   console.log('✅ Logged in with KWAMI:', nft.name)
+  
+  // Authenticate with server in background
+  authenticateWithServer(nft).catch(err => {
+    console.error('Auth error:', err)
+  })
   
   // Hide hero center
   document.querySelector('.hero-center')?.classList.add('hero-center--hidden')
@@ -69,6 +126,10 @@ function handleNftLogin(nft: KwamiOwnedNft) {
 
 function handleLogout() {
   console.log('👋 Logged out')
+  
+  // Clear auth token
+  authApi.clearToken()
+  localStorage.removeItem('kwami-auth-token')
   
   // Clean up Blob
   if (blobView) {
