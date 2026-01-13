@@ -40,6 +40,10 @@ export interface WalletConnectWidgetConnector {
   getNetwork: () => string;
   getConnection: () => any; // Connection from @solana/web3.js
 
+  // Event listeners
+  on: (event: string, callback: (data?: any) => void) => void;
+  off: (event: string, callback: (data?: any) => void) => void;
+
   // Optional/extended APIs (supported by Kwami's WalletConnector)
   getTokenBalances?: (publicKey?: PublicKey) => Promise<Array<{ mint: string; uiAmount: number; decimals: number }>>;
   switchNetwork?: (network: 'mainnet-beta' | 'devnet' | 'testnet') => Promise<boolean>;
