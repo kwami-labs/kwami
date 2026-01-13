@@ -1,13 +1,13 @@
 <template>
   <div class="nft-gallery">
     <div v-if="nftStore.loading" class="text-center py-12">
-      <UIcon name="i-heroicons-arrow-path" class="w-12 h-12 animate-spin text-primary-500 dark:text-primary-400 mx-auto mb-4" />
+      <Icon name="solar:restart-bold" size="48px" class="animate-spin text-primary-500 dark:text-primary-400 mx-auto mb-4" />
       <p class="text-gray-500 dark:text-gray-400">Loading your KWAMIs...</p>
     </div>
 
     <div v-else-if="nftStore.ownedNfts.length === 0" class="text-center py-12">
       <div class="w-24 h-24 bg-gray-100 dark:bg-gray-900 rounded-full flex items-center justify-center mx-auto mb-4">
-        <UIcon name="i-heroicons-cube-transparent" class="w-12 h-12 text-gray-400 dark:text-gray-600" />
+        <Icon name="solar:box-minimalistic-bold" size="48px" class="text-gray-400 dark:text-gray-600" />
       </div>
       <p class="text-xl text-gray-600 dark:text-gray-400 mb-2">No KWAMIs Yet</p>
       <p class="text-sm text-gray-500">Mint your first KWAMI NFT above!</p>
@@ -28,7 +28,7 @@
               class="w-full h-full object-cover"
             />
             <div v-else class="w-full h-full flex items-center justify-center">
-              <UIcon name="i-heroicons-cube-transparent" class="w-16 h-16 text-gray-400 dark:text-gray-600" />
+              <Icon name="solar:gallery-bold" size="64px" class="text-gray-400 dark:text-gray-600" />
             </div>
           </div>
         </template>
@@ -62,6 +62,7 @@
 import { onMounted, watch } from 'vue'
 import { useNFTStore } from '@/stores/nft'
 import { useWalletStore } from '@/stores/wallet'
+import Icon from '@/components/Icon.vue'
 
 const nftStore = useNFTStore()
 const wallet = useWalletStore()

@@ -1,5 +1,6 @@
 import { resolveGlassTheme } from '../../theme';
 import type { BaseGlassProps } from '../../types';
+import { createIcon } from '../../components/Icon';
 
 export interface MemorySectionOptions extends BaseGlassProps {
   kwami?: any;
@@ -34,17 +35,18 @@ export class MemorySection {
       color: theme.palette.muted,
     });
 
-    const icon = document.createElement('div');
-    icon.textContent = '🧠';
-    icon.style.fontSize = '48px';
-    icon.style.marginBottom = '16px';
+    const iconContainer = document.createElement('div');
+    iconContainer.style.fontSize = '48px';
+    iconContainer.style.marginBottom = '16px';
+    const icon = createIcon({ name: 'heroicons:cpu-chip', size: '48px', color: theme.palette.muted }).element;
+    iconContainer.appendChild(icon);
 
     const text = document.createElement('div');
     text.style.fontSize = '14px';
     text.style.lineHeight = '1.6';
     text.innerHTML = '<strong>MEMORY Configuration</strong><br/>Manage conversation history and context<br/><br/>Coming soon...';
 
-    placeholder.appendChild(icon);
+    placeholder.appendChild(iconContainer);
     placeholder.appendChild(text);
     this.container.appendChild(placeholder);
   }

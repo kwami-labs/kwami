@@ -11,7 +11,7 @@
   "dependencies": {
     "@metaplex-foundation/js": "^0.20.1",
     "@solana/web3.js": "^1.98.4",
-    "kwami": "^1.5.12"
+    "kwami": "file:../kwami"
   },
   "devDependencies": {
     "typescript": "~5.9.3",

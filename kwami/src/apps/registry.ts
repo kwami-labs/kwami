@@ -1,12 +1,13 @@
 import type { Kwami } from '../core/Kwami';
 import { getYouTubeConnector, type YouTubeConfig } from './youtube';
 import { logger } from '../utils/logger';
+import { createIcon } from '../ui/components/Icon';
 
 export interface AppConnectorButton {
   id: string;
   name: string;
   description: string;
-  icon?: string;
+  icon?: string | HTMLElement;
   accent?: string;
   docsUrl?: string;
   actionLabel?: string;
@@ -24,7 +25,7 @@ const DEFAULT_CONNECTORS: AppConnectorButton[] = [
     id: 'youtube',
     name: 'YouTube Studio',
     description: 'Connect your channel to import playlists and drive Kwami with video audio.',
-    icon: '📺',
+    icon: createIcon({ name: 'heroicons:tv', size: 'md' }).element,
     accent: 'linear-gradient(120deg, #ff6b6b, #ffa06e)',
     actionLabel: 'Connect',
     onLaunch: async ({ kwami }) => {
@@ -54,7 +55,7 @@ const DEFAULT_CONNECTORS: AppConnectorButton[] = [
     id: 'wallet',
     name: 'Solana Wallet',
     description: 'Connect Phantom, Solflare, or Backpack to drive on-chain automations.',
-    icon: '🪙',
+    icon: createIcon({ name: 'heroicons:currency-dollar', size: 'md' }).element,
     accent: 'linear-gradient(120deg, #6EE7B7, #3B82F6)',
     actionLabel: 'Open Wallet',
     onLaunch: connectExternal('https://pg.kwami.io?panel=apps&app=wallet'),
@@ -63,7 +64,7 @@ const DEFAULT_CONNECTORS: AppConnectorButton[] = [
     id: 'agents',
     name: 'Mind Agents',
     description: 'Spin up multimodal Kwami Minds that speak, listen, and trigger automations.',
-    icon: '🧠',
+    icon: createIcon({ name: 'heroicons:cpu-chip', size: 'md' }).element,
     accent: 'linear-gradient(120deg, #a855f7, #6366f1)',
     actionLabel: 'Launch Agents',
     onLaunch: connectExternal('https://pg.kwami.io?panel=mind'),
@@ -72,7 +73,7 @@ const DEFAULT_CONNECTORS: AppConnectorButton[] = [
     id: 'guides',
     name: 'Integration Guides',
     description: 'Deep dives into building custom apps, actions, and automations for Kwami.',
-    icon: '📚',
+    icon: createIcon({ name: 'heroicons:book-open', size: 'md' }).element,
     accent: 'linear-gradient(120deg, #38bdf8, #34d399)',
     actionLabel: 'Open Docs',
     onLaunch: connectExternal('https://github.com/alexcolls/kwami/tree/dev/docs'),

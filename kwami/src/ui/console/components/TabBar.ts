@@ -1,5 +1,6 @@
 import { resolveGlassTheme } from '../../theme';
 import type { BaseGlassProps } from '../../types';
+import { createIcon } from '../../components/Icon';
 
 export type ConsoleTab = 'body' | 'mind' | 'soul';
 
@@ -34,9 +35,9 @@ export class TabBar {
 
   private renderTabs(): void {
     const tabConfigs: Array<{ id: ConsoleTab; label: string; icon: string }> = [
-      { id: 'body', label: 'Body', icon: '🧬' },
-      { id: 'mind', label: 'Mind', icon: '🧠' },
-      { id: 'soul', label: 'Soul', icon: '✨' },
+      { id: 'body', label: 'Body', icon: 'heroicons:beaker' },
+      { id: 'mind', label: 'Mind', icon: 'heroicons:cpu-chip' },
+      { id: 'soul', label: 'Soul', icon: 'heroicons:sparkles' },
     ];
 
     tabConfigs.forEach(config => {
@@ -73,14 +74,12 @@ export class TabBar {
       zIndex: isActive ? '2' : '1',
     });
 
-    const iconSpan = document.createElement('span');
-    iconSpan.textContent = icon;
-    iconSpan.style.fontSize = '20px';
+    const iconElement = createIcon({ name: icon, size: 'md', color: isActive ? '#FFFFFF' : theme.palette.muted }).element;
 
     const labelSpan = document.createElement('span');
     labelSpan.textContent = label;
 
-    btn.appendChild(iconSpan);
+    btn.appendChild(iconElement);
     btn.appendChild(labelSpan);
 
     btn.addEventListener('mouseenter', () => {

@@ -2,9 +2,12 @@
   <div class="soul-config-panel space-y-4">
     <!-- Header -->
     <div class="text-center mb-4">
-      <h3 class="text-xl font-bold text-gray-900 dark:text-white mb-1">
-        ✨ Soul Configuration
-      </h3>
+      <div class="flex items-center justify-center gap-2 mb-1">
+        <Icon name="solar:star-bold" size="lg" class="text-primary-500" />
+        <h3 class="text-xl font-bold text-gray-900 dark:text-white">
+          Soul Configuration
+        </h3>
+      </div>
       <p class="text-sm text-gray-500 dark:text-gray-400">
         Define your Kwami's personality and character
       </p>
@@ -124,10 +127,11 @@
         </label>
         <button
           type="button"
-          class="text-xs text-primary-600 dark:text-primary-400 hover:underline"
+          class="flex items-center gap-1 text-xs text-primary-600 dark:text-primary-400 hover:underline"
           @click="randomizeTraits"
         >
-          🎲 Randomize
+          <Icon name="solar:shuffle-bold" size="sm" />
+          Randomize
         </button>
       </div>
       <p class="text-xs text-gray-500 dark:text-gray-400 mb-3">
@@ -156,8 +160,9 @@
 
     <!-- Advanced: System Prompt (collapsible) -->
     <details class="group">
-      <summary class="cursor-pointer text-sm font-medium text-gray-700 dark:text-gray-300 hover:text-primary-600 dark:hover:text-primary-400">
-        🔧 Advanced: System Prompt
+      <summary class="cursor-pointer flex items-center gap-1 text-sm font-medium text-gray-700 dark:text-gray-300 hover:text-primary-600 dark:hover:text-primary-400">
+        <Icon name="solar:settings-bold" size="sm" />
+        Advanced: System Prompt
       </summary>
       <div class="mt-2">
         <textarea
@@ -173,6 +178,7 @@
 
 <script setup lang="ts">
 import { ref, watch } from 'vue'
+import Icon from '@/components/Icon.vue'
 import type { SoulConfig } from '@/utils/prepareKwamiMetadata'
 import { getDefaultSoulConfig } from '@/utils/prepareKwamiMetadata'
 

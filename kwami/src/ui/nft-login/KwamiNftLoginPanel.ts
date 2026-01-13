@@ -6,6 +6,7 @@ import { createGlassButton } from '../components/GlassButton';
 import { createKwamiNftGrid } from './KwamiNftGrid';
 import { createKwamiAvatar } from './KwamiAvatar';
 import { animateToCorner, fadeOut } from './animations';
+import { createIcon } from '../components/Icon';
 
 export function createKwamiNftLoginPanel(options: KwamiNftLoginOptions): KwamiNftLoginHandle {
   const batchSize = options.batchSize ?? 20;
@@ -28,7 +29,7 @@ export function createKwamiNftLoginPanel(options: KwamiNftLoginOptions): KwamiNf
   // Connect button (shown when disconnected)
   const connectBtn = createGlassButton({
     label: 'Connect with KWAMI',
-    icon: '🌟',
+    icon: createIcon({ name: 'heroicons:sparkles', size: 'sm' }).element,
     mode: 'primary',
     size: 'lg',
     theme: options.theme,

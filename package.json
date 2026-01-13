@@ -62,5 +62,8 @@
     "bun": ">=1.0.0",
     "deno": ">=1.0.0"
   },
-  "packageManager": "npm@10.9.0"
+  "packageManager": "npm@10.9.0",
+  "dependencies": {
+    "iconify-icon": "^3.0.2"
+  }
 }

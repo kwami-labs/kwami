@@ -1,5 +1,6 @@
 import type { KwamiNftGridOptions } from './types';
 import { createGlassButton } from '../components/GlassButton';
+import { createIcon } from '../components/Icon';
 
 export function createKwamiNftGrid(options: KwamiNftGridOptions): HTMLDivElement {
   const container = document.createElement('div');
@@ -117,7 +118,7 @@ export function createKwamiNftGrid(options: KwamiNftGridOptions): HTMLDivElement
 
     const loginBtn = createGlassButton({
       label: `Login with ${options.selectedNft.name || 'KWAMI'}`,
-      icon: '🔐',
+      icon: createIcon({ name: 'heroicons:lock-closed', size: 'sm' }).element,
       mode: 'primary',
       size: 'lg',
       theme: options.theme,

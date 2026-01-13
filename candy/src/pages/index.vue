@@ -15,30 +15,33 @@
             <div class="justify-self-center">
               <div class="kwami-glass-surface rounded-full border border-gray-200/60 dark:border-gray-800/60 bg-white/15 dark:bg-black/15 p-1 inline-flex gap-1">
                 <button
-                  class="px-4 py-2 text-xs font-semibold tracking-wider rounded-full transition"
+                  class="flex items-center gap-1.5 px-4 py-2 text-xs font-semibold tracking-wider rounded-full transition"
                   :class="activeTab === 'info'
                     ? 'bg-white/30 dark:bg-white/10 text-gray-900 dark:text-white'
                     : 'text-gray-600 dark:text-gray-300 hover:bg-white/10 dark:hover:bg-white/5'"
                   @click="activeTab = 'info'"
                 >
+                  <Icon name="solar:info-circle-bold" size="xs" />
                   Info
                 </button>
                 <button
-                  class="px-4 py-2 text-xs font-semibold tracking-wider rounded-full transition"
+                  class="flex items-center gap-1.5 px-4 py-2 text-xs font-semibold tracking-wider rounded-full transition"
                   :class="activeTab === 'mint'
                     ? 'bg-white/30 dark:bg-white/10 text-gray-900 dark:text-white'
                     : 'text-gray-600 dark:text-gray-300 hover:bg-white/10 dark:hover:bg-white/5'"
                   @click="activeTab = 'mint'"
                 >
+                  <Icon name="solar:magic-stick-3-bold" size="xs" />
                   Mint
                 </button>
                 <button
-                  class="px-4 py-2 text-xs font-semibold tracking-wider rounded-full transition"
+                  class="flex items-center gap-1.5 px-4 py-2 text-xs font-semibold tracking-wider rounded-full transition"
                   :class="activeTab === 'traits'
                     ? 'bg-white/30 dark:bg-white/10 text-gray-900 dark:text-white'
                     : 'text-gray-600 dark:text-gray-300 hover:bg-white/10 dark:hover:bg-white/5'"
                   @click="activeTab = 'traits'"
                 >
+                  <Icon name="solar:palette-2-bold" size="xs" />
                   Traits
                 </button>
               </div>
@@ -352,7 +355,10 @@
                 <div class="px-4">
                   <div class="p-3 rounded-lg border border-gray-200/60 dark:border-gray-800/60 bg-white/20 dark:bg-black/20 backdrop-blur-sm">
                     <div class="flex items-center justify-between mb-2">
-                      <span class="text-xs text-gray-500 dark:text-gray-400">DNA Hash</span>
+                      <div class="flex items-center gap-1.5">
+                        <Icon name="solar:dna-bold" size="sm" class="text-gray-500 dark:text-gray-400" />
+                        <span class="text-xs text-gray-500 dark:text-gray-400">DNA Hash</span>
+                      </div>
                       <KwamiGlassButton
                         :label="dnaCopied ? 'Copied!' : 'Copy'"
                         mode="ghost"
@@ -491,6 +497,7 @@ import MintPanel from '@/components/MintPanel.vue'
 import ThemeToggle from '@/components/ThemeToggle.vue'
 import KwamiGlassCard from '@/components/KwamiGlassCard.vue'
 import KwamiGlassButton from '@/components/KwamiGlassButton.vue'
+import Icon from '@/components/Icon.vue'
 import { createKwamiLogoSvg } from 'kwami/ui'
 import traitsCatalogJson from '@/config/traits-catalog.json'
 

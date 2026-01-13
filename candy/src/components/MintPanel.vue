@@ -6,7 +6,7 @@
       class="p-4 rounded-lg border border-primary-500/30 bg-white/20 dark:bg-black/20"
     >
       <div class="flex items-center space-x-3">
-        <div class="w-4 h-4 rounded-full border-2 border-primary-500/40 border-t-primary-500 animate-spin" />
+        <Icon name="solar:stars-minimalistic-bold" size="lg" class="text-primary-500 animate-spin" />
         <div>
           <p class="font-semibold text-gray-900 dark:text-white">{{ getMintingStatusText() }}</p>
           <p class="text-sm text-gray-500 dark:text-gray-400">Please wait...</p>
@@ -16,14 +16,17 @@
 
     <!-- Error Display -->
     <div v-if="nftStore.error" class="p-4 rounded-lg border border-red-500/30 bg-red-500/10 text-red-700 dark:text-red-300">
-      <div class="flex items-start justify-between gap-3">
-        <div class="text-sm font-semibold">{{ nftStore.error }}</div>
+      <div class="flex items-start gap-3">
+        <Icon name="solar:danger-circle-bold" size="md" class="flex-shrink-0 mt-0.5" />
+        <div class="flex-1">
+          <div class="text-sm font-semibold">{{ nftStore.error }}</div>
+        </div>
         <button
           type="button"
-          class="text-xs opacity-70 hover:opacity-100"
+          class="flex-shrink-0 opacity-70 hover:opacity-100"
           @click="nftStore.error = null"
         >
-          Close
+          <Icon name="solar:close-circle-bold" size="sm" />
         </button>
       </div>
     </div>
@@ -33,8 +36,13 @@
       v-if="nftStore.mintingStatus === 'success'"
       class="p-4 rounded-lg border border-green-500/30 bg-green-500/10 text-green-700 dark:text-green-300"
     >
-      <div class="text-sm font-semibold">KWAMI Minted Successfully!</div>
-      <div class="text-xs opacity-80 mt-1">Your unique KWAMI NFT has been created on Solana.</div>
+      <div class="flex items-start gap-3">
+        <Icon name="solar:check-circle-bold" size="lg" class="flex-shrink-0" />
+        <div>
+          <div class="text-sm font-semibold">KWAMI Minted Successfully!</div>
+          <div class="text-xs opacity-80 mt-1">Your unique KWAMI NFT has been created on Solana.</div>
+        </div>
+      </div>
     </div>
 
     <!-- Mint Button -->
@@ -68,7 +76,8 @@
     />
 
     <!-- Cost Info -->
-    <div class="text-center text-sm text-gray-500">
+    <div class="flex items-center justify-center gap-2 text-sm text-gray-500">
+      <Icon name="solar:wallet-bold" size="sm" />
       <p>Minting cost: ~{{ mintCostSol.toFixed(1) }} SOL + network fees</p>
     </div>
   </div>
@@ -79,6 +88,7 @@ import { computed } from 'vue'
 import { useWalletStore } from '@/stores/wallet'
 import { useNFTStore } from '@/stores/nft'
 import KwamiGlassButton from '@/components/KwamiGlassButton.vue'
+import Icon from '@/components/Icon.vue'
 import { purchaseRoll } from '@/utils/solanaHelpers'
 
 const props = defineProps<{

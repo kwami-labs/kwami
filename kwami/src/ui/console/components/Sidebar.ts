@@ -1,5 +1,6 @@
 import { resolveGlassTheme } from '../../theme';
 import type { BaseGlassProps } from '../../types';
+import { createIcon } from '../../components/Icon';
 
 export type SidebarSection = 'kwami' | 'apps' | 'memory' | 'media' | 'settings';
 
@@ -52,11 +53,11 @@ export class Sidebar {
     menuContainer.style.overflowY = 'auto';
 
     const menuConfigs: Array<{ id: SidebarSection; icon: string; label: string }> = [
-      { id: 'kwami', icon: '👻', label: 'KWAMI' },
-      { id: 'apps', icon: '🧩', label: 'APPS' },
-      { id: 'memory', icon: '🧠', label: 'MEMORY' },
-      { id: 'media', icon: '🎬', label: 'MEDIA' },
-      { id: 'settings', icon: '⚙️', label: 'SETTINGS' },
+      { id: 'kwami', icon: 'heroicons:sparkles', label: 'KWAMI' },
+      { id: 'apps', icon: 'heroicons:puzzle-piece', label: 'APPS' },
+      { id: 'memory', icon: 'heroicons:cpu-chip', label: 'MEMORY' },
+      { id: 'media', icon: 'heroicons:film', label: 'MEDIA' },
+      { id: 'settings', icon: 'heroicons:cog-6-tooth', label: 'SETTINGS' },
     ];
 
     menuConfigs.forEach(config => {
@@ -90,14 +91,12 @@ export class Sidebar {
       color: isActive ? theme.palette.accent : theme.palette.muted,
     });
 
-    const iconSpan = document.createElement('span');
-    iconSpan.textContent = icon;
-    iconSpan.style.fontSize = '16px';
+    const iconElement = createIcon({ name: icon, size: 'sm', color: isActive ? theme.palette.accent : theme.palette.muted }).element;
 
     const labelSpan = document.createElement('span');
     labelSpan.textContent = label;
 
-    item.appendChild(iconSpan);
+    item.appendChild(iconElement);
     item.appendChild(labelSpan);
 
     item.addEventListener('mouseenter', () => {
@@ -134,11 +133,11 @@ export class Sidebar {
       this.menuItems.clear();
       
       const menuConfigs: Array<{ id: SidebarSection; icon: string; label: string }> = [
-        { id: 'kwami', icon: '👻', label: 'KWAMI' },
-        { id: 'apps', icon: '🧩', label: 'APPS' },
-        { id: 'memory', icon: '🧠', label: 'MEMORY' },
-        { id: 'media', icon: '🎬', label: 'MEDIA' },
-        { id: 'settings', icon: '⚙️', label: 'SETTINGS' },
+        { id: 'kwami', icon: 'heroicons:sparkles', label: 'KWAMI' },
+        { id: 'apps', icon: 'heroicons:puzzle-piece', label: 'APPS' },
+        { id: 'memory', icon: 'heroicons:cpu-chip', label: 'MEMORY' },
+        { id: 'media', icon: 'heroicons:film', label: 'MEDIA' },
+        { id: 'settings', icon: 'heroicons:cog-6-tooth', label: 'SETTINGS' },
       ];
 
       menuConfigs.forEach(config => {
