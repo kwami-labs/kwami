@@ -1,3 +1,11 @@
+/**
+ * Legacy Glass Styles Registry
+ * 
+ * This now works alongside the new theme system.
+ * Components using the new theme API (CSS variables) will automatically
+ * inherit from the global theme. Legacy glass components continue to work.
+ */
+
 let stylesInjected = false;
 
 export function ensureGlassBaseStyles(): void {
@@ -352,4 +360,25 @@ export function ensureGlassBaseStyles(): void {
     { passive: true },
   );
 }
+
+/**
+ * Migration Note:
+ * 
+ * This file provides legacy glass-specific styles using --glass-* CSS variables.
+ * New components should use the theme system (core/theme/) which provides
+ * --kwami-* CSS variables that are fully customizable by end users.
+ * 
+ * Legacy components using --glass-* variables will continue to work, but won't
+ * benefit from runtime theme customization.
+ * 
+ * To migrate a component:
+ * 1. Replace --glass-* variables with --kwami-* equivalents
+ * 2. Use semantic classes (.kwami-button, .kwami-card, .kwami-surface)
+ * 3. Remove inline style.setProperty() calls
+ * 4. Let the theme engine handle all styling
+ * 
+ * Example:
+ * Old: background: var(--glass-surface)
+ * New: background: var(--kwami-color-surface)
+ */
 
