@@ -20,6 +20,8 @@ pub async fn query_owned_kwamis(
         )
         .map_err(|e| ApiError::SolanaRpcError(e.to_string()))?;
 
+    debug!("Found {} token accounts for owner", token_accounts.len());
+
     let mut kwamis = Vec::new();
 
     for account in token_accounts {
@@ -61,14 +63,17 @@ pub async fn query_owned_kwamis(
         let mint = Pubkey::new_from_array(mint_bytes);
 
         // Fetch metadata for this mint
-        if let Ok(kwami_info) = fetch_nft_metadata(state, &mint).await {
-            // Filter by collection if configured
-            if let Some(_collection_mint) = state.kwami_collection_mint {
-                // For now, we'll include all NFTs with amount=1
+        debug!("Found NFT with amount=1, mint: {}", mint);
+        match fetch_nft_metadata(state, &mint).await {
+            Ok(kwami_info) => {
+                debug!("Successfully fetched metadata for {}", mint);
+                // For now, include all NFTs with amount=1 regardless of collection
                 // TODO: Parse verified_collection from metadata to filter precisely
                 kwamis.push(kwami_info);
-            } else {
-                kwamis.push(kwami_info);
+            }
+            Err(e) => {
+                debug!("Failed to fetch metadata for {}: {}", mint, e);
+                // Continue to next NFT
             }
         }
     }
