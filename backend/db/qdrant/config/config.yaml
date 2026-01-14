@@ -1,0 +1,45 @@
+service:
+  # Maximum number of concurrent requests
+  max_request_size_mb: 32
+  # Enable CORS for web applications
+  enable_cors: true
+
+storage:
+  # Storage path
+  storage_path: /qdrant/storage
+  
+  # Snapshots path
+  snapshots_path: /qdrant/snapshots
+  
+  # Performance settings
+  performance:
+    # Number of parallel workers for search
+    max_search_threads: 0  # 0 = auto-detect
+  
+  # Optimizer settings
+  optimizers:
+    # Deleted threshold to trigger optimization
+    deleted_threshold: 0.2
+    
+    # Vacuum rate limit in MB/s
+    vacuum_min_vector_number: 1000
+    
+    # Default segment number
+    default_segment_number: 0  # 0 = auto
+    
+    # Memory mapping threshold in KB
+    memmap_threshold_kb: 100000
+    
+    # Indexing threshold in KB
+    indexing_threshold_kb: 10000
+
+  # On-disk payload storage
+  on_disk_payload: true
+
+# Cluster configuration (for distributed setup)
+# cluster:
+#   enabled: false
+#   p2p:
+#     port: 6335
+#   consensus:
+#     tick_period_ms: 100
