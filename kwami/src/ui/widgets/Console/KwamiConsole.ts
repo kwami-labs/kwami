@@ -10,6 +10,7 @@ import { SoulSection } from './sections/SoulSection';
 import { AppsSection } from './sections/AppsSection';
 import { MemorySection } from './sections/MemorySection';
 import { MediaSection } from './sections/MediaSection';
+import { ThemeSection } from './sections/ThemeSection';
 import { SettingsSection } from './sections/SettingsSection';
 
 /**
@@ -122,20 +123,20 @@ export class KwamiConsole {
 
     // Create main panel
     this.panel = document.createElement('div');
-    this.panel.className = 'kwami-console';
+    this.panel.className = 'kwami-console kwami-surface';
     Object.assign(this.panel.style, {
       position: 'fixed',
       width: '1000px',
       height: '600px',
-      borderRadius: '24px',
-      border: `1px solid ${theme.palette.outline}`,
-      background: theme.palette.surface,
-      backdropFilter: 'blur(32px) saturate(180%)',
-      boxShadow: theme.shadows.soft,
+      borderRadius: 'var(--kwami-radius-lg, 24px)',
+      border: 'var(--kwami-border-width, 1px) solid var(--kwami-color-border, rgba(148, 163, 184, 0.2))',
+      background: 'var(--kwami-color-surface, rgba(15, 23, 42, 0.8))',
+      backdropFilter: 'blur(var(--kwami-blur, 32px)) saturate(var(--kwami-blur-saturation, 180%))',
+      boxShadow: 'var(--kwami-shadow, 0 25px 70px rgba(6, 8, 20, 0.55))',
       display: 'flex',
       opacity: '0',
       transform: 'scale(0.95)',
-      transition: 'opacity 0.3s ease, transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1)',
+      transition: 'opacity var(--kwami-duration, 300ms) var(--kwami-easing, ease), transform var(--kwami-duration, 300ms) cubic-bezier(0.34, 1.56, 0.64, 1)',
       overflow: 'hidden',
     });
 
@@ -218,19 +219,20 @@ export class KwamiConsole {
     
     const closeBtn = document.createElement('button');
     closeBtn.textContent = '✕';
+    closeBtn.className = 'kwami-console-close';
     Object.assign(closeBtn.style, {
       position: 'absolute',
-      top: '16px',
-      right: '20px',
-      background: 'rgba(255, 255, 255, 0.05)',
+      top: 'var(--kwami-padding, 16px)',
+      right: 'var(--kwami-padding-lg, 20px)',
+      background: 'var(--kwami-color-surface-alt, rgba(255, 255, 255, 0.05))',
       border: 'none',
       borderRadius: '50%',
       width: '36px',
       height: '36px',
       cursor: 'pointer',
-      fontSize: '18px',
-      color: theme.palette.muted,
-      transition: 'all 0.2s ease',
+      fontSize: 'var(--kwami-font-size-lg, 18px)',
+      color: 'var(--kwami-color-text-muted, rgba(226, 232, 240, 0.7))',
+      transition: 'all var(--kwami-duration-fast, 150ms) var(--kwami-easing, ease)',
       display: 'flex',
       alignItems: 'center',
       justifyContent: 'center',
@@ -238,14 +240,14 @@ export class KwamiConsole {
     });
 
     closeBtn.addEventListener('mouseenter', () => {
-      closeBtn.style.background = 'rgba(255, 60, 60, 0.15)';
-      closeBtn.style.color = '#ff6b6b';
+      closeBtn.style.background = 'var(--kwami-color-error, rgba(255, 60, 60, 0.15))';
+      closeBtn.style.color = 'var(--kwami-color-error, #ff6b6b)';
       closeBtn.style.transform = 'scale(1.1)';
     });
 
     closeBtn.addEventListener('mouseleave', () => {
-      closeBtn.style.background = 'rgba(255, 255, 255, 0.05)';
-      closeBtn.style.color = theme.palette.muted;
+      closeBtn.style.background = 'var(--kwami-color-surface-alt, rgba(255, 255, 255, 0.05))';
+      closeBtn.style.color = 'var(--kwami-color-text-muted, rgba(226, 232, 240, 0.7))';
       closeBtn.style.transform = 'scale(1)';
     });
 
@@ -261,16 +263,16 @@ export class KwamiConsole {
     container.className = 'kwami-console-content-container';
     Object.assign(container.style, {
       flex: '1',
-      padding: '32px',
+      padding: 'var(--kwami-padding-xl, 32px)',
       overflowY: 'auto',
-      border: `1px solid ${theme.palette.outline}`,
-      borderRadius: '0 16px 16px 16px',
-      marginTop: this.currentSection === 'kwami' ? '-1px' : '20px',
-      marginLeft: '32px',
-      marginRight: '32px',
-      marginBottom: '32px',
-      background: 'rgba(0, 0, 0, 0.15)',
-      backdropFilter: 'blur(10px)',
+      border: 'var(--kwami-border-width, 1px) solid var(--kwami-color-border, rgba(148, 163, 184, 0.2))',
+      borderRadius: '0 var(--kwami-radius, 16px) var(--kwami-radius, 16px) var(--kwami-radius, 16px)',
+      marginTop: this.currentSection === 'kwami' ? '-1px' : 'var(--kwami-padding-lg, 20px)',
+      marginLeft: 'var(--kwami-padding-xl, 32px)',
+      marginRight: 'var(--kwami-padding-xl, 32px)',
+      marginBottom: 'var(--kwami-padding-xl, 32px)',
+      background: 'var(--kwami-color-background-alt, rgba(0, 0, 0, 0.15))',
+      backdropFilter: 'blur(calc(var(--kwami-blur, 32px) * 0.3))',
     });
 
     return container;
@@ -306,6 +308,9 @@ export class KwamiConsole {
         break;
       case 'media':
         section = new MediaSection({ kwami: this.options.kwami, theme: this.options.theme });
+        break;
+      case 'theme':
+        section = new ThemeSection({ kwami: this.options.kwami, theme: this.options.theme });
         break;
       case 'settings':
         section = new SettingsSection({ kwami: this.options.kwami, theme: this.options.theme });

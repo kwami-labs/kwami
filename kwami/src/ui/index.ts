@@ -8,6 +8,8 @@ export { createModal, createGlassModal, type ModalOptions, type ModalHandle } fr
 export { createPopover, createGlassPopover, type PopoverOptions, type PopoverHandle } from './primitives/Popover';
 export { createPanel, createGlassPanel, type PanelOptions } from './primitives/Panel';
 export { createIcon, type IconHandle, type IconOptions } from './primitives/Icon';
+export { createSlider, type SliderOptions, type SliderHandle } from './primitives/Slider';
+export { createColorPicker, type ColorPickerOptions, type ColorPickerHandle } from './primitives/ColorPicker';
 
 // Widgets
 export * from './widgets/Console';

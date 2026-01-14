@@ -44,7 +44,7 @@ export async function fetchOwnedKwamiNfts(args: {
       const nft = await metaplex.nfts().load({ metadata: m as any })
       const json = nft.json ?? (await tryFetchJson(nft.uri))
       return {
-        mint: nft.address.toBase58(),
+        mint: nft.mint.address.toBase58(),
         name: nft.name,
         uri: nft.uri,
         image: json?.image,

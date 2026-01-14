@@ -4,6 +4,7 @@ import { getWalletConnector } from 'kwami/apps/wallet'
 import type { KwamiOwnedNft } from 'kwami/apps/wallet'
 import { createBackgroundRings } from 'kwami/ui/rings'
 import { createKwamiLogoSvg } from 'kwami/ui/logo'
+import { initializeTheme } from 'kwami/ui'
 import { BlobView } from './lib/BlobView'
 import { KwamiAuthApi, signAuthMessage } from './lib/authApi'
 
@@ -17,6 +18,9 @@ const rpcEndpoint = readEnv('VITE_SOLANA_RPC_URL')
 const collectionMint = readEnv('VITE_KWAMI_COLLECTION_ADDRESS') ?? readEnv('VITE_COLLECTION_MINT')
 const symbol = readEnv('VITE_KWAMI_SYMBOL') ?? 'KWAMI'
 const authServerUrl = readEnv('VITE_AUTH_SERVER_URL') ?? 'http://localhost:3000'
+
+// Initialize theme system
+initializeTheme({ autoLoad: true })
 
 const connector = getWalletConnector({ network: network as any, rpcEndpoint })
 const authApi = new KwamiAuthApi(authServerUrl)
@@ -92,7 +96,7 @@ async function authenticateWithServer(nft: KwamiOwnedNft) {
     const signature = await signAuthMessage(walletAdapter.signMessage.bind(walletAdapter), message)
     
     // Login with the selected KWAMI mint
-    const loginResult = await authApi.login({
+    await authApi.login({
       pubkey,
       signature,
       message,

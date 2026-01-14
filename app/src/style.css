@@ -1,6 +1,6 @@
 :root {
   color-scheme: dark;
-  font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, "Apple Color Emoji", "Segoe UI Emoji";
+  font-family: var(--kwami-font-family, ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, "Apple Color Emoji", "Segoe UI Emoji");
   text-rendering: optimizeLegibility;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
@@ -66,20 +66,22 @@ body {
 
 .icon-btn {
   appearance: none;
-  border: 1px solid rgba(148, 163, 184, 0.22);
-  background: rgba(2, 6, 23, 0.45);
-  color: rgba(226, 232, 240, 0.92);
-  padding: 9px 12px;
-  border-radius: 14px;
+  border: var(--kwami-border-width, 1px) solid var(--kwami-color-border, rgba(148, 163, 184, 0.22));
+  background: var(--kwami-color-surface, rgba(2, 6, 23, 0.45));
+  color: var(--kwami-color-text, rgba(226, 232, 240, 0.92));
+  padding: var(--kwami-padding-sm, 9px) var(--kwami-padding, 12px);
+  border-radius: var(--kwami-radius, 14px);
   cursor: pointer;
   font-weight: 800;
-  font-size: 12px;
+  font-size: var(--kwami-font-size-xs, 12px);
   letter-spacing: 0.08em;
   text-transform: uppercase;
-  backdrop-filter: blur(14px);
+  backdrop-filter: blur(var(--kwami-blur, 14px));
+  transition: all var(--kwami-duration, 200ms) var(--kwami-easing, ease);
 }
 .icon-btn:hover {
-  border-color: rgba(148, 163, 184, 0.4);
+  border-color: var(--kwami-color-border-hover, rgba(148, 163, 184, 0.4));
+  background: var(--kwami-color-surface-hover, rgba(2, 6, 23, 0.55));
 }
 
 .hero {
@@ -171,26 +173,28 @@ body {
 
 .btn {
   appearance: none;
-  border: 1px solid rgba(148, 163, 184, 0.22);
-  background: rgba(2, 6, 23, 0.45);
-  color: rgba(226, 232, 240, 0.92);
-  padding: 9px 12px;
-  border-radius: 14px;
+  border: var(--kwami-border-width, 1px) solid var(--kwami-color-border, rgba(148, 163, 184, 0.22));
+  background: var(--kwami-color-surface, rgba(2, 6, 23, 0.45));
+  color: var(--kwami-color-text, rgba(226, 232, 240, 0.92));
+  padding: var(--kwami-padding-sm, 9px) var(--kwami-padding, 12px);
+  border-radius: var(--kwami-radius, 14px);
   cursor: pointer;
   font-weight: 700;
-  font-size: 13px;
-  backdrop-filter: blur(14px);
+  font-size: var(--kwami-font-size, 13px);
+  backdrop-filter: blur(var(--kwami-blur, 14px));
+  transition: all var(--kwami-duration, 200ms) var(--kwami-easing, ease);
 }
 .btn:hover {
-  border-color: rgba(148, 163, 184, 0.4);
+  border-color: var(--kwami-color-border-hover, rgba(148, 163, 184, 0.4));
+  background: var(--kwami-color-surface-hover, rgba(2, 6, 23, 0.55));
 }
 .btn:disabled {
   opacity: 0.55;
   cursor: not-allowed;
 }
 .btn-primary {
-  border-color: rgba(34, 211, 238, 0.25);
-  background: rgba(34, 211, 238, 0.12);
+  border-color: var(--kwami-color-accent, rgba(34, 211, 238, 0.25));
+  background: color-mix(in srgb, var(--kwami-color-accent, #22d3ee) 12%, transparent);
 }
 
 .grid {
@@ -276,14 +280,14 @@ body {
   right: 16px;
   bottom: 16px;
   z-index: 6;
-  border-radius: 22px;
-  border: 1px solid rgba(148, 163, 184, 0.18);
-  background: rgba(2, 6, 23, 0.72);
-  backdrop-filter: blur(18px);
-  box-shadow: 0 30px 90px rgba(0, 0, 0, 0.45);
+  border-radius: var(--kwami-radius-lg, 22px);
+  border: var(--kwami-border-width, 1px) solid var(--kwami-color-border, rgba(148, 163, 184, 0.18));
+  background: var(--kwami-color-surface, rgba(2, 6, 23, 0.72));
+  backdrop-filter: blur(var(--kwami-blur, 18px));
+  box-shadow: var(--kwami-shadow, 0 30px 90px rgba(0, 0, 0, 0.45));
   overflow: hidden;
   transform: translateY(120%);
-  transition: transform 260ms cubic-bezier(0.4, 0, 0.2, 1);
+  transition: transform var(--kwami-duration, 260ms) var(--kwami-easing, cubic-bezier(0.4, 0, 0.2, 1));
 }
 
 .sheet[data-open="1"] {

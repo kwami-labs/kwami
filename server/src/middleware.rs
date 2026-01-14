@@ -1,28 +1,20 @@
-use axum::http::StatusCode;
-use std::num::NonZeroU32;
+use governor::middleware::NoOpMiddleware;
+use std::sync::Arc;
 use tower_governor::{
-    governor::GovernorConfigBuilder, key_extractor::SmartIpKeyExtractor, GovernorLayer,
+    governor::GovernorConfigBuilder, key_extractor::PeerIpKeyExtractor, GovernorLayer,
 };
 
 /// Create rate limiting layer for authentication endpoints
-/// Limits: 10 requests per minute per IP
-pub fn create_rate_limit_layer() -> GovernorLayer<'static, SmartIpKeyExtractor> {
-    let config = Box::new(
+/// Limits: 10 requests per minute per IP  
+/// Uses PeerIpKeyExtractor which gets IP from connection info
+pub fn create_rate_limit_layer() -> GovernorLayer<PeerIpKeyExtractor, NoOpMiddleware> {
+    let config = Arc::new(
         GovernorConfigBuilder::default()
             .per_second(60) // Window size: 60 seconds
-            .burst_size(NonZeroU32::new(10).unwrap()) // Max 10 requests in window
-            .error_handler(|error| {
-                tracing::warn!("Rate limit hit: {:?}", error);
-                (
-                    StatusCode::TOO_MANY_REQUESTS,
-                    "Too many requests. Please try again later.",
-                )
-            })
+            .burst_size(10) // Max 10 requests in window
             .finish()
             .unwrap(),
     );
 
-    GovernorLayer {
-        config: Box::leak(config),
-    }
+    GovernorLayer { config }
 }

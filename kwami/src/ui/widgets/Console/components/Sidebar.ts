@@ -2,7 +2,7 @@ import { resolveGlassTheme } from '../../../legacy/theme';
 import type { BaseGlassProps } from '../../../legacy/types';
 import { createIcon } from '../../../primitives/Icon';
 
-export type SidebarSection = 'kwami' | 'apps' | 'memory' | 'media' | 'settings';
+export type SidebarSection = 'kwami' | 'apps' | 'memory' | 'media' | 'theme' | 'settings';
 
 export interface SidebarOptions extends BaseGlassProps {
   activeSection: SidebarSection;
@@ -29,8 +29,8 @@ export class Sidebar {
       height: '100%',
       display: 'flex',
       flexDirection: 'column',
-      background: 'rgba(0, 0, 0, 0.15)',
-      borderRight: `1px solid ${theme.palette.outline}`,
+      background: 'var(--kwami-color-background-alt, rgba(0, 0, 0, 0.15))',
+      borderRight: 'var(--kwami-border-width, 1px) solid var(--kwami-color-border, rgba(148, 163, 184, 0.2))',
       padding: '0',
     });
 
@@ -57,6 +57,7 @@ export class Sidebar {
       { id: 'apps', icon: 'heroicons:puzzle-piece', label: 'APPS' },
       { id: 'memory', icon: 'heroicons:cpu-chip', label: 'MEMORY' },
       { id: 'media', icon: 'heroicons:film', label: 'MEDIA' },
+      { id: 'theme', icon: 'heroicons:paint-brush', label: 'THEME' },
       { id: 'settings', icon: 'heroicons:cog-6-tooth', label: 'SETTINGS' },
     ];
 
@@ -78,17 +79,17 @@ export class Sidebar {
     Object.assign(item.style, {
       display: 'flex',
       alignItems: 'center',
-      gap: '10px',
-      padding: '10px 12px',
-      borderRadius: '12px',
+      gap: 'var(--kwami-gap-sm, 10px)',
+      padding: 'var(--kwami-padding-sm, 10px) var(--kwami-padding, 12px)',
+      borderRadius: 'var(--kwami-radius-sm, 12px)',
       cursor: 'pointer',
-      transition: 'all 0.2s ease',
-      background: isActive ? 'rgba(102, 126, 234, 0.15)' : 'transparent',
-      border: isActive ? '1px solid rgba(102, 126, 234, 0.3)' : '1px solid transparent',
-      fontWeight: isActive ? '600' : '500',
-      fontSize: '11px',
+      transition: 'all var(--kwami-duration-fast, 150ms) var(--kwami-easing, ease)',
+      background: isActive ? 'color-mix(in srgb, var(--kwami-color-accent, #38bdf8) 15%, transparent)' : 'transparent',
+      border: 'var(--kwami-border-width, 1px) solid ' + (isActive ? 'color-mix(in srgb, var(--kwami-color-accent, #38bdf8) 30%, transparent)' : 'transparent'),
+      fontWeight: isActive ? 'var(--kwami-font-weight-semibold, 600)' : 'var(--kwami-font-weight-medium, 500)',
+      fontSize: 'var(--kwami-font-size-xs, 11px)',
       letterSpacing: '0.08em',
-      color: isActive ? theme.palette.accent : theme.palette.muted,
+      color: isActive ? 'var(--kwami-color-accent, #38bdf8)' : 'var(--kwami-color-text-muted, rgba(226, 232, 240, 0.7))',
     });
 
     const iconElement = createIcon({ name: icon, size: 'sm', color: isActive ? theme.palette.accent : theme.palette.muted }).element;
@@ -137,6 +138,7 @@ export class Sidebar {
         { id: 'apps', icon: 'heroicons:puzzle-piece', label: 'APPS' },
         { id: 'memory', icon: 'heroicons:cpu-chip', label: 'MEMORY' },
         { id: 'media', icon: 'heroicons:film', label: 'MEDIA' },
+        { id: 'theme', icon: 'heroicons:paint-brush', label: 'THEME' },
         { id: 'settings', icon: 'heroicons:cog-6-tooth', label: 'SETTINGS' },
       ];
 
