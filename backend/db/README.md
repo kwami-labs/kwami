@@ -19,6 +19,13 @@ Vector database for embeddings, semantic search, and AI-powered features.
 - **Use cases**: Vector embeddings, semantic search, similarity matching
 - **Documentation**: [qdrant/README.md](qdrant/README.md)
 
+### 3. Redis (`redis/`)
+In-memory data store for caching, sessions, and real-time features.
+
+- **Port**: 6379 (default)
+- **Use cases**: Caching, session storage, rate limiting, pub/sub messaging, leaderboards
+- **Documentation**: [redis/README.md](redis/README.md)
+
 ## Quick Start
 
 ### Start All Databases (Development)
@@ -36,6 +43,12 @@ cd qdrant
 cp .env.sample .env
 docker-compose up -d
 cd ..
+
+# Redis
+cd redis
+cp .env.sample .env
+docker-compose up -d
+cd ..
 ```
 
 ### Start All Databases (Production)
@@ -50,6 +63,11 @@ cd ..
 cd qdrant
 docker-compose -f docker-compose.yml -f docker-compose.prod.yml up -d
 cd ..
+
+# Redis
+cd redis
+docker-compose -f docker-compose.yml -f docker-compose.prod.yml up -d
+cd ..
 ```
 
 ### Stop All Databases
@@ -57,6 +75,7 @@ cd ..
 ```bash
 cd postgres && docker-compose down && cd ..
 cd qdrant && docker-compose down && cd ..
+cd redis && docker-compose down && cd ..
 ```
 
 ## Connection Information
@@ -74,6 +93,11 @@ cd qdrant && docker-compose down && cd ..
 - **Dashboard**: http://localhost:6333/dashboard
 - **API Docs**: http://localhost:6333/swagger-ui
 
+### Redis
+- **Host**: localhost
+- **Port**: 6379
+- **Connection URL**: `redis://:password@localhost:6379/0`
+
 ## Environment Variables
 
 Each database has its own `.env` file. Copy the `.env.sample` template and configure:
@@ -83,6 +107,9 @@ Each database has its own `.env` file. Copy the `.env.sample` template and confi
 cp .env.sample .env
 
 # In qdrant/
+cp .env.sample .env
+
+# In redis/
 cp .env.sample .env
 ```
 
@@ -102,6 +129,12 @@ backend/db/
 │   ├── docker-compose.prod.yml
 │   ├── .env.sample
 │   └── config/           # Qdrant configuration
+│
+├── redis/                # Redis setup
+│   ├── docker-compose.yml
+│   ├── docker-compose.prod.yml
+│   ├── .env.sample
+│   └── config/           # Redis configuration
 │
 └── README.md             # This file
 ```
@@ -143,6 +176,13 @@ cd qdrant
 curl -X POST 'http://localhost:6333/collections/collection_name/snapshots'
 ```
 
+### Redis
+```bash
+cd redis
+docker-compose exec redis redis-cli BGSAVE
+docker cp kwami-redis:/data/dump.rdb ./backups/backup.rdb
+```
+
 ## Monitoring
 
 Check health status:
@@ -154,6 +194,10 @@ docker-compose -f postgres/docker-compose.yml exec postgres pg_isready
 
 # Qdrant
 curl http://localhost:6333/healthz
+
+# Redis
+docker-compose -f redis/docker-compose.yml ps
+docker-compose -f redis/docker-compose.yml exec redis redis-cli ping
 ```
 
 ## Troubleshooting
@@ -169,6 +213,9 @@ POSTGRES_PORT=5433
 # Qdrant
 QDRANT_HTTP_PORT=6334
 QDRANT_GRPC_PORT=6335
+
+# Redis
+REDIS_PORT=6380
 ```
 
 ### Connection Refused
@@ -207,4 +254,5 @@ docker volume ls | grep kwami
 
 - [PostgreSQL Documentation](https://www.postgresql.org/docs/)
 - [Qdrant Documentation](https://qdrant.tech/documentation/)
+- [Redis Documentation](https://redis.io/documentation)
 - [Docker Compose Documentation](https://docs.docker.com/compose/)

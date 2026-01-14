@@ -1,0 +1,4 @@
+.env
+backups/
+*.rdb
+*.aof
