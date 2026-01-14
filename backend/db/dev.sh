@@ -7,6 +7,16 @@ set -e
 DBS=("postgres" "qdrant" "redis")
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
+# Detect docker compose command (v1 vs v2)
+if command -v docker-compose >/dev/null 2>&1; then
+    DOCKER_COMPOSE="docker-compose"
+elif command -v docker >/dev/null 2>&1 && docker compose version >/dev/null 2>&1; then
+    DOCKER_COMPOSE="docker compose"
+else
+    echo "[ERROR] Docker Compose not found. Please install Docker and Docker Compose."
+    exit 1
+fi
+
 # Function to print output
 print_info() {
     echo "[INFO] $1"
@@ -52,7 +62,7 @@ start_db() {
     cd "$SCRIPT_DIR/$db"
     setup_env "$db"
     
-    if docker-compose up -d; then
+    if $DOCKER_COMPOSE up -d; then
         print_success "$db started successfully"
     else
         print_error "Failed to start $db"
@@ -74,7 +84,7 @@ stop_db() {
     
     cd "$SCRIPT_DIR/$db"
     
-    if docker-compose down; then
+    if $DOCKER_COMPOSE down; then
         print_success "$db stopped successfully"
     else
         print_error "Failed to stop $db"
@@ -100,7 +110,7 @@ status() {
         if [ -d "$SCRIPT_DIR/$db" ]; then
             cd "$SCRIPT_DIR/$db"
             echo "━━━ $db ━━━"
-            docker-compose ps
+            $DOCKER_COMPOSE ps
             echo ""
             cd "$SCRIPT_DIR"
         fi
@@ -122,7 +132,7 @@ logs() {
     fi
     
     cd "$SCRIPT_DIR/$db"
-    docker-compose logs -f
+    $DOCKER_COMPOSE logs -f
 }
 
 # Function to start all databases
@@ -186,10 +196,10 @@ reset_db() {
     cd "$SCRIPT_DIR/$db"
     print_info "Resetting $db..."
     
-    if docker-compose down -v; then
+    if $DOCKER_COMPOSE down -v; then
         print_success "$db reset (volumes destroyed)"
         print_info "Starting $db..."
-        docker-compose up -d
+        $DOCKER_COMPOSE up -d
         print_success "$db started with fresh data"
     else
         print_error "Failed to reset $db"
