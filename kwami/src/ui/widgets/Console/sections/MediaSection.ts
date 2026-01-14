@@ -1,6 +1,6 @@
-import { resolveGlassTheme } from '../../theme';
-import type { BaseGlassProps } from '../../types';
-import { createIcon } from '../../components/Icon';
+import { resolveGlassTheme } from '../../../legacy/theme';
+import type { BaseGlassProps } from '../../../legacy/types';
+import { createIcon } from '../../../primitives/Icon';
 
 export interface MediaSectionOptions extends BaseGlassProps {
   kwami?: any;

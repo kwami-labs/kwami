@@ -27,7 +27,7 @@ import { Scene } from './scene/Scene.js';
 import { ContextMenu } from './ContextMenu';
 import type { BackgroundMediaFit, BodyConfig, BlobSkinSelection, SceneBackgroundConfig } from '../../types/index';
 import { isYouTubeUrl, createYouTubeIframe } from '../utils/YouTubeHelper';
-import { KwamiConsole } from '../../ui/console';
+import { KwamiConsole } from '../../ui/widgets/Console';
 import { logger } from '../../utils/logger';
 
 type BackgroundDirection = 'vertical' | 'horizontal' | 'radial' | 'diagonal';

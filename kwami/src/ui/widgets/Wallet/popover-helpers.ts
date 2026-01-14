@@ -1,8 +1,8 @@
-import { createGlassButton } from '../primitives/GlassButton';
-import type { GlassPopoverHandle } from '../primitives/GlassPopover';
+import { createGlassButton } from '../../legacy/GlassButton';
+import type { GlassPopoverHandle } from '../../legacy/GlassPopover';
 import type { WalletConnectWidgetOptions } from './types';
 import type { ExtendedWidgetState } from './state-manager';
-import { getWalletConnector } from '../../apps/wallet/WalletConnector';
+import { getWalletConnector } from '../../../apps/wallet/WalletConnector';
 
 export function showNetworkChooser(
   anchorEl: HTMLElement,

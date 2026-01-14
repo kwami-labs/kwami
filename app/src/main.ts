@@ -91,20 +91,17 @@ async function authenticateWithServer(nft: KwamiOwnedNft) {
     // Sign message
     const signature = await signAuthMessage(walletAdapter.signMessage.bind(walletAdapter), message)
     
-    // Login
+    // Login with the selected KWAMI mint
     const loginResult = await authApi.login({
       pubkey,
       signature,
       message,
-      nonce
+      nonce,
+      kwami_mint: nft.mint
     })
     
     console.log('✅ Authenticated with server, JWT token received')
-    console.log('🎨 Server found', loginResult.owned_kwamis.length, 'KWAMIs')
-    
-    // Select the current NFT
-    const selectResult = await authApi.selectKwami(nft.mint)
-    console.log('✨ Selected KWAMI:', selectResult.kwami_mint)
+    console.log('✨ Authenticated with KWAMI:', nft.mint)
     
     // Store token in localStorage
     localStorage.setItem('kwami-auth-token', authApi.getToken() || '')

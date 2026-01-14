@@ -1,7 +1,7 @@
 import type { Kwami } from '../core/Kwami';
 import { getYouTubeConnector, type YouTubeConfig } from './youtube';
 import { logger } from '../utils/logger';
-import { createIcon } from '../ui/components/Icon';
+import { createIcon } from '../ui/primitives/Icon';
 
 export interface AppConnectorButton {
   id: string;

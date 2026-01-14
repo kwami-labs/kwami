@@ -2,7 +2,66 @@ use crate::error::ApiError;
 use crate::models::KwamiInfo;
 use crate::state::AppState;
 use solana_sdk::{commitment_config::CommitmentConfig, pubkey::Pubkey};
-use tracing::debug;
+use tracing::{debug, info};
+
+/// Verify that a wallet owns a specific NFT
+pub async fn verify_nft_ownership(
+    state: &AppState,
+    owner: &Pubkey,
+    nft_mint: &Pubkey,
+) -> Result<bool, ApiError> {
+    info!("Verifying {} owns NFT {}", owner, nft_mint);
+
+    // Get token account for this specific mint
+    let token_accounts = state
+        .rpc_client
+        .get_token_accounts_by_owner(
+            owner,
+            solana_client::rpc_request::TokenAccountsFilter::Mint(*nft_mint),
+        )
+        .map_err(|e| ApiError::SolanaRpcError(e.to_string()))?;
+
+    if token_accounts.is_empty() {
+        info!("No token account found for mint {}", nft_mint);
+        return Ok(false);
+    }
+
+    // Check if any account has amount = 1 (NFT)
+    for account in token_accounts {
+        let account_data = match &account.account.data {
+            solana_account_decoder::UiAccountData::Binary(data, _) => {
+                bs58::decode(data).into_vec().unwrap_or_default()
+            }
+            solana_account_decoder::UiAccountData::Json(_) => continue,
+            solana_account_decoder::UiAccountData::LegacyBinary(data) => {
+                bs58::decode(data).into_vec().unwrap_or_default()
+            }
+        };
+
+        if account_data.len() >= 72 {
+            let amount = u64::from_le_bytes([
+                account_data[64],
+                account_data[65],
+                account_data[66],
+                account_data[67],
+                account_data[68],
+                account_data[69],
+                account_data[70],
+                account_data[71],
+            ]);
+
+            debug!("Token account for {} has amount={}", nft_mint, amount);
+            
+            if amount >= 1 {
+                info!("✅ Verified ownership of NFT {}", nft_mint);
+                return Ok(true);
+            }
+        }
+    }
+
+    info!("❌ No valid token account found with amount >= 1", );
+    Ok(false)
+}
 
 /// Query owned KWAMIs from Solana blockchain
 pub async fn query_owned_kwamis(

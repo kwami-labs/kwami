@@ -1,6 +1,6 @@
 import type { KwamiAvatarOptions } from './types';
 import { getAvatarCoordinates } from './animations';
-import { createGlassPopover } from '../primitives/GlassPopover';
+import { createGlassPopover } from '../../legacy/GlassPopover';
 
 export function createKwamiAvatar(options: KwamiAvatarOptions): { element: HTMLDivElement; destroy: () => void } {
   const size = options.size ?? 48;

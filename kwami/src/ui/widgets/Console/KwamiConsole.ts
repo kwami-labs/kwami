@@ -1,6 +1,6 @@
-import type { BaseGlassProps } from '../legacy/types';
-import { ensureGlassBaseStyles } from '../legacy/styleRegistry';
-import { resolveGlassTheme } from '../legacy/theme';
+import type { BaseGlassProps } from '../../legacy/types';
+import { ensureGlassBaseStyles } from '../../legacy/styleRegistry';
+import { resolveGlassTheme } from '../../legacy/theme';
 import { TabBar, type ConsoleTab } from './components/TabBar';
 import { Sidebar, type SidebarSection } from './components/Sidebar';
 import { MiniPreview } from './components/MiniPreview';

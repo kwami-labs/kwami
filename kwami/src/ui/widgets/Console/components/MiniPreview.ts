@@ -1,5 +1,5 @@
-import { resolveGlassTheme } from '../../theme';
-import type { BaseGlassProps } from '../../types';
+import { resolveGlassTheme } from '../../../legacy/theme';
+import type { BaseGlassProps } from '../../../legacy/types';
 
 export interface MiniPreviewOptions extends BaseGlassProps {
   onClick?: () => void;

@@ -92,22 +92,26 @@ pub async fn login(
 
     info!("Signature verified for {}", pubkey);
 
-    // 4. Query owned KWAMIs
-    let owned_kwamis = kwami_service::query_owned_kwamis(&state, &pubkey).await?;
+    // 4. Validate kwami_mint format
+    let kwami_mint = Pubkey::from_str(&req.kwami_mint)
+        .map_err(|e| ApiError::InvalidPublicKey(e.to_string()))?;
 
-    if owned_kwamis.is_empty() {
-        warn!("No KWAMIs found for {}", pubkey);
-        return Err(ApiError::NoKwamisFound);
+    // 5. Verify ownership of the specific KWAMI
+    let owns_kwami = kwami_service::verify_nft_ownership(&state, &pubkey, &kwami_mint).await?;
+    
+    if !owns_kwami {
+        warn!("User {} does not own KWAMI {}", pubkey, kwami_mint);
+        return Err(ApiError::KwamiNotOwned);
     }
 
-    info!("Found {} KWAMIs for {}", owned_kwamis.len(), pubkey);
+    info!("Verified {} owns KWAMI {}", pubkey, kwami_mint);
 
-    // 5. Generate JWT (without kwami_mint selected yet)
-    let token = auth_service::generate_jwt(&state.jwt_secret, &req.pubkey, None)?;
+    // 6. Generate JWT with kwami_mint
+    let token = auth_service::generate_jwt(&state.jwt_secret, &req.pubkey, Some(req.kwami_mint.clone()))?;
 
     Ok(Json(LoginResponse {
         token,
-        owned_kwamis,
+        owned_kwamis: vec![], // No longer needed, frontend already has the NFTs
         pubkey: req.pubkey,
     }))
 }

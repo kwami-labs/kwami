@@ -79,24 +79,24 @@
       "types": "./dist/src/ui/index.d.ts"
     },
     "./ui/rings": {
-      "import": "./dist/src/ui/rings/index.js",
-      "types": "./dist/src/ui/rings/index.d.ts"
+      "import": "./dist/src/ui/effects/Rings/index.js",
+      "types": "./dist/src/ui/effects/Rings/index.d.ts"
     },
     "./ui/logo": {
-      "import": "./dist/src/ui/logo/index.js",
-      "types": "./dist/src/ui/logo/index.d.ts"
+      "import": "./dist/src/ui/effects/Logo/index.js",
+      "types": "./dist/src/ui/effects/Logo/index.d.ts"
     },
     "./ui/welcome": {
-      "import": "./dist/src/ui/welcome/index.js",
-      "types": "./dist/src/ui/welcome/index.d.ts"
+      "import": "./dist/src/ui/effects/Welcome/index.js",
+      "types": "./dist/src/ui/effects/Welcome/index.d.ts"
     },
     "./ui/wallet": {
-      "import": "./dist/src/ui/wallet/index.js",
-      "types": "./dist/src/ui/wallet/index.d.ts"
+      "import": "./dist/src/ui/widgets/Wallet/index.js",
+      "types": "./dist/src/ui/widgets/Wallet/index.d.ts"
     },
     "./ui/nft-login": {
-      "import": "./dist/src/ui/nft-login/index.js",
-      "types": "./dist/src/ui/nft-login/index.d.ts"
+      "import": "./dist/src/ui/widgets/NftLogin/index.js",
+      "types": "./dist/src/ui/widgets/NftLogin/index.d.ts"
     },
     "./apps/wallet": {
       "import": "./dist/src/apps/wallet/index.js",

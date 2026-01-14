@@ -1,5 +1,5 @@
-import type { ConnectedWallet } from '../../apps/wallet/WalletConnector';
-import type { GlassButtonHandle } from '../primitives/GlassButton';
+import type { ConnectedWallet } from '../../../apps/wallet/WalletConnector';
+import type { GlassButtonHandle } from '../../legacy/GlassButton';
 import type { WalletConnectWidgetConnector, WalletTrackedToken } from './types';
 import type { ExtendedWidgetState } from './state-manager';
 import { getWalletKindFallback } from './logos';

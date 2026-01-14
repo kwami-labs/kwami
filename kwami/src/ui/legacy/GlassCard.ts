@@ -1,6 +1,6 @@
-import type { BaseGlassProps, GlassContent } from '../types';
-import { ensureGlassBaseStyles } from '../styleRegistry';
-import { resolveGlassTheme } from '../theme';
+import type { BaseGlassProps, GlassContent } from './types';
+import { ensureGlassBaseStyles } from './styleRegistry';
+import { resolveGlassTheme } from './theme';
 
 export interface GlassCardOptions extends BaseGlassProps {
   title?: GlassContent;

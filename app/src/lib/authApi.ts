@@ -82,6 +82,7 @@ export class KwamiAuthApi {
     signature: string
     message: string
     nonce: string
+    kwami_mint: string
   }): Promise<LoginResponse> {
     const response = await fetch(`${this.baseUrl}/auth/login`, {
       method: 'POST',

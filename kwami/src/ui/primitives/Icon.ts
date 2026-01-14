@@ -1,5 +1,5 @@
 import 'iconify-icon';
-import { normalizeIconifyName } from '../iconNames';
+import { normalizeIconifyName } from '../utils/iconNames';
 
 export interface IconOptions {
   /** Icon name in either format: 'i-heroicons-home' or 'heroicons:home' */

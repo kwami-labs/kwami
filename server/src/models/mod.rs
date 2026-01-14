@@ -22,6 +22,7 @@ pub struct LoginRequest {
     pub signature: String, // Base58 encoded
     pub message: String,
     pub nonce: Uuid,
+    pub kwami_mint: String, // The KWAMI NFT mint selected by user
 }
 
 /// Response from login containing JWT and owned KWAMIs

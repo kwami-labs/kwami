@@ -70,6 +70,3 @@ export interface WelcomeAnimatedRingsHandle {
   resize: () => void;
   destroy: () => void;
 }
-
-// Back-compat: logo types now live in ui/logo.
-export type { KwamiLogoOptions, KwamiLogoLinkOptions } from '../logo/types';

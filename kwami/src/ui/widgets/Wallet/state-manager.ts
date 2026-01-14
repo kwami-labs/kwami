@@ -1,5 +1,5 @@
 import type { PublicKey } from '@solana/web3.js';
-import type { KwamiOwnedNft } from '../../apps/wallet/kwamiNfts';
+import type { KwamiOwnedNft } from '../../../apps/wallet/kwamiNfts';
 import type { WalletConnectWidgetState } from './types';
 
 export interface ExtendedWidgetState extends WalletConnectWidgetState {

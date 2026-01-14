@@ -1,6 +1,6 @@
-import type { BaseGlassProps, GlassContent } from '../types';
-import { resolveGlassTheme } from '../theme';
-import { ensureGlassBaseStyles } from '../styleRegistry';
+import type { BaseGlassProps, GlassContent } from './types';
+import { resolveGlassTheme } from './theme';
+import { ensureGlassBaseStyles } from './styleRegistry';
 
 export interface GlassModalOptions extends BaseGlassProps {
   header?: GlassContent;
