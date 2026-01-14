@@ -28,7 +28,36 @@ In-memory data store for caching, sessions, and real-time features.
 
 ## Quick Start
 
-### Start All Databases (Development)
+### Using the Development Script (Recommended)
+
+The easiest way to manage databases in development:
+
+```bash
+# Start all databases
+./dev.sh up
+
+# Stop all databases
+./dev.sh down
+
+# Show status
+./dev.sh status
+
+# View logs for a specific database
+./dev.sh logs postgres
+
+# Restart a specific database
+./dev.sh restart redis
+
+# See all available commands
+./dev.sh help
+```
+
+The script will automatically:
+- Copy `.env.sample` to `.env` if not present
+- Start all databases with proper configuration
+- Show colored status output
+
+### Manual Setup (Alternative)
 
 ```bash
 # PostgreSQL
@@ -136,6 +165,7 @@ backend/db/
 │   ├── .env.sample
 │   └── config/           # Redis configuration
 │
+├── dev.sh               # Development management script
 └── README.md             # This file
 ```
 
