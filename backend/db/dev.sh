@@ -117,6 +117,31 @@ status() {
     done
 }
 
+# Function to show database UI links
+show_links() {
+    echo "Database UI Links:"
+    echo ""
+    echo "━━━ Qdrant ━━━"
+    echo "  Dashboard:  http://localhost:6333/dashboard"
+    echo "  API Docs:   http://localhost:6333/swagger-ui"
+    echo "  Health:     http://localhost:6333/healthz"
+    echo ""
+    echo "━━━ PostgreSQL ━━━"
+    echo "  No built-in UI. Use one of these tools:"
+    echo "  - pgAdmin:  https://www.pgadmin.org/"
+    echo "  - DBeaver:  https://dbeaver.io/"
+    echo "  - TablePlus: https://tableplus.com/"
+    echo "  Connection: postgresql://kwami_user:password@localhost:5432/kwami"
+    echo ""
+    echo "━━━ Redis ━━━"
+    echo "  No built-in UI. Use one of these tools:"
+    echo "  - RedisInsight: https://redis.io/insight/"
+    echo "  - Redis Commander: https://joeferner.github.io/redis-commander/"
+    echo "  - Another Redis Desktop Manager: https://github.com/qishibo/AnotherRedisDesktopManager"
+    echo "  Connection: redis://:password@localhost:6379/0"
+    echo ""
+}
+
 # Function to show logs
 logs() {
     local db=$1
@@ -222,6 +247,7 @@ Commands:
   down            Stop all databases
   restart         Restart all databases
   status          Show status of all databases
+  links           Show database UI links and connection info
   
   start [db]      Start a specific database (postgres, qdrant, redis)
   stop [db]       Stop a specific database
@@ -264,6 +290,9 @@ case "${1:-help}" in
         ;;
     status|ps)
         status
+        ;;
+    links|urls)
+        show_links
         ;;
     start)
         if [ -z "$2" ]; then
