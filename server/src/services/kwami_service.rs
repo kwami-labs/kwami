@@ -20,7 +20,8 @@ pub async fn query_owned_kwamis(
         )
         .map_err(|e| ApiError::SolanaRpcError(e.to_string()))?;
 
-    debug!("Found {} token accounts for owner", token_accounts.len());
+    let total_accounts = token_accounts.len();
+    debug!("Found {} token accounts for owner", total_accounts);
 
     let mut kwamis = Vec::new();
     let mut nft_count = 0;
@@ -87,7 +88,7 @@ pub async fn query_owned_kwamis(
 
     debug!(
         "Summary: {} total accounts, {} with amount=1, {} parse failures, {} KWAMIs found",
-        token_accounts.len(),
+        total_accounts,
         nft_count,
         parse_failures,
         kwamis.len()
