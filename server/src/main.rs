@@ -1,25 +1,13 @@
-mod auth;
-mod errors;
-mod models;
-mod state;
-
-use axum::{
-    http::{header, Method, StatusCode},
-    routing::{get, post},
-    Router,
-};
-use solana_sdk::pubkey::Pubkey;
-use state::AppState;
-use std::env;
+use axum::http::{header, Method};
+use kwami_server::{routes, AppState, Config};
 use std::net::SocketAddr;
-use std::str::FromStr;
 use std::time::Duration;
 use tokio::time;
 use tower_http::{
     cors::CorsLayer,
     trace::{DefaultMakeSpan, TraceLayer},
 };
-use tracing::{error, info};
+use tracing::info;
 use tracing_subscriber::{layer::SubscriberExt, util::SubscriberInitExt};
 
 #[tokio::main]
@@ -39,7 +27,7 @@ async fn main() {
     info!("🚀 Starting KWAMI Authentication Server");
 
     // Load configuration from environment
-    let config = load_config();
+    let config = Config::from_env();
 
     // Create shared application state
     let state = AppState::new(
@@ -62,21 +50,7 @@ async fn main() {
     });
 
     // Build router with routes
-    let app = Router::new()
-        // Health check
-        .route("/health", get(health_check))
-        
-        // Auth routes (public)
-        .route("/auth/nonce", post(auth::generate_nonce))
-        .route("/auth/login", post(auth::login))
-        
-        // Protected routes (require JWT)
-        .route("/me/owned-kwamis", get(auth::get_owned_kwamis))
-        .route("/auth/select-kwami", post(auth::select_kwami))
-        
-        // Add state
-        .with_state(state)
-        
+    let app = routes::create_router(state)
         // Add CORS middleware
         .layer(
             CorsLayer::new()
@@ -101,68 +75,8 @@ async fn main() {
     let listener = tokio::net::TcpListener::bind(addr)
         .await
         .expect("Failed to bind to address");
-    
+
     info!("✅ Server ready to accept connections");
-    
-    axum::serve(listener, app)
-        .await
-        .expect("Server error");
-}
 
-/// Health check endpoint
-async fn health_check() -> (StatusCode, &'static str) {
-    (StatusCode::OK, "OK")
-}
-
-/// Server configuration
-struct Config {
-    solana_rpc_url: String,
-    jwt_secret: String,
-    elevenlabs_api_key: String,
-    metaplex_program: Pubkey,
-    kwami_collection_mint: Option<Pubkey>,
-    port: u16,
-}
-
-/// Load configuration from environment variables
-fn load_config() -> Config {
-    let solana_rpc_url = env::var("SOLANA_RPC_URL")
-        .unwrap_or_else(|_| "https://api.mainnet-beta.solana.com".to_string());
-
-    let jwt_secret = env::var("JWT_SECRET")
-        .expect("JWT_SECRET must be set in environment");
-
-    if jwt_secret.len() < 32 {
-        error!("⚠️  WARNING: JWT_SECRET should be at least 32 characters for security");
-    }
-
-    let elevenlabs_api_key = env::var("ELEVENLABS_API_KEY")
-        .unwrap_or_else(|_| {
-            info!("⚠️  ELEVENLABS_API_KEY not set - proxy functionality will be limited");
-            String::new()
-        });
-
-    let metaplex_program = Pubkey::from_str(
-        &env::var("METAPLEX_METADATA_PROGRAM")
-            .unwrap_or_else(|_| "metaqbxxUerdq28cj1RbAWkYQm3ybzjb6a8bt518x1s".to_string()),
-    )
-    .expect("Invalid METAPLEX_METADATA_PROGRAM");
-
-    let kwami_collection_mint = env::var("KWAMI_COLLECTION_MINT")
-        .ok()
-        .and_then(|s| Pubkey::from_str(&s).ok());
-
-    let port = env::var("PORT")
-        .ok()
-        .and_then(|p| p.parse().ok())
-        .unwrap_or(3000);
-
-    Config {
-        solana_rpc_url,
-        jwt_secret,
-        elevenlabs_api_key,
-        metaplex_program,
-        kwami_collection_mint,
-        port,
-    }
+    axum::serve(listener, app).await.expect("Server error");
 }
