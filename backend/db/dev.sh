@@ -3,42 +3,25 @@
 
 set -e
 
-# Detect if terminal supports colors
-if [ -t 1 ] && command -v tput >/dev/null 2>&1 && [ $(tput colors 2>/dev/null || echo 0) -ge 8 ]; then
-    # Colors for output
-    RED='\033[0;31m'
-    GREEN='\033[0;32m'
-    YELLOW='\033[1;33m'
-    BLUE='\033[0;34m'
-    NC='\033[0m' # No Color
-else
-    # No colors
-    RED=''
-    GREEN=''
-    YELLOW=''
-    BLUE=''
-    NC=''
-fi
-
 # Database directories
 DBS=("postgres" "qdrant" "redis")
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
-# Function to print colored output
+# Function to print output
 print_info() {
-    echo -e "${BLUE}ℹ${NC} $1"
+    echo "[INFO] $1"
 }
 
 print_success() {
-    echo -e "${GREEN}✓${NC} $1"
+    echo "[✓] $1"
 }
 
 print_warning() {
-    echo -e "${YELLOW}⚠${NC} $1"
+    echo "[WARNING] $1"
 }
 
 print_error() {
-    echo -e "${RED}✗${NC} $1"
+    echo "[ERROR] $1"
 }
 
 # Function to check if .env exists, if not copy from .env.sample
@@ -116,7 +99,7 @@ status() {
     for db in "${DBS[@]}"; do
         if [ -d "$SCRIPT_DIR/$db" ]; then
             cd "$SCRIPT_DIR/$db"
-            echo -e "${BLUE}━━━ $db ━━━${NC}"
+            echo "━━━ $db ━━━"
             docker-compose ps
             echo ""
             cd "$SCRIPT_DIR"
@@ -219,38 +202,38 @@ reset_db() {
 # Function to show help
 show_help() {
     cat << EOF
-${BLUE}Kwami Database Development Manager${NC}
+Kwami Database Development Manager
 
-${YELLOW}Usage:${NC}
+Usage:
   ./dev.sh [command] [options]
 
-${YELLOW}Commands:${NC}
-  ${GREEN}up${NC}              Start all databases
-  ${GREEN}down${NC}            Stop all databases
-  ${GREEN}restart${NC}         Restart all databases
-  ${GREEN}status${NC}          Show status of all databases
+Commands:
+  up              Start all databases
+  down            Stop all databases
+  restart         Restart all databases
+  status          Show status of all databases
   
-  ${GREEN}start [db]${NC}      Start a specific database (postgres, qdrant, redis)
-  ${GREEN}stop [db]${NC}       Stop a specific database
-  ${GREEN}restart [db]${NC}    Restart a specific database
-  ${GREEN}logs [db]${NC}       Show logs for a specific database (follows)
-  ${GREEN}reset [db]${NC}      Reset a specific database (destroys all data!)
+  start [db]      Start a specific database (postgres, qdrant, redis)
+  stop [db]       Stop a specific database
+  restart [db]    Restart a specific database
+  logs [db]       Show logs for a specific database (follows)
+  reset [db]      Reset a specific database (destroys all data!)
   
-  ${GREEN}help${NC}            Show this help message
+  help            Show this help message
 
-${YELLOW}Examples:${NC}
+Examples:
   ./dev.sh up                 # Start all databases
   ./dev.sh start postgres     # Start only PostgreSQL
   ./dev.sh logs redis         # Follow Redis logs
   ./dev.sh status             # Show status of all databases
   ./dev.sh reset qdrant       # Reset Qdrant (WARNING: destroys data)
 
-${YELLOW}Available Databases:${NC}
+Available Databases:
   • postgres (PostgreSQL)     - Port 5432
   • qdrant (Vector DB)        - Ports 6333, 6334
   • redis (Cache)             - Port 6379
 
-${YELLOW}Notes:${NC}
+Notes:
   - First run will copy .env.sample to .env for each database
   - Edit .env files in each database directory with your credentials
   - Use 'reset' command carefully as it destroys all data!
