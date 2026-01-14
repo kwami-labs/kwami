@@ -6,7 +6,7 @@ use jsonwebtoken::{decode, encode, DecodingKey, EncodingKey, Header, Validation}
 use solana_sdk::{pubkey::Pubkey, signature::Signature};
 use std::str::FromStr;
 
-const JWT_EXPIRY_HOURS: i64 = 24; // 24 hours
+const JWT_EXPIRY_HOURS: i64 = 1; // 1 hour for security
 
 /// Verify Ed25519 signature
 pub fn verify_signature(

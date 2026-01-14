@@ -4,15 +4,15 @@ use crate::state::AppState;
 use solana_sdk::{commitment_config::CommitmentConfig, pubkey::Pubkey};
 use tracing::{debug, info};
 
-/// Verify that a wallet owns a specific NFT
+/// Verify that a wallet owns a specific NFT and it's from the KWAMI collection
 pub async fn verify_nft_ownership(
     state: &AppState,
     owner: &Pubkey,
     nft_mint: &Pubkey,
 ) -> Result<bool, ApiError> {
-    info!("Verifying {} owns NFT {}", owner, nft_mint);
+    info!("🔐 Verifying {} owns KWAMI NFT {}", owner, nft_mint);
 
-    // Get token account for this specific mint
+    // Step 1: Verify token account ownership
     let token_accounts = state
         .rpc_client
         .get_token_accounts_by_owner(
@@ -22,11 +22,12 @@ pub async fn verify_nft_ownership(
         .map_err(|e| ApiError::SolanaRpcError(e.to_string()))?;
 
     if token_accounts.is_empty() {
-        info!("No token account found for mint {}", nft_mint);
+        info!("❌ No token account found for mint {}", nft_mint);
         return Ok(false);
     }
 
-    // Check if any account has amount = 1 (NFT)
+    // Step 2: Verify amount >= 1 (they own the token)
+    let mut has_balance = false;
     for account in token_accounts {
         let account_data = match &account.account.data {
             solana_account_decoder::UiAccountData::Binary(data, _) => {
@@ -53,13 +54,91 @@ pub async fn verify_nft_ownership(
             debug!("Token account for {} has amount={}", nft_mint, amount);
             
             if amount >= 1 {
-                info!("✅ Verified ownership of NFT {}", nft_mint);
-                return Ok(true);
+                has_balance = true;
+                break;
             }
         }
     }
 
-    info!("❌ No valid token account found with amount >= 1", );
+    if !has_balance {
+        info!("❌ Token account has insufficient balance");
+        return Ok(false);
+    }
+
+    // Step 3: Verify collection (if configured)
+    if let Some(required_collection) = &state.kwami_collection_mint {
+        info!("🔍 Verifying NFT is from KWAMI collection: {}", required_collection);
+        
+        match verify_nft_collection(state, nft_mint, required_collection).await {
+            Ok(true) => {
+                info!("✅ NFT collection verified");
+            }
+            Ok(false) => {
+                info!("❌ NFT is not from the required collection");
+                return Err(ApiError::WrongCollection);
+            }
+            Err(e) => {
+                info!("⚠️  Could not verify collection: {}", e);
+                // For now, allow if we can't verify (could make this stricter)
+                info!("⚠️  Proceeding without collection verification");
+            }
+        }
+    }
+
+    info!("✅ Full verification passed for NFT {}", nft_mint);
+    Ok(true)
+}
+
+/// Verify NFT is from a specific collection by checking metadata
+async fn verify_nft_collection(
+    state: &AppState,
+    nft_mint: &Pubkey,
+    required_collection: &Pubkey,
+) -> Result<bool, ApiError> {
+    // Derive metadata PDA
+    let metadata_seeds = &[
+        b"metadata",
+        state.metaplex_program.as_ref(),
+        nft_mint.as_ref(),
+    ];
+    
+    let (metadata_pda, _bump) =
+        Pubkey::find_program_address(metadata_seeds, &state.metaplex_program);
+
+    // Fetch metadata account
+    let account = state
+        .rpc_client
+        .get_account_with_commitment(&metadata_pda, CommitmentConfig::confirmed())
+        .map_err(|e| ApiError::MetadataParseError(format!("Failed to fetch metadata: {}", e)))?
+        .value
+        .ok_or_else(|| ApiError::MetadataParseError("Metadata account not found".to_string()))?;
+
+    let data = &account.data;
+    
+    // Basic validation
+    if data.len() < 100 {
+        return Err(ApiError::MetadataParseError("Metadata too short".to_string()));
+    }
+
+    // For now, we'll do a simple check by looking for the collection pubkey in the metadata
+    // A full borsh deserialization would be better but requires exact struct definitions
+    let collection_str = required_collection.to_string();
+    let data_str = bs58::encode(&data[100..]).into_string(); // Skip header
+    
+    if data_str.contains(&collection_str) {
+        debug!("Found collection pubkey in metadata");
+        return Ok(true);
+    }
+
+    // Alternative: check if collection pubkey bytes appear in data
+    let collection_bytes = required_collection.to_bytes();
+    for window in data.windows(32) {
+        if window == collection_bytes {
+            debug!("Found collection pubkey bytes in metadata");
+            return Ok(true);
+        }
+    }
+
     Ok(false)
 }
 

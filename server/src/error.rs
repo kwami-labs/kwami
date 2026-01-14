@@ -57,6 +57,12 @@ pub enum ApiError {
 
     #[error("Missing authorization header")]
     MissingAuthHeader,
+
+    #[error("NFT collection not verified")]
+    UnverifiedCollection,
+
+    #[error("NFT is not from the KWAMI collection")]
+    WrongCollection,
 }
 
 impl IntoResponse for ApiError {
@@ -77,6 +83,8 @@ impl IntoResponse for ApiError {
             ApiError::BadRequest(msg) => (StatusCode::BAD_REQUEST, msg),
             ApiError::RateLimitExceeded => (StatusCode::TOO_MANY_REQUESTS, self.to_string()),
             ApiError::MissingAuthHeader => (StatusCode::UNAUTHORIZED, self.to_string()),
+            ApiError::UnverifiedCollection => (StatusCode::FORBIDDEN, self.to_string()),
+            ApiError::WrongCollection => (StatusCode::FORBIDDEN, self.to_string()),
         };
 
         let body = Json(json!({
