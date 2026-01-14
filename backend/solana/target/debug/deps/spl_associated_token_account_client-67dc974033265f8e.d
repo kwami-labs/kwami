@@ -1,0 +1,9 @@
+/home/quantium/labs/kwami.io/kwami/solana/target/debug/deps/spl_associated_token_account_client-67dc974033265f8e.d: /home/quantium/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/spl-associated-token-account-client-2.0.0/src/lib.rs /home/quantium/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/spl-associated-token-account-client-2.0.0/src/address.rs /home/quantium/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/spl-associated-token-account-client-2.0.0/src/instruction.rs
+
+/home/quantium/labs/kwami.io/kwami/solana/target/debug/deps/libspl_associated_token_account_client-67dc974033265f8e.rlib: /home/quantium/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/spl-associated-token-account-client-2.0.0/src/lib.rs /home/quantium/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/spl-associated-token-account-client-2.0.0/src/address.rs /home/quantium/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/spl-associated-token-account-client-2.0.0/src/instruction.rs
+
+/home/quantium/labs/kwami.io/kwami/solana/target/debug/deps/libspl_associated_token_account_client-67dc974033265f8e.rmeta: /home/quantium/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/spl-associated-token-account-client-2.0.0/src/lib.rs /home/quantium/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/spl-associated-token-account-client-2.0.0/src/address.rs /home/quantium/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/spl-associated-token-account-client-2.0.0/src/instruction.rs
+
+/home/quantium/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/spl-associated-token-account-client-2.0.0/src/lib.rs:
+/home/quantium/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/spl-associated-token-account-client-2.0.0/src/address.rs:
+/home/quantium/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/spl-associated-token-account-client-2.0.0/src/instruction.rs:

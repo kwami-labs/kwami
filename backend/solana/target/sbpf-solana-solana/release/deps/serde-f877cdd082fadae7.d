@@ -1,0 +1,14 @@
+/home/quantium/labs/kwami.io/kwami/solana/target/sbpf-solana-solana/release/deps/libserde-f877cdd082fadae7.rmeta: /home/quantium/.cargo/registry/src/index.crates.io-6f17d22bba15001f/serde-1.0.228/src/lib.rs /home/quantium/.cargo/registry/src/index.crates.io-6f17d22bba15001f/serde-1.0.228/src/integer128.rs /home/quantium/.cargo/registry/src/index.crates.io-6f17d22bba15001f/serde-1.0.228/src/private/mod.rs /home/quantium/.cargo/registry/src/index.crates.io-6f17d22bba15001f/serde-1.0.228/src/private/de.rs /home/quantium/.cargo/registry/src/index.crates.io-6f17d22bba15001f/serde-1.0.228/src/private/ser.rs /home/quantium/labs/kwami.io/kwami/solana/target/sbpf-solana-solana/release/build/serde-0d5f8eac1eafbb77/out/private.rs
+
+/home/quantium/labs/kwami.io/kwami/solana/target/sbpf-solana-solana/release/deps/libserde-f877cdd082fadae7.rlib: /home/quantium/.cargo/registry/src/index.crates.io-6f17d22bba15001f/serde-1.0.228/src/lib.rs /home/quantium/.cargo/registry/src/index.crates.io-6f17d22bba15001f/serde-1.0.228/src/integer128.rs /home/quantium/.cargo/registry/src/index.crates.io-6f17d22bba15001f/serde-1.0.228/src/private/mod.rs /home/quantium/.cargo/registry/src/index.crates.io-6f17d22bba15001f/serde-1.0.228/src/private/de.rs /home/quantium/.cargo/registry/src/index.crates.io-6f17d22bba15001f/serde-1.0.228/src/private/ser.rs /home/quantium/labs/kwami.io/kwami/solana/target/sbpf-solana-solana/release/build/serde-0d5f8eac1eafbb77/out/private.rs
+
+/home/quantium/labs/kwami.io/kwami/solana/target/sbpf-solana-solana/release/deps/serde-f877cdd082fadae7.d: /home/quantium/.cargo/registry/src/index.crates.io-6f17d22bba15001f/serde-1.0.228/src/lib.rs /home/quantium/.cargo/registry/src/index.crates.io-6f17d22bba15001f/serde-1.0.228/src/integer128.rs /home/quantium/.cargo/registry/src/index.crates.io-6f17d22bba15001f/serde-1.0.228/src/private/mod.rs /home/quantium/.cargo/registry/src/index.crates.io-6f17d22bba15001f/serde-1.0.228/src/private/de.rs /home/quantium/.cargo/registry/src/index.crates.io-6f17d22bba15001f/serde-1.0.228/src/private/ser.rs /home/quantium/labs/kwami.io/kwami/solana/target/sbpf-solana-solana/release/build/serde-0d5f8eac1eafbb77/out/private.rs
+
+/home/quantium/.cargo/registry/src/index.crates.io-6f17d22bba15001f/serde-1.0.228/src/lib.rs:
+/home/quantium/.cargo/registry/src/index.crates.io-6f17d22bba15001f/serde-1.0.228/src/integer128.rs:
+/home/quantium/.cargo/registry/src/index.crates.io-6f17d22bba15001f/serde-1.0.228/src/private/mod.rs:
+/home/quantium/.cargo/registry/src/index.crates.io-6f17d22bba15001f/serde-1.0.228/src/private/de.rs:
+/home/quantium/.cargo/registry/src/index.crates.io-6f17d22bba15001f/serde-1.0.228/src/private/ser.rs:
+/home/quantium/labs/kwami.io/kwami/solana/target/sbpf-solana-solana/release/build/serde-0d5f8eac1eafbb77/out/private.rs:
+
+# env-dep:OUT_DIR=/home/quantium/labs/kwami.io/kwami/solana/target/sbpf-solana-solana/release/build/serde-0d5f8eac1eafbb77/out

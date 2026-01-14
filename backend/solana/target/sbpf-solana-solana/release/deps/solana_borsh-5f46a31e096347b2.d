@@ -1,0 +1,11 @@
+/home/quantium/labs/kwami.io/kwami/solana/target/sbpf-solana-solana/release/deps/libsolana_borsh-5f46a31e096347b2.rmeta: /home/quantium/.cargo/registry/src/index.crates.io-6f17d22bba15001f/solana-borsh-2.2.1/src/lib.rs /home/quantium/.cargo/registry/src/index.crates.io-6f17d22bba15001f/solana-borsh-2.2.1/src/deprecated.rs /home/quantium/.cargo/registry/src/index.crates.io-6f17d22bba15001f/solana-borsh-2.2.1/src/macros.rs /home/quantium/.cargo/registry/src/index.crates.io-6f17d22bba15001f/solana-borsh-2.2.1/src/v0_10.rs /home/quantium/.cargo/registry/src/index.crates.io-6f17d22bba15001f/solana-borsh-2.2.1/src/v1.rs
+
+/home/quantium/labs/kwami.io/kwami/solana/target/sbpf-solana-solana/release/deps/libsolana_borsh-5f46a31e096347b2.rlib: /home/quantium/.cargo/registry/src/index.crates.io-6f17d22bba15001f/solana-borsh-2.2.1/src/lib.rs /home/quantium/.cargo/registry/src/index.crates.io-6f17d22bba15001f/solana-borsh-2.2.1/src/deprecated.rs /home/quantium/.cargo/registry/src/index.crates.io-6f17d22bba15001f/solana-borsh-2.2.1/src/macros.rs /home/quantium/.cargo/registry/src/index.crates.io-6f17d22bba15001f/solana-borsh-2.2.1/src/v0_10.rs /home/quantium/.cargo/registry/src/index.crates.io-6f17d22bba15001f/solana-borsh-2.2.1/src/v1.rs
+
+/home/quantium/labs/kwami.io/kwami/solana/target/sbpf-solana-solana/release/deps/solana_borsh-5f46a31e096347b2.d: /home/quantium/.cargo/registry/src/index.crates.io-6f17d22bba15001f/solana-borsh-2.2.1/src/lib.rs /home/quantium/.cargo/registry/src/index.crates.io-6f17d22bba15001f/solana-borsh-2.2.1/src/deprecated.rs /home/quantium/.cargo/registry/src/index.crates.io-6f17d22bba15001f/solana-borsh-2.2.1/src/macros.rs /home/quantium/.cargo/registry/src/index.crates.io-6f17d22bba15001f/solana-borsh-2.2.1/src/v0_10.rs /home/quantium/.cargo/registry/src/index.crates.io-6f17d22bba15001f/solana-borsh-2.2.1/src/v1.rs
+
+/home/quantium/.cargo/registry/src/index.crates.io-6f17d22bba15001f/solana-borsh-2.2.1/src/lib.rs:
+/home/quantium/.cargo/registry/src/index.crates.io-6f17d22bba15001f/solana-borsh-2.2.1/src/deprecated.rs:
+/home/quantium/.cargo/registry/src/index.crates.io-6f17d22bba15001f/solana-borsh-2.2.1/src/macros.rs:
+/home/quantium/.cargo/registry/src/index.crates.io-6f17d22bba15001f/solana-borsh-2.2.1/src/v0_10.rs:
+/home/quantium/.cargo/registry/src/index.crates.io-6f17d22bba15001f/solana-borsh-2.2.1/src/v1.rs:

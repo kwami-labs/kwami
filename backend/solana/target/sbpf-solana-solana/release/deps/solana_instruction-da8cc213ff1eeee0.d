@@ -1,0 +1,10 @@
+/home/quantium/labs/kwami.io/kwami/solana/target/sbpf-solana-solana/release/deps/libsolana_instruction-da8cc213ff1eeee0.rmeta: /home/quantium/.cargo/registry/src/index.crates.io-6f17d22bba15001f/solana-instruction-2.3.3/src/lib.rs /home/quantium/.cargo/registry/src/index.crates.io-6f17d22bba15001f/solana-instruction-2.3.3/src/account_meta.rs /home/quantium/.cargo/registry/src/index.crates.io-6f17d22bba15001f/solana-instruction-2.3.3/src/error.rs /home/quantium/.cargo/registry/src/index.crates.io-6f17d22bba15001f/solana-instruction-2.3.3/src/syscalls.rs
+
+/home/quantium/labs/kwami.io/kwami/solana/target/sbpf-solana-solana/release/deps/libsolana_instruction-da8cc213ff1eeee0.rlib: /home/quantium/.cargo/registry/src/index.crates.io-6f17d22bba15001f/solana-instruction-2.3.3/src/lib.rs /home/quantium/.cargo/registry/src/index.crates.io-6f17d22bba15001f/solana-instruction-2.3.3/src/account_meta.rs /home/quantium/.cargo/registry/src/index.crates.io-6f17d22bba15001f/solana-instruction-2.3.3/src/error.rs /home/quantium/.cargo/registry/src/index.crates.io-6f17d22bba15001f/solana-instruction-2.3.3/src/syscalls.rs
+
+/home/quantium/labs/kwami.io/kwami/solana/target/sbpf-solana-solana/release/deps/solana_instruction-da8cc213ff1eeee0.d: /home/quantium/.cargo/registry/src/index.crates.io-6f17d22bba15001f/solana-instruction-2.3.3/src/lib.rs /home/quantium/.cargo/registry/src/index.crates.io-6f17d22bba15001f/solana-instruction-2.3.3/src/account_meta.rs /home/quantium/.cargo/registry/src/index.crates.io-6f17d22bba15001f/solana-instruction-2.3.3/src/error.rs /home/quantium/.cargo/registry/src/index.crates.io-6f17d22bba15001f/solana-instruction-2.3.3/src/syscalls.rs
+
+/home/quantium/.cargo/registry/src/index.crates.io-6f17d22bba15001f/solana-instruction-2.3.3/src/lib.rs:
+/home/quantium/.cargo/registry/src/index.crates.io-6f17d22bba15001f/solana-instruction-2.3.3/src/account_meta.rs:
+/home/quantium/.cargo/registry/src/index.crates.io-6f17d22bba15001f/solana-instruction-2.3.3/src/error.rs:
+/home/quantium/.cargo/registry/src/index.crates.io-6f17d22bba15001f/solana-instruction-2.3.3/src/syscalls.rs:
