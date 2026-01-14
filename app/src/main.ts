@@ -109,8 +109,15 @@ async function authenticateWithServer(nft: KwamiOwnedNft) {
     // Store token in localStorage
     localStorage.setItem('kwami-auth-token', authApi.getToken() || '')
     
-  } catch (error) {
+  } catch (error: any) {
     console.error('❌ Authentication failed:', error)
+    
+    // Check if the error is about no KWAMIs found
+    if (error?.message?.includes('No KWAMIs found')) {
+      console.info('ℹ️  This wallet doesn\'t have any KWAMI NFTs on ' + network)
+      console.info('ℹ️  The app will continue in local-only mode')
+    }
+    
     // Continue with local-only mode
   }
 }
