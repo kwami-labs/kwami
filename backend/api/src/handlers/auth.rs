@@ -1,15 +1,12 @@
+use crate::db::repositories::{NonceRepository, UserRepository};
 use crate::error::ApiError;
 use crate::models::*;
 use crate::services::{auth_service, kwami_service};
 use crate::state::AppState;
 use axum::{extract::State, http::HeaderMap, Json};
-use chrono::{Duration, Utc};
 use solana_sdk::pubkey::Pubkey;
 use std::str::FromStr;
 use tracing::{debug, info, warn};
-use uuid::Uuid;
-
-const NONCE_EXPIRY_SECONDS: i64 = 300; // 5 minutes
 
 /// Generate a nonce for wallet authentication
 pub async fn generate_nonce(
@@ -22,28 +19,24 @@ pub async fn generate_nonce(
     let pubkey =
         Pubkey::from_str(&req.pubkey).map_err(|e| ApiError::InvalidPublicKey(e.to_string()))?;
 
-    // Generate new nonce
-    let nonce = Uuid::new_v4();
-    let expiry = Utc::now() + Duration::seconds(NONCE_EXPIRY_SECONDS);
-
-    // Store nonce with expiration
-    {
-        let mut store = state
-            .nonce_store
-            .lock()
-            .map_err(|e| ApiError::InternalError(format!("Lock error: {}", e)))?;
-        store.insert(pubkey, (nonce, expiry));
-    }
+    // Create nonce in database
+    let nonce_repo = NonceRepository::new(state.db.postgres.clone());
+    let auth_nonce = nonce_repo
+        .create(&pubkey)
+        .await
+        .map_err(|e| ApiError::InternalError(format!("Failed to create nonce: {}", e)))?;
 
     // Create message template for signing
-    let message = format!("Login to KWAMI API with nonce: {}", nonce);
+    let message = format!("Login to KWAMI API with nonce: {}", auth_nonce.nonce);
 
-    info!("Generated nonce {} for {}", nonce, pubkey);
+    let expires_in = (auth_nonce.expires_at - auth_nonce.created_at).num_seconds() as u64;
+
+    info!("Generated nonce {} for {}", auth_nonce.nonce, pubkey);
 
     Ok(Json(NonceResponse {
-        nonce,
+        nonce: auth_nonce.nonce,
         message,
-        expires_in: NONCE_EXPIRY_SECONDS as u64,
+        expires_in,
     }))
 }
 
@@ -58,27 +51,16 @@ pub async fn login(
     let pubkey =
         Pubkey::from_str(&req.pubkey).map_err(|e| ApiError::InvalidPublicKey(e.to_string()))?;
 
-    // 2. Validate and consume nonce
-    let (stored_nonce, expiry) = {
-        let mut store = state
-            .nonce_store
-            .lock()
-            .map_err(|e| ApiError::InternalError(format!("Lock error: {}", e)))?;
+    // 2. Validate and consume nonce from database
+    let nonce_repo = NonceRepository::new(state.db.postgres.clone());
+    let is_valid = nonce_repo
+        .verify_and_consume(&pubkey, req.nonce)
+        .await
+        .map_err(|e| ApiError::InternalError(format!("Failed to verify nonce: {}", e)))?;
 
-        let entry = store.remove(&pubkey).ok_or(ApiError::NonceNotFound)?;
-        entry
-    };
-
-    // Check nonce expiration
-    if Utc::now() > expiry {
-        warn!("Expired nonce used for {}", pubkey);
+    if !is_valid {
+        warn!("Invalid or expired nonce for {}", pubkey);
         return Err(ApiError::NonceNotFound);
-    }
-
-    // Check nonce matches
-    if stored_nonce != req.nonce {
-        warn!("Nonce mismatch for {}", pubkey);
-        return Err(ApiError::InvalidNonce);
     }
 
     // Verify nonce is in message
@@ -106,8 +88,23 @@ pub async fn login(
 
     info!("Verified {} owns KWAMI {}", pubkey, kwami_mint);
 
-    // 6. Generate JWT with kwami_mint
+    // 6. Get or create user in database
+    let user_repo = UserRepository::new(state.db.postgres.clone());
+    let user = user_repo
+        .get_or_create(&pubkey)
+        .await
+        .map_err(|e| ApiError::InternalError(format!("Failed to get/create user: {}", e)))?;
+
+    // Update last login
+    user_repo
+        .update_last_login(user.id)
+        .await
+        .map_err(|e| ApiError::InternalError(format!("Failed to update last login: {}", e)))?;
+
+    // 7. Generate JWT with kwami_mint
     let token = auth_service::generate_jwt(&state.jwt_secret, &req.pubkey, Some(req.kwami_mint.clone()))?;
+
+    info!("User {} logged in successfully", pubkey);
 
     Ok(Json(LoginResponse {
         token,

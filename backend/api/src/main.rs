@@ -1,5 +1,5 @@
 use axum::http::{header, Method};
-use kwami_server::{routes, AppState, Config};
+use kwami_server::{db::DatabasePools, routes, AppState, Config};
 use std::net::SocketAddr;
 use std::time::Duration;
 use tokio::time;
@@ -7,7 +7,7 @@ use tower_http::{
     cors::CorsLayer,
     trace::{DefaultMakeSpan, TraceLayer},
 };
-use tracing::info;
+use tracing::{error, info};
 use tracing_subscriber::{layer::SubscriberExt, util::SubscriberInitExt};
 
 #[tokio::main]
@@ -29,8 +29,28 @@ async fn main() {
     // Load configuration from environment
     let config = Config::from_env();
 
+    // Initialize database connections
+    info!("📊 Initializing database connections...");
+    let db = match DatabasePools::new(
+        &config.database_url,
+        &config.redis_url,
+        &config.qdrant_url,
+    )
+    .await
+    {
+        Ok(db) => {
+            info!("✅ All databases connected successfully");
+            db
+        }
+        Err(e) => {
+            error!("❌ Failed to initialize databases: {}", e);
+            std::process::exit(1);
+        }
+    };
+
     // Create shared application state
     let state = AppState::new(
+        db,
         config.solana_rpc_url.clone(),
         config.jwt_secret.clone(),
         config.elevenlabs_api_key.clone(),
@@ -38,14 +58,17 @@ async fn main() {
         config.kwami_collection_mint,
     );
 
-    // Spawn background task for cleanup
-    let cleanup_state = state.clone();
+    // Spawn background task for database cleanup
+    let cleanup_db = state.db.clone();
     tokio::spawn(async move {
-        let mut interval = time::interval(Duration::from_secs(60));
+        use kwami_server::db::repositories::NonceRepository;
+        let mut interval = time::interval(Duration::from_secs(300)); // Every 5 minutes
         loop {
             interval.tick().await;
-            cleanup_state.cleanup_expired_nonces();
-            cleanup_state.cleanup_expired_cache();
+            let nonce_repo = NonceRepository::new(cleanup_db.postgres.clone());
+            if let Err(e) = nonce_repo.cleanup_expired().await {
+                error!("Failed to cleanup expired nonces: {}", e);
+            }
         }
     });
 

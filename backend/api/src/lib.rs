@@ -1,6 +1,7 @@
 // Library exports for integration tests and modular access
 
 pub mod config;
+pub mod db;
 pub mod error;
 pub mod handlers;
 pub mod middleware;
