@@ -10,6 +10,7 @@ export { createPanel, createGlassPanel, type PanelOptions } from './primitives/P
 export { createIcon, type IconHandle, type IconOptions } from './primitives/Icon';
 export { createSlider, type SliderOptions, type SliderHandle } from './primitives/Slider';
 export { createColorPicker, type ColorPickerOptions, type ColorPickerHandle } from './primitives/ColorPicker';
+export { createWindow, type WindowOptions, type WindowHandle, type WindowContent, type WindowPosition, type WindowSize } from './primitives/Window';
 
 // Widgets
 export * from './widgets/Console';
