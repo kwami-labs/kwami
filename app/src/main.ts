@@ -58,9 +58,19 @@ let blobView: BlobView | null = null
 
 async function authenticateWithServer(nft: KwamiOwnedNft) {
   try {
-    const wallet = connector.getWallet()
-    if (!wallet || !wallet.publicKey || !wallet.signMessage) {
-      throw new Error('Wallet not connected or does not support message signing')
+    // Get public key from connector
+    const publicKey = connector.getPublicKey()
+    if (!publicKey) {
+      console.warn('⚠️  No wallet connected')
+      return
+    }
+
+    // Access the internal wallet adapter through the connector
+    // @ts-ignore - accessing internal property
+    const walletAdapter = connector.wallet
+    if (!walletAdapter || !walletAdapter.signMessage) {
+      console.warn('⚠️  Wallet does not support message signing')
+      return
     }
 
     console.log('🔐 Authenticating with server...')
@@ -72,14 +82,14 @@ async function authenticateWithServer(nft: KwamiOwnedNft) {
       return
     }
 
-    const pubkey = wallet.publicKey.toBase58()
+    const pubkey = publicKey.toBase58()
     
     // Request nonce
     const { nonce, message } = await authApi.requestNonce(pubkey)
     console.log('📝 Signing message:', message)
     
     // Sign message
-    const signature = await signAuthMessage(wallet.signMessage.bind(wallet), message)
+    const signature = await signAuthMessage(walletAdapter.signMessage.bind(walletAdapter), message)
     
     // Login
     const loginResult = await authApi.login({
