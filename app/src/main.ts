@@ -7,6 +7,7 @@ import { createKwamiLogoSvg } from 'kwami/ui/logo'
 import { initializeTheme } from 'kwami/ui'
 import { BlobView } from './lib/BlobView'
 import { KwamiAuthApi, signAuthMessage } from './lib/authApi'
+import { initWindowTest } from './windowTest'
 
 function readEnv(key: string): string | undefined {
   const v = (import.meta as any).env?.[key]
@@ -204,4 +205,7 @@ const logo = createKwamiLogoSvg({
   strokeWidth: 4,
 })
 logoMount.appendChild(logo)
+
+// Initialize Window test (adds a button to open test windows)
+initWindowTest()
 
