@@ -30,6 +30,7 @@ pub struct AppState {
     pub jwt_secret: String,
     
     /// ElevenLabs API key (for future proxy endpoints)
+    #[allow(dead_code)]
     pub elevenlabs_api_key: String,
     
     /// Metaplex Metadata program ID
@@ -42,6 +43,7 @@ pub struct AppState {
     pub kwami_cache: KwamiCache,
     
     /// Nonce expiration time in seconds (default: 300 = 5 minutes)
+    #[allow(dead_code)]
     pub nonce_expiry_seconds: i64,
 }
 

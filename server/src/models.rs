@@ -79,11 +79,13 @@ pub struct Claims {
 #[derive(Debug, Clone)]
 pub struct UserContext {
     pub pubkey: String,
+    #[allow(dead_code)]
     pub kwami_mint: Option<String>,
 }
 
 /// Generic success response
 #[derive(Debug, Serialize)]
+#[allow(dead_code)]
 pub struct SuccessResponse {
     pub message: String,
 }

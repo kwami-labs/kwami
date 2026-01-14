@@ -281,7 +281,7 @@ async fn query_owned_kwamis(
         // Fetch metadata for this mint
         if let Ok(kwami_info) = fetch_nft_metadata(state, &mint).await {
             // Filter by collection if configured
-            if let Some(collection_mint) = state.kwami_collection_mint {
+            if let Some(_collection_mint) = state.kwami_collection_mint {
                 // For now, we'll include all NFTs with amount=1
                 // TODO: Parse verified_collection from metadata to filter precisely
                 kwamis.push(kwami_info);

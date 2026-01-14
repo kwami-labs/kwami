@@ -19,12 +19,14 @@ pub enum ApiError {
     NonceNotFound,
 
     #[error("Nonce already used")]
+    #[allow(dead_code)]
     NonceAlreadyUsed,
 
     #[error("Invalid nonce in message")]
     InvalidNonce,
 
     #[error("Unauthorized: {0}")]
+    #[allow(dead_code)]
     Unauthorized(String),
 
     #[error("Invalid JWT token: {0}")]
@@ -46,9 +48,11 @@ pub enum ApiError {
     InternalError(String),
 
     #[error("Bad request: {0}")]
+    #[allow(dead_code)]
     BadRequest(String),
 
     #[error("Rate limit exceeded")]
+    #[allow(dead_code)]
     RateLimitExceeded,
 
     #[error("Missing authorization header")]
