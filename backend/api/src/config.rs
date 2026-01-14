@@ -11,6 +11,9 @@ pub struct Config {
     pub metaplex_program: Pubkey,
     pub kwami_collection_mint: Option<Pubkey>,
     pub port: u16,
+    pub database_url: String,
+    pub redis_url: String,
+    pub qdrant_url: String,
 }
 
 impl Config {
@@ -47,6 +50,15 @@ impl Config {
             .and_then(|p| p.parse().ok())
             .unwrap_or(3000);
 
+        let database_url = env::var("DATABASE_URL")
+            .expect("DATABASE_URL must be set in environment");
+
+        let redis_url = env::var("REDIS_URL")
+            .expect("REDIS_URL must be set in environment");
+
+        let qdrant_url = env::var("QDRANT_URL")
+            .unwrap_or_else(|_| "http://localhost:6333".to_string());
+
         Self {
             solana_rpc_url,
             jwt_secret,
@@ -54,6 +66,9 @@ impl Config {
             metaplex_program,
             kwami_collection_mint,
             port,
+            database_url,
+            redis_url,
+            qdrant_url,
         }
     }
 }

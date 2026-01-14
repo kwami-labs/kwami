@@ -44,6 +44,15 @@ dotenvy = "0.15"
 anyhow = "1"
 thiserror = "1"
 
+# Database - PostgreSQL
+sqlx = { version = "0.7", features = ["runtime-tokio-native-tls", "postgres", "uuid", "chrono", "migrate"] }
+
+# Database - Redis
+redis = { version = "0.24", features = ["tokio-comp", "connection-manager"] }
+
+# Database - Qdrant
+qdrant-client = "1.7"
+
 [dev-dependencies]
 http-body-util = "0.1"
 tower = { version = "0.5", features = ["util"] }
