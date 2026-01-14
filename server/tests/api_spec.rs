@@ -1,6 +1,9 @@
+use axum::body::Body;
+use axum::http::{Request, StatusCode};
 use kwami_server::{routes, AppState, Config};
 use solana_sdk::pubkey::Pubkey;
 use std::str::FromStr;
+use tower::ServiceExt; // for oneshot
 
 #[tokio::test]
 async fn test_health_endpoint() {
@@ -21,17 +24,16 @@ async fn test_health_endpoint() {
     
     // Test health endpoint
     let response = app
-        .clone()
         .oneshot(
-            axum::http::Request::builder()
+            Request::builder()
                 .uri("/health")
-                .body(axum::body::Body::empty())
+                .body(Body::empty())
                 .unwrap(),
         )
         .await
         .unwrap();
     
-    assert_eq!(response.status(), axum::http::StatusCode::OK);
+    assert_eq!(response.status(), StatusCode::OK);
 }
 
 fn create_test_config() -> Config {
