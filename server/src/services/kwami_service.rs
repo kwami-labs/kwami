@@ -46,6 +46,10 @@ pub async fn query_owned_kwamis(
             continue;
         }
 
+        // Mint is at bytes 0-32
+        let mint_bytes: [u8; 32] = account_data[0..32].try_into().unwrap();
+        let mint = Pubkey::new_from_array(mint_bytes);
+        
         // Amount is at bytes 64-72 (u64 little-endian)
         let amount = u64::from_le_bytes([
             account_data[64],
@@ -58,17 +62,14 @@ pub async fn query_owned_kwamis(
             account_data[71],
         ]);
 
+        debug!("Token {} has amount={}", mint, amount);
+
         // Skip if amount is not 1 (NFTs have amount = 1)
         if amount != 1 {
-            debug!("Skipping token with amount={}", amount);
             continue;
         }
         
         nft_count += 1;
-
-        // Mint is at bytes 0-32
-        let mint_bytes: [u8; 32] = account_data[0..32].try_into().unwrap();
-        let mint = Pubkey::new_from_array(mint_bytes);
 
         // Fetch metadata for this mint
         debug!("Found NFT with amount=1, mint: {}", mint);
