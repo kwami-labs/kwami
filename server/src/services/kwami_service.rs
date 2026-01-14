@@ -23,6 +23,8 @@ pub async fn query_owned_kwamis(
     debug!("Found {} token accounts for owner", token_accounts.len());
 
     let mut kwamis = Vec::new();
+    let mut nft_count = 0;
+    let mut parse_failures = 0;
 
     for account in token_accounts {
         // Parse token account data
@@ -38,6 +40,8 @@ pub async fn query_owned_kwamis(
 
         // Token account data is 165 bytes for SPL Token
         if account_data.len() < 165 {
+            parse_failures += 1;
+            debug!("Token account data too short: {} bytes", account_data.len());
             continue;
         }
 
@@ -55,8 +59,11 @@ pub async fn query_owned_kwamis(
 
         // Skip if amount is not 1 (NFTs have amount = 1)
         if amount != 1 {
+            debug!("Skipping token with amount={}", amount);
             continue;
         }
+        
+        nft_count += 1;
 
         // Mint is at bytes 0-32
         let mint_bytes: [u8; 32] = account_data[0..32].try_into().unwrap();
@@ -77,6 +84,14 @@ pub async fn query_owned_kwamis(
             }
         }
     }
+
+    debug!(
+        "Summary: {} total accounts, {} with amount=1, {} parse failures, {} KWAMIs found",
+        token_accounts.len(),
+        nft_count,
+        parse_failures,
+        kwamis.len()
+    );
 
     Ok(kwamis)
 }
