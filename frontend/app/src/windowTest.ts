@@ -17,8 +17,8 @@ export function initWindowTest() {
   // Position button in top-right
   Object.assign(openButton.element.style, {
     position: 'fixed',
-    top: '20px',
-    right: '20px',
+    top: '200px',
+    right: '200px',
     zIndex: '10000',
   });
 
@@ -76,11 +76,11 @@ function openTestWindow() {
   const logStateBtn = createButton({
     label: 'Log Window State',
     variant: 'secondary',
-    onClick: () => {
-      console.log('Window maximized:', window1.isMaximized());
-      console.log('Window snapped:', window1.isSnappedToSidebar());
-      console.log('Window element:', window1.element);
-    },
+    // onClick: () => {
+    //   console.log('Window maximized:', window1.isMaximized());
+    //   console.log('Window snapped:', window1.isSnappedToSidebar());
+    //   console.log('Window element:', window1.element);
+    // },
   });
   buttonsDiv.appendChild(logStateBtn.element);
 
@@ -110,27 +110,27 @@ function openTestWindow() {
     draggable: true,
     closable: true,
     maximizable: true,
-    onClose: () => {
-      console.log('Window closed');
-    },
-    onMaximize: () => {
-      console.log('Window maximized');
-    },
-    onRestore: () => {
-      console.log('Window restored');
-    },
-    onMove: (pos) => {
-      console.log('Window moved to:', pos);
-    },
-    onResize: (size) => {
-      console.log('Window resized to:', size);
-    },
-    onSnapToSidebar: (side) => {
-      console.log('Window snapped to', side, 'sidebar');
-    },
-    onUnsnapFromSidebar: () => {
-      console.log('Window unsnapped from sidebar');
-    },
+    // onClose: () => {
+    //   console.log('Window closed');
+    // },
+    // onMaximize: () => {
+    //   console.log('Window maximized');
+    // },
+    // onRestore: () => {
+    //   console.log('Window restored');
+    // },
+    // onMove: (pos) => {
+    //   console.log('Window moved to:', pos);
+    // },
+    // onResize: (size) => {
+    //   console.log('Window resized to:', size);
+    // },
+    // onSnapToSidebar: (side) => {
+    //   console.log('Window snapped to', side, 'sidebar');
+    // },
+    // onUnsnapFromSidebar: () => {
+    //   console.log('Window unsnapped from sidebar');
+    // },
   });
 
   return window1;
