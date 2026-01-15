@@ -5,6 +5,7 @@
  */
 
 import type { WindowState, WindowPosition } from './types';
+import { createSnapHandler, type SnapHandler } from './snap';
 
 export interface DragHandler {
   destroy: () => void;
@@ -14,13 +15,22 @@ export function createDragHandler(
   windowElement: HTMLDivElement,
   titleBar: HTMLElement,
   state: WindowState,
-  onMove?: (position: WindowPosition) => void
+  onMove?: (position: WindowPosition) => void,
+  onSnap?: (side: 'left' | 'right') => void,
+  enableSnap: boolean = true
 ): DragHandler {
   let isDragging = false;
   let dragStartX = 0;
   let dragStartY = 0;
   let windowStartX = 0;
   let windowStartY = 0;
+  let snapHandler: SnapHandler | null = null;
+  let currentSnapZone: 'left' | 'right' | null = null;
+
+  // Create snap handler if enabled
+  if (enableSnap && onSnap) {
+    snapHandler = createSnapHandler(onSnap);
+  }
 
   const onMouseDown = (e: MouseEvent) => {
     // Only drag from title bar and not from buttons
@@ -34,8 +44,8 @@ export function createDragHandler(
       return;
     }
 
-    // Don't drag if window is maximized
-    if (state.isMaximized) {
+    // Don't drag if window is maximized or snapped
+    if (state.isMaximized || state.isSnapped) {
       return;
     }
 
@@ -80,12 +90,32 @@ export function createDragHandler(
     windowElement.style.top = `${newY}px`;
 
     onMove?.(state.position);
+
+    // Check snap zones if enabled
+    if (snapHandler) {
+      const snapZone = snapHandler.checkSnapZone(e.clientX, e.clientY);
+      
+      if (snapZone !== currentSnapZone) {
+        if (snapZone) {
+          snapHandler.showPreview(snapZone);
+        } else {
+          snapHandler.hidePreview();
+        }
+        currentSnapZone = snapZone;
+      }
+    }
   };
 
   const onMouseUp = () => {
     if (isDragging) {
       isDragging = false;
       titleBar.style.cursor = 'grab';
+      
+      // Hide snap preview if active
+      if (snapHandler) {
+        snapHandler.hidePreview();
+        currentSnapZone = null;
+      }
     }
   };
 
@@ -103,6 +133,7 @@ export function createDragHandler(
       document.removeEventListener('mousemove', onMouseMove);
       document.removeEventListener('mouseup', onMouseUp);
       titleBar.style.cursor = '';
+      snapHandler?.destroy();
     },
   };
 }

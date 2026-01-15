@@ -38,12 +38,15 @@ export interface WindowOptions {
   draggable?: boolean;
   closable?: boolean;
   maximizable?: boolean;
+  enableSnapToSidebar?: boolean;
   className?: string;
   onClose?: () => void;
   onMaximize?: () => void;
   onRestore?: () => void;
   onMove?: (position: WindowPosition) => void;
   onResize?: (size: WindowSize) => void;
+  onSnapToSidebar?: (side: 'left' | 'right') => void;
+  onUnsnapFromSidebar?: () => void;
 }
 
 export interface WindowHandle {
@@ -57,13 +60,21 @@ export interface WindowHandle {
   close: () => void;
   destroy: () => void;
   isMaximized: () => boolean;
+  isSnappedToSidebar: () => boolean;
+  unsnapFromSidebar: () => void;
 }
 
 export interface WindowState {
   position: WindowPosition;
   size: WindowSize;
   isMaximized: boolean;
+  isSnapped: boolean;
+  snappedSide?: 'left' | 'right';
   beforeMaximize?: {
+    position: WindowPosition;
+    size: WindowSize;
+  };
+  beforeSnap?: {
     position: WindowPosition;
     size: WindowSize;
   };

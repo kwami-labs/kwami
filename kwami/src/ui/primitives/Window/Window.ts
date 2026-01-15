@@ -46,12 +46,15 @@ export function createWindow(options: WindowOptions = {}): WindowHandle {
     draggable = true,
     closable = true,
     maximizable = true,
+    enableSnapToSidebar = true,
     className,
     onClose,
     onMaximize,
     onRestore,
     onMove,
     onResize,
+    onSnapToSidebar,
+    onUnsnapFromSidebar,
   } = options;
 
   // Initialize window state
@@ -59,6 +62,7 @@ export function createWindow(options: WindowOptions = {}): WindowHandle {
     position: { x, y },
     size: { width, height },
     isMaximized: false,
+    isSnapped: false,
   };
 
   const bounds: WindowBounds = {
@@ -162,8 +166,58 @@ export function createWindow(options: WindowOptions = {}): WindowHandle {
   let dragHandler: ReturnType<typeof createDragHandler> | null = null;
   let resizeHandler: ReturnType<typeof createResizeHandler> | null = null;
 
+  // Snap to sidebar handler
+  const snapToSidebar = (side: 'left' | 'right') => {
+    if (state.isSnapped) return;
+
+    // Save current state
+    state.beforeSnap = {
+      position: { ...state.position },
+      size: { ...state.size },
+    };
+
+    state.isSnapped = true;
+    state.snappedSide = side;
+
+    // Disable resize when snapped
+    if (resizeHandler) {
+      resizeHandler.destroy();
+      resizeHandler = null;
+    }
+
+    // Position as sidebar
+    const sidebarWidth = 300;
+    state.position.x = side === 'left' ? 0 : window.innerWidth - sidebarWidth;
+    state.position.y = 0;
+    state.size.width = sidebarWidth;
+    state.size.height = window.innerHeight;
+
+    Object.assign(windowElement.style, {
+      left: `${state.position.x}px`,
+      top: '0',
+      width: `${sidebarWidth}px`,
+      height: '100vh',
+      transition: 'all 0.3s var(--kwami-easing)',
+    });
+
+    // Make title bar non-draggable when snapped
+    if (dragHandler) {
+      dragHandler.destroy();
+      dragHandler = null;
+    }
+
+    onSnapToSidebar?.(side);
+  };
+
   if (draggable) {
-    dragHandler = createDragHandler(windowElement, titleBar, state, onMove);
+    dragHandler = createDragHandler(
+      windowElement,
+      titleBar,
+      state,
+      onMove,
+      snapToSidebar,
+      enableSnapToSidebar
+    );
   }
 
   if (resizable) {
@@ -180,7 +234,7 @@ export function createWindow(options: WindowOptions = {}): WindowHandle {
   };
 
   const setPosition = (newX: number, newY: number) => {
-    if (state.isMaximized) return;
+    if (state.isMaximized || state.isSnapped) return;
     state.position.x = newX;
     state.position.y = newY;
     windowElement.style.left = `${newX}px`;
@@ -189,7 +243,7 @@ export function createWindow(options: WindowOptions = {}): WindowHandle {
   };
 
   const setSize = (newWidth: number, newHeight: number) => {
-    if (state.isMaximized) return;
+    if (state.isMaximized || state.isSnapped) return;
     state.size.width = Math.max(bounds.minWidth, newWidth);
     state.size.height = Math.max(bounds.minHeight, newHeight);
     windowElement.style.width = `${state.size.width}px`;
@@ -198,7 +252,7 @@ export function createWindow(options: WindowOptions = {}): WindowHandle {
   };
 
   const maximize = () => {
-    if (state.isMaximized) return;
+    if (state.isMaximized || state.isSnapped) return;
 
     // Save current state
     state.beforeMaximize = {
@@ -269,6 +323,44 @@ export function createWindow(options: WindowOptions = {}): WindowHandle {
 
   const isMaximized = () => state.isMaximized;
 
+  const isSnappedToSidebar = () => state.isSnapped;
+
+  const unsnapFromSidebar = () => {
+    if (!state.isSnapped || !state.beforeSnap) return;
+
+    state.isSnapped = false;
+    state.position = { ...state.beforeSnap.position };
+    state.size = { ...state.beforeSnap.size };
+
+    Object.assign(windowElement.style, {
+      left: `${state.position.x}px`,
+      top: `${state.position.y}px`,
+      width: `${state.size.width}px`,
+      height: `${state.size.height}px`,
+      transition: 'all 0.3s var(--kwami-easing)',
+    });
+
+    // Re-enable drag and resize
+    if (draggable) {
+      dragHandler = createDragHandler(
+        windowElement,
+        titleBar,
+        state,
+        onMove,
+        snapToSidebar,
+        enableSnapToSidebar
+      );
+    }
+
+    if (resizable) {
+      resizeHandler = createResizeHandler(windowElement, state, bounds, onResize);
+    }
+
+    onUnsnapFromSidebar?.();
+    delete state.beforeSnap;
+    delete state.snappedSide;
+  };
+
   // Add window to the document
   document.body.appendChild(windowElement);
 
@@ -289,5 +381,7 @@ export function createWindow(options: WindowOptions = {}): WindowHandle {
     close,
     destroy,
     isMaximized,
+    isSnappedToSidebar,
+    unsnapFromSidebar,
   };
 }

@@ -38,6 +38,7 @@ function openTestWindow() {
       <li>✓ Close button</li>
       <li>✓ Boundary constraints (stays on screen)</li>
       <li>✓ Minimum size constraints</li>
+      <li>✓ Snap to sidebar (NEW!)</li>
     </ul>
     <p style="margin-top: 1.5em;"><strong>Try it out:</strong></p>
     <ul style="padding-left: 1.5em;">
@@ -47,6 +48,11 @@ function openTestWindow() {
       <li>Click restore (⊡) to return to original size</li>
       <li>Click close (✕) to close the window</li>
     </ul>
+    <p style="margin-top: 1.5em; padding: 1em; background: rgba(100, 255, 150, 0.1); border-radius: 8px;">
+      <strong>🎯 Snap to Sidebar:</strong> Drag the window to the <strong>left</strong> or 
+      <strong>right edge</strong> of the screen and hold for 2 seconds. Watch the visual 
+      preview with rotating indicator, then see it expand and snap into a sidebar!
+    </p>
   `;
 
   // Create test buttons inside window
@@ -72,10 +78,21 @@ function openTestWindow() {
     variant: 'secondary',
     onClick: () => {
       console.log('Window maximized:', window1.isMaximized());
+      console.log('Window snapped:', window1.isSnappedToSidebar());
       console.log('Window element:', window1.element);
     },
   });
   buttonsDiv.appendChild(logStateBtn.element);
+
+  // Button to unsnap from sidebar
+  const unsnapBtn = createButton({
+    label: 'Unsnap from Sidebar',
+    variant: 'secondary',
+    onClick: () => {
+      window1.unsnapFromSidebar();
+    },
+  });
+  buttonsDiv.appendChild(unsnapBtn.element);
 
   contentDiv.appendChild(buttonsDiv);
 
@@ -107,6 +124,12 @@ function openTestWindow() {
     },
     onResize: (size) => {
       console.log('Window resized to:', size);
+    },
+    onSnapToSidebar: (side) => {
+      console.log('Window snapped to', side, 'sidebar');
+    },
+    onUnsnapFromSidebar: () => {
+      console.log('Window unsnapped from sidebar');
     },
   });
 
