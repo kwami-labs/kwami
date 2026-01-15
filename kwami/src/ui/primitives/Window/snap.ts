@@ -10,11 +10,12 @@ export interface SnapHandler {
   checkSnapZone: (x: number, y: number) => 'left' | 'right' | null;
   showPreview: (side: 'left' | 'right') => void;
   hidePreview: () => void;
+  triggerSnap: () => void;
   destroy: () => void;
 }
 
 const SNAP_ZONE_WIDTH = 50; // pixels from edge to trigger snap zone
-const HOLD_DURATION = 2000; // milliseconds to hold before snapping
+const HOLD_DURATION = 2000; // milliseconds to wait before showing preview
 
 export function createSnapHandler(
   onSnap: (side: 'left' | 'right') => void
@@ -22,6 +23,7 @@ export function createSnapHandler(
   let previewElement: HTMLDivElement | null = null;
   let holdTimer: ReturnType<typeof setTimeout> | null = null;
   let currentSide: 'left' | 'right' | null = null;
+  let isPreviewVisible = false;
 
   const createPreview = (): HTMLDivElement => {
     const preview = document.createElement('div');
@@ -105,44 +107,35 @@ export function createSnapHandler(
       }
     });
 
-    // Start hold timer
+    isPreviewVisible = true;
+  };
+
+  const startHoldTimer = (side: 'left' | 'right') => {
     if (holdTimer) {
       clearTimeout(holdTimer);
     }
 
-    // Add rotation animation to ring
-    const ring = previewElement.querySelector('.kwami-window-snap-ring') as HTMLDivElement;
-    if (ring) {
-      // Inject keyframe animation if not already present
-      if (!document.getElementById('kwami-snap-ring-animation')) {
-        const style = document.createElement('style');
-        style.id = 'kwami-snap-ring-animation';
-        style.textContent = `
-          @keyframes kwami-snap-ring-rotate {
-            from { transform: rotate(0deg); }
-            to { transform: rotate(360deg); }
-          }
-        `;
-        document.head.appendChild(style);
-      }
-      
-      ring.style.animation = `kwami-snap-ring-rotate ${HOLD_DURATION}ms linear`;
-    }
+    currentSide = side;
+    isPreviewVisible = false;
 
+    // Wait 2 seconds before showing preview
     holdTimer = setTimeout(() => {
-      if (currentSide) {
-        // Expand effect
-        if (previewElement) {
-          previewElement.style.width = '100%';
-          previewElement.style.transition = 'width 0.3s ease';
-        }
-        
-        setTimeout(() => {
-          onSnap(currentSide!);
-          hidePreview();
-        }, 300);
+      if (currentSide === side) {
+        showPreview(side);
       }
     }, HOLD_DURATION);
+  };
+
+  const triggerSnap = () => {
+    // Only snap if preview is visible
+    if (isPreviewVisible && currentSide) {
+      const side = currentSide;
+      onSnap(side);
+      hidePreview();
+    } else {
+      // Cancel if preview wasn't shown yet
+      hidePreview();
+    }
   };
 
   const hidePreview = () => {
@@ -151,6 +144,7 @@ export function createSnapHandler(
       holdTimer = null;
     }
 
+    isPreviewVisible = false;
     currentSide = null;
 
     if (previewElement) {
@@ -159,11 +153,6 @@ export function createSnapHandler(
       const indicator = previewElement.querySelector('.kwami-window-snap-indicator') as HTMLDivElement;
       if (indicator) {
         indicator.style.opacity = '0';
-      }
-
-      const ring = previewElement.querySelector('.kwami-window-snap-ring') as HTMLDivElement;
-      if (ring) {
-        ring.style.animation = 'none';
       }
 
       setTimeout(() => {
@@ -191,14 +180,11 @@ export function createSnapHandler(
 
   return {
     checkSnapZone,
-    showPreview,
+    showPreview: startHoldTimer,
     hidePreview,
+    triggerSnap,
     destroy() {
       hidePreview();
-      const style = document.getElementById('kwami-snap-ring-animation');
-      if (style) {
-        style.remove();
-      }
     },
   };
 }

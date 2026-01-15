@@ -129,7 +129,9 @@ export function createWindow(options: WindowOptions = {}): WindowHandle {
       close();
     },
     onMaximize: () => {
-      if (state.isMaximized) {
+      if (state.isSnapped) {
+        unsnapFromSidebar();
+      } else if (state.isMaximized) {
         restore();
       } else {
         maximize();
@@ -166,6 +168,9 @@ export function createWindow(options: WindowOptions = {}): WindowHandle {
   let dragHandler: ReturnType<typeof createDragHandler> | null = null;
   let resizeHandler: ReturnType<typeof createResizeHandler> | null = null;
 
+  // Forward declare unsnapFromSidebar for controls
+  let unsnapFromSidebar: () => void;
+
   // Snap to sidebar handler
   const snapToSidebar = (side: 'left' | 'right') => {
     if (state.isSnapped) return;
@@ -179,10 +184,10 @@ export function createWindow(options: WindowOptions = {}): WindowHandle {
     state.isSnapped = true;
     state.snappedSide = side;
 
-    // Disable resize when snapped
-    if (resizeHandler) {
-      resizeHandler.destroy();
-      resizeHandler = null;
+    // Disable drag when snapped
+    if (dragHandler) {
+      dragHandler.destroy();
+      dragHandler = null;
     }
 
     // Position as sidebar
@@ -200,10 +205,15 @@ export function createWindow(options: WindowOptions = {}): WindowHandle {
       transition: 'all 0.3s var(--kwami-easing)',
     });
 
-    // Make title bar non-draggable when snapped
-    if (dragHandler) {
-      dragHandler.destroy();
-      dragHandler = null;
+    // Enable resize only on the free edge (opposite to snapped side)
+    if (resizable) {
+      resizeHandler = createResizeHandler(windowElement, state, bounds, onResize);
+    }
+
+    // Update maximize button to show minimize icon
+    if (controls.maximizeButton) {
+      controls.maximizeButton.element.textContent = '−';
+      controls.maximizeButton.element.setAttribute('aria-label', 'Minimize');
     }
 
     onSnapToSidebar?.(side);
@@ -325,7 +335,7 @@ export function createWindow(options: WindowOptions = {}): WindowHandle {
 
   const isSnappedToSidebar = () => state.isSnapped;
 
-  const unsnapFromSidebar = () => {
+  unsnapFromSidebar = () => {
     if (!state.isSnapped || !state.beforeSnap) return;
 
     state.isSnapped = false;
@@ -354,6 +364,12 @@ export function createWindow(options: WindowOptions = {}): WindowHandle {
 
     if (resizable) {
       resizeHandler = createResizeHandler(windowElement, state, bounds, onResize);
+    }
+
+    // Restore maximize button icon
+    if (controls.maximizeButton) {
+      controls.maximizeButton.element.textContent = '□';
+      controls.maximizeButton.element.setAttribute('aria-label', 'Maximize');
     }
 
     onUnsnapFromSidebar?.();

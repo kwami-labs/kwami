@@ -111,9 +111,9 @@ export function createDragHandler(
       isDragging = false;
       titleBar.style.cursor = 'grab';
       
-      // Hide snap preview if active
+      // Try to snap if in snap zone
       if (snapHandler) {
-        snapHandler.hidePreview();
+        snapHandler.triggerSnap();
         currentSnapZone = null;
       }
     }
