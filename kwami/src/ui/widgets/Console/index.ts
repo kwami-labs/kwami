@@ -1,6 +1,6 @@
-export { KwamiConsole, type KwamiConsoleOptions } from './KwamiConsole';
-export { TabBar, type ConsoleTab, type TabBarOptions } from './components/TabBar';
-export { Sidebar, type SidebarSection, type SidebarOptions } from './components/Sidebar';
+export { KwamiConsole, type KwamiConsoleProps as KwamiConsoleOptions } from './KwamiConsole';
+export { TabBar, type ConsoleTab, type TabBarProps as TabBarOptions } from './components/TabBar';
+export { Sidebar, type SidebarSection, type SidebarProps as SidebarOptions } from './components/Sidebar';
 export { MiniPreview, type MiniPreviewOptions } from './components/MiniPreview';
 export { BodySection, type BodySectionOptions } from './sections/BodySection';
 export { MindSection, type MindSectionOptions } from './sections/MindSection';

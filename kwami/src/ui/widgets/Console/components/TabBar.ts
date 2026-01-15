@@ -1,36 +1,97 @@
-import { resolveGlassTheme } from '../../../legacy/theme';
-import type { BaseGlassProps } from '../../../legacy/types';
+import { Component, ComponentProps } from '../../../core/Component';
+import { injectComponentStyles } from '../../../utils/StyleUtils';
 import { createIcon } from '../../../primitives/Icon';
 
 export type ConsoleTab = 'body' | 'mind' | 'soul';
 
-export interface TabBarOptions extends BaseGlassProps {
+export interface TabBarProps extends ComponentProps {
   activeTab: ConsoleTab;
   onTabChange: (tab: ConsoleTab) => void;
+  theme?: any;
 }
 
-export class TabBar {
-  private container: HTMLDivElement;
-  private tabs: Map<ConsoleTab, HTMLButtonElement> = new Map();
-
-  constructor(private options: TabBarOptions) {
-    this.container = this.createContainer();
-    this.renderTabs();
+const TABBAR_STYLES = `
+  .kwami-console-tabbar {
+    display: flex;
+    gap: 2px;
+    padding: 24px 32px 0 32px;
+    position: relative;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
   }
 
-  private createContainer(): HTMLDivElement {
-    const theme = resolveGlassTheme(this.options.theme?.mode ?? 'auto', this.options.theme);
-    
-    const container = document.createElement('div');
-    container.className = 'kwami-console-tabbar';
-    Object.assign(container.style, {
-      display: 'flex',
-      gap: '8px',
-      padding: '20px 32px 0',
-      position: 'relative',
-    });
+  .kwami-console-tab {
+    position: relative;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 12px 24px;
+    border: none;
+    background: transparent;
+    color: rgba(255, 255, 255, 0.5);
+    font-size: 14px;
+    font-weight: 500;
+    cursor: pointer;
+    border-radius: 8px 8px 0 0;
+    transition: all 0.2s ease;
+    overflow: hidden;
+  }
 
-    return container;
+  .kwami-console-tab:hover {
+    color: rgba(255, 255, 255, 0.9);
+    background: rgba(255, 255, 255, 0.02);
+  }
+
+  .kwami-console-tab.is-active {
+    color: #fff;
+    font-weight: 600;
+  }
+  
+  /* Active Indicator */
+  .kwami-console-tab::after {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    height: 2px;
+    background: #38bdf8;
+    transform: scaleX(0);
+    transition: transform 0.25s cubic-bezier(0.2, 0, 0, 1);
+    box-shadow: 0 -2px 10px rgba(56, 189, 248, 0.5);
+  }
+
+  .kwami-console-tab.is-active::after {
+    transform: scaleX(1);
+  }
+
+  /* Glow effect */
+  .kwami-console-tab::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: radial-gradient(circle at center bottom, rgba(56, 189, 248, 0.15) 0%, transparent 70%);
+    opacity: 0;
+    transition: opacity 0.3s ease;
+    pointer-events: none;
+  }
+  
+  .kwami-console-tab.is-active::before {
+    opacity: 1;
+  }
+`;
+
+export class TabBar extends Component<TabBarProps> {
+  private tabs: Map<ConsoleTab, HTMLButtonElement> = new Map();
+
+  constructor(props: TabBarProps) {
+    super('div', props);
+    injectComponentStyles('TabBar', TABBAR_STYLES);
+    this.init();
+  }
+
+  private init(): void {
+    this.element.className = 'kwami-console-tabbar';
+    this.renderTabs();
   }
 
   private renderTabs(): void {
@@ -43,38 +104,21 @@ export class TabBar {
     tabConfigs.forEach(config => {
       const tabBtn = this.createTab(config.id, config.icon, config.label);
       this.tabs.set(config.id, tabBtn);
-      this.container.appendChild(tabBtn);
+      this.element.appendChild(tabBtn);
     });
   }
 
   private createTab(id: ConsoleTab, icon: string, label: string): HTMLButtonElement {
-    const theme = resolveGlassTheme(this.options.theme?.mode ?? 'auto', this.options.theme);
-    const isActive = this.options.activeTab === id;
-
     const btn = document.createElement('button');
     btn.className = 'kwami-console-tab';
-    Object.assign(btn.style, {
-      display: 'flex',
-      alignItems: 'center',
-      gap: '10px',
-      padding: '14px 28px',
-      border: isActive ? `1px solid ${theme.palette.outline}` : '1px solid transparent',
-      borderBottom: isActive ? 'none' : '1px solid transparent',
-      borderRadius: '16px 16px 0 0',
-      background: isActive ? 'rgba(0, 0, 0, 0.15)' : 'transparent',
-      backdropFilter: isActive ? 'blur(10px)' : 'none',
-      color: isActive ? '#FFFFFF' : theme.palette.muted,
-      cursor: 'pointer',
-      fontSize: '14px',
-      fontWeight: isActive ? '600' : '500',
-      letterSpacing: '0.02em',
-      transition: 'all 0.2s ease',
-      position: 'relative',
-      marginBottom: '-1px',
-      zIndex: isActive ? '2' : '1',
-    });
+    this.updateTabState(btn, id === this.props.activeTab);
 
-    const iconElement = createIcon({ name: icon, size: 'md', color: isActive ? '#FFFFFF' : theme.palette.muted }).element;
+    // Icon
+    const iconElement = createIcon({
+      name: icon,
+      size: 'md',
+    }).element;
+    iconElement.style.color = 'inherit';
 
     const labelSpan = document.createElement('span');
     labelSpan.textContent = label;
@@ -82,41 +126,33 @@ export class TabBar {
     btn.appendChild(iconElement);
     btn.appendChild(labelSpan);
 
-    btn.addEventListener('mouseenter', () => {
-      if (!isActive) {
-        btn.style.background = 'rgba(255, 255, 255, 0.04)';
-        btn.style.color = '#E0E0E0';
-      }
-    });
-
-    btn.addEventListener('mouseleave', () => {
-      if (!isActive) {
-        btn.style.background = 'transparent';
-        btn.style.color = theme.palette.muted;
-      }
-    });
-
     btn.addEventListener('click', () => {
-      this.options.onTabChange(id);
+      this.props.onTabChange(id);
     });
 
     return btn;
   }
 
-  getElement(): HTMLDivElement {
-    return this.container;
+  private updateTabState(btn: HTMLButtonElement, isActive: boolean): void {
+    if (isActive) {
+      btn.classList.add('is-active');
+    } else {
+      btn.classList.remove('is-active');
+    }
   }
 
-  updateActiveTab(tab: ConsoleTab): void {
-    this.options.activeTab = tab;
-    // Re-render tabs with new active state
-    this.container.innerHTML = '';
-    this.tabs.clear();
-    this.renderTabs();
+  public updateActiveTab(tab: ConsoleTab): void {
+    const oldTab = this.props.activeTab;
+    this.update({ activeTab: tab });
+
+    const oldBtn = this.tabs.get(oldTab);
+    if (oldBtn) this.updateTabState(oldBtn, false);
+
+    const newBtn = this.tabs.get(tab);
+    if (newBtn) this.updateTabState(newBtn, true);
   }
 
-  dispose(): void {
-    this.container.remove();
-    this.tabs.clear();
+  public dispose(): void {
+    this.destroy();
   }
 }
