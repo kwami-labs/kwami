@@ -95,10 +95,10 @@ export function createSnapHandler(
       previewElement.style.left = 'auto';
     }
 
-    // Show preview
+    // Show preview with 30% opacity
     requestAnimationFrame(() => {
       if (previewElement) {
-        previewElement.style.opacity = '1';
+        previewElement.style.opacity = '0.3';
         
         const indicator = previewElement.querySelector('.kwami-window-snap-indicator') as HTMLDivElement;
         if (indicator) {
