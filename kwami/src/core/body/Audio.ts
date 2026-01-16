@@ -705,7 +705,7 @@ export class KwamiAudio {
   }
 
   /**
-   * Connect a MediaStream (e.g., from ElevenLabs) to the audio analyzer
+   * Connect a MediaStream (e.g., from LiveKit) to the audio analyzer
    * This allows real-time audio visualization from streamed sources
    * 
    * @param stream - MediaStream to connect

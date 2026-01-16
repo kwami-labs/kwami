@@ -122,7 +122,7 @@ export interface BodyConfig {
 }
 
 /**
- * ElevenLabs Voice Settings Configuration
+ * Voice Settings Configuration
  */
 export interface VoiceSettings {
   stability?: number; // 0-1: Controls expressiveness vs consistency
@@ -161,7 +161,7 @@ export interface AdvancedTTSOptions {
  * Conversational AI Settings
  */
 export interface ConversationalAISettings {
-  agentId?: string; // ElevenLabs agent ID
+  agentId?: string; // Agent ID
   customUrl?: string; // Custom URL for the agent (overrides automatic URL generation)
   firstMessage?: string; // Agent's opening greeting
   maxDuration?: number; // Maximum conversation length (seconds)
@@ -195,46 +195,44 @@ export interface PronunciationConfig {
 }
 
 /**
- * AI Mind configuration for ElevenLabs Voice Agent
+ * AI Mind configuration - LiveKit-based providers
  */
 export type MindProviderType =
-  | 'elevenlabs'
-  | 'openai'
-  | 'vapi'
-  | 'retell'
-  | 'bland'
-  | 'synthflow';
+  | 'livekit'      // Direct LiveKit Node.js SDK
+  | 'livekit-api'; // Kwami backend API proxy
 
-export interface OpenAISpeechConfig {
-  model?: string;
-  voice?: string;
-  format?: 'mp3' | 'wav' | 'pcm';
+/**
+ * LiveKit provider configuration
+ */
+export interface LiveKitProviderConfig {
+  url?: string;           // LiveKit server URL (ws://... or wss://...)
+  apiKey?: string;        // LiveKit API key
+  apiSecret?: string;     // LiveKit API secret
+  roomName?: string;      // Default room name
+  participantName?: string; // Default participant identity
 }
 
-export interface OpenAIRealtimeConfig {
-  model?: string;
-  url?: string;
-  apiKey?: string;
-}
-
-export interface OpenAIProviderConfig {
-  apiKey?: string;
-  baseUrl?: string;
-  speech?: OpenAISpeechConfig;
-  realtime?: OpenAIRealtimeConfig;
+/**
+ * LiveKit API provider configuration (for backend proxy)
+ */
+export interface LiveKitAPIProviderConfig {
+  baseUrl?: string;       // Backend API base URL
+  apiKey?: string;        // Backend API authentication key
 }
 
 export interface MindConfig {
-  // Authentication
-  apiKey?: string; // ElevenLabs API key (or from env)
+  // Provider selection
   provider?: MindProviderType;
-  openai?: OpenAIProviderConfig;
+  
+  // LiveKit configurations
+  livekit?: LiveKitProviderConfig;
+  livekitApi?: LiveKitAPIProviderConfig;
 
   // Voice configuration
   voice?: {
-    voiceId?: string; // Specific voice ID from ElevenLabs
-    model?: string; // e.g., 'eleven_multilingual_v2', 'eleven_turbo_v2', 'eleven_turbo_v2_5'
-    settings?: VoiceSettings; // Fine-tuning parameters
+    voiceId?: string;
+    model?: string;
+    settings?: VoiceSettings;
   };
 
   // Language and behavior
@@ -252,7 +250,7 @@ export interface MindConfig {
   // Pronunciation
   pronunciation?: PronunciationConfig;
 
-  // Legacy/additional AI configuration
+  // LLM configuration
   llm?: {
     model: string;
     provider: string;
@@ -409,7 +407,7 @@ export interface EventHandlers {
   [key: string]: EventHandler | undefined;
 }
 
-// ==================== ElevenLabs Agents API Types ====================
+// ==================== Agent API Types ====================
 
 /**
  * Agent configuration for creating or updating an agent
@@ -742,6 +740,3 @@ export interface ConversationSignedUrlResponse {
   conversation_id?: string;
 }
 
-// ==================== ElevenLabs Agents - Complete API Types ====================
-// Export comprehensive types for ElevenLabs Conversational AI Agents
-export * from './elevenlabs-agents';

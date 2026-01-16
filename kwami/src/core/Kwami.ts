@@ -142,7 +142,7 @@ export class Kwami {
   }
 
   /**
-   * Start a conversation with Kwami using ElevenLabs Conversational AI
+   * Start a conversation with Kwami using LiveKit agents
    * This enables real-time voice interactions with automatic voice activity detection
    * 
    * @param callbacks - Optional event callbacks for conversation events
