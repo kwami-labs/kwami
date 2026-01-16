@@ -99,7 +99,7 @@ dynamicIcon.destroy();
 // Integration with Glass Components
 // ========================================
 
-import { createGlassButton } from '../legacy/GlassButton';
+import { createButton as createGlassButton } from './Button';
 
 // Icon as button content
 const iconButton = createGlassButton({

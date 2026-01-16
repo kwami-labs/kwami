@@ -21,6 +21,23 @@ export const WIDGET_STYLES = `
     display: flex;
     flex-direction: column;
     gap: 0.55rem;
+    max-height: 400px;
+    overflow-y: auto;
+    overflow-x: hidden;
+    padding-right: 4px;
+    scrollbar-width: thin;
+    scrollbar-color: rgba(255, 255, 255, 0.2) transparent;
+  }
+  
+  .kwami-wallet-list::-webkit-scrollbar {
+    width: 6px;
+  }
+  .kwami-wallet-list::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  .kwami-wallet-list::-webkit-scrollbar-thumb {
+    background-color: rgba(255, 255, 255, 0.2);
+    border-radius: 20px;
   }
 
   .kwami-error-box {

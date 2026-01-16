@@ -1,4 +1,4 @@
-import type { GlassContent } from '../../legacy/types';
+import type { ButtonContent as GlassContent } from '../../primitives/Button';
 
 export function renderContent(slot: GlassContent, target: HTMLElement): void {
   if (typeof slot === 'string') {

@@ -1,6 +1,6 @@
 import type { KwamiOwnedNft } from '../../../apps/wallet/kwamiNfts';
 import type { WalletConnectWidgetConnector } from '../Wallet/types';
-import type { BaseGlassProps } from '../../legacy/types';
+import type { ComponentProps } from '../../core/Component';
 
 export type NftLoginState = 'disconnected' | 'connecting' | 'loading-nfts' | 'selecting' | 'confirming' | 'logged-in';
 
@@ -12,7 +12,7 @@ export interface KwamiNftLoginResult {
   nft: KwamiOwnedNft;
 }
 
-export interface KwamiNftLoginOptions extends BaseGlassProps {
+export interface KwamiNftLoginOptions extends ComponentProps {
   /**
    * Wallet connector instance.
    */
@@ -93,7 +93,7 @@ export interface KwamiNftLoginHandle {
   destroy: () => void;
 }
 
-export interface KwamiAvatarOptions extends BaseGlassProps {
+export interface KwamiAvatarOptions extends ComponentProps {
   /**
    * Selected NFT data.
    */
@@ -122,7 +122,7 @@ export interface KwamiAvatarOptions extends BaseGlassProps {
   onLogout?: () => void;
 }
 
-export interface KwamiNftGridOptions extends BaseGlassProps {
+export interface KwamiNftGridOptions extends ComponentProps {
   /**
    * NFTs to display.
    */

@@ -1,5 +1,5 @@
 import type { ConnectedWallet } from '../../../apps/wallet/WalletConnector';
-import type { GlassButtonHandle } from '../../legacy/GlassButton';
+import type { ButtonHandle as GlassButtonHandle } from '../../primitives/Button';
 import type { WalletConnectWidgetConnector, WalletTrackedToken } from './types';
 import type { ExtendedWidgetState } from './state-manager';
 import { getWalletKindFallback } from './logos';
@@ -196,12 +196,12 @@ export async function connect(
     ctx.setError(undefined);
     ctx.state.status = 'connecting';
     ctx.applyStateToUi();
-    
+
     // Show connecting indicator if not already connected
     if (buttonHandle.element.isConnected) {
       const originalLabel = buttonHandle.element.textContent;
       buttonHandle.setLabel('Connecting...');
-      
+
       // Restore label after connection attempt completes
       setTimeout(() => {
         if (ctx.state.status !== 'connecting') {
@@ -221,7 +221,7 @@ export async function connect(
     ctx.state.connectedWalletName = connected.name ?? null;
     ctx.state.selectedPublicKey = connected.publicKey;
     ctx.state.status = 'connected';
-    
+
     // Force loading state immediately to show skeleton
     ctx.state.isLoadingNfts = true;
     ctx.applyStateToUi();

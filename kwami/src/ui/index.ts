@@ -16,6 +16,7 @@ export { createWindow, type WindowOptions, type WindowHandle, type WindowContent
 export * from './widgets/Console';
 export * from './widgets/Wallet';
 export * from './widgets/NftLogin';
+export * from './widgets/Theme';
 
 // Effects
 export * from './effects/Rings';
@@ -25,7 +26,5 @@ export * from './effects/Welcome';
 // Utils
 export { normalizeIconifyName } from './utils/iconNames';
 
-// Legacy (for backward compatibility)
-export { ensureBaseUiStyles } from './legacy/baseUiStyles';
-export * from './legacy/types';
-export * from './legacy/theme';
+// Legacy exports removed
+export * from './theme/types';

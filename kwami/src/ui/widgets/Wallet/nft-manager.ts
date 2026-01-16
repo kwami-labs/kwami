@@ -1,6 +1,6 @@
 import type { KwamiOwnedNft } from '../../../apps/wallet/kwamiNfts';
 import { findNftCandidates, hydrateNftBatch } from '../../../apps/wallet/kwamiNfts';
-import { createGlassButton } from '../../legacy/GlassButton';
+import { createButton as createGlassButton } from '../../primitives/Button';
 import type { WalletConnectWidgetOptions } from './types';
 import type { ExtendedWidgetState } from './state-manager';
 import { createDivider, createText } from './utils';
@@ -46,7 +46,7 @@ export async function refreshKwamiNfts(
   if (ctx.isLoadingMoreNfts) return;
   ctx.isLoadingMoreNfts = true;
   ctx.state.isLoadingNfts = true;
-  
+
   // Trigger UI update to show loading state immediately
   ctx.applyStateToUi();
 
@@ -55,7 +55,7 @@ export async function refreshKwamiNfts(
     if (reset) {
       await new Promise(resolve => setTimeout(resolve, 300));
     }
-    
+
     // Step 1: Discover all owned NFTs (lightweight) if not already cached
     if (reset || !ctx.state.candidateNfts) {
       ctx.state.candidateNfts = await findNftCandidates({
@@ -69,10 +69,10 @@ export async function refreshKwamiNfts(
 
     const batchSize = ctx.options.nftLoginOptions.batchSize ?? 8;
     const candidates = ctx.state.candidateNfts || [];
-    
+
     // Step 2: Slice the next batch
     const slice = candidates.slice(ctx.nftLoadOffset, ctx.nftLoadOffset + batchSize);
-    
+
     // Step 3: Hydrate metadata (JSON fetch) for the batch
     // We add a small delay between fetches to be gentle
     const newNfts = await hydrateNftBatch(slice, 200);
@@ -90,7 +90,7 @@ export async function refreshKwamiNfts(
       const filteredNew = newNfts.filter(n => !existingMints.has(n.mint));
       ctx.state.kwamiNfts = [...ctx.state.kwamiNfts, ...filteredNew];
     }
-    
+
     ctx.nftLoadOffset += slice.length;
 
     // If we have processed all candidates, mark as loaded
@@ -189,7 +189,7 @@ export function renderNftsSection(
   // Sync cards: Update existing or create new, and ensure order
   for (const nft of ctx.state.kwamiNfts) {
     let card = existingCards.get(nft.mint) as HTMLButtonElement | undefined;
-    
+
     const selectedMint = (ctx.state.selectedNft as KwamiOwnedNft | null)?.mint;
     const isSelected = selectedMint === nft.mint;
 
@@ -265,7 +265,7 @@ export function renderNftsSection(
         void refreshKwamiNfts(ctx, false).then(() => ctx.applyStateToUi());
       }
     }, { root: grid, threshold: 0.1 });
-    
+
     observer.observe(sentinel);
   }
 
@@ -275,19 +275,18 @@ export function renderNftsSection(
   // Ensure we don't duplicate the button container
   let buttonContainer = nftsSection.querySelector('.kwami-login-container') as HTMLElement;
   const selectedNft = ctx.state.selectedNft as KwamiOwnedNft | null;
-  
+
   if (selectedNft) {
     if (!buttonContainer) {
       buttonContainer = document.createElement('div');
       buttonContainer.className = 'kwami-login-container';
       buttonContainer.appendChild(createDivider());
-      
+
       const loginBtn = createGlassButton({
         label: `Login with ${selectedNft.name || 'KWAMI'}`,
         icon: '🔐',
-        mode: 'primary',
+        variant: 'primary',
         size: 'md',
-        theme: ctx.options.theme,
         onClick: onNftLogin,
       });
       loginBtn.element.style.width = '100%';
@@ -296,22 +295,21 @@ export function renderNftsSection(
       buttonContainer.appendChild(loginBtn.element);
       nftsSection.appendChild(buttonContainer);
     } else {
-        // Update existing button label by replacing it
-        const oldBtn = buttonContainer.querySelector('#kwami-login-btn');
-        if (oldBtn) oldBtn.remove();
-        
-        const loginBtn = createGlassButton({
-            label: `Login with ${selectedNft.name || 'KWAMI'}`,
-            icon: '🔐',
-            mode: 'primary',
-            size: 'md',
-            theme: ctx.options.theme,
-            onClick: onNftLogin,
-        });
-        loginBtn.element.style.width = '100%';
-        loginBtn.element.style.marginTop = '0.5rem';
-        loginBtn.element.id = 'kwami-login-btn';
-        buttonContainer.appendChild(loginBtn.element);
+      // Update existing button label by replacing it
+      const oldBtn = buttonContainer.querySelector('#kwami-login-btn');
+      if (oldBtn) oldBtn.remove();
+
+      const loginBtn = createGlassButton({
+        label: `Login with ${selectedNft.name || 'KWAMI'}`,
+        icon: '🔐',
+        variant: 'primary',
+        size: 'md',
+        onClick: onNftLogin,
+      });
+      loginBtn.element.style.width = '100%';
+      loginBtn.element.style.marginTop = '0.5rem';
+      loginBtn.element.id = 'kwami-login-btn';
+      buttonContainer.appendChild(loginBtn.element);
     }
   } else {
     if (buttonContainer) buttonContainer.remove();
@@ -378,21 +376,21 @@ export function transformToAvatar(
   let cancelled = false;
   let cloneElement: HTMLElement | null = null;
   const cleanup = () => {
-      cancelled = true;
-      if (cloneElement) {
-          cloneElement.remove();
-          cloneElement = null;
-      }
+    cancelled = true;
+    if (cloneElement) {
+      cloneElement.remove();
+      cloneElement = null;
+    }
   };
 
   // Find the selected NFT card in the DOM
   const selectedCard = document.querySelector('[data-selected="true"]') as HTMLElement;
-  
+
   if (selectedCard && nft.image) {
     // Get positions for animation
     const cardRect = selectedCard.getBoundingClientRect();
     const buttonRect = buttonElement.getBoundingClientRect();
-    
+
     // Create a clone of the NFT image for the flying animation
     const clone = document.createElement('div');
     cloneElement = clone;
@@ -408,7 +406,7 @@ export function transformToAvatar(
     clone.style.pointerEvents = 'none';
     clone.style.transition = 'all 0.6s cubic-bezier(0.4, 0, 0.2, 1)';
     clone.style.boxShadow = '0 20px 60px rgba(99, 102, 241, 0.5)';
-    
+
     const cloneImg = document.createElement('img');
     cloneImg.src = nft.image;
     cloneImg.alt = nft.name;
@@ -416,9 +414,9 @@ export function transformToAvatar(
     cloneImg.style.height = '100%';
     cloneImg.style.objectFit = 'cover';
     clone.appendChild(cloneImg);
-    
+
     document.body.appendChild(clone);
-    
+
     // Trigger animation on next frame
     requestAnimationFrame(() => {
       if (cancelled) return;
@@ -434,7 +432,7 @@ export function transformToAvatar(
         clone.style.boxShadow = '0 8px 24px rgba(99, 102, 241, 0.4)';
       });
     });
-    
+
     // After animation completes, update the actual button
     setTimeout(() => {
       if (cancelled) return;
@@ -444,11 +442,11 @@ export function transformToAvatar(
         cloneElement.remove();
         cloneElement = null;
       }
-      
+
       // Update button style via class
       buttonElement.style.transition = 'all 0.4s cubic-bezier(0.4, 0, 0.2, 1)';
       buttonElement.classList.add('kwami-avatar-mode');
-      
+
       // Check if image already exists
       let img = buttonElement.querySelector('img.kwami-avatar-img') as HTMLImageElement;
       if (!img) {
@@ -456,7 +454,7 @@ export function transformToAvatar(
         img.className = 'kwami-avatar-img';
         buttonElement.appendChild(img);
       }
-      
+
       img.src = nft.image || '';
       img.alt = nft.name;
     }, 600);
@@ -466,24 +464,24 @@ export function transformToAvatar(
     // Fallback: Direct transformation without animation
     buttonElement.style.transition = 'all 0.4s cubic-bezier(0.4, 0, 0.2, 1)';
     buttonElement.classList.add('kwami-avatar-mode');
-    
+
     let img = buttonElement.querySelector('img.kwami-avatar-img') as HTMLImageElement;
     if (!img) {
-        img = document.createElement('img');
-        img.className = 'kwami-avatar-img';
-        buttonElement.appendChild(img);
+      img = document.createElement('img');
+      img.className = 'kwami-avatar-img';
+      buttonElement.appendChild(img);
     }
-    
+
     if (nft.image) {
       img.src = nft.image;
       img.alt = nft.name;
     } else {
-       // Fallback for no image? We reuse the img element but maybe hide it if src is empty? 
-       // For now assume image exists or handle initials differently.
-       // The style assumes img.kwami-avatar-img.
-       // If no image, we might need a fallback div.
-       // But existing code logic prioritized image.
-       img.src = '';
+      // Fallback for no image? We reuse the img element but maybe hide it if src is empty? 
+      // For now assume image exists or handle initials differently.
+      // The style assumes img.kwami-avatar-img.
+      // If no image, we might need a fallback div.
+      // But existing code logic prioritized image.
+      img.src = '';
     }
   }
 }
@@ -494,14 +492,14 @@ export function revertFromAvatar(
 ): void {
   // Add smooth transition
   buttonElement.style.transition = 'all 0.4s cubic-bezier(0.4, 0, 0.2, 1)';
-  
+
   // Revert button to normal wallet button style
   buttonElement.classList.remove('kwami-avatar-mode');
-  
+
   // Remove the avatar image
   const avatarImg = buttonElement.querySelector('img.kwami-avatar-img');
   if (avatarImg) {
-      avatarImg.remove();
+    avatarImg.remove();
   }
 
   setButtonLabelDisconnected();

@@ -81,10 +81,10 @@ export function createModal(options: ModalOptions = {}): ModalHandle {
     display: 'flex',
     alignItems: 'center',
     justifyContent: 'center',
-    padding: '20px',
-    background: 'rgba(0, 0, 0, 0.4)',
-    backdropFilter: 'blur(10px)',
-    WebkitBackdropFilter: 'blur(10px)',
+    padding: 'var(--kwami-padding-md)',
+    background: 'color-mix(in srgb, var(--kwami-color-background) 60%, transparent)',
+    backdropFilter: 'blur(var(--kwami-blur))',
+    WebkitBackdropFilter: 'blur(var(--kwami-blur))',
     opacity: '0',
     pointerEvents: 'none',
     transition: 'opacity var(--kwami-duration) var(--kwami-easing)',
@@ -95,7 +95,7 @@ export function createModal(options: ModalOptions = {}): ModalHandle {
   modal.className = ['kwami-surface', 'kwami-modal', className]
     .filter(Boolean)
     .join(' ');
-  
+
   Object.assign(modal.style, {
     width: `${width}px`,
     maxWidth: typeof maxWidth === 'number' ? `${maxWidth}px` : maxWidth,
@@ -103,7 +103,7 @@ export function createModal(options: ModalOptions = {}): ModalHandle {
     overflow: 'auto',
     opacity: '0',
     transform: 'translateY(22px) scale(0.98)',
-    transition: 'transform 0.28s var(--kwami-easing), opacity 0.28s var(--kwami-easing)',
+    transition: 'transform var(--kwami-duration) var(--kwami-easing-enter), opacity var(--kwami-duration) var(--kwami-easing-enter)',
     padding: 'var(--kwami-padding-lg)',
     display: 'flex',
     flexDirection: 'column',
@@ -138,9 +138,9 @@ export function createModal(options: ModalOptions = {}): ModalHandle {
     border: 'var(--kwami-border-width) solid var(--kwami-color-border)',
     background: 'transparent',
     color: 'var(--kwami-color-text)',
-    borderRadius: '999px',
-    width: '36px',
-    height: '36px',
+    borderRadius: 'var(--kwami-radius)',
+    width: '32px',
+    height: '32px',
     cursor: 'pointer',
     fontSize: 'var(--kwami-font-size)',
     display: 'inline-flex',

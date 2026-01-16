@@ -71,6 +71,8 @@ export class ThemeEngine {
       --kwami-color-primary-hover: ${colors.primaryHover};
       --kwami-color-secondary: ${colors.secondary};
       --kwami-color-secondary-hover: ${colors.secondaryHover};
+      --kwami-color-tertiary: ${colors.tertiary};
+      --kwami-color-tertiary-hover: ${colors.tertiaryHover};
       
       --kwami-color-surface: ${colors.surface};
       --kwami-color-surface-alt: ${colors.surfaceAlt};
@@ -98,6 +100,12 @@ export class ThemeEngine {
       
       --kwami-color-background: ${colors.background};
       --kwami-color-background-alt: ${colors.backgroundAlt};
+
+      /* Gradients */
+      --kwami-gradient-primary: ${config.gradients.primary};
+      --kwami-gradient-secondary: ${config.gradients.secondary};
+      --kwami-gradient-tertiary: ${config.gradients.tertiary};
+      --kwami-gradient-surface: ${config.gradients.surface};
       
       /* Effects */
       --kwami-blur: ${effects.blur}px;

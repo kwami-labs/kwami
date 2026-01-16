@@ -1,9 +1,10 @@
 import type { ConnectedWallet } from '../../../apps/wallet/WalletConnector';
 import { getWalletConnector } from '../../../apps/wallet/WalletConnector';
-import { createGlassButton } from '../../legacy/GlassButton';
-import { createGlassPopover } from '../../legacy/GlassPopover';
+import { createButton as createGlassButton, type ButtonContent } from '../../primitives/Button';
+import { createPopover as createGlassPopover } from '../../primitives/Popover';
 import { createIcon } from '../../primitives/Icon';
-import type { GlassContent } from '../../legacy/types';
+// import type { GlassContent } from '../../legacy/types'; // Removed
+type GlassContent = ButtonContent; // Alias for compatibility with internal code
 import type {
   WalletConnectWidgetConnector,
   WalletConnectWidgetHandle,
@@ -70,12 +71,12 @@ export function createWalletConnectWidget(options: WalletConnectWidgetOptions = 
   let applyStateToUi: () => void;
   let renderPending = false;
   const triggerRender = () => {
-      if (renderPending) return;
-      renderPending = true;
-      requestAnimationFrame(() => {
-          renderPending = false;
-          if (applyStateToUi) applyStateToUi();
-      });
+    if (renderPending) return;
+    renderPending = true;
+    requestAnimationFrame(() => {
+      renderPending = false;
+      if (applyStateToUi) applyStateToUi();
+    });
   };
 
   const state: ExtendedWidgetState = createReactiveState(triggerRender);
@@ -96,10 +97,8 @@ export function createWalletConnectWidget(options: WalletConnectWidgetOptions = 
   const buttonHandle = createGlassButton({
     label: connectLabel,
     icon: createIcon({ name: 'heroicons:wallet', size: 'sm' }).element,
-    mode: 'primary',
+    variant: 'primary',
     size: 'md',
-    theme: options.theme,
-    appearance: options.appearance,
     className: options.className,
     onClick: () => {
       void open();
@@ -140,13 +139,6 @@ export function createWalletConnectWidget(options: WalletConnectWidgetOptions = 
     width: 420,
     closeOnBlur: true,
     className: 'kwami-wallet-popover',
-    theme: options.theme,
-    appearance: {
-      borderRadius: options.appearance?.borderRadius ?? '22px',
-      borderWidth: options.appearance?.borderWidth,
-      padding: options.appearance?.padding ?? '1.25rem',
-      blur: options.appearance?.blur,
-    },
   });
 
   const networkPopover = createGlassPopover({
@@ -155,12 +147,6 @@ export function createWalletConnectWidget(options: WalletConnectWidgetOptions = 
     width: 260,
     closeOnBlur: true,
     className: 'kwami-wallet-network-popover',
-    theme: options.theme,
-    appearance: {
-      borderRadius: '18px',
-      padding: '1rem',
-      blur: options.appearance?.blur,
-    },
   });
 
   const addressPopover = createGlassPopover({
@@ -169,12 +155,6 @@ export function createWalletConnectWidget(options: WalletConnectWidgetOptions = 
     width: 360,
     closeOnBlur: true,
     className: 'kwami-wallet-address-popover',
-    theme: options.theme,
-    appearance: {
-      borderRadius: '18px',
-      padding: '1rem',
-      blur: options.appearance?.blur,
-    },
   });
 
   // Helper functions
@@ -268,10 +248,10 @@ export function createWalletConnectWidget(options: WalletConnectWidgetOptions = 
     nftManagerContext.nftLoadOffset = nftLoadOffset;
     nftManagerContext.isLoadingMoreNfts = isLoadingMoreNfts;
     nftManagerContext.allNftsLoaded = allNftsLoaded;
-    
+
     // The function will set isLoadingMoreNfts internally and call applyStateToUi
     await refreshKwamiNftsFn(nftManagerContext, reset);
-    
+
     // Sync state back after calling
     nftLoadOffset = nftManagerContext.nftLoadOffset;
     isLoadingMoreNfts = nftManagerContext.isLoadingMoreNfts;
@@ -379,7 +359,7 @@ export function createWalletConnectWidget(options: WalletConnectWidgetOptions = 
   const open = async (): Promise<void> => {
     // Show UI immediately
     positionAndShowPopover(buttonHandle.element, popover);
-    
+
     // Perform soft refresh in background (don't clear existing data)
     void refreshFn(walletOperationsContext, () => refreshKwamiNfts(false));
   };
@@ -393,8 +373,8 @@ export function createWalletConnectWidget(options: WalletConnectWidgetOptions = 
     clearRefreshTimer();
     removeWalletEventListeners();
     if (animationCleanup) {
-        animationCleanup();
-        animationCleanup = null;
+      animationCleanup();
+      animationCleanup = null;
     }
     root.remove();
   };
@@ -441,13 +421,13 @@ export function createWalletConnectWidget(options: WalletConnectWidgetOptions = 
   };
 
   const removeWalletEventListeners = (): void => {
-      const walletWithEvents = wallet;
-      if (typeof walletWithEvents.off === 'function') {
-          eventListeners.forEach(({ event, handler }) => {
-              walletWithEvents.off(event, handler);
-          });
-      }
-      eventListeners.length = 0;
+    const walletWithEvents = wallet;
+    if (typeof walletWithEvents.off === 'function') {
+      eventListeners.forEach(({ event, handler }) => {
+        walletWithEvents.off(event, handler);
+      });
+    }
+    eventListeners.length = 0;
   };
 
   // Initialize

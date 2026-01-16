@@ -14,32 +14,71 @@ export class ThemeProvider {
   private listeners: Set<ThemeChangeListener> = new Set();
   private storageKey: string;
 
+  private registeredThemes: Map<string, ThemeConfig> = new Map();
+
   constructor(options: {
     initial?: ThemeConfig | PartialThemeConfig;
     storageKey?: string;
     autoLoad?: boolean;
+    presets?: Record<string, ThemeConfig>;
   } = {}) {
     this.engine = getThemeEngine();
     this.storageKey = options.storageKey ?? 'kwami-theme';
-    
+
+    // Register presets
+    if (options.presets) {
+      Object.entries(options.presets).forEach(([name, config]) => {
+        this.registeredThemes.set(name, config);
+      });
+    } else {
+      // Register default presets
+      this.registeredThemes.set('glass', glassPreset);
+    }
+
     // Load from storage or use initial/default
     if (options.autoLoad !== false) {
       const stored = this.loadFromStorage();
-      this.currentTheme = stored ?? (options.initial 
+      this.currentTheme = stored ?? (options.initial
         ? this.mergeWithDefault(options.initial)
         : glassPreset);
     } else {
-      this.currentTheme = options.initial 
+      this.currentTheme = options.initial
         ? this.mergeWithDefault(options.initial)
         : glassPreset;
     }
-    
+
     // Apply the theme
     this.engine.apply(this.currentTheme);
   }
 
   /**
-   * Get the current theme configuration
+   * Register a new named theme
+   */
+  registerTheme(name: string, config: ThemeConfig): void {
+    this.registeredThemes.set(name, config);
+  }
+
+  /**
+   * Select a registered theme by name
+   */
+  selectTheme(name: string, persist = true): boolean {
+    const config = this.registeredThemes.get(name);
+    if (config) {
+      this.setTheme(config, persist);
+      return true;
+    }
+    return false;
+  }
+
+  /**
+   * Get all registered themes
+   */
+  getRegisteredThemes(): Map<string, ThemeConfig> {
+    return new Map(this.registeredThemes);
+  }
+
+  /**
+   * Get current theme configuration
    */
   getTheme(): ThemeConfig {
     return { ...this.currentTheme };
@@ -50,21 +89,27 @@ export class ThemeProvider {
    */
   setTheme(theme: ThemeConfig | PartialThemeConfig, persist = true): void {
     const previous = this.currentTheme;
-    
+
     // Merge with current if partial
     const newTheme = this.isFullThemeConfig(theme)
       ? theme
-      : this.mergeWithDefault(theme);
-    
+      : this.isNamedTheme(theme as any)
+        ? this.registeredThemes.get(theme as any)!
+        : this.mergeWithDefault(theme);
+
     this.currentTheme = newTheme;
     this.engine.apply(newTheme);
-    
+
     if (persist) {
       this.saveToStorage(newTheme);
     }
-    
+
     // Notify listeners
     this.notifyListeners({ previous, current: newTheme });
+  }
+
+  private isNamedTheme(name: string): boolean {
+    return this.registeredThemes.has(name);
   }
 
   /**
@@ -72,24 +117,25 @@ export class ThemeProvider {
    */
   updateTheme(partial: PartialThemeConfig, persist = true): void {
     const previous = this.currentTheme;
-    
+
     const newTheme: ThemeConfig = {
       variant: partial.variant ?? this.currentTheme.variant,
       mode: partial.mode ?? this.currentTheme.mode,
       colors: { ...this.currentTheme.colors, ...(partial.colors ?? {}) },
+      gradients: { ...this.currentTheme.gradients, ...(partial.gradients ?? {}) },
       effects: { ...this.currentTheme.effects, ...(partial.effects ?? {}) },
       spacing: { ...this.currentTheme.spacing, ...(partial.spacing ?? {}) },
       typography: { ...this.currentTheme.typography, ...(partial.typography ?? {}) },
       animation: { ...this.currentTheme.animation, ...(partial.animation ?? {}) },
     };
-    
+
     this.currentTheme = newTheme;
     this.engine.apply(newTheme);
-    
+
     if (persist) {
       this.saveToStorage(newTheme);
     }
-    
+
     this.notifyListeners({ previous, current: newTheme });
   }
 
@@ -105,7 +151,7 @@ export class ThemeProvider {
    */
   subscribe(listener: ThemeChangeListener): () => void {
     this.listeners.add(listener);
-    
+
     // Return unsubscribe function
     return () => {
       this.listeners.delete(listener);
@@ -119,7 +165,7 @@ export class ThemeProvider {
     if (typeof window === 'undefined' || !window.localStorage) {
       return;
     }
-    
+
     try {
       window.localStorage.setItem(this.storageKey, JSON.stringify(theme));
     } catch (error) {
@@ -134,18 +180,18 @@ export class ThemeProvider {
     if (typeof window === 'undefined' || !window.localStorage) {
       return null;
     }
-    
+
     try {
       const stored = window.localStorage.getItem(this.storageKey);
       if (!stored) return null;
-      
+
       const parsed = JSON.parse(stored);
-      
+
       // Validate that it's a valid theme config
       if (this.isFullThemeConfig(parsed)) {
         return parsed;
       }
-      
+
       return null;
     } catch (error) {
       console.warn('Failed to load theme from localStorage:', error);
@@ -160,7 +206,7 @@ export class ThemeProvider {
     if (typeof window === 'undefined' || !window.localStorage) {
       return;
     }
-    
+
     try {
       window.localStorage.removeItem(this.storageKey);
     } catch (error) {
@@ -181,12 +227,12 @@ export class ThemeProvider {
   importTheme(json: string, persist = true): boolean {
     try {
       const parsed = JSON.parse(json);
-      
+
       if (this.isFullThemeConfig(parsed)) {
         this.setTheme(parsed, persist);
         return true;
       }
-      
+
       console.error('Invalid theme config in JSON');
       return false;
     } catch (error) {
@@ -213,11 +259,12 @@ export class ThemeProvider {
    */
   private mergeWithDefault(partial: PartialThemeConfig): ThemeConfig {
     const base = glassPreset;
-    
+
     return {
       variant: partial.variant ?? base.variant,
       mode: partial.mode ?? base.mode,
       colors: { ...base.colors, ...(partial.colors ?? {}) },
+      gradients: { ...base.gradients, ...(partial.gradients ?? {}) },
       effects: { ...base.effects, ...(partial.effects ?? {}) },
       spacing: { ...base.spacing, ...(partial.spacing ?? {}) },
       typography: { ...base.typography, ...(partial.typography ?? {}) },

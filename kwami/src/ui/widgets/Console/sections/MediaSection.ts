@@ -1,8 +1,7 @@
-import { resolveGlassTheme } from '../../../legacy/theme';
-import type { BaseGlassProps } from '../../../legacy/types';
+import { ComponentProps } from '../../../core/Component';
 import { createIcon } from '../../../primitives/Icon';
 
-export interface MediaSectionOptions extends BaseGlassProps {
+export interface MediaSectionOptions extends ComponentProps {
   kwami?: any;
 }
 
@@ -26,19 +25,17 @@ export class MediaSection {
   }
 
   private render(): void {
-    const theme = resolveGlassTheme(this.options.theme?.mode ?? 'auto', this.options.theme);
-    
     const placeholder = document.createElement('div');
     Object.assign(placeholder.style, {
       padding: '40px',
       textAlign: 'center',
-      color: theme.palette.muted,
+      color: 'var(--kwami-color-text-muted)',
     });
 
     const iconContainer = document.createElement('div');
     iconContainer.style.fontSize = '48px';
     iconContainer.style.marginBottom = '16px';
-    const icon = createIcon({ name: 'heroicons:film', size: '48px', color: theme.palette.muted }).element;
+    const icon = createIcon({ name: 'heroicons:film', size: '48px', color: 'var(--kwami-color-text-muted)' }).element;
     iconContainer.appendChild(icon);
 
     const text = document.createElement('div');

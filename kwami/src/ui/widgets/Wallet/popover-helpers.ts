@@ -1,5 +1,5 @@
-import { createGlassButton } from '../../legacy/GlassButton';
-import type { GlassPopoverHandle } from '../../legacy/GlassPopover';
+import { createButton as createGlassButton } from '../../primitives/Button';
+import type { PopoverHandle as GlassPopoverHandle } from '../../primitives/Popover';
 import type { WalletConnectWidgetOptions } from './types';
 import type { ExtendedWidgetState } from './state-manager';
 import { getWalletConnector } from '../../../apps/wallet/WalletConnector';
@@ -21,9 +21,8 @@ export function showNetworkChooser(
     const isActive = network === currentNetwork;
     const btn = createGlassButton({
       label: network === 'mainnet-beta' ? 'Mainnet' : network.charAt(0).toUpperCase() + network.slice(1),
-      mode: isActive ? 'primary' : 'ghost',
+      variant: isActive ? 'primary' : 'ghost',
       size: 'sm',
-      theme: options.theme,
       onClick: async () => {
         try {
           // Use wallet.switchNetwork if available, or fallback

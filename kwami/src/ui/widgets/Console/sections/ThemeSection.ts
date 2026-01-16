@@ -1,11 +1,10 @@
-import { resolveGlassTheme } from '../../../legacy/theme';
-import type { BaseGlassProps } from '../../../legacy/types';
+import type { ComponentProps } from '../../../core/Component';
 import { createSlider } from '../../../primitives/Slider';
 import { createColorPicker } from '../../../primitives/ColorPicker';
 import { getCurrentTheme, updateTheme } from '../../../theme/ThemeProvider';
 import type { PartialThemeConfig } from '../../../theme/types';
 
-export interface ThemeSectionOptions extends BaseGlassProps {
+export interface ThemeSectionOptions extends ComponentProps {
   kwami?: any;
 }
 
@@ -33,8 +32,8 @@ export class ThemeSection {
   }
 
   private createSection(title: string, description?: string): HTMLDivElement {
-    const theme = resolveGlassTheme(this.options.theme?.mode ?? 'auto', this.options.theme);
-    
+
+
     const section = document.createElement('div');
     section.className = 'theme-section kwami-surface';
     Object.assign(section.style, {
@@ -297,8 +296,8 @@ export class ThemeSection {
   }
 
   private createActionsSection(): HTMLDivElement {
-    const theme = resolveGlassTheme(this.options.theme?.mode ?? 'auto', this.options.theme);
-    
+
+
     const section = document.createElement('div');
     Object.assign(section.style, {
       display: 'flex',
@@ -343,16 +342,16 @@ export class ThemeSection {
         variant: 'glass',
         mode: 'dark',
       });
-      
+
       // Update all controls to reflect the reset values
       const currentTheme = getCurrentTheme();
-      
+
       // Update color pickers
       this.controls.get('primaryColor')?.setValue(currentTheme.colors.primary);
       this.controls.get('accentColor')?.setValue(currentTheme.colors.accent);
       this.controls.get('surfaceColor')?.setValue(currentTheme.colors.surface);
       this.controls.get('textColor')?.setValue(currentTheme.colors.text);
-      
+
       // Update sliders
       this.controls.get('blur')?.setValue(currentTheme.effects.blur);
       this.controls.get('opacity')?.setValue(currentTheme.effects.surfaceOpacity);

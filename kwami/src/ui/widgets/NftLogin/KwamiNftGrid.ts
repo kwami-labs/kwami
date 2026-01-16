@@ -1,5 +1,5 @@
 import type { KwamiNftGridOptions } from './types';
-import { createGlassButton } from '../../legacy/GlassButton';
+import { createButton as createGlassButton } from '../../primitives/Button';
 import { createIcon } from '../../primitives/Icon';
 
 export function createKwamiNftGrid(options: KwamiNftGridOptions): HTMLDivElement {
@@ -32,8 +32,8 @@ export function createKwamiNftGrid(options: KwamiNftGridOptions): HTMLDivElement
     card.style.padding = '0.65rem';
     card.style.cursor = 'pointer';
     card.style.transition = 'all 0.2s';
-    card.style.border = options.selectedNft?.mint === nft.mint 
-      ? '2px solid rgba(99, 102, 241, 0.7)' 
+    card.style.border = options.selectedNft?.mint === nft.mint
+      ? '2px solid rgba(99, 102, 241, 0.7)'
       : '1px solid rgba(148,163,184,0.15)';
     card.style.background = options.selectedNft?.mint === nft.mint
       ? 'rgba(99, 102, 241, 0.1)'
@@ -119,9 +119,8 @@ export function createKwamiNftGrid(options: KwamiNftGridOptions): HTMLDivElement
     const loginBtn = createGlassButton({
       label: `Login with ${options.selectedNft.name || 'KWAMI'}`,
       icon: createIcon({ name: 'heroicons:lock-closed', size: 'sm' }).element,
-      mode: 'primary',
+      variant: 'primary',
       size: 'lg',
-      theme: options.theme,
       onClick: () => options.onLogin?.(),
     });
 
@@ -134,7 +133,7 @@ export function createKwamiNftGrid(options: KwamiNftGridOptions): HTMLDivElement
   let scrollTimeout: ReturnType<typeof setTimeout> | null = null;
   container.addEventListener('scroll', () => {
     if (scrollTimeout) clearTimeout(scrollTimeout);
-    
+
     scrollTimeout = setTimeout(() => {
       const { scrollTop, scrollHeight, clientHeight } = container;
       if (scrollHeight - scrollTop - clientHeight < 100) {

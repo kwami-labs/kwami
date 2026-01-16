@@ -66,6 +66,17 @@ const BUTTON_STYLES = `
     border-style: solid;
     color: var(--kwami-color-text);
   }
+
+  .kwami-button--outline {
+    background: transparent;
+    border: var(--kwami-border-width) solid var(--kwami-color-border);
+    color: var(--kwami-color-text);
+  }
+
+  .kwami-button--outline:hover:not(:disabled) {
+    border-color: var(--kwami-color-text-muted);
+    background: var(--kwami-color-surface-hover);
+  }
   
   .kwami-button--sm {
     padding: var(--kwami-padding-xs) var(--kwami-padding-sm);
@@ -86,7 +97,7 @@ const BUTTON_STYLES = `
   }
 `;
 
-export type ButtonVariant = 'primary' | 'secondary' | 'ghost';
+export type ButtonVariant = 'primary' | 'secondary' | 'ghost' | 'outline';
 export type ButtonSize = 'sm' | 'md' | 'lg';
 export type ButtonContent = string | Node | Node[] | (() => Node | Node[]);
 

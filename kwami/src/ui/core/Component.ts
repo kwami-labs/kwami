@@ -1,3 +1,5 @@
+import type { PartialThemeConfig } from '../theme/types';
+
 /**
  * Base Component Class
  * 
@@ -7,6 +9,7 @@
 
 export interface ComponentProps {
     className?: string;
+    theme?: PartialThemeConfig;
     [key: string]: any;
 }
 
@@ -20,6 +23,59 @@ export abstract class Component<TProps extends ComponentProps = ComponentProps> 
         this.element = document.createElement(tagName);
         if (props.className) {
             this.element.className = props.className;
+        }
+
+        // Apply theme overrides if present
+        if (props.theme) {
+            this.applyThemeOverrides(props.theme);
+        }
+    }
+
+    /**
+     * Apply local theme overrides as CSS variables on the component element
+     */
+    private applyThemeOverrides(theme: PartialThemeConfig): void {
+        const root = this.element;
+
+        if (theme.colors) {
+            Object.entries(theme.colors).forEach(([key, val]) => {
+                const varName = `--kwami-color-${key.replace(/([A-Z])/g, '-$1').toLowerCase()}`;
+                root.style.setProperty(varName, val as string);
+            });
+        }
+
+        if (theme.gradients) {
+            Object.entries(theme.gradients).forEach(([key, val]) => {
+                const varName = `--kwami-gradient-${key.replace(/([A-Z])/g, '-$1').toLowerCase()}`;
+                root.style.setProperty(varName, val as string);
+            });
+        }
+
+        if (theme.effects) {
+            // Mapping for effects to match ThemeEngine's variable names
+            const effectMap: Record<string, string> = {
+                blur: '--kwami-blur',
+                blurSaturation: '--kwami-blur-saturation',
+                opacity: '--kwami-opacity',
+                surfaceOpacity: '--kwami-surface-opacity',
+                borderRadius: '--kwami-radius',
+                borderRadiusSmall: '--kwami-radius-sm',
+                borderRadiusLarge: '--kwami-radius-lg',
+                borderWidth: '--kwami-border-width',
+                shadowColor: '--kwami-shadow-color',
+                glowColor: '--kwami-glow-color',
+                glowIntensity: '--kwami-glow-intensity',
+                glowSpread: '--kwami-glow-spread'
+            };
+
+            Object.entries(theme.effects).forEach(([key, val]) => {
+                const varName = effectMap[key];
+                if (varName) {
+                    const suffix = (key.includes('blur') || key.includes('Radius') || key === 'borderWidth') ? 'px' :
+                        (key === 'blurSaturation' || key === 'glowSpread') ? '%' : '';
+                    root.style.setProperty(varName, `${val}${suffix}`);
+                }
+            });
         }
     }
 

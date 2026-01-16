@@ -17,11 +17,12 @@ const CONSOLE_STYLES = `
     position: fixed;
     inset: 0;
     z-index: 10000;
-    background-color: rgba(0, 0, 0, 0.4);
+    background-color: rgba(0, 0, 0, 0.4); /* Fallback */
+    background-color: color-mix(in srgb, var(--kwami-color-background) 40%, transparent);
     backdrop-filter: blur(4px);
     opacity: 0;
     pointer-events: none;
-    transition: opacity 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+    transition: opacity var(--kwami-duration) var(--kwami-easing-enter);
     display: flex;
     align-items: center;
     justify-content: center;
@@ -35,20 +36,18 @@ const CONSOLE_STYLES = `
   .kwami-console {
     width: 1000px;
     height: 600px;
-    background: rgba(13, 17, 23, 0.85); /* Darker, more premium base */
-    backdrop-filter: blur(40px) saturate(180%);
-    -webkit-backdrop-filter: blur(40px) saturate(180%);
-    border: 1px solid rgba(255, 255, 255, 0.08);
-    border-radius: 24px;
-    box-shadow: 
-      0 0 0 1px rgba(0, 0, 0, 0.2), 
-      0 20px 50px -12px rgba(0, 0, 0, 0.8),
-      inset 0 1px 0 rgba(255, 255, 255, 0.05);
+    background: var(--kwami-color-surface);
+    backdrop-filter: blur(var(--kwami-blur)) saturate(var(--kwami-blur-saturation));
+    -webkit-backdrop-filter: blur(var(--kwami-blur)) saturate(var(--kwami-blur-saturation));
+    border: var(--kwami-border-width) solid var(--kwami-color-border);
+    border-radius: var(--kwami-radius-lg);
+    box-shadow: var(--kwami-shadow-xl);
     display: flex;
     overflow: hidden;
     opacity: 0;
     transform: scale(0.96) translateY(10px);
-    transition: all 0.4s cubic-bezier(0.19, 1, 0.22, 1);
+    transition: all var(--kwami-duration-slow) var(--kwami-easing-enter);
+    color: var(--kwami-color-text);
   }
 
   .kwami-console-overlay.is-visible .kwami-console {
@@ -62,42 +61,42 @@ const CONSOLE_STYLES = `
     flex-direction: column;
     height: 100%;
     position: relative;
-    background: linear-gradient(180deg, rgba(255,255,255,0.01) 0%, rgba(255,255,255,0) 100%);
+    background: transparent;
   }
 
   .kwami-console-close {
     position: absolute;
-    top: 20px;
-    right: 20px;
+    top: var(--kwami-padding-md);
+    right: var(--kwami-padding-md);
     width: 32px;
     height: 32px;
     border-radius: 50%;
     border: none;
-    background: rgba(255, 255, 255, 0.03);
-    color: rgba(255, 255, 255, 0.4);
+    background: var(--kwami-color-surface-hover);
+    color: var(--kwami-color-text-muted);
     cursor: pointer;
     display: flex;
     align-items: center;
     justify-content: center;
-    transition: all 0.2s ease;
+    transition: all var(--kwami-duration-fast) var(--kwami-easing);
     z-index: 20;
-    font-family: system-ui, sans-serif;
+    font-family: var(--kwami-font-family);
   }
 
   .kwami-console-close:hover {
-    background: rgba(255, 60, 60, 0.15);
-    color: rgb(255, 80, 80);
+    background: var(--kwami-color-error);
+    color: var(--kwami-color-text-inverse);
     transform: scale(1.05);
   }
 
   .kwami-console-content-container {
     flex: 1;
     overflow-y: auto;
-    padding: 32px;
-    margin: 0 32px 32px 32px;
-    background: rgba(0, 0, 0, 0.2);
-    border: 1px solid rgba(255, 255, 255, 0.03);
-    border-radius: 0 16px 16px 16px;
+    padding: var(--kwami-padding-xl);
+    margin: 0 var(--kwami-padding-xl) var(--kwami-padding-xl) var(--kwami-padding-xl);
+    background: var(--kwami-color-surface-alt);
+    border: 1px solid var(--kwami-color-border);
+    border-radius: 0 var(--kwami-radius) var(--kwami-radius) var(--kwami-radius);
     position: relative;
   }
   
@@ -108,8 +107,8 @@ const CONSOLE_STYLES = `
   }
   
   .kwami-console-content-container:not([data-section="kwami"]) {
-    margin-top: 20px;
-    border-radius: 16px;
+    margin-top: var(--kwami-gap);
+    border-radius: var(--kwami-radius);
   }
 `;
 

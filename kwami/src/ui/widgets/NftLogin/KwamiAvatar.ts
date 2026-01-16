@@ -1,6 +1,6 @@
 import type { KwamiAvatarOptions } from './types';
 import { getAvatarCoordinates } from './animations';
-import { createGlassPopover } from '../../legacy/GlassPopover';
+import { createPopover as createGlassPopover } from '../../primitives/Popover';
 
 export function createKwamiAvatar(options: KwamiAvatarOptions): { element: HTMLDivElement; destroy: () => void } {
   const size = options.size ?? 48;
@@ -137,12 +137,6 @@ export function createKwamiAvatar(options: KwamiAvatarOptions): { element: HTMLD
     content: menuContent,
     width: 280,
     closeOnBlur: true,
-    theme: options.theme,
-    appearance: {
-      borderRadius: '18px',
-      padding: '1rem',
-      blur: options.appearance?.blur,
-    },
   });
 
   // Show popover on click

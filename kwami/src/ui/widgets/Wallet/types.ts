@@ -1,4 +1,5 @@
-import type { BaseGlassProps, GlassContent } from '../../legacy/types';
+import type { ComponentProps } from '../../core/Component';
+import type { ButtonContent } from '../../primitives/Button';
 import type { ConnectedWallet } from '../../../apps/wallet/WalletConnector';
 import type { KwamiOwnedNft } from '../../../apps/wallet/kwamiNfts';
 import type { PublicKey } from '@solana/web3.js';
@@ -91,7 +92,7 @@ export type KwamiNftOptions = {
   batchSize?: number;
 };
 
-export interface WalletConnectWidgetOptions extends BaseGlassProps {
+export interface WalletConnectWidgetOptions extends ComponentProps {
   /**
    * Additional SPL tokens to show balances for.
    * Defaults to USDC only. (SOL is always shown.)
@@ -105,7 +106,7 @@ export interface WalletConnectWidgetOptions extends BaseGlassProps {
   /**
    * Label shown while disconnected.
    */
-  connectLabel?: GlassContent;
+  connectLabel?: ButtonContent;
 
   /**
    * Whether to show SOL balance in the button label (when connected).

@@ -18,26 +18,28 @@ export interface ColorTokens {
   primaryHover: string;
   secondary: string;
   secondaryHover: string;
-  
+  tertiary: string;
+  tertiaryHover: string;
+
   // Surface colors
   surface: string;
   surfaceAlt: string;
   surfaceHover: string;
-  
+
   // Border colors
   border: string;
   borderHover: string;
   borderFocus: string;
-  
+
   // Text colors
   text: string;
   textMuted: string;
   textInverse: string;
-  
+
   // Accent colors
   accent: string;
   accentHover: string;
-  
+
   // Status colors
   success: string;
   successHover: string;
@@ -47,7 +49,7 @@ export interface ColorTokens {
   errorHover: string;
   info: string;
   infoHover: string;
-  
+
   // Background
   background: string;
   backgroundAlt: string;
@@ -60,26 +62,37 @@ export interface EffectTokens {
   // Blur effect (for glass morphism)
   blur: number;              // 0-40px
   blurSaturation: number;    // 100-200%
-  
+
   // Opacity
   opacity: number;           // 0-1
   surfaceOpacity: number;    // 0-1
-  
+
   // Borders
   borderRadius: number;      // px
   borderRadiusSmall: number; // px
   borderRadiusLarge: number; // px
   borderWidth: number;       // px
-  
+
   // Shadows
   shadow: ShadowSize | string;
   shadowColor: string;
-  
+
   // Glow effect
   glow: boolean;
   glowColor: string;
   glowIntensity: number;     // 0-1
   glowSpread: number;        // 0-100%
+}
+
+/**
+ * Gradient tokens - predefined beautiful gradients
+ */
+export interface GradientTokens {
+  primary: string;
+  secondary: string;
+  tertiary: string;
+  surface: string;
+  mesh?: string[];
 }
 
 /**
@@ -93,7 +106,7 @@ export interface SpacingTokens {
   paddingMd: number;
   paddingLg: number;
   paddingXl: number;
-  
+
   // Component gaps
   gapXs: number;
   gapSm: number;
@@ -101,7 +114,7 @@ export interface SpacingTokens {
   gapMd: number;
   gapLg: number;
   gapXl: number;
-  
+
   // Input specific
   inputPadding: number;
   inputPaddingVertical: number;
@@ -114,7 +127,7 @@ export interface SpacingTokens {
 export interface TypographyTokens {
   fontFamily: string;
   fontFamilyMono: string;
-  
+
   // Font sizes
   fontSizeXs: number;
   fontSizeSm: number;
@@ -123,18 +136,18 @@ export interface TypographyTokens {
   fontSizeLg: number;
   fontSizeXl: number;
   fontSize2xl: number;
-  
+
   // Font weights
   fontWeightNormal: number;
   fontWeightMedium: number;
   fontWeightSemibold: number;
   fontWeightBold: number;
-  
+
   // Line heights
   lineHeightTight: number;
   lineHeight: number;
   lineHeightRelaxed: number;
-  
+
   // Letter spacing
   letterSpacingTight: number;
   letterSpacing: number;
@@ -148,7 +161,7 @@ export interface AnimationTokens {
   duration: number;          // ms
   durationFast: number;      // ms
   durationSlow: number;      // ms
-  
+
   easing: string;            // CSS easing function
   easingEnter: string;
   easingExit: string;
@@ -160,8 +173,9 @@ export interface AnimationTokens {
 export interface ThemeConfig {
   variant: ThemeVariant;
   mode: ThemeMode;
-  
+
   colors: ColorTokens;
+  gradients: GradientTokens;
   effects: EffectTokens;
   spacing: SpacingTokens;
   typography: TypographyTokens;
@@ -175,6 +189,7 @@ export type PartialThemeConfig = {
   variant?: ThemeVariant;
   mode?: ThemeMode;
   colors?: Partial<ColorTokens>;
+  gradients?: Partial<GradientTokens>;
   effects?: Partial<EffectTokens>;
   spacing?: Partial<SpacingTokens>;
   typography?: Partial<TypographyTokens>;

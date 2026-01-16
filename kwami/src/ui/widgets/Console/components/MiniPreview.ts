@@ -1,7 +1,6 @@
-import { resolveGlassTheme } from '../../../legacy/theme';
-import type { BaseGlassProps } from '../../../legacy/types';
+import type { ComponentProps } from '../../../core/Component';
 
-export interface MiniPreviewOptions extends BaseGlassProps {
+export interface MiniPreviewOptions extends ComponentProps {
   onClick?: () => void;
   kwami?: any; // Reference to Kwami instance for live preview
 }
@@ -18,8 +17,10 @@ export class MiniPreview {
   }
 
   private createContainer(): HTMLDivElement {
-    const theme = resolveGlassTheme(this.options.theme?.mode ?? 'auto', this.options.theme);
-    
+    // const theme = resolveGlassTheme(this.options.theme?.mode ?? 'auto', this.options.theme);
+    // Use current theme colors or defaults if not initialized (though it should be)
+    const baseBorderColor = 'rgba(255, 255, 255, 0.1)';
+
     const container = document.createElement('div');
     container.className = 'kwami-mini-preview';
     Object.assign(container.style, {
@@ -28,7 +29,7 @@ export class MiniPreview {
       display: 'flex',
       alignItems: 'center',
       justifyContent: 'center',
-      borderBottom: `1px solid ${theme.palette.outline}`,
+      borderBottom: `1px solid ${baseBorderColor}`,
       background: 'linear-gradient(180deg, rgba(102, 126, 234, 0.1) 0%, rgba(0, 0, 0, 0.05) 100%)',
       cursor: 'pointer',
       transition: 'background 0.2s ease',
@@ -39,7 +40,7 @@ export class MiniPreview {
     container.addEventListener('mouseenter', () => {
       container.style.background = 'linear-gradient(180deg, rgba(102, 126, 234, 0.15) 0%, rgba(0, 0, 0, 0.08) 100%)';
     });
-    
+
     container.addEventListener('mouseleave', () => {
       container.style.background = 'linear-gradient(180deg, rgba(102, 126, 234, 0.1) 0%, rgba(0, 0, 0, 0.05) 100%)';
     });

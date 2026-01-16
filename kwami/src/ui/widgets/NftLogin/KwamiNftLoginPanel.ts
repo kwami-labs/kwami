@@ -1,8 +1,8 @@
 import type { KwamiNftLoginOptions, KwamiNftLoginHandle, KwamiNftLoginResult, NftLoginState } from './types';
 import type { KwamiOwnedNft } from '../../../apps/wallet/kwamiNfts';
 import { fetchOwnedKwamiNfts } from '../../../apps/wallet/kwamiNfts';
-import { createGlassModal } from '../../legacy/GlassModal';
-import { createGlassButton } from '../../legacy/GlassButton';
+import { createModal as createGlassModal } from '../../primitives/Modal';
+import { createButton as createGlassButton } from '../../primitives/Button';
 import { createKwamiNftGrid } from './KwamiNftGrid';
 import { createKwamiAvatar } from './KwamiAvatar';
 import { animateToCorner, fadeOut } from './animations';
@@ -30,10 +30,8 @@ export function createKwamiNftLoginPanel(options: KwamiNftLoginOptions): KwamiNf
   const connectBtn = createGlassButton({
     label: 'Connect with KWAMI',
     icon: createIcon({ name: 'heroicons:sparkles', size: 'sm' }).element,
-    mode: 'primary',
+    variant: 'primary',
     size: 'lg',
-    theme: options.theme,
-    appearance: options.appearance,
     onClick: () => void handleConnect(),
   });
 
@@ -44,12 +42,6 @@ export function createKwamiNftLoginPanel(options: KwamiNftLoginOptions): KwamiNf
     header: 'Select your KWAMI',
     content: document.createElement('div'),
     width: 700,
-    theme: options.theme,
-    appearance: {
-      borderRadius: '24px',
-      padding: '1.5rem',
-      blur: options.appearance?.blur,
-    },
   });
 
   async function handleConnect() {
@@ -144,7 +136,7 @@ export function createKwamiNftLoginPanel(options: KwamiNftLoginOptions): KwamiNf
     // Animate: Get the selected card element
     const cards = document.querySelectorAll('.kwami-nft-card');
     let selectedCard: HTMLElement | null = null;
-    
+
     cards.forEach((card) => {
       const img = card.querySelector('img');
       if (img && selectedNft && img.alt === selectedNft.name) {
@@ -180,12 +172,11 @@ export function createKwamiNftLoginPanel(options: KwamiNftLoginOptions): KwamiNf
     // Show avatar
     state = 'logged-in';
     connectBtn.element.style.display = 'none';
-    
+
     avatarHandle = createKwamiAvatar({
       nft: selectedNft,
       walletAddress,
       position: avatarPosition,
-      theme: options.theme,
       onLogout: handleLogout,
     });
 
@@ -251,7 +242,6 @@ export function createKwamiNftLoginPanel(options: KwamiNftLoginOptions): KwamiNf
               void loadNfts(loadedCount);
             }
           },
-          theme: options.theme,
         });
         content.appendChild(grid);
       }

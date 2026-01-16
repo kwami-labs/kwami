@@ -1,7 +1,6 @@
-import { resolveGlassTheme } from '../../../legacy/theme';
-import type { BaseGlassProps } from '../../../legacy/types';
+import { ComponentProps } from '../../../core/Component';
 
-export interface SettingsSectionOptions extends BaseGlassProps {
+export interface SettingsSectionOptions extends ComponentProps {
   kwami?: any;
 }
 
@@ -25,13 +24,11 @@ export class SettingsSection {
   }
 
   private render(): void {
-    const theme = resolveGlassTheme(this.options.theme?.mode ?? 'auto', this.options.theme);
-    
     const placeholder = document.createElement('div');
     Object.assign(placeholder.style, {
       padding: '40px',
       textAlign: 'center',
-      color: theme.palette.muted,
+      color: 'var(--kwami-color-text-muted)',
     });
 
     const icon = document.createElement('div');

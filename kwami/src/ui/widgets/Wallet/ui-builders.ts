@@ -1,6 +1,6 @@
-import type { GlassContent } from '../../legacy/types';
-import type { GlassButtonHandle } from '../../legacy/GlassButton';
-import { createGlassButton } from '../../legacy/GlassButton';
+import type { ButtonContent as GlassContent } from '../../primitives/Button';
+import type { ButtonHandle as GlassButtonHandle } from '../../primitives/Button';
+import { createButton as createGlassButton } from '../../primitives/Button';
 import type { WalletConnectWidgetOptions, WalletTrackedToken } from './types';
 import type { ExtendedWidgetState } from './state-manager';
 import { createDivider, createRow, createText, formatSol, truncateAddress } from './utils';
@@ -227,10 +227,8 @@ export function rebuildActions(
     const logoutBtn = createGlassButton({
       label: 'Logout',
       icon: '⏻',
-      mode: 'outline',
+      variant: 'outline',
       size: 'md',
-      theme: options.theme,
-      appearance: { borderRadius: '16px' },
       onClick: onDisconnect,
     });
     logoutBtn.element.style.width = '100%';
@@ -287,10 +285,8 @@ export function rebuildActions(
     const refreshBtn = createGlassButton({
       label: 'Refresh',
       icon: '⟳',
-      mode: 'ghost',
+      variant: 'ghost',
       size: 'md',
-      theme: options.theme,
-      appearance: { ...options.appearance, borderRadius: '16px' },
       onClick: onRefresh,
     });
     refreshBtn.element.style.flex = '1';
@@ -298,10 +294,8 @@ export function rebuildActions(
     const disconnectBtn = createGlassButton({
       label: 'Disconnect',
       icon: '⏻',
-      mode: 'outline',
+      variant: 'outline',
       size: 'md',
-      theme: options.theme,
-      appearance: { ...options.appearance, borderRadius: '16px' },
       onClick: onDisconnect,
     });
     disconnectBtn.element.style.flex = '1';
