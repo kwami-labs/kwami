@@ -252,7 +252,7 @@ impl RedisCache {
     /// Set value with expiration
     pub async fn set_ex(&mut self, key: &str, value: &str, seconds: usize) -> Result<()> {
         self.manager
-            .set_ex(key, value, seconds)
+            .set_ex::<_, _, ()>(key, value, seconds as u64)
             .await
             .context("Failed to set Redis key")?;
         Ok(())
@@ -270,7 +270,7 @@ impl RedisCache {
     /// Delete key
     pub async fn del(&mut self, key: &str) -> Result<()> {
         self.manager
-            .del(key)
+            .del::<_, ()>(key)
             .await
             .context("Failed to delete Redis key")?;
         Ok(())

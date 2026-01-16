@@ -7,7 +7,9 @@ use tracing::{error, info};
 pub struct Config {
     pub solana_rpc_url: String,
     pub jwt_secret: String,
-    pub elevenlabs_api_key: String,
+    pub livekit_api_key: String,
+    pub livekit_api_secret: String,
+    pub livekit_url: String,
     pub metaplex_program: Pubkey,
     pub kwami_collection_mint: Option<Pubkey>,
     pub port: u16,
@@ -29,11 +31,20 @@ impl Config {
             error!("⚠️  WARNING: JWT_SECRET should be at least 32 characters for security");
         }
 
-        let elevenlabs_api_key = env::var("ELEVENLABS_API_KEY")
+        let livekit_api_key = env::var("LIVEKIT_API_KEY")
             .unwrap_or_else(|_| {
-                info!("⚠️  ELEVENLABS_API_KEY not set - proxy functionality will be limited");
+                info!("⚠️  LIVEKIT_API_KEY not set - LiveKit functionality will be limited");
                 String::new()
             });
+
+        let livekit_api_secret = env::var("LIVEKIT_API_SECRET")
+            .unwrap_or_else(|_| {
+                info!("⚠️  LIVEKIT_API_SECRET not set - LiveKit functionality will be limited");
+                String::new()
+            });
+
+        let livekit_url = env::var("LIVEKIT_URL")
+            .unwrap_or_else(|_| "http://localhost:7880".to_string());
 
         let metaplex_program = Pubkey::from_str(
             &env::var("METAPLEX_METADATA_PROGRAM")
@@ -62,7 +73,9 @@ impl Config {
         Self {
             solana_rpc_url,
             jwt_secret,
-            elevenlabs_api_key,
+            livekit_api_key,
+            livekit_api_secret,
+            livekit_url,
             metaplex_program,
             kwami_collection_mint,
             port,

@@ -63,6 +63,9 @@ pub enum ApiError {
 
     #[error("NFT is not from the KWAMI collection")]
     WrongCollection,
+
+    #[error("LiveKit API error: {0}")]
+    LiveKitError(String),
 }
 
 impl IntoResponse for ApiError {
@@ -85,6 +88,7 @@ impl IntoResponse for ApiError {
             ApiError::MissingAuthHeader => (StatusCode::UNAUTHORIZED, self.to_string()),
             ApiError::UnverifiedCollection => (StatusCode::FORBIDDEN, self.to_string()),
             ApiError::WrongCollection => (StatusCode::FORBIDDEN, self.to_string()),
+            ApiError::LiveKitError(msg) => (StatusCode::BAD_GATEWAY, msg),
         };
 
         let body = Json(json!({

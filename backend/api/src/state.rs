@@ -16,9 +16,10 @@ pub struct AppState {
     /// JWT signing secret
     pub jwt_secret: String,
     
-    /// ElevenLabs API key (for future proxy endpoints)
-    #[allow(dead_code)]
-    pub elevenlabs_api_key: String,
+    /// LiveKit API credentials
+    pub livekit_api_key: String,
+    pub livekit_api_secret: String,
+    pub livekit_url: String,
     
     /// Metaplex Metadata program ID
     pub metaplex_program: Pubkey,
@@ -33,7 +34,9 @@ impl AppState {
         db: DatabasePools,
         rpc_url: String,
         jwt_secret: String,
-        elevenlabs_api_key: String,
+        livekit_api_key: String,
+        livekit_api_secret: String,
+        livekit_url: String,
         metaplex_program: Pubkey,
         kwami_collection_mint: Option<Pubkey>,
     ) -> Self {
@@ -41,7 +44,9 @@ impl AppState {
             db,
             rpc_client: Arc::new(RpcClient::new(rpc_url)),
             jwt_secret,
-            elevenlabs_api_key,
+            livekit_api_key,
+            livekit_api_secret,
+            livekit_url,
             metaplex_program,
             kwami_collection_mint,
         }

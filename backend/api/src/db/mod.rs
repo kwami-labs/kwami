@@ -3,6 +3,7 @@ use qdrant_client::client::QdrantClient;
 use redis::aio::ConnectionManager;
 use sqlx::postgres::PgPoolOptions;
 use sqlx::{Pool, Postgres};
+use std::sync::Arc;
 use std::time::Duration;
 use tracing::info;
 
@@ -17,7 +18,7 @@ pub struct DatabasePools {
     /// Redis connection manager
     pub redis: ConnectionManager,
     /// Qdrant vector database client
-    pub qdrant: QdrantClient,
+    pub qdrant: Arc<QdrantClient>,
 }
 
 impl DatabasePools {
@@ -75,7 +76,7 @@ impl DatabasePools {
         Ok(Self {
             postgres,
             redis,
-            qdrant,
+            qdrant: Arc::new(qdrant),
         })
     }
 
@@ -89,7 +90,7 @@ impl DatabasePools {
 
         // Check Redis
         redis::cmd("PING")
-            .query_async(&mut self.redis.clone())
+            .query_async::<_, ()>(&mut self.redis.clone())
             .await
             .context("Redis health check failed")?;
 

@@ -1,5 +1,5 @@
 use axum::http::{header, Method};
-use kwami_server::{db::DatabasePools, routes, AppState, Config};
+use kwami_api::{db::DatabasePools, routes, AppState, Config};
 use std::net::SocketAddr;
 use std::time::Duration;
 use tokio::time;
@@ -53,7 +53,9 @@ async fn main() {
         db,
         config.solana_rpc_url.clone(),
         config.jwt_secret.clone(),
-        config.elevenlabs_api_key.clone(),
+        config.livekit_api_key.clone(),
+        config.livekit_api_secret.clone(),
+        config.livekit_url.clone(),
         config.metaplex_program,
         config.kwami_collection_mint,
     );
@@ -61,7 +63,7 @@ async fn main() {
     // Spawn background task for database cleanup
     let cleanup_db = state.db.clone();
     tokio::spawn(async move {
-        use kwami_server::db::repositories::NonceRepository;
+        use kwami_api::db::repositories::NonceRepository;
         let mut interval = time::interval(Duration::from_secs(300)); // Every 5 minutes
         loop {
             interval.tick().await;
@@ -78,7 +80,7 @@ async fn main() {
         .layer(
             CorsLayer::new()
                 .allow_origin(tower_http::cors::Any)
-                .allow_methods([Method::GET, Method::POST, Method::OPTIONS])
+                .allow_methods([Method::GET, Method::POST, Method::PUT, Method::DELETE, Method::PATCH, Method::OPTIONS])
                 .allow_headers([header::CONTENT_TYPE, header::AUTHORIZATION])
                 .max_age(Duration::from_secs(3600)),
         )
@@ -92,6 +94,7 @@ async fn main() {
     let addr = SocketAddr::from(([0, 0, 0, 0], config.port));
     info!("🎧 Listening on {}", addr);
     info!("📡 Solana RPC: {}", config.solana_rpc_url);
+    info!("🎙️  LiveKit URL: {}", config.livekit_url);
     info!("🖼️  KWAMI Collection: {:?}", config.kwami_collection_mint);
 
     // Start server

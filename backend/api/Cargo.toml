@@ -45,13 +45,19 @@ anyhow = "1"
 thiserror = "1"
 
 # Database - PostgreSQL
-sqlx = { version = "0.7", features = ["runtime-tokio-native-tls", "postgres", "uuid", "chrono", "migrate"] }
+sqlx = { version = "0.6", features = ["runtime-tokio-native-tls", "postgres", "uuid", "chrono", "migrate"] }
 
 # Database - Redis
 redis = { version = "0.24", features = ["tokio-comp", "connection-manager"] }
 
 # Database - Qdrant
 qdrant-client = "1.7"
+
+# HTTP Client
+reqwest = { version = "0.11", features = ["json", "stream", "rustls-tls"], default-features = false }
+
+# LiveKit
+livekit-api = "0.4"
 
 [dev-dependencies]
 http-body-util = "0.1"
