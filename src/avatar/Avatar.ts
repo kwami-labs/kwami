@@ -3,6 +3,7 @@ import type { BlobSkinSelection } from './renderers/blob/types'
 import { Scene } from './scene'
 import { Blob } from './renderers/blob'
 import { Crystal } from './renderers/crystal'
+import { Particles } from './renderers/particles'
 import { KwamiAudio } from './audio'
 import { logger } from '../utils/logger'
 
@@ -18,10 +19,11 @@ export class Avatar {
   private scene: Scene
   private blob: Blob | null = null
   private crystal: Crystal | null = null
+  private particles: Particles | null = null
   private audio: KwamiAudio
   private currentState: KwamiState = 'idle'
   private resizeObserver: ResizeObserver | null = null
-  private currentRenderer: 'blob' | 'crystal' = 'blob'
+  private currentRenderer: 'blob' | 'crystal' | 'particles' = 'blob'
 
   constructor(canvas: HTMLCanvasElement, config?: AvatarConfig) {
     this.canvas = canvas
@@ -49,6 +51,9 @@ export class Avatar {
     } else if (rendererType === 'crystal') {
       this.currentRenderer = 'crystal'
       this.initCrystalRenderer()
+    } else if (rendererType === 'particles') {
+      this.currentRenderer = 'particles'
+      this.initParticlesRenderer()
     } else {
       // Future: Support other renderer types
       logger.warn(`Renderer type "${rendererType}" not supported, falling back to blob`)
@@ -110,6 +115,29 @@ export class Avatar {
 
     // Enable click interaction by default
     this.crystal.enableClickInteraction()
+  }
+
+  private initParticlesRenderer(): void {
+    const particlesConfig = this.config.particles ?? {}
+    
+    this.particles = new Particles({
+      scene: this.scene.scene,
+      camera: this.scene.camera,
+      renderer: this.scene.renderer,
+      audio: this.audio,
+      particleCount: particlesConfig.particleCount,
+      physics: particlesConfig.physics,
+      visual: particlesConfig.visual,
+      formation: particlesConfig.formation,
+      audioEffects: particlesConfig.audioEffects,
+      scale: particlesConfig.scale,
+    })
+
+    // Add particles group to scene
+    this.scene.scene.add(this.particles.getMesh())
+
+    // Enable click interaction by default
+    this.particles.enableClickInteraction()
   }
 
   private setupResizeHandling(): void {
@@ -175,6 +203,25 @@ export class Avatar {
           break
       }
     }
+
+    // Handle state for particles renderer
+    if (this.currentRenderer === 'particles' && this.particles) {
+      switch (state) {
+        case 'idle':
+          if (previousState === 'listening') this.particles.stopListening()
+          if (previousState === 'thinking') this.particles.stopThinking()
+          break
+        case 'listening':
+          this.particles.startListening()
+          break
+        case 'thinking':
+          this.particles.startThinking()
+          break
+        case 'speaking':
+          // Speaking state is driven by audio automatically
+          break
+      }
+    }
     
     logger.debug(`Avatar state changed: ${previousState} → ${state}`)
   }
@@ -193,7 +240,7 @@ export class Avatar {
   /**
    * Get the current renderer type
    */
-  getRendererType(): 'blob' | 'crystal' {
+  getRendererType(): 'blob' | 'crystal' | 'particles' {
     return this.currentRenderer
   }
 
@@ -201,7 +248,7 @@ export class Avatar {
    * Switch to a different renderer type dynamically
    * Preserves the connection and state
    */
-  switchRenderer(newRenderer: 'blob' | 'crystal'): void {
+  switchRenderer(newRenderer: 'blob' | 'crystal' | 'particles'): void {
     if (this.currentRenderer === newRenderer) {
       logger.debug(`Already using ${newRenderer} renderer`)
       return
@@ -221,6 +268,10 @@ export class Avatar {
       this.scene.scene.remove(this.crystal.getMesh())
       this.crystal.dispose()
       this.crystal = null
+    } else if (this.currentRenderer === 'particles' && this.particles) {
+      this.scene.scene.remove(this.particles.getMesh())
+      this.particles.dispose()
+      this.particles = null
     }
 
     // Initialize new renderer
@@ -229,6 +280,8 @@ export class Avatar {
       this.initBlobRenderer()
     } else if (newRenderer === 'crystal') {
       this.initCrystalRenderer()
+    } else if (newRenderer === 'particles') {
+      this.initParticlesRenderer()
     }
 
     // Restore state
@@ -236,9 +289,14 @@ export class Avatar {
     this.setState(savedState)
 
     // Update background gradient for the new renderer
-    const newColors = newRenderer === 'crystal'
-      ? ['#050510', '#0a0a20', '#050510']
-      : ['#0a0a1a', '#1a1a3a', '#0a0a1a']
+    let newColors: string[]
+    if (newRenderer === 'crystal') {
+      newColors = ['#050510', '#0a0a20', '#050510']
+    } else if (newRenderer === 'particles') {
+      newColors = ['#000000', '#0a0a15', '#000000']
+    } else {
+      newColors = ['#0a0a1a', '#1a1a3a', '#0a0a1a']
+    }
     this.scene.setBackground({ type: 'gradient', gradient: { colors: newColors, direction: 'radial' } })
 
     logger.info(`Renderer switched to ${newRenderer}`)
@@ -256,6 +314,13 @@ export class Avatar {
    */
   getCrystal(): Crystal | null {
     return this.crystal
+  }
+
+  /**
+   * Get the particles instance (for direct control)
+   */
+  getParticles(): Particles | null {
+    return this.particles
   }
 
   /**
@@ -343,6 +408,8 @@ export class Avatar {
       this.blob?.setRandomBlob()
     } else if (this.currentRenderer === 'crystal') {
       this.crystal?.setRandomCrystal()
+    } else if (this.currentRenderer === 'particles') {
+      this.particles?.setRandomParticles()
     }
   }
 
@@ -356,6 +423,9 @@ export class Avatar {
     if (this.crystal) {
       this.crystal.onConversationToggle = callback
     }
+    if (this.particles) {
+      this.particles.onConversationToggle = callback
+    }
   }
 
   /**
@@ -367,6 +437,9 @@ export class Avatar {
     }
     if (this.crystal) {
       this.crystal.onDoubleClick = callback
+    }
+    if (this.particles) {
+      this.particles.onDoubleClick = callback
     }
   }
 
@@ -392,6 +465,8 @@ export class Avatar {
       this.blob?.exportGLTF()
     } else if (this.currentRenderer === 'crystal') {
       this.crystal?.exportGLTF()
+    } else if (this.currentRenderer === 'particles') {
+      this.particles?.exportGLTF()
     }
   }
 
@@ -448,6 +523,7 @@ export class Avatar {
     this.resizeObserver?.disconnect()
     this.blob?.dispose()
     this.crystal?.dispose()
+    this.particles?.dispose()
     this.audio.dispose()
     this.scene.dispose()
   }

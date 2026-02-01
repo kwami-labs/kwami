@@ -76,12 +76,13 @@ export interface KwamiCallbacks {
 // Avatar
 // -----------------------------------------------------------------------------
 
-export type AvatarRendererType = 'blob' | 'crystal' | 'humanoid' // Extensible for future
+export type AvatarRendererType = 'blob' | 'crystal' | 'particles' | 'humanoid' // Extensible for future
 
 export interface AvatarConfig {
   renderer?: AvatarRendererType
   blob?: BlobConfig
   crystal?: CrystalConfig
+  particles?: ParticlesConfig
   scene?: SceneConfig
   interaction?: InteractionConfig
   audio?: {
@@ -221,6 +222,73 @@ export interface CrystalConfig {
   particleCount?: number
   scale?: number
   rotation?: { x: number; y: number; z: number }
+}
+
+// -----------------------------------------------------------------------------
+// Particles Config
+// -----------------------------------------------------------------------------
+
+export interface ParticlesConfig {
+  /** Number of particles */
+  particleCount?: number
+  /** Physics configuration */
+  physics?: {
+    /** Return force to formation (0-1) */
+    returnForce?: number
+    /** Damping/friction (0-1) */
+    damping?: number
+    /** Explosion force on click */
+    explosionForce?: number
+    /** Explosion radius */
+    explosionRadius?: number
+    /** Leader movement speed */
+    leaderSpeed?: number
+    /** Delay between particles following leader */
+    followDelay?: number
+    /** Mouse influence radius */
+    mouseInfluence?: number
+    /** Mouse repulsion strength */
+    mouseRepulsion?: number
+  }
+  /** Visual configuration */
+  visual?: {
+    /** Base particle color */
+    color?: string
+    /** Glow color */
+    glowColor?: string
+    /** Base particle size */
+    particleSize?: number
+    /** Size variation */
+    sizeVariation?: number
+    /** Opacity (0-1) */
+    opacity?: number
+    /** Glow intensity */
+    glowIntensity?: number
+    /** Brightness variation */
+    brightnessVariation?: number
+  }
+  /** Formation configuration */
+  formation?: {
+    /** Formation type */
+    type?: 'sphere' | 'disc' | 'ring' | 'cube'
+    /** Formation radius */
+    radius?: number
+    /** Density distribution */
+    density?: 'uniform' | 'center-heavy' | 'edge-heavy'
+    /** Noise for organic look */
+    noise?: number
+  }
+  /** Audio reactivity */
+  audioEffects?: {
+    enabled?: boolean
+    reactivity?: number
+    bassInfluence?: number
+    midInfluence?: number
+    highInfluence?: number
+    smoothing?: number
+  }
+  /** Base scale */
+  scale?: number
 }
 
 // -----------------------------------------------------------------------------
