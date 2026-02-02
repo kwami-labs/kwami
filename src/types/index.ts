@@ -76,7 +76,7 @@ export interface KwamiCallbacks {
 // Avatar
 // -----------------------------------------------------------------------------
 
-export type AvatarRendererType = 'blob-xyz' | 'orbital-shards' | 'stars-genesis' | 'crystal-ball' | 'humanoid'
+export type AvatarRendererType = 'blob-xyz' | 'orbital-shards' | 'stars-genesis' | 'crystal-ball' | 'black-hole' | 'humanoid'
 
 export interface AvatarConfig {
   renderer?: AvatarRendererType
@@ -84,6 +84,7 @@ export interface AvatarConfig {
   orbitalShards?: OrbitalShardsConfig
   starsGenesis?: StarsGenesisConfig
   crystalBall?: CrystalBallConfig
+  blackHole?: BlackHoleConfig
   scene?: SceneConfig
   interaction?: InteractionConfig
   audio?: {
@@ -407,6 +408,104 @@ export interface CrystalBallConfig {
 }
 
 // -----------------------------------------------------------------------------
+// Black Hole Config
+// -----------------------------------------------------------------------------
+
+export type BlackHoleColorScheme = 'classic' | 'fire' | 'ice' | 'nebula' | 'void'
+
+export interface BlackHoleColorSchemeSelection {
+  scheme: BlackHoleColorScheme
+}
+
+export interface BlackHoleConfig {
+  colorScheme?: BlackHoleColorSchemeSelection
+  /** Black hole core configuration */
+  core?: {
+    /** Radius of the event horizon */
+    radius?: number
+    /** Glow intensity around the event horizon */
+    glowIntensity?: number
+    /** Pulse animation speed */
+    pulseSpeed?: number
+  }
+  /** Accretion disk configuration */
+  disk?: {
+    /** Inner radius (relative to black hole radius) */
+    innerRadius?: number
+    /** Outer radius */
+    outerRadius?: number
+    /** Tilt angle in radians */
+    tiltAngle?: number
+    /** Flow speed of the disk material */
+    flowSpeed?: number
+    /** Noise scale for turbulence */
+    noiseScale?: number
+    /** Density of the visible material (0-2) */
+    density?: number
+  }
+  /** Disk color configuration */
+  colors?: {
+    hot: string
+    mid1: string
+    mid2: string
+    mid3: string
+    outer: string
+  }
+  /** Stars field configuration */
+  stars?: {
+    /** Number of background stars */
+    count?: number
+    /** Field radius */
+    fieldRadius?: number
+    /** Twinkle animation speed */
+    twinkleSpeed?: number
+  }
+  /** Animation configuration */
+  animation?: {
+    /** Auto-rotate camera */
+    autoRotate?: boolean
+    /** Auto-rotate speed */
+    autoRotateSpeed?: number
+    /** Disk rotation speed */
+    diskRotationSpeed?: number
+    /** Stars rotation speed */
+    starsRotationSpeed?: number
+  }
+  /** Post-processing effects */
+  effects?: {
+    /** Bloom intensity (0-2) */
+    bloomIntensity?: number
+    /** Bloom threshold (0-1) */
+    bloomThreshold?: number
+    /** Bloom radius (0-2) */
+    bloomRadius?: number
+    /** Gravitational lensing strength */
+    lensingStrength?: number
+    /** Lensing effect radius */
+    lensingRadius?: number
+    /** Chromatic aberration amount */
+    chromaticAberration?: number
+  }
+  /** Audio reactivity configuration */
+  audioEffects?: {
+    /** Enable audio reactivity */
+    enabled?: boolean
+    /** Overall reactivity multiplier (0-3) */
+    reactivity?: number
+    /** Bass frequency influence on disk glow */
+    bassDiskGlow?: number
+    /** Mid frequency influence on disk speed */
+    midDiskSpeed?: number
+    /** High frequency influence on star twinkle */
+    highStarTwinkle?: number
+    /** Smoothing factor for transitions */
+    smoothing?: number
+  }
+  /** Overall scale */
+  scale?: number
+}
+
+// -----------------------------------------------------------------------------
 // Scene
 // -----------------------------------------------------------------------------
 
@@ -439,6 +538,15 @@ export interface SceneBackgroundConfig {
   }
 }
 
+export interface StarFieldConfig {
+  count?: number
+  fieldRadius?: number
+  minSize?: number
+  maxSize?: number
+  twinkleSpeed?: number
+  rotationSpeed?: number
+}
+
 export interface SceneConfig {
   fov?: number
   near?: number
@@ -453,6 +561,7 @@ export interface SceneConfig {
   enableControls?: boolean
   preserveDrawingBuffer?: boolean
   background?: SceneBackgroundConfig
+  starField?: StarFieldConfig
 }
 
 export interface CameraConfig {

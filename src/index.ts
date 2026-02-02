@@ -6,7 +6,7 @@
 export { Kwami } from './Kwami'
 
 // Modules
-export { Avatar, Scene, BlobXyz, BlobXyzPosition, OrbitalShards, CrystalBall, KwamiAudio, createSkin, defaultBlobXyzConfig, defaultOrbitalShardsConfig, defaultCrystalBallConfig } from './avatar'
+export { Avatar, Scene, StarField, type StarFieldConfig, BlobXyz, BlobXyzPosition, OrbitalShards, CrystalBall, KwamiAudio, createSkin, defaultBlobXyzConfig, defaultOrbitalShardsConfig, defaultCrystalBallConfig } from './avatar'
 export { Agent } from './agent'
 export { Persona } from './persona'
 export { Memory } from './memory'
