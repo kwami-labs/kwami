@@ -4,7 +4,7 @@ import type { Mesh, PerspectiveCamera } from 'three'
  * BlobPosition - Manages normalized position coordinates for the blob
  * Uses 0-1 range where 0.5 is center, allowing positioning as percentage of viewport
  */
-export class BlobPosition {
+export class BlobXyzPosition {
   private _x: number = 0.5 // Default center (50%)
   private _y: number = 0.5 // Default middle (50%)
   private mesh: Mesh
@@ -21,7 +21,7 @@ export class BlobPosition {
    * Set horizontal position as normalized value (0-1)
    * 0 = left edge, 0.5 = center (default), 1 = right edge
    */
-  x(value: number): BlobPosition {
+  x(value: number): BlobXyzPosition {
     this._x = Math.max(0, Math.min(1, value))
     this.updatePosition()
     return this
@@ -31,7 +31,7 @@ export class BlobPosition {
    * Set vertical position as normalized value (0-1)
    * 0 = bottom edge, 0.5 = middle (default), 1 = top edge
    */
-  y(value: number): BlobPosition {
+  y(value: number): BlobXyzPosition {
     this._y = Math.max(0, Math.min(1, value))
     this.updatePosition()
     return this
@@ -54,7 +54,7 @@ export class BlobPosition {
   /**
    * Set both x and y position at once
    */
-  set(x: number, y: number): BlobPosition {
+  set(x: number, y: number): BlobXyzPosition {
     this._x = Math.max(0, Math.min(1, x))
     this._y = Math.max(0, Math.min(1, y))
     this.updatePosition()
@@ -64,7 +64,7 @@ export class BlobPosition {
   /**
    * Reset position to center (0.5, 0.5)
    */
-  reset(): BlobPosition {
+  reset(): BlobXyzPosition {
     this._x = 0.5
     this._y = 0.5
     this.updatePosition()

@@ -1,6 +1,7 @@
 import type {
   Vector3,
-  Texture} from 'three';
+  Texture
+} from 'three';
 import {
   Mesh,
   Color,
@@ -13,29 +14,29 @@ import {
   type ShaderMaterial,
 } from 'three'
 import { GLTFExporter } from 'three/examples/jsm/exporters/GLTFExporter.js'
-import { createBlobGeometry } from './geometry'
-import { animateBlob } from './animation'
+import { createBlobXyzGeometry } from './geometry'
+import { animateBlobXyz } from './animation'
 import { createSkin } from './skins'
-import { defaultBlobConfig } from './config'
-import { BlobPosition } from './position'
+import { defaultBlobXyzConfig } from './config'
+import { BlobXyzPosition } from './position'
 import {
   getRandomBetween,
   getRandomBoolean,
   getRandomHexColor,
   genDNA,
 } from '../../../utils/randoms'
-import type { BlobOptions, BlobSkinSelection, TricolorSubtype, BlobAudioEffects } from './types'
+import type { BlobXyzOptions, BlobXyzSkinSelection, TricolorSubtype, BlobXyzAudioEffects } from './types'
 import { logger } from '../../../utils/logger'
 
 
 /**
- * Blob - The 3D visual body of Kwami
+ * BlobXyz - The 3D visual body of Kwami
  * A morphing sphere that reacts to audio and can have different skins
  */
-export class Blob {
+export class BlobXyz {
   private mesh: Mesh
-  private config = defaultBlobConfig
-  public currentSkin: BlobSkinSelection
+  private config = defaultBlobXyzConfig
+  public currentSkin: BlobXyzSkinSelection
   public currentSkinSubtype: TricolorSubtype
   private skins: Map<TricolorSubtype, ShaderMaterial> = new Map()
 
@@ -95,7 +96,7 @@ export class Blob {
   public rotation = { x: 0, y: 0, z: 0 }
 
   // Audio effect parameters
-  public audioEffects: BlobAudioEffects = {
+  public audioEffects: BlobXyzAudioEffects = {
     bassSpike: 0.65,
     midSpike: 0.5,
     highSpike: 0.38,
@@ -118,10 +119,10 @@ export class Blob {
   private glassModeEnabled = false
 
   // Position management system
-  public position: BlobPosition
+  public position: BlobXyzPosition
 
-  constructor(private options: BlobOptions) {
-    const selection: BlobSkinSelection = options.skin ?? { skin: 'tricolor', subtype: 'poles' }
+  constructor(private options: BlobXyzOptions) {
+    const selection: BlobXyzSkinSelection = options.skin ?? { skin: 'tricolor', subtype: 'poles' }
     const subtype: TricolorSubtype = selection.subtype ?? 'poles'
 
     this.currentSkin = { skin: 'tricolor', subtype }
@@ -148,7 +149,7 @@ export class Blob {
     this.opacity = activeSkinConfig.opacity ?? 1
     this.updateMaterialOpacity(this.opacity)
 
-    const geometry = createBlobGeometry(
+    const geometry = createBlobXyzGeometry(
       options.resolution || this.config.resolution.default,
     )
 
@@ -157,7 +158,7 @@ export class Blob {
     this.updateMaterialOpacity(this.opacity)
     this.updateLightIntensityUniforms()
 
-    this.position = new BlobPosition(
+    this.position = new BlobXyzPosition(
       this.mesh,
       options.camera,
       options.renderer.domElement as HTMLCanvasElement
@@ -315,7 +316,7 @@ export class Blob {
           ? (Date.now() - this.thinkingStartTime) / this.thinkingDuration
           : 0
 
-        const audioDriven = animateBlob(
+        const audioDriven = animateBlobXyz(
           this.mesh,
           frequencyData,
           analyser,
@@ -383,7 +384,7 @@ export class Blob {
   /**
    * Change the blob's skin
    */
-  setSkin(selection: BlobSkinSelection): void {
+  setSkin(selection: BlobXyzSkinSelection): void {
     const subtype: TricolorSubtype = selection.subtype ?? 'poles'
     const material = this.skins.get(subtype)
 
@@ -419,7 +420,7 @@ export class Blob {
   /**
    * Get current skin type
    */
-  getCurrentSkin(): BlobSkinSelection {
+  getCurrentSkin(): BlobXyzSkinSelection {
     return this.currentSkin
   }
 
@@ -557,7 +558,7 @@ export class Blob {
    * Set mesh resolution
    */
   setResolution(resolution: number): void {
-    const geometry = createBlobGeometry(resolution)
+    const geometry = createBlobXyzGeometry(resolution)
     this.mesh.geometry.dispose()
     this.mesh.geometry = geometry
   }
@@ -573,7 +574,7 @@ export class Blob {
    * Set scale
    */
   setScale(scale: number): void {
-    logger.info('Blob.setScale called with:', scale)
+    logger.info('BlobXyz.setScale called with:', scale)
     this.baseScale = scale
     logger.info('Base scale set to:', this.baseScale)
   }
@@ -1039,7 +1040,7 @@ export class Blob {
 
       this.mesh.rotation.y += deltaX * 0.01
       this.mesh.rotation.x += deltaY * 0.01
-      
+
       const diagonalMovement = (Math.abs(deltaX) > Math.abs(deltaY) ? deltaX : -deltaY) * 0.005
       this.mesh.rotation.z += diagonalMovement
 
@@ -1061,13 +1062,13 @@ export class Blob {
     canvas.addEventListener('mouseup', handleMouseUp)
     canvas.addEventListener('mouseleave', handleMouseUp)
 
-    // Store handlers for cleanup
-    ;(this as unknown as Record<string, unknown>)._clickHandler = handleClick
-    ;(this as unknown as Record<string, unknown>)._dblClickHandler = handleDoubleClick
-    ;(this as unknown as Record<string, unknown>)._contextMenuHandler = handleContextMenu
-    ;(this as unknown as Record<string, unknown>)._mouseDownHandler = handleMouseDown
-    ;(this as unknown as Record<string, unknown>)._mouseMoveHandler = handleMouseMove
-    ;(this as unknown as Record<string, unknown>)._mouseUpHandler = handleMouseUp
+      // Store handlers for cleanup
+      ; (this as unknown as Record<string, unknown>)._clickHandler = handleClick
+      ; (this as unknown as Record<string, unknown>)._dblClickHandler = handleDoubleClick
+      ; (this as unknown as Record<string, unknown>)._contextMenuHandler = handleContextMenu
+      ; (this as unknown as Record<string, unknown>)._mouseDownHandler = handleMouseDown
+      ; (this as unknown as Record<string, unknown>)._mouseMoveHandler = handleMouseMove
+      ; (this as unknown as Record<string, unknown>)._mouseUpHandler = handleMouseUp
   }
 
   /**

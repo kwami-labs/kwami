@@ -9,13 +9,13 @@ import type { KwamiAudio } from '../../audio/KwamiAudio'
  * Blob skin system
  * The only skin is Tricolor, with 3 subtypes.
  */
-export type BlobSkin = 'tricolor'
+export type BlobXyzSkin = 'tricolor'
 export type TricolorSubtype = 'poles' | 'donut' | 'vintage'
 
 /**
  * Skin selection (extensible discriminated union).
  */
-export type BlobSkinSelection = {
+export type BlobXyzSkinSelection = {
   skin: 'tricolor'
   subtype?: TricolorSubtype
 }
@@ -36,8 +36,8 @@ export interface TricolorSkinConfig {
 /**
  * Blob configuration options
  */
-export interface BlobConfig {
-  skin?: BlobSkinSelection
+export interface BlobXyzConfig {
+  skin?: BlobXyzSkinSelection
   resolution?: number
   spikes?: { x: number; y: number; z: number }
   time?: { x: number; y: number; z: number }
@@ -51,13 +51,13 @@ export interface BlobConfig {
 /**
  * Blob constructor options
  */
-export interface BlobOptions {
+export interface BlobXyzOptions {
   scene: Scene
   camera: PerspectiveCamera
   renderer: WebGLRenderer
   audio: KwamiAudio
 
-  skin?: BlobSkinSelection
+  skin?: BlobXyzSkinSelection
   resolution?: number
   spikes?: { x: number; y: number; z: number }
   time?: { x: number; y: number; z: number }
@@ -71,7 +71,7 @@ export interface BlobOptions {
 /**
  * Blob options configuration (defaults)
  */
-export interface BlobOptionsConfig {
+export interface BlobXyzOptionsConfig {
   spikes: {
     min: number
     max: number
@@ -109,7 +109,7 @@ export interface BlobOptionsConfig {
 /**
  * Audio effect parameters for blob animation
  */
-export interface BlobAudioEffects {
+export interface BlobXyzAudioEffects {
   bassSpike: number
   midSpike: number
   highSpike: number

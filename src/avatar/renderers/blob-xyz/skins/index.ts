@@ -2,13 +2,13 @@ import type { ShaderMaterial } from 'three'
 import { createPolesSkin } from './poles'
 import { createDonutSkin } from './donut'
 import { createVintageSkin } from './vintage'
-import type { BlobSkinSelection, TricolorSkinConfig, TricolorSubtype } from '../types'
+import type { BlobXyzSkinSelection, TricolorSkinConfig, TricolorSubtype } from '../types'
 
 /**
  * Create a skin material based on skin selection.
  */
 export function createSkin(
-  selection: BlobSkinSelection,
+  selection: BlobXyzSkinSelection,
   config: TricolorSkinConfig,
 ): ShaderMaterial {
   // Currently only Tricolor exists.

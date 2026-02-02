@@ -5,6 +5,6 @@ import { SphereGeometry } from 'three'
  * @param segments - Number of segments (resolution) for the sphere
  * @returns SphereGeometry instance
  */
-export function createBlobGeometry(segments: number = 180): SphereGeometry {
+export function createBlobXyzGeometry(segments: number = 180): SphereGeometry {
   return new SphereGeometry(1, segments, segments)
 }

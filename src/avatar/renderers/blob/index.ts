@@ -1,7 +1,0 @@
-export { Blob } from './Blob'
-export { BlobPosition } from './position'
-export { createBlobGeometry } from './geometry'
-export { animateBlob } from './animation'
-export { defaultBlobConfig } from './config'
-export * from './types'
-export * from './skins'

@@ -1,6 +1,6 @@
 import { createNoise3D } from 'simplex-noise'
 import { type Mesh, Vector3 } from 'three'
-import type { BlobAudioEffects } from './types'
+import type { BlobXyzAudioEffects } from './types'
 
 const noise3D = createNoise3D()
 
@@ -62,7 +62,7 @@ export interface LiquidPhysics {
  * Animate the blob mesh based on audio frequency data
  * Creates a liquid, speaking effect that reacts naturally to sound frequencies
  */
-export function animateBlob(
+export function animateBlobXyz(
   mesh: Mesh,
   frequencyData: Uint8Array<ArrayBuffer>,
   analyser: AnalyserNode,
@@ -85,7 +85,7 @@ export function animateBlob(
   listeningBlend: number = 0,
   thinkingBlend: number = 0,
   thinkingProgress: number = 0,
-  audioEffects: BlobAudioEffects = {
+  audioEffects: BlobXyzAudioEffects = {
     bassSpike: 0.55,
     midSpike: 0.45,
     highSpike: 0.35,
@@ -351,29 +351,29 @@ export function animateBlob(
     if (liquidPhysics) {
       const { velocityX, velocityY, stretch } = liquidPhysics
       const velocityMagnitude = Math.sqrt(velocityX * velocityX + velocityY * velocityY)
-      
+
       // Only apply deformation if there's significant velocity
       if (velocityMagnitude > 0.0005) {
         // Normalize velocity direction
         const velDirX = velocityX / velocityMagnitude
         const velDirY = velocityY / velocityMagnitude
-        
+
         // Calculate how much this vertex aligns with the velocity direction
         // Use the original normalized direction, not the displaced vertex
         const alignment = direction.x * velDirX + direction.y * velDirY
-        
+
         // Scale the effect by velocity magnitude and stretch parameter
         // Use a softer curve to prevent extreme deformations
         const velocityInfluence = Math.min(velocityMagnitude * 8, 0.8)
         const stretchAmount = alignment * velocityInfluence * stretch
-        
+
         // Apply asymmetric deformation:
         // - Positive alignment (front): stretch outward slightly
         // - Negative alignment (back): compress for trailing effect
-        const deformation = stretchAmount > 0 
+        const deformation = stretchAmount > 0
           ? stretchAmount * 0.25  // Front stretches
           : stretchAmount * 0.15  // Back compresses less
-        
+
         // Apply the deformation as a temporary offset
         // Scale by the vertex's radial distance to keep proportions
         const radialScale = smoothedDisplacement

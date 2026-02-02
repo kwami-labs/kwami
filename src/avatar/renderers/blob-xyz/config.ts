@@ -1,10 +1,10 @@
 import { getRandomHexColor, getRandomBoolean } from '../../../utils/randoms'
-import type { BlobOptionsConfig } from './types'
+import type { BlobXyzOptionsConfig } from './types'
 
 /**
  * Default configuration for blob behavior and appearance
  */
-export const defaultBlobConfig: BlobOptionsConfig = {
+export const defaultBlobXyzConfig: BlobXyzOptionsConfig = {
   spikes: {
     min: 0,
     max: 20,
