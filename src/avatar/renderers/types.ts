@@ -1,4 +1,4 @@
-import type { AvatarRenderer, BlobConfig, SceneConfig } from '../../types'
+import type { AvatarRenderer, BlobXyzConfig, SceneConfig } from '../../types'
 
 /**
  * Base interface for avatar renderers
@@ -8,7 +8,7 @@ export type { AvatarRenderer }
 /**
  * Blob-specific renderer interface
  */
-export interface BlobRendererInterface extends AvatarRenderer {
+export interface BlobXyzRendererInterface extends AvatarRenderer {
   // Blob-specific methods
   setColors(x: string, y: string, z: string): void
   setSpikes(x: number, y: number, z: number): void
@@ -21,11 +21,11 @@ export interface BlobRendererInterface extends AvatarRenderer {
   setWireframe(wireframe: boolean): void
   setOpacity(opacity: number): void
   setSkin(skin: { skin: string; subtype?: string }): void
-  
+
   // Randomization
   randomize(): void
   resetToDefaults(): void
-  
+
   // Export
   exportGLTF(): void
 }
@@ -35,5 +35,5 @@ export interface BlobRendererInterface extends AvatarRenderer {
  */
 export type RendererFactory = (
   canvas: HTMLCanvasElement,
-  config?: BlobConfig & { scene?: SceneConfig }
+  config?: BlobXyzConfig & { scene?: SceneConfig }
 ) => AvatarRenderer
