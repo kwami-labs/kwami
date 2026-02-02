@@ -76,13 +76,13 @@ export interface KwamiCallbacks {
 // Avatar
 // -----------------------------------------------------------------------------
 
-export type AvatarRendererType = 'blob-xyz' | 'orbital-shards' | 'particles' | 'crystal-ball' | 'humanoid'
+export type AvatarRendererType = 'blob-xyz' | 'orbital-shards' | 'stars-genesis' | 'crystal-ball' | 'humanoid'
 
 export interface AvatarConfig {
   renderer?: AvatarRendererType
   blob?: BlobXyzConfig
   orbitalShards?: OrbitalShardsConfig
-  particles?: ParticlesConfig
+  starsGenesis?: StarsGenesisConfig
   crystalBall?: CrystalBallConfig
   scene?: SceneConfig
   interaction?: InteractionConfig
@@ -226,12 +226,12 @@ export interface OrbitalShardsConfig {
 }
 
 // -----------------------------------------------------------------------------
-// Particles Config
+// Stars Genesis Config
 // -----------------------------------------------------------------------------
 
-export interface ParticlesConfig {
-  /** Number of particles */
-  particleCount?: number
+export interface StarsGenesisConfig {
+  /** Number of stars */
+  starCount?: number
   /** Physics configuration */
   physics?: {
     /** Return force to formation (0-1) */
@@ -244,7 +244,7 @@ export interface ParticlesConfig {
     explosionRadius?: number
     /** Leader movement speed */
     leaderSpeed?: number
-    /** Delay between particles following leader */
+    /** Delay between stars following leader */
     followDelay?: number
     /** Mouse influence radius */
     mouseInfluence?: number
@@ -253,12 +253,12 @@ export interface ParticlesConfig {
   }
   /** Visual configuration */
   visual?: {
-    /** Base particle color */
+    /** Base star color */
     color?: string
     /** Glow color */
     glowColor?: string
-    /** Base particle size */
-    particleSize?: number
+    /** Star size */
+    starSize?: number
     /** Size variation */
     sizeVariation?: number
     /** Opacity (0-1) */
@@ -267,29 +267,79 @@ export interface ParticlesConfig {
     glowIntensity?: number
     /** Brightness variation */
     brightnessVariation?: number
+    /** Star sharpness (0=soft, 1=sharp) */
+    sharpness?: number
   }
   /** Formation configuration */
   formation?: {
     /** Formation type */
     type?: 'sphere' | 'disc' | 'ring' | 'cube'
-    /** Formation radius */
+    /** Radius of the formation */
     radius?: number
     /** Density distribution */
     density?: 'uniform' | 'center-heavy' | 'edge-heavy'
-    /** Noise for organic look */
+    /** Noise amount for organic look */
     noise?: number
   }
-  /** Audio reactivity */
-  audioEffects?: {
+  /** Animation configuration */
+  animation?: {
+    /** Enable idle animations */
     enabled?: boolean
+    /** Breathing/pulse animation */
+    breathing?: {
+      enabled?: boolean
+      speed?: number
+      intensity?: number
+    }
+    /** Floating/hovering animation */
+    floating?: {
+      enabled?: boolean
+      speed?: number
+      amplitude?: number
+    }
+    /** Auto rotation */
+    rotation?: {
+      enabled?: boolean
+      speedX?: number
+      speedY?: number
+      speedZ?: number
+    }
+    /** Wave animation through stars */
+    wave?: {
+      enabled?: boolean
+      speed?: number
+      amplitude?: number
+    }
+    /** Turbulence/noise */
+    turbulence?: {
+      enabled?: boolean
+      intensity?: number
+      speed?: number
+    }
+  }
+  /** Audio effects */
+  audioEffects?: {
+    /** Enable audio reactivity */
+    enabled?: boolean
+    /** Overall reactivity multiplier (0-3) */
     reactivity?: number
+    /** Bass frequency influence on size */
     bassInfluence?: number
+    /** Mid frequency influence on brightness */
     midInfluence?: number
+    /** High frequency influence on movement */
     highInfluence?: number
+    /** Smoothing factor */
     smoothing?: number
+    /** Scale pulse with bass */
+    scalePulse?: boolean
+    /** Movement intensity from audio */
+    movementIntensity?: number
   }
   /** Base scale */
   scale?: number
+  /** Transition duration for smooth changes (ms) */
+  transitionDuration?: number
 }
 
 // -----------------------------------------------------------------------------

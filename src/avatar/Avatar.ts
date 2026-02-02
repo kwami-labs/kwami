@@ -1,9 +1,10 @@
 import type { AvatarConfig, KwamiState, OrbitalShardsFormationSelection, CrystalBallStyleSelection } from '../types'
 import type { BlobXyzSkinSelection } from './renderers/blob-xyz/types'
+import type { StarsGenesisAnimationConfig } from './renderers/stars-genesis/types'
 import { Scene } from './scene'
 import { BlobXyz } from './renderers/blob-xyz'
 import { OrbitalShards } from './renderers/orbital-shards'
-import { Particles } from './renderers/particles'
+import { StarsGenesis } from './renderers/stars-genesis'
 import { CrystalBall } from './renderers/crystal-ball'
 import { KwamiAudio } from './audio'
 import { logger } from '../utils/logger'
@@ -20,12 +21,12 @@ export class Avatar {
   private scene: Scene
   private blobXyz: BlobXyz | null = null
   private crystal: OrbitalShards | null = null
-  private particles: Particles | null = null
+  private starsGenesis: StarsGenesis | null = null
   private crystalBall: CrystalBall | null = null
   private audio: KwamiAudio
   private currentState: KwamiState = 'idle'
   private resizeObserver: ResizeObserver | null = null
-  private currentRenderer: 'blob-xyz' | 'orbital-shards' | 'particles' | 'crystal-ball' = 'blob-xyz'
+  private currentRenderer: 'blob-xyz' | 'orbital-shards' | 'stars-genesis' | 'crystal-ball' = 'blob-xyz'
 
   constructor(canvas: HTMLCanvasElement, config?: AvatarConfig) {
     this.canvas = canvas
@@ -53,9 +54,9 @@ export class Avatar {
     } else if (rendererType === 'orbital-shards') {
       this.currentRenderer = 'orbital-shards'
       this.initOrbitalShardsRenderer()
-    } else if (rendererType === 'particles') {
-      this.currentRenderer = 'particles'
-      this.initParticlesRenderer()
+    } else if (rendererType === 'stars-genesis') {
+      this.currentRenderer = 'stars-genesis'
+      this.initStarsGenesisRenderer()
     } else if (rendererType === 'crystal-ball') {
       this.currentRenderer = 'crystal-ball'
       this.initCrystalBallRenderer()
@@ -122,27 +123,29 @@ export class Avatar {
     this.crystal.enableClickInteraction()
   }
 
-  private initParticlesRenderer(): void {
-    const particlesConfig = this.config.particles ?? {}
+  private initStarsGenesisRenderer(): void {
+    const starsGenesisConfig = this.config.starsGenesis ?? {}
 
-    this.particles = new Particles({
+    this.starsGenesis = new StarsGenesis({
       scene: this.scene.scene,
       camera: this.scene.camera,
       renderer: this.scene.renderer,
       audio: this.audio,
-      particleCount: particlesConfig.particleCount,
-      physics: particlesConfig.physics,
-      visual: particlesConfig.visual,
-      formation: particlesConfig.formation,
-      audioEffects: particlesConfig.audioEffects,
-      scale: particlesConfig.scale,
+      starCount: starsGenesisConfig.starCount,
+      physics: starsGenesisConfig.physics,
+      visual: starsGenesisConfig.visual,
+      formation: starsGenesisConfig.formation,
+      animation: starsGenesisConfig.animation as Partial<StarsGenesisAnimationConfig>,
+      audioEffects: starsGenesisConfig.audioEffects,
+      scale: starsGenesisConfig.scale,
+      transitionDuration: starsGenesisConfig.transitionDuration,
     })
 
-    // Add particles group to scene
-    this.scene.scene.add(this.particles.getMesh())
+    // Add stars genesis group to scene
+    this.scene.scene.add(this.starsGenesis.getMesh())
 
     // Enable click interaction by default
-    this.particles.enableClickInteraction()
+    this.starsGenesis.enableClickInteraction()
   }
 
   private initCrystalBallRenderer(): void {
@@ -235,18 +238,18 @@ export class Avatar {
       }
     }
 
-    // Handle state for particles renderer
-    if (this.currentRenderer === 'particles' && this.particles) {
+    // Handle state for stars genesis renderer
+    if (this.currentRenderer === 'stars-genesis' && this.starsGenesis) {
       switch (state) {
         case 'idle':
-          if (previousState === 'listening') this.particles.stopListening()
-          if (previousState === 'thinking') this.particles.stopThinking()
+          if (previousState === 'listening') this.starsGenesis.stopListening()
+          if (previousState === 'thinking') this.starsGenesis.stopThinking()
           break
         case 'listening':
-          this.particles.startListening()
+          this.starsGenesis.startListening()
           break
         case 'thinking':
-          this.particles.startThinking()
+          this.starsGenesis.startThinking()
           break
         case 'speaking':
           // Speaking state is driven by audio automatically
@@ -290,7 +293,7 @@ export class Avatar {
   /**
    * Get the current renderer type
    */
-  getRendererType(): 'blob-xyz' | 'orbital-shards' | 'particles' | 'crystal-ball' {
+  getRendererType(): 'blob-xyz' | 'orbital-shards' | 'stars-genesis' | 'crystal-ball' {
     return this.currentRenderer
   }
 
@@ -298,7 +301,7 @@ export class Avatar {
    * Switch to a different renderer type dynamically
    * Preserves the connection and state
    */
-  switchRenderer(newRenderer: 'blob-xyz' | 'orbital-shards' | 'particles' | 'crystal-ball'): void {
+  switchRenderer(newRenderer: 'blob-xyz' | 'orbital-shards' | 'stars-genesis' | 'crystal-ball'): void {
     if (this.currentRenderer === newRenderer) {
       logger.debug(`Already using ${newRenderer} renderer`)
       return
@@ -318,10 +321,10 @@ export class Avatar {
       this.scene.scene.remove(this.crystal.getMesh())
       this.crystal.dispose()
       this.crystal = null
-    } else if (this.currentRenderer === 'particles' && this.particles) {
-      this.scene.scene.remove(this.particles.getMesh())
-      this.particles.dispose()
-      this.particles = null
+    } else if (this.currentRenderer === 'stars-genesis' && this.starsGenesis) {
+      this.scene.scene.remove(this.starsGenesis.getMesh())
+      this.starsGenesis.dispose()
+      this.starsGenesis = null
     } else if (this.currentRenderer === 'crystal-ball' && this.crystalBall) {
       this.scene.scene.remove(this.crystalBall.getMesh())
       this.crystalBall.dispose()
@@ -334,8 +337,8 @@ export class Avatar {
       this.initBlobXyzRenderer()
     } else if (newRenderer === 'orbital-shards') {
       this.initOrbitalShardsRenderer()
-    } else if (newRenderer === 'particles') {
-      this.initParticlesRenderer()
+    } else if (newRenderer === 'stars-genesis') {
+      this.initStarsGenesisRenderer()
     } else if (newRenderer === 'crystal-ball') {
       this.initCrystalBallRenderer()
     }
@@ -348,7 +351,7 @@ export class Avatar {
     let newColors: string[]
     if (newRenderer === 'orbital-shards') {
       newColors = ['#050510', '#0a0a20', '#050510']
-    } else if (newRenderer === 'particles') {
+    } else if (newRenderer === 'stars-genesis') {
       newColors = ['#000000', '#0a0a15', '#000000']
     } else if (newRenderer === 'crystal-ball') {
       newColors = ['#0a0510', '#150a20', '#0a0510']
@@ -375,10 +378,10 @@ export class Avatar {
   }
 
   /**
-   * Get the particles instance (for direct control)
+   * Get the stars genesis instance (for direct control)
    */
-  getParticles(): Particles | null {
-    return this.particles
+  getStarsGenesis(): StarsGenesis | null {
+    return this.starsGenesis
   }
 
   /**
@@ -473,8 +476,8 @@ export class Avatar {
       this.blobXyz?.setRandomBlob()
     } else if (this.currentRenderer === 'orbital-shards') {
       this.crystal?.setRandomOrbitalShards()
-    } else if (this.currentRenderer === 'particles') {
-      this.particles?.setRandomParticles()
+    } else if (this.currentRenderer === 'stars-genesis') {
+      this.starsGenesis?.setRandomStars()
     } else if (this.currentRenderer === 'crystal-ball') {
       this.crystalBall?.setRandomCrystalBall()
     }
@@ -490,8 +493,8 @@ export class Avatar {
     if (this.crystal) {
       this.crystal.onConversationToggle = callback
     }
-    if (this.particles) {
-      this.particles.onConversationToggle = callback
+    if (this.starsGenesis) {
+      this.starsGenesis.onConversationToggle = callback
     }
     if (this.crystalBall) {
       this.crystalBall.onConversationToggle = callback
@@ -508,8 +511,8 @@ export class Avatar {
     if (this.crystal) {
       this.crystal.onDoubleClick = callback
     }
-    if (this.particles) {
-      this.particles.onDoubleClick = callback
+    if (this.starsGenesis) {
+      this.starsGenesis.onDoubleClick = callback
     }
     if (this.crystalBall) {
       this.crystalBall.onDoubleClick = callback
@@ -538,8 +541,8 @@ export class Avatar {
       this.blobXyz?.exportGLTF()
     } else if (this.currentRenderer === 'orbital-shards') {
       this.crystal?.exportGLTF()
-    } else if (this.currentRenderer === 'particles') {
-      this.particles?.exportGLTF()
+    } else if (this.currentRenderer === 'stars-genesis') {
+      this.starsGenesis?.exportGLTF()
     } else if (this.currentRenderer === 'crystal-ball') {
       this.crystalBall?.exportGLTF()
     }
@@ -598,7 +601,7 @@ export class Avatar {
     this.resizeObserver?.disconnect()
     this.blobXyz?.dispose()
     this.crystal?.dispose()
-    this.particles?.dispose()
+    this.starsGenesis?.dispose()
     this.crystalBall?.dispose()
     this.audio.dispose()
     this.scene.dispose()
