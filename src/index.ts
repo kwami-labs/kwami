@@ -6,7 +6,7 @@
 export { Kwami } from './Kwami'
 
 // Modules
-export { Avatar, Scene, Blob, BlobPosition, Crystal, KwamiAudio, createSkin, defaultBlobConfig, defaultCrystalConfig } from './avatar'
+export { Avatar, Scene, BlobXyz, BlobXyzPosition, Crystal, CrystalBall, KwamiAudio, createSkin, defaultBlobXyzConfig, defaultCrystalConfig, defaultCrystalBallConfig } from './avatar'
 export { Agent } from './agent'
 export { Persona } from './persona'
 export { Memory } from './memory'
@@ -87,14 +87,17 @@ export type {
   AvatarConfig,
   AvatarRenderer,
   AvatarRendererType,
-  BlobConfig,
-  BlobSkinSelection,
-  BlobSkin,
+  BlobXyzConfig,
+  BlobXyzSkinSelection,
+  BlobXyzSkin,
   TricolorSubtype,
   CrystalConfig,
   CrystalFormation,
   CrystalCoreStyle,
   CrystalFormationSelection,
+  CrystalBallConfig,
+  CrystalBallStyle,
+  CrystalBallStyleSelection,
   SceneConfig,
   SceneBackgroundConfig,
   CameraConfig,
@@ -133,11 +136,11 @@ export type {
 
 // Re-export blob-specific types
 export type {
-  BlobOptions,
-  BlobOptionsConfig,
+  BlobXyzOptions,
+  BlobXyzOptionsConfig,
   TricolorSkinConfig,
-  BlobAudioEffects,
-} from './avatar/renderers/blob/types'
+  BlobXyzAudioEffects,
+} from './avatar/renderers/blob-xyz/types'
 
 // Re-export crystal-specific types
 export type {
@@ -149,6 +152,16 @@ export type {
   CoreStyle,
   FormationConfig,
 } from './avatar/renderers/crystal/types'
+
+// Re-export crystal-ball-specific types
+export type {
+  CrystalBallOptions,
+  CrystalBallOptionsConfig,
+  VolumeConfig,
+  CrystalBallAnimationConfig,
+  CrystalBallAudioEffects,
+  StyleConfig as CrystalBallStyleConfig,
+} from './avatar/renderers/crystal-ball/types'
 
 // Adapter types
 export type { LiveKitAdapterConfig, AgentAdapter, AdapterFactory } from './agent'

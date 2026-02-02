@@ -76,13 +76,14 @@ export interface KwamiCallbacks {
 // Avatar
 // -----------------------------------------------------------------------------
 
-export type AvatarRendererType = 'blob' | 'crystal' | 'particles' | 'humanoid' // Extensible for future
+export type AvatarRendererType = 'blob-xyz' | 'crystal' | 'particles' | 'crystal-ball' | 'humanoid'
 
 export interface AvatarConfig {
   renderer?: AvatarRendererType
-  blob?: BlobConfig
+  blob?: BlobXyzConfig
   crystal?: CrystalConfig
   particles?: ParticlesConfig
+  crystalBall?: CrystalBallConfig
   scene?: SceneConfig
   interaction?: InteractionConfig
   audio?: {
@@ -105,19 +106,19 @@ export interface AvatarRenderer {
 }
 
 // -----------------------------------------------------------------------------
-// Blob Config (moved from blob/types.ts for top-level export)
+// BlobXyz Config (moved from blob-xyz/types.ts for top-level export)
 // -----------------------------------------------------------------------------
 
-export type BlobSkin = 'tricolor'
+export type BlobXyzSkin = 'tricolor'
 export type TricolorSubtype = 'poles' | 'donut' | 'vintage'
 
-export type BlobSkinSelection = {
+export type BlobXyzSkinSelection = {
   skin: 'tricolor'
   subtype?: TricolorSubtype
 }
 
-export interface BlobConfig {
-  skin?: BlobSkinSelection
+export interface BlobXyzConfig {
+  skin?: BlobXyzSkinSelection
   resolution?: number
   spikes?: { x: number; y: number; z: number }
   time?: { x: number; y: number; z: number }
@@ -158,7 +159,7 @@ export interface InteractionActionConfig {
   action: InteractionAction
   enabled?: boolean
   customHandler?: () => void | Promise<void>
-  rendererTarget?: 'blob' | 'crystal'
+  rendererTarget?: 'blob-xyz' | 'crystal'
 }
 
 export interface InteractionConfig {
@@ -289,6 +290,70 @@ export interface ParticlesConfig {
   }
   /** Base scale */
   scale?: number
+}
+
+// -----------------------------------------------------------------------------
+// Crystal Ball Config
+// -----------------------------------------------------------------------------
+
+export type CrystalBallStyle = 'mystical' | 'nebula' | 'earth' | 'fire' | 'ocean'
+
+export interface CrystalBallStyleSelection {
+  style: CrystalBallStyle
+}
+
+export interface CrystalBallConfig {
+  style?: CrystalBallStyleSelection
+  volume?: {
+    /** Number of raymarching iterations (8-64) */
+    iterations?: number
+    /** Maximum depth into the sphere (0-1) */
+    depth?: number
+    /** Smoothing factor between layers */
+    smoothing?: number
+    /** Noise scale for the heightmap */
+    noiseScale?: number
+    /** Noise octaves for detail */
+    noiseOctaves?: number
+  }
+  animation?: {
+    /** Displacement animation speed */
+    displacementSpeed?: number
+    /** Displacement strength */
+    displacementStrength?: number
+    /** Base rotation speed */
+    rotationSpeed?: { x: number; y: number; z: number }
+    /** Pulse speed for breathing effect */
+    pulseSpeed?: number
+    /** Pulse intensity */
+    pulseIntensity?: number
+  }
+  colors?: {
+    primary: string
+    secondary: string
+  }
+  audioEffects?: {
+    /** How much bass affects displacement */
+    bassDisplacement?: number
+    /** How much mids affect color intensity */
+    midColorBoost?: number
+    /** How much highs affect glow */
+    highGlowBoost?: number
+    /** Overall reactivity multiplier */
+    reactivity?: number
+    /** Smoothing factor for transitions */
+    smoothing?: number
+    /** Enable/disable audio reactivity */
+    enabled?: boolean
+  }
+  /** Overall scale */
+  scale?: number
+  /** Roughness of the glass surface (0 = mirror, 1 = matte) */
+  roughness?: number
+  /** Metalness (0 = dielectric, 1 = metallic) */
+  metalness?: number
+  /** Environment map intensity */
+  envMapIntensity?: number
 }
 
 // -----------------------------------------------------------------------------
