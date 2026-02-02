@@ -2,15 +2,15 @@ import type { CrystalBallOptionsConfig } from './types'
 
 /**
  * Default configuration for the Crystal Ball renderer
- * Based on the Magical Marbles tutorial parameters
+ * Ultra-optimized for smooth 60fps performance
  */
 export const defaultCrystalBallConfig: CrystalBallOptionsConfig = {
   volume: {
-    iterations: 48,        // tutorial: 48
-    depth: 0.6,            // tutorial: 0.6
-    smoothing: 0.2,        // tutorial: 0.2
-    noiseScale: 2.0,       // controls noise detail
-    noiseOctaves: 4,
+    iterations: 16,        // ultra-optimized (16 is very smooth)
+    depth: 0.6,
+    smoothing: 0.25,
+    noiseScale: 2.0,
+    noiseOctaves: 1,
   },
 
   animation: {

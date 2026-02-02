@@ -63,136 +63,34 @@ export function createCrystalBallUniforms(
 }
 
 /**
- * GLSL noise functions for procedural heightmap and displacement
+ * GLSL noise - ultra simple for maximum performance
  */
 const noiseGLSL = /* glsl */ `
-// Simplex 3D Noise by Ian McEwan, Ashima Arts
-vec4 permute(vec4 x) { return mod(((x*34.0)+1.0)*x, 289.0); }
-vec4 taylorInvSqrt(vec4 r) { return 1.79284291400159 - 0.85373472095314 * r; }
-
-float snoise(vec3 v) { 
-  const vec2 C = vec2(1.0/6.0, 1.0/3.0);
-  const vec4 D = vec4(0.0, 0.5, 1.0, 2.0);
-
-  vec3 i  = floor(v + dot(v, C.yyy));
-  vec3 x0 = v - i + dot(i, C.xxx);
-
-  vec3 g = step(x0.yzx, x0.xyz);
-  vec3 l = 1.0 - g;
-  vec3 i1 = min(g.xyz, l.zxy);
-  vec3 i2 = max(g.xyz, l.zxy);
-
-  vec3 x1 = x0 - i1 + C.xxx;
-  vec3 x2 = x0 - i2 + C.yyy;
-  vec3 x3 = x0 - D.yyy;
-
-  i = mod(i, 289.0);
-  vec4 p = permute(permute(permute(
-      i.z + vec4(0.0, i1.z, i2.z, 1.0))
-    + i.y + vec4(0.0, i1.y, i2.y, 1.0))
-    + i.x + vec4(0.0, i1.x, i2.x, 1.0));
-
-  float n_ = 1.0/7.0;
-  vec3 ns = n_ * D.wyz - D.xzx;
-
-  vec4 j = p - 49.0 * floor(p * ns.z * ns.z);
-
-  vec4 x_ = floor(j * ns.z);
-  vec4 y_ = floor(j - 7.0 * x_);
-
-  vec4 x = x_ * ns.x + ns.yyyy;
-  vec4 y = y_ * ns.x + ns.yyyy;
-  vec4 h = 1.0 - abs(x) - abs(y);
-
-  vec4 b0 = vec4(x.xy, y.xy);
-  vec4 b1 = vec4(x.zw, y.zw);
-
-  vec4 s0 = floor(b0)*2.0 + 1.0;
-  vec4 s1 = floor(b1)*2.0 + 1.0;
-  vec4 sh = -step(h, vec4(0.0));
-
-  vec4 a0 = b0.xzyw + s0.xzyw*sh.xxyy;
-  vec4 a1 = b1.xzyw + s1.xzyw*sh.zzww;
-
-  vec3 p0 = vec3(a0.xy, h.x);
-  vec3 p1 = vec3(a0.zw, h.y);
-  vec3 p2 = vec3(a1.xy, h.z);
-  vec3 p3 = vec3(a1.zw, h.w);
-
-  vec4 norm = taylorInvSqrt(vec4(dot(p0,p0), dot(p1,p1), dot(p2,p2), dot(p3,p3)));
-  p0 *= norm.x;
-  p1 *= norm.y;
-  p2 *= norm.z;
-  p3 *= norm.w;
-
-  vec4 m = max(0.6 - vec4(dot(x0,x0), dot(x1,x1), dot(x2,x2), dot(x3,x3)), 0.0);
-  m = m * m;
-  return 42.0 * dot(m*m, vec4(dot(p0,x0), dot(p1,x1), dot(p2,x2), dot(p3,x3)));
+// Super fast hash noise - single function
+float hash(vec3 p) {
+  p = fract(p * 0.3183099 + 0.1);
+  p *= 17.0;
+  return fract(p.x * p.y * p.z * (p.x + p.y + p.z));
 }
 
-// Fractal Brownian Motion for more detailed noise
-float fbm(vec3 p, float scale, int octaves) {
-  float value = 0.0;
-  float amplitude = 0.5;
-  float frequency = scale;
+// Simple smooth noise - very fast
+float noise(vec3 p) {
+  vec3 i = floor(p);
+  vec3 f = fract(p);
+  f = f * f * (3.0 - 2.0 * f);
   
-  for (int i = 0; i < 6; i++) {
-    if (i >= octaves) break;
-    value += amplitude * snoise(p * frequency);
-    frequency *= 2.0;
-    amplitude *= 0.5;
-  }
-  
-  return value;
+  return mix(
+    mix(mix(hash(i), hash(i + vec3(1,0,0)), f.x),
+        mix(hash(i + vec3(0,1,0)), hash(i + vec3(1,1,0)), f.x), f.y),
+    mix(mix(hash(i + vec3(0,0,1)), hash(i + vec3(1,0,1)), f.x),
+        mix(hash(i + vec3(0,1,1)), hash(i + vec3(1,1,1)), f.x), f.y), f.z);
 }
 `
 
 /**
- * GLSL raymarching function for the magical marble effect
+ * GLSL raymarching - ultra optimized for smooth 60fps
  */
 const raymarchGLSL = /* glsl */ `
-/**
- * Generate a procedural heightmap value at a given direction
- */
-float getHeightmap(vec3 dir, float scale, float time) {
-  // Add some time-based movement to the noise
-  vec3 animatedDir = dir;
-  animatedDir.y += time * 0.05;
-  
-  // Use FBM for detailed noise
-  float noise = fbm(animatedDir, scale, 4);
-  
-  // Normalize to 0-1 range
-  return noise * 0.5 + 0.5;
-}
-
-/**
- * Generate displacement vector for wavy animation
- */
-vec3 getDisplacement(vec3 dir, float time, float strength) {
-  // Two layers of noise scrolling in opposite directions
-  vec3 scroll1 = vec3(time, 0.0, 0.0);
-  vec3 scroll2 = vec3(-time, 0.0, 0.0);
-  
-  vec3 disp1 = vec3(
-    snoise(dir * 2.0 + scroll1),
-    snoise(dir * 2.0 + scroll1 + vec3(17.0)),
-    snoise(dir * 2.0 + scroll1 + vec3(31.0))
-  );
-  
-  vec3 disp2 = vec3(
-    snoise(dir * 2.0 * vec3(1.0, -1.0, 1.0) + scroll2),
-    snoise(dir * 2.0 * vec3(1.0, -1.0, 1.0) + scroll2 + vec3(17.0)),
-    snoise(dir * 2.0 * vec3(1.0, -1.0, 1.0) + scroll2 + vec3(31.0))
-  );
-  
-  return (disp1 + disp2) * strength;
-}
-
-/**
- * Raymarch through the marble volume
- * Returns the accumulated color
- */
 vec3 marchMarble(
   vec3 rayOrigin,
   vec3 rayDir,
@@ -212,62 +110,42 @@ vec3 marchMarble(
   float listeningTransition,
   float thinkingTransition
 ) {
-  float perIteration = 1.0 / iterations;
-  vec3 deltaRay = rayDir * perIteration * depth;
+  // Pre-compute everything possible
+  float invIter = 1.0 / iterations;
+  vec3 deltaRay = rayDir * invIter * depth;
+  float animTime = time * dispSpeed;
+  float audioBass = bassLevel * audioReactivity;
+  float audioMid = midLevel * audioReactivity;
   
-  // Audio-reactive displacement boost
-  float audioDispBoost = 1.0 + bassLevel * audioReactivity * 0.5;
-  float actualDispStrength = dispStrength * audioDispBoost;
-  
-  // Thinking mode: increase turbulence
-  float thinkingBoost = 1.0 + thinkingTransition * 0.5;
-  actualDispStrength *= thinkingBoost;
-  
-  // Listening mode: subtle pulse
-  float listeningPulse = 1.0 + sin(time * 3.0) * 0.1 * listeningTransition;
-  
-  // Start at surface and accumulate volume
   vec3 p = rayOrigin;
   float totalVolume = 0.0;
-  float animatedTime = time * dispSpeed;
   
-  for (float i = 0.0; i < 64.0; i++) {
+  // Ultra simple loop - just 16 iterations default
+  for (float i = 0.0; i < 32.0; i++) {
     if (i >= iterations) break;
     
-    // Get displacement for wavy effect
-    vec3 displaced = p + getDisplacement(normalize(p), animatedTime, actualDispStrength);
+    // Simple animated sample position
+    vec3 sp = p * noiseScale;
+    sp.x += sin(animTime + p.y * 3.0) * dispStrength;
+    sp.y += sin(animTime * 1.3 + p.z * 3.0) * dispStrength;
+    sp.z += animTime * 0.5;
     
-    // Get heightmap value at displaced position
-    float heightMapVal = getHeightmap(normalize(displaced), noiseScale, time * 0.1);
+    // Single noise sample
+    float h = noise(sp) + audioBass * 0.2;
     
-    // Audio boost to heightmap
-    heightMapVal = heightMapVal + midLevel * audioReactivity * 0.2;
+    // Accumulate
+    float cutoff = 1.0 - i * invIter;
+    totalVolume += smoothstep(cutoff, cutoff + smoothingFactor, h) * invIter;
     
-    // Take a slice based on depth
-    float currentHeight = length(p);
-    float cutoff = 1.0 - i * perIteration;
-    float slice = smoothstep(cutoff, cutoff + smoothingFactor, heightMapVal);
-    
-    // Accumulate with listening pulse
-    totalVolume += slice * perIteration * listeningPulse;
-    
-    // March forward
     p += deltaRay;
   }
   
-  // HDR color mixing for richer gradients
-  // Boost colors slightly above 1.0 for HDR effect
-  vec3 hdrColorA = colorA * (1.0 + highLevel * audioReactivity * 0.3);
-  vec3 hdrColorB = colorB * (1.2 + midLevel * audioReactivity * 0.2);
+  // Color mix
+  vec3 cA = colorA * (1.0 + audioMid * 0.15);
+  vec3 cB = colorB * 1.1;
+  vec3 color = mix(cA, cB, clamp(totalVolume * 2.0, 0.0, 1.0));
   
-  // Mix colors based on volume
-  vec3 color = mix(hdrColorA, hdrColorB, clamp(totalVolume * 2.0, 0.0, 1.0));
-  
-  // Apply tone mapping to bring HDR back to displayable range
-  // Simple Reinhard tone mapping
-  color = color / (1.0 + color);
-  
-  return color;
+  return color / (1.0 + color);
 }
 `
 
