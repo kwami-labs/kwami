@@ -10,6 +10,7 @@ import {
 } from 'three'
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js'
 import type { SceneConfig } from '../../types'
+import { StarField, type StarFieldConfig } from './StarField'
 
 /**
  * Scene - Manages the THREE.js scene configuration for Kwami
@@ -20,6 +21,7 @@ export class Scene {
   public scene: ThreeScene
   public lights: ReturnType<typeof createLights>
   public controls: OrbitControls | null
+  public starField: StarField
 
   constructor(canvas: HTMLCanvasElement, config?: SceneConfig) {
     this.renderer = createRenderer(canvas, config)
@@ -35,6 +37,9 @@ export class Scene {
     this.controls = config?.enableControls === true
       ? createControls(this.camera, this.renderer)
       : null
+
+    // Initialize star field (disabled by default)
+    this.starField = new StarField(this.scene, this.renderer, config?.starField)
   }
 
   /**
@@ -44,6 +49,7 @@ export class Scene {
     this.renderer.setSize(width, height)
     this.camera.aspect = width / height
     this.camera.updateProjectionMatrix()
+    this.starField.onResize()
   }
 
   /**
@@ -54,11 +60,40 @@ export class Scene {
   }
 
   /**
+   * Enable/disable the star field effect
+   */
+  setStarFieldEnabled(enabled: boolean): void {
+    if (enabled) {
+      this.starField.enable()
+    } else {
+      this.starField.disable()
+    }
+  }
+
+  /**
+   * Configure the star field
+   */
+  setStarFieldConfig(config: Partial<StarFieldConfig>): void {
+    if (config.count !== undefined) this.starField.setCount(config.count)
+    if (config.fieldRadius !== undefined) this.starField.setFieldRadius(config.fieldRadius)
+    if (config.twinkleSpeed !== undefined) this.starField.setTwinkleSpeed(config.twinkleSpeed)
+    if (config.rotationSpeed !== undefined) this.starField.setRotationSpeed(config.rotationSpeed)
+  }
+
+  /**
+   * Update scene effects (call in animation loop)
+   */
+  update(deltaTime?: number): void {
+    this.starField.update(deltaTime)
+  }
+
+  /**
    * Dispose of all resources
    */
   dispose(): void {
     this.renderer.dispose()
     this.controls?.dispose()
+    this.starField.dispose()
   }
 }
 
