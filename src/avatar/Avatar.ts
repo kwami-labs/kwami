@@ -1,4 +1,4 @@
-import type { AvatarConfig, KwamiState, OrbitalShardsFormationSelection, CrystalBallStyleSelection } from '../types'
+import type { AvatarConfig, KwamiState, OrbitalShardsFormationSelection, CrystalBallStyleSelection, BlackHoleColorScheme } from '../types'
 import type { BlobXyzSkinSelection } from './renderers/blob-xyz/types'
 import type { StarsGenesisAnimationConfig } from './renderers/stars-genesis/types'
 import { Scene } from './scene'
@@ -6,6 +6,7 @@ import { BlobXyz } from './renderers/blob-xyz'
 import { OrbitalShards } from './renderers/orbital-shards'
 import { StarsGenesis } from './renderers/stars-genesis'
 import { CrystalBall } from './renderers/crystal-ball'
+import { BlackHole } from './renderers/black-hole'
 import { KwamiAudio } from './audio'
 import { logger } from '../utils/logger'
 
@@ -23,10 +24,11 @@ export class Avatar {
   private crystal: OrbitalShards | null = null
   private starsGenesis: StarsGenesis | null = null
   private crystalBall: CrystalBall | null = null
+  private blackHole: BlackHole | null = null
   private audio: KwamiAudio
   private currentState: KwamiState = 'idle'
   private resizeObserver: ResizeObserver | null = null
-  private currentRenderer: 'blob-xyz' | 'orbital-shards' | 'stars-genesis' | 'crystal-ball' = 'blob-xyz'
+  private currentRenderer: 'blob-xyz' | 'orbital-shards' | 'stars-genesis' | 'crystal-ball' | 'black-hole' = 'blob-xyz'
 
   constructor(canvas: HTMLCanvasElement, config?: AvatarConfig) {
     this.canvas = canvas
@@ -60,6 +62,9 @@ export class Avatar {
     } else if (rendererType === 'crystal-ball') {
       this.currentRenderer = 'crystal-ball'
       this.initCrystalBallRenderer()
+    } else if (rendererType === 'black-hole') {
+      this.currentRenderer = 'black-hole'
+      this.initBlackHoleRenderer()
     } else {
       // Future: Support other renderer types
       logger.warn(`Renderer type "${rendererType}" not supported, falling back to blob-xyz`)
@@ -174,6 +179,30 @@ export class Avatar {
     this.crystalBall.enableClickInteraction()
   }
 
+  private initBlackHoleRenderer(): void {
+    const blackHoleConfig = this.config.blackHole ?? {}
+
+    this.blackHole = new BlackHole(
+      this.scene.scene,
+      this.scene.camera,
+      this.scene.renderer,
+      {
+        colorScheme: blackHoleConfig.colorScheme,
+        core: blackHoleConfig.core,
+        disk: blackHoleConfig.disk,
+        colors: blackHoleConfig.colors,
+        stars: blackHoleConfig.stars,
+        animation: blackHoleConfig.animation,
+        effects: blackHoleConfig.effects,
+        audioEffects: blackHoleConfig.audioEffects,
+        scale: blackHoleConfig.scale,
+      }
+    )
+
+    // Black hole adds itself to scene in constructor via group
+    // No need to add mesh separately
+  }
+
   private setupResizeHandling(): void {
     this.resizeObserver = new ResizeObserver((entries) => {
       for (const entry of entries) {
@@ -276,6 +305,11 @@ export class Avatar {
       }
     }
 
+    // Handle state for black-hole renderer
+    if (this.currentRenderer === 'black-hole' && this.blackHole) {
+      this.blackHole.setState(state)
+    }
+
     logger.debug(`Avatar state changed: ${previousState} → ${state}`)
   }
 
@@ -293,7 +327,7 @@ export class Avatar {
   /**
    * Get the current renderer type
    */
-  getRendererType(): 'blob-xyz' | 'orbital-shards' | 'stars-genesis' | 'crystal-ball' {
+  getRendererType(): 'blob-xyz' | 'orbital-shards' | 'stars-genesis' | 'crystal-ball' | 'black-hole' {
     return this.currentRenderer
   }
 
@@ -301,7 +335,7 @@ export class Avatar {
    * Switch to a different renderer type dynamically
    * Preserves the connection and state
    */
-  switchRenderer(newRenderer: 'blob-xyz' | 'orbital-shards' | 'stars-genesis' | 'crystal-ball'): void {
+  switchRenderer(newRenderer: 'blob-xyz' | 'orbital-shards' | 'stars-genesis' | 'crystal-ball' | 'black-hole'): void {
     if (this.currentRenderer === newRenderer) {
       logger.debug(`Already using ${newRenderer} renderer`)
       return
@@ -329,6 +363,9 @@ export class Avatar {
       this.scene.scene.remove(this.crystalBall.getMesh())
       this.crystalBall.dispose()
       this.crystalBall = null
+    } else if (this.currentRenderer === 'black-hole' && this.blackHole) {
+      this.blackHole.dispose()
+      this.blackHole = null
     }
 
     // Initialize new renderer
@@ -341,24 +378,16 @@ export class Avatar {
       this.initStarsGenesisRenderer()
     } else if (newRenderer === 'crystal-ball') {
       this.initCrystalBallRenderer()
+    } else if (newRenderer === 'black-hole') {
+      this.initBlackHoleRenderer()
     }
 
     // Restore state
     this.currentState = 'idle' // Reset first
     this.setState(savedState)
 
-    // Update background gradient for the new renderer
-    let newColors: string[]
-    if (newRenderer === 'orbital-shards') {
-      newColors = ['#050510', '#0a0a20', '#050510']
-    } else if (newRenderer === 'stars-genesis') {
-      newColors = ['#000000', '#0a0a15', '#000000']
-    } else if (newRenderer === 'crystal-ball') {
-      newColors = ['#0a0510', '#150a20', '#0a0510']
-    } else {
-      newColors = ['#0a0a1a', '#1a1a3a', '#0a0a1a']
-    }
-    this.scene.setBackground({ type: 'gradient', gradient: { colors: newColors, direction: 'radial' } })
+    // Note: Background is now controlled by ScenePanel, not by renderer switching
+    // This ensures consistent scene appearance across avatar changes
 
     logger.info(`Renderer switched to ${newRenderer}`)
   }
@@ -389,6 +418,13 @@ export class Avatar {
    */
   getCrystalBall(): CrystalBall | null {
     return this.crystalBall
+  }
+
+  /**
+   * Get the black hole instance (for direct control)
+   */
+  getBlackHole(): BlackHole | null {
+    return this.blackHole
   }
 
   /**
@@ -480,6 +516,11 @@ export class Avatar {
       this.starsGenesis?.setRandomStars()
     } else if (this.currentRenderer === 'crystal-ball') {
       this.crystalBall?.setRandomCrystalBall()
+    } else if (this.currentRenderer === 'black-hole') {
+      // Randomize black hole by changing color scheme
+      const schemes: BlackHoleColorScheme[] = ['classic', 'fire', 'ice', 'nebula', 'void']
+      const randomScheme = schemes[Math.floor(Math.random() * schemes.length)]
+      this.blackHole?.setColorScheme(randomScheme as BlackHoleColorScheme)
     }
   }
 
@@ -545,6 +586,8 @@ export class Avatar {
       this.starsGenesis?.exportGLTF()
     } else if (this.currentRenderer === 'crystal-ball') {
       this.crystalBall?.exportGLTF()
+    } else if (this.currentRenderer === 'black-hole') {
+      logger.warn('GLTF export not supported for black-hole renderer')
     }
   }
 
@@ -603,6 +646,7 @@ export class Avatar {
     this.crystal?.dispose()
     this.starsGenesis?.dispose()
     this.crystalBall?.dispose()
+    this.blackHole?.dispose()
     this.audio.dispose()
     this.scene.dispose()
   }

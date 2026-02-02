@@ -1,5 +1,5 @@
 export { Avatar } from './Avatar'
-export { Scene } from './scene'
+export { Scene, StarField, type StarFieldConfig } from './scene'
 export { KwamiAudio } from './audio'
 export { BlobXyz, BlobXyzPosition, defaultBlobXyzConfig, createSkin } from './renderers/blob-xyz'
 export { OrbitalShards, defaultOrbitalShardsConfig } from './renderers/orbital-shards'
