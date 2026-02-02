@@ -1,8 +1,8 @@
-import type { AvatarConfig, KwamiState, CrystalFormationSelection, CrystalBallStyleSelection } from '../types'
+import type { AvatarConfig, KwamiState, OrbitalShardsFormationSelection, CrystalBallStyleSelection } from '../types'
 import type { BlobXyzSkinSelection } from './renderers/blob-xyz/types'
 import { Scene } from './scene'
 import { BlobXyz } from './renderers/blob-xyz'
-import { Crystal } from './renderers/crystal'
+import { OrbitalShards } from './renderers/orbital-shards'
 import { Particles } from './renderers/particles'
 import { CrystalBall } from './renderers/crystal-ball'
 import { KwamiAudio } from './audio'
@@ -11,21 +11,21 @@ import { logger } from '../utils/logger'
 /**
  * Avatar - Manages the visual representation of Kwami
  * 
- * Supports different renderers (blob, crystal, future: humanoid, etc.)
- * The blob is the default renderer; crystal is a new geometric alternative.
+ * Supports different renderers (blob, orbital-shards, future: humanoid, etc.)
+ * The blob is the default renderer; orbital-shards is a new geometric alternative.
  */
 export class Avatar {
   private canvas: HTMLCanvasElement
   private config: AvatarConfig
   private scene: Scene
   private blobXyz: BlobXyz | null = null
-  private crystal: Crystal | null = null
+  private crystal: OrbitalShards | null = null
   private particles: Particles | null = null
   private crystalBall: CrystalBall | null = null
   private audio: KwamiAudio
   private currentState: KwamiState = 'idle'
   private resizeObserver: ResizeObserver | null = null
-  private currentRenderer: 'blob-xyz' | 'crystal' | 'particles' | 'crystal-ball' = 'blob-xyz'
+  private currentRenderer: 'blob-xyz' | 'orbital-shards' | 'particles' | 'crystal-ball' = 'blob-xyz'
 
   constructor(canvas: HTMLCanvasElement, config?: AvatarConfig) {
     this.canvas = canvas
@@ -50,9 +50,9 @@ export class Avatar {
     if (rendererType === 'blob-xyz') {
       this.currentRenderer = 'blob-xyz'
       this.initBlobXyzRenderer()
-    } else if (rendererType === 'crystal') {
-      this.currentRenderer = 'crystal'
-      this.initCrystalRenderer()
+    } else if (rendererType === 'orbital-shards') {
+      this.currentRenderer = 'orbital-shards'
+      this.initOrbitalShardsRenderer()
     } else if (rendererType === 'particles') {
       this.currentRenderer = 'particles'
       this.initParticlesRenderer()
@@ -97,22 +97,22 @@ export class Avatar {
     this.blobXyz.enableClickInteraction()
   }
 
-  private initCrystalRenderer(): void {
-    const crystalConfig = this.config.crystal ?? {}
+  private initOrbitalShardsRenderer(): void {
+    const orbitalShardsConfig = this.config.orbitalShards ?? {}
 
-    this.crystal = new Crystal({
+    this.crystal = new OrbitalShards({
       scene: this.scene.scene,
       camera: this.scene.camera,
       renderer: this.scene.renderer,
       audio: this.audio,
-      formation: crystalConfig.formation,
-      shards: crystalConfig.shards,
-      core: crystalConfig.core,
-      colors: crystalConfig.colors,
-      audioEffects: crystalConfig.audioEffects,
-      particleCount: crystalConfig.particleCount,
-      scale: crystalConfig.scale,
-      rotation: crystalConfig.rotation,
+      formation: orbitalShardsConfig.formation,
+      shards: orbitalShardsConfig.shards,
+      core: orbitalShardsConfig.core,
+      colors: orbitalShardsConfig.colors,
+      audioEffects: orbitalShardsConfig.audioEffects,
+      particleCount: orbitalShardsConfig.particleCount,
+      scale: orbitalShardsConfig.scale,
+      rotation: orbitalShardsConfig.rotation,
     })
 
     // Add crystal group to scene
@@ -216,8 +216,8 @@ export class Avatar {
       }
     }
 
-    // Handle state for crystal renderer
-    if (this.currentRenderer === 'crystal' && this.crystal) {
+    // Handle state for orbital-shards renderer
+    if (this.currentRenderer === 'orbital-shards' && this.crystal) {
       switch (state) {
         case 'idle':
           if (previousState === 'listening') this.crystal.stopListening()
@@ -290,7 +290,7 @@ export class Avatar {
   /**
    * Get the current renderer type
    */
-  getRendererType(): 'blob-xyz' | 'crystal' | 'particles' | 'crystal-ball' {
+  getRendererType(): 'blob-xyz' | 'orbital-shards' | 'particles' | 'crystal-ball' {
     return this.currentRenderer
   }
 
@@ -298,7 +298,7 @@ export class Avatar {
    * Switch to a different renderer type dynamically
    * Preserves the connection and state
    */
-  switchRenderer(newRenderer: 'blob-xyz' | 'crystal' | 'particles' | 'crystal-ball'): void {
+  switchRenderer(newRenderer: 'blob-xyz' | 'orbital-shards' | 'particles' | 'crystal-ball'): void {
     if (this.currentRenderer === newRenderer) {
       logger.debug(`Already using ${newRenderer} renderer`)
       return
@@ -314,7 +314,7 @@ export class Avatar {
       this.scene.scene.remove(this.blobXyz.getMesh())
       this.blobXyz.dispose()
       this.blobXyz = null
-    } else if (this.currentRenderer === 'crystal' && this.crystal) {
+    } else if (this.currentRenderer === 'orbital-shards' && this.crystal) {
       this.scene.scene.remove(this.crystal.getMesh())
       this.crystal.dispose()
       this.crystal = null
@@ -332,8 +332,8 @@ export class Avatar {
     this.currentRenderer = newRenderer
     if (newRenderer === 'blob-xyz') {
       this.initBlobXyzRenderer()
-    } else if (newRenderer === 'crystal') {
-      this.initCrystalRenderer()
+    } else if (newRenderer === 'orbital-shards') {
+      this.initOrbitalShardsRenderer()
     } else if (newRenderer === 'particles') {
       this.initParticlesRenderer()
     } else if (newRenderer === 'crystal-ball') {
@@ -346,7 +346,7 @@ export class Avatar {
 
     // Update background gradient for the new renderer
     let newColors: string[]
-    if (newRenderer === 'crystal') {
+    if (newRenderer === 'orbital-shards') {
       newColors = ['#050510', '#0a0a20', '#050510']
     } else if (newRenderer === 'particles') {
       newColors = ['#000000', '#0a0a15', '#000000']
@@ -368,9 +368,9 @@ export class Avatar {
   }
 
   /**
-   * Get the crystal instance (for direct control)
+   * Get the orbital shards instance (for direct control)
    */
-  getCrystal(): Crystal | null {
+  getOrbitalShards(): OrbitalShards | null {
     return this.crystal
   }
 
@@ -471,8 +471,8 @@ export class Avatar {
   randomize(): void {
     if (this.currentRenderer === 'blob-xyz') {
       this.blobXyz?.setRandomBlob()
-    } else if (this.currentRenderer === 'crystal') {
-      this.crystal?.setRandomCrystal()
+    } else if (this.currentRenderer === 'orbital-shards') {
+      this.crystal?.setRandomOrbitalShards()
     } else if (this.currentRenderer === 'particles') {
       this.particles?.setRandomParticles()
     } else if (this.currentRenderer === 'crystal-ball') {
@@ -536,7 +536,7 @@ export class Avatar {
   exportGLTF(): void {
     if (this.currentRenderer === 'blob-xyz') {
       this.blobXyz?.exportGLTF()
-    } else if (this.currentRenderer === 'crystal') {
+    } else if (this.currentRenderer === 'orbital-shards') {
       this.crystal?.exportGLTF()
     } else if (this.currentRenderer === 'particles') {
       this.particles?.exportGLTF()
@@ -546,46 +546,46 @@ export class Avatar {
   }
 
   // ===========================================================================
-  // CRYSTAL-SPECIFIC METHODS (delegated to crystal renderer)
+  // ORBITAL-SHARDS-SPECIFIC METHODS (delegated to orbital shards renderer)
   // ===========================================================================
 
   /**
-   * Set crystal formation (constellation, helix, vortex)
+   * Set orbital shards formation (constellation, helix, vortex)
    */
-  setFormation(selection: CrystalFormationSelection): void {
+  setFormation(selection: OrbitalShardsFormationSelection): void {
     this.crystal?.setFormation(selection)
   }
 
   /**
-   * Set crystal colors (primary, secondary, accent)
+   * Set orbital shards colors (primary, secondary, accent)
    */
-  setCrystalColors(primary: string, secondary: string, accent: string): void {
-    this.crystal?.setColors(primary, secondary, accent)
+  setOrbitalShardsColors(primary: string, secondary: string, accent: string): void {
+    this.crystal?.setOrbitalShardsColors(primary, secondary, accent)
   }
 
   /**
-   * Set crystal core colors
+   * Set orbital shards core colors
    */
   setCoreColors(innerColor: string, outerColor: string): void {
     this.crystal?.setCoreColors(innerColor, outerColor)
   }
 
   /**
-   * Set crystal glow intensity
+   * Set orbital shards glow intensity
    */
   setGlowIntensity(intensity: number): void {
     this.crystal?.setGlowIntensity(intensity)
   }
 
   /**
-   * Set crystal shard count
+   * Set orbital shards shard count
    */
   setShardCount(count: number): void {
     this.crystal?.setShardCount(count)
   }
 
   /**
-   * Set crystal audio reactivity
+   * Set orbital shards audio reactivity
    */
   setAudioReactivity(value: number): void {
     this.crystal?.setAudioReactivity(value)

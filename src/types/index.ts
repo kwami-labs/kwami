@@ -76,12 +76,12 @@ export interface KwamiCallbacks {
 // Avatar
 // -----------------------------------------------------------------------------
 
-export type AvatarRendererType = 'blob-xyz' | 'crystal' | 'particles' | 'crystal-ball' | 'humanoid'
+export type AvatarRendererType = 'blob-xyz' | 'orbital-shards' | 'particles' | 'crystal-ball' | 'humanoid'
 
 export interface AvatarConfig {
   renderer?: AvatarRendererType
   blob?: BlobXyzConfig
-  crystal?: CrystalConfig
+  orbitalShards?: OrbitalShardsConfig
   particles?: ParticlesConfig
   crystalBall?: CrystalBallConfig
   scene?: SceneConfig
@@ -159,7 +159,7 @@ export interface InteractionActionConfig {
   action: InteractionAction
   enabled?: boolean
   customHandler?: () => void | Promise<void>
-  rendererTarget?: 'blob-xyz' | 'crystal'
+  rendererTarget?: 'blob-xyz' | 'orbital-shards'
 }
 
 export interface InteractionConfig {
@@ -180,19 +180,19 @@ export interface InteractionConfig {
 }
 
 // -----------------------------------------------------------------------------
-// Crystal Config
+// Orbital Shards Config
 // -----------------------------------------------------------------------------
 
-export type CrystalFormation = 'constellation' | 'helix' | 'vortex'
-export type CrystalCoreStyle = 'plasma' | 'nebula' | 'pulse'
+export type OrbitalShardsFormation = 'constellation' | 'helix' | 'vortex'
+export type OrbitalShardsCoreStyle = 'plasma' | 'nebula' | 'pulse'
 
-export interface CrystalFormationSelection {
-  formation: CrystalFormation
-  coreStyle?: CrystalCoreStyle
+export interface OrbitalShardsFormationSelection {
+  formation: OrbitalShardsFormation
+  coreStyle?: OrbitalShardsCoreStyle
 }
 
-export interface CrystalConfig {
-  formation?: CrystalFormationSelection
+export interface OrbitalShardsConfig {
+  formation?: OrbitalShardsFormationSelection
   shards?: {
     count?: number
     sizeRange?: [number, number]

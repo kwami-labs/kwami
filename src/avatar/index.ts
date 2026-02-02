@@ -2,7 +2,7 @@ export { Avatar } from './Avatar'
 export { Scene } from './scene'
 export { KwamiAudio } from './audio'
 export { BlobXyz, BlobXyzPosition, defaultBlobXyzConfig, createSkin } from './renderers/blob-xyz'
-export { Crystal, defaultCrystalConfig } from './renderers/crystal'
+export { OrbitalShards, defaultOrbitalShardsConfig } from './renderers/orbital-shards'
 export { CrystalBall, defaultCrystalBallConfig } from './renderers/crystal-ball'
 export * from './renderers/types'
 
@@ -17,18 +17,18 @@ export type {
   BlobXyzAudioEffects,
 } from './renderers/blob-xyz/types'
 
-// Re-export crystal types for convenience
+// Re-export orbital shards types for convenience
 export type {
-  CrystalFormation,
+  OrbitalShardsFormation,
   CoreStyle,
-  CrystalFormationSelection,
+  OrbitalShardsFormationSelection,
   ShardConfig,
   CoreConfig,
-  CrystalAudioEffects,
-  CrystalConfig,
-  CrystalOptions,
+  OrbitalShardsAudioEffects,
+  OrbitalShardsConfig,
+  OrbitalShardsOptions,
   FormationConfig,
-} from './renderers/crystal/types'
+} from './renderers/orbital-shards/types'
 
 // Re-export crystal ball types for convenience
 export type {
