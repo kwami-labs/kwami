@@ -1,5 +1,5 @@
 import { defineConfig, type Plugin } from 'vite';
-import { resolve, dirname } from 'path';
+import { resolve, dirname, extname } from 'path';
 import { fileURLToPath } from 'url';
 import { readFileSync } from 'fs';
 
@@ -32,6 +32,46 @@ function inlineRawPlugin(): Plugin {
   }
 }
 
+/**
+ * Plugin to inline image assets as base64 data URLs in library mode.
+ * Required because preserveModules doesn't work well with external assets.
+ */
+function inlineImagePlugin(): Plugin {
+  const imageExtensions = ['.jpeg', '.jpg', '.png', '.gif', '.webp']
+  const mimeTypes: Record<string, string> = {
+    '.jpeg': 'image/jpeg',
+    '.jpg': 'image/jpeg',
+    '.png': 'image/png',
+    '.gif': 'image/gif',
+    '.webp': 'image/webp',
+  }
+
+  return {
+    name: 'inline-image',
+    enforce: 'pre',
+    resolveId(source, importer) {
+      const ext = extname(source).toLowerCase()
+      if (imageExtensions.includes(ext) && importer) {
+        const absolutePath = resolve(dirname(importer), source)
+        return `\0image:${absolutePath}`
+      }
+      return null
+    },
+    load(id) {
+      if (id.startsWith('\0image:')) {
+        const filePath = id.slice(7)
+        const ext = extname(filePath).toLowerCase()
+        const mimeType = mimeTypes[ext] || 'application/octet-stream'
+        const content = readFileSync(filePath)
+        const base64 = content.toString('base64')
+        const dataUrl = `data:${mimeType};base64,${base64}`
+        return `export default ${JSON.stringify(dataUrl)};`
+      }
+      return null
+    },
+  }
+}
+
 export default defineConfig({
   build: {
     lib: {
@@ -51,5 +91,5 @@ export default defineConfig({
     sourcemap: true,
     minify: false,
   },
-  plugins: [inlineRawPlugin()],
+  plugins: [inlineRawPlugin(), inlineImagePlugin()],
 })
