@@ -76,7 +76,7 @@ export interface KwamiCallbacks {
 // Avatar
 // -----------------------------------------------------------------------------
 
-export type AvatarRendererType = 'blob-xyz' | 'orbital-shards' | 'stars-genesis' | 'crystal-ball' | 'black-hole' | 'humanoid'
+export type AvatarRendererType = 'blob-xyz' | 'orbital-shards' | 'stars-genesis' | 'crystal-ball' | 'black-hole'
 
 export interface AvatarConfig {
   renderer?: AvatarRendererType

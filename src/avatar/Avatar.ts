@@ -13,8 +13,8 @@ import { logger } from '../utils/logger'
 /**
  * Avatar - Manages the visual representation of Kwami
  * 
- * Supports different renderers (blob, orbital-shards, future: humanoid, etc.)
- * The blob is the default renderer; orbital-shards is a new geometric alternative.
+ * Supports different renderers (blob-xyz, crystal-ball, orbital-shards, stars-genesis, black-hole, etc.)
+ * The blob-xyz is the default renderer; orbital-shards is a new geometric alternative.
  */
 export class Avatar {
   private canvas: HTMLCanvasElement
