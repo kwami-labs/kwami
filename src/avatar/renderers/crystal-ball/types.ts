@@ -31,6 +31,8 @@ export interface VolumeConfig {
   noiseScale: number
   /** Noise octaves for detail */
   noiseOctaves: number
+  /** Quality level 1-4 (controls FBM octaves and displacement complexity) */
+  quality: number
 }
 
 /**

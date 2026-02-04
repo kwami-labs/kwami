@@ -2,20 +2,21 @@ import type { CrystalBallOptionsConfig } from './types'
 
 /**
  * Default configuration for the Crystal Ball renderer
- * Ultra-optimized for smooth 60fps performance
+ * Quality controls FBM octaves: 1=fast, 2=balanced, 3=detailed, 4=maximum beauty
  */
 export const defaultCrystalBallConfig: CrystalBallOptionsConfig = {
   volume: {
-    iterations: 16,        // ultra-optimized (16 is very smooth)
-    depth: 0.6,
-    smoothing: 0.25,
-    noiseScale: 2.0,
-    noiseOctaves: 1,
+    iterations: 32,        // more iterations for better depth
+    depth: 0.6,            // tutorial default: 0.6
+    smoothing: 0.3,        // shell boundary smoothness
+    noiseScale: 2.5,       // procedural noise scale
+    noiseOctaves: 2,       // (legacy)
+    quality: 3,            // FBM octaves: 1=fast, 2=balanced, 3=detailed, 4=max
   },
 
   animation: {
-    displacementSpeed: 0.071,   // tutorial: speed 0.071
-    displacementStrength: 0.1,  // tutorial: displacement 0.1
+    displacementSpeed: 0.08,    // animation speed
+    displacementStrength: 0.25, // displacement intensity
     rotationSpeed: { x: 0, y: 0.001, z: 0 },
     pulseSpeed: 1.0,
     pulseIntensity: 0.02,
@@ -33,8 +34,8 @@ export const defaultCrystalBallConfig: CrystalBallOptionsConfig = {
   styles: {
     mystical: {
       colors: {
-        primary: '#6b5b95',    // Purple mystical
-        secondary: '#feb236',  // Golden highlight
+        primary: '#000000',    // BLACK - critical for depth effect!
+        secondary: '#00ffaa',  // Bright cyan (tutorial default)
       },
       volume: {
         noiseScale: 2.5,
@@ -129,6 +130,6 @@ export const defaultCrystalBallConfig: CrystalBallOptionsConfig = {
   scale: {
     min: 1.0,
     max: 8.0,
-    default: 4.0,
+    default: 3.0,
   },
 }

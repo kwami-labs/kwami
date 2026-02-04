@@ -1,10 +1,12 @@
 import {
   MeshStandardMaterial,
   Color,
+  Texture,
 } from 'three'
 
 /**
  * Uniforms for the crystal ball shader
+ * Based on: https://tympanus.net/codrops/2021/08/02/magical-marbles-in-three-js/
  */
 export interface CrystalBallUniforms {
   uTime: { value: number }
@@ -14,16 +16,16 @@ export interface CrystalBallUniforms {
   uDepth: { value: number }
   uSmoothing: { value: number }
   uNoiseScale: { value: number }
+  uQuality: { value: number }
   uDisplacementSpeed: { value: number }
   uDisplacementStrength: { value: number }
-  uPulseSpeed: { value: number }
-  uPulseIntensity: { value: number }
+  uHeightMap: { value: Texture | null }
+  uDisplacementMap: { value: Texture | null }
+  // Audio reactivity
   uBassLevel: { value: number }
   uMidLevel: { value: number }
   uHighLevel: { value: number }
   uAudioReactivity: { value: number }
-  uListeningTransition: { value: number }
-  uThinkingTransition: { value: number }
 }
 
 /**
@@ -36,10 +38,11 @@ export function createCrystalBallUniforms(
   depth: number,
   smoothing: number,
   noiseScale: number,
+  quality: number,
   displacementSpeed: number,
   displacementStrength: number,
-  pulseSpeed: number,
-  pulseIntensity: number,
+  heightMap: Texture | null = null,
+  displacementMap: Texture | null = null,
 ): CrystalBallUniforms {
   return {
     uTime: { value: 0 },
@@ -49,108 +52,185 @@ export function createCrystalBallUniforms(
     uDepth: { value: depth },
     uSmoothing: { value: smoothing },
     uNoiseScale: { value: noiseScale },
+    uQuality: { value: quality },
     uDisplacementSpeed: { value: displacementSpeed },
     uDisplacementStrength: { value: displacementStrength },
-    uPulseSpeed: { value: pulseSpeed },
-    uPulseIntensity: { value: pulseIntensity },
+    uHeightMap: { value: heightMap },
+    uDisplacementMap: { value: displacementMap },
     uBassLevel: { value: 0 },
     uMidLevel: { value: 0 },
     uHighLevel: { value: 0 },
     uAudioReactivity: { value: 1.0 },
-    uListeningTransition: { value: 0 },
-    uThinkingTransition: { value: 0 },
   }
 }
 
 /**
- * GLSL noise - ultra simple for maximum performance
+ * Simplex 3D Noise - the key to the "magic" depth effect
+ * This creates true 3D volumetric patterns, not just 2D textures
  */
 const noiseGLSL = /* glsl */ `
-// Super fast hash noise - single function
-float hash(vec3 p) {
-  p = fract(p * 0.3183099 + 0.1);
-  p *= 17.0;
-  return fract(p.x * p.y * p.z * (p.x + p.y + p.z));
+// Simplex 3D Noise by Ian McEwan, Ashima Arts
+vec4 permute(vec4 x) { return mod(((x*34.0)+1.0)*x, 289.0); }
+vec4 taylorInvSqrt(vec4 r) { return 1.79284291400159 - 0.85373472095314 * r; }
+
+float snoise(vec3 v) { 
+  const vec2 C = vec2(1.0/6.0, 1.0/3.0);
+  const vec4 D = vec4(0.0, 0.5, 1.0, 2.0);
+
+  vec3 i  = floor(v + dot(v, C.yyy));
+  vec3 x0 = v - i + dot(i, C.xxx);
+
+  vec3 g = step(x0.yzx, x0.xyz);
+  vec3 l = 1.0 - g;
+  vec3 i1 = min(g.xyz, l.zxy);
+  vec3 i2 = max(g.xyz, l.zxy);
+
+  vec3 x1 = x0 - i1 + C.xxx;
+  vec3 x2 = x0 - i2 + C.yyy;
+  vec3 x3 = x0 - D.yyy;
+
+  i = mod(i, 289.0);
+  vec4 p = permute(permute(permute(
+      i.z + vec4(0.0, i1.z, i2.z, 1.0))
+    + i.y + vec4(0.0, i1.y, i2.y, 1.0))
+    + i.x + vec4(0.0, i1.x, i2.x, 1.0));
+
+  float n_ = 1.0/7.0;
+  vec3 ns = n_ * D.wyz - D.xzx;
+
+  vec4 j = p - 49.0 * floor(p * ns.z * ns.z);
+
+  vec4 x_ = floor(j * ns.z);
+  vec4 y_ = floor(j - 7.0 * x_);
+
+  vec4 x = x_ * ns.x + ns.yyyy;
+  vec4 y = y_ * ns.x + ns.yyyy;
+  vec4 h = 1.0 - abs(x) - abs(y);
+
+  vec4 b0 = vec4(x.xy, y.xy);
+  vec4 b1 = vec4(x.zw, y.zw);
+
+  vec4 s0 = floor(b0)*2.0 + 1.0;
+  vec4 s1 = floor(b1)*2.0 + 1.0;
+  vec4 sh = -step(h, vec4(0.0));
+
+  vec4 a0 = b0.xzyw + s0.xzyw*sh.xxyy;
+  vec4 a1 = b1.xzyw + s1.xzyw*sh.zzww;
+
+  vec3 p0 = vec3(a0.xy, h.x);
+  vec3 p1 = vec3(a0.zw, h.y);
+  vec3 p2 = vec3(a1.xy, h.z);
+  vec3 p3 = vec3(a1.zw, h.w);
+
+  vec4 norm = taylorInvSqrt(vec4(dot(p0,p0), dot(p1,p1), dot(p2,p2), dot(p3,p3)));
+  p0 *= norm.x;
+  p1 *= norm.y;
+  p2 *= norm.z;
+  p3 *= norm.w;
+
+  vec4 m = max(0.6 - vec4(dot(x0,x0), dot(x1,x1), dot(x2,x2), dot(x3,x3)), 0.0);
+  m = m * m;
+  return 42.0 * dot(m*m, vec4(dot(p0,x0), dot(p1,x1), dot(p2,x2), dot(p3,x3)));
 }
 
-// Simple smooth noise - very fast
-float noise(vec3 p) {
-  vec3 i = floor(p);
-  vec3 f = fract(p);
-  f = f * f * (3.0 - 2.0 * f);
+// Fractal Brownian Motion - quality parameter controls octaves (1-4)
+float fbm(vec3 p, float scale, float quality) {
+  float value = 0.0;
+  float amplitude = 0.5;
+  float frequency = scale;
+  int octaves = int(quality);
   
-  return mix(
-    mix(mix(hash(i), hash(i + vec3(1,0,0)), f.x),
-        mix(hash(i + vec3(0,1,0)), hash(i + vec3(1,1,0)), f.x), f.y),
-    mix(mix(hash(i + vec3(0,0,1)), hash(i + vec3(1,0,1)), f.x),
-        mix(hash(i + vec3(0,1,1)), hash(i + vec3(1,1,1)), f.x), f.y), f.z);
+  for (int i = 0; i < 4; i++) {
+    if (i >= octaves) break;
+    value += amplitude * snoise(p * frequency);
+    frequency *= 2.0;
+    amplitude *= 0.5;
+  }
+  
+  return value;
 }
 `
 
 /**
- * GLSL raymarching - ultra optimized for smooth 60fps
+ * GLSL raymarching function - procedural noise version
+ * This creates true 3D depth by computing noise in 3D space
  */
 const raymarchGLSL = /* glsl */ `
+// Generate procedural heightmap using 3D noise
+float getHeightmap(vec3 dir, float scale, float time, float quality) {
+  vec3 animatedDir = dir;
+  animatedDir.y += time * 0.05;
+  float noise = fbm(animatedDir, scale, quality);
+  return noise * 0.5 + 0.5;
+}
+
+// Generate displacement using 3D noise
+vec3 getDisplacement(vec3 dir, float time, float speed) {
+  vec3 scroll1 = vec3(time * speed, 0.0, 0.0);
+  vec3 scroll2 = vec3(-time * speed, 0.0, 0.0);
+  
+  vec3 dispA = vec3(
+    snoise(dir * 2.0 + scroll1),
+    snoise(dir * 2.0 + scroll1 + vec3(17.0)),
+    snoise(dir * 2.0 + scroll1 + vec3(31.0))
+  );
+  
+  vec3 dispB = vec3(
+    snoise(dir * 2.0 * vec3(1.0, -1.0, 1.0) + scroll2),
+    snoise(dir * 2.0 * vec3(1.0, -1.0, 1.0) + scroll2 + vec3(17.0)),
+    snoise(dir * 2.0 * vec3(1.0, -1.0, 1.0) + scroll2 + vec3(31.0))
+  );
+  
+  return dispA + dispB;
+}
+
 vec3 marchMarble(
   vec3 rayOrigin,
   vec3 rayDir,
   float time,
   float iterations,
   float depth,
-  float smoothingFactor,
+  float smoothing,
   float noiseScale,
+  float quality,
   float dispSpeed,
   float dispStrength,
   vec3 colorA,
-  vec3 colorB,
-  float bassLevel,
-  float midLevel,
-  float highLevel,
-  float audioReactivity,
-  float listeningTransition,
-  float thinkingTransition
+  vec3 colorB
 ) {
-  // Pre-compute everything possible
-  float invIter = 1.0 / iterations;
-  vec3 deltaRay = rayDir * invIter * depth;
-  float animTime = time * dispSpeed;
-  float audioBass = bassLevel * audioReactivity;
-  float audioMid = midLevel * audioReactivity;
-  
+  float perIteration = 1.0 / iterations;
+  vec3 deltaRay = rayDir * perIteration * depth;
+
   vec3 p = rayOrigin;
   float totalVolume = 0.0;
-  
-  // Ultra simple loop - just 16 iterations default
-  for (float i = 0.0; i < 32.0; i++) {
+
+  for (float i = 0.0; i < 64.0; i++) {
     if (i >= iterations) break;
     
-    // Simple animated sample position
-    vec3 sp = p * noiseScale;
-    sp.x += sin(animTime + p.y * 3.0) * dispStrength;
-    sp.y += sin(animTime * 1.3 + p.z * 3.0) * dispStrength;
-    sp.z += animTime * 0.5;
+    vec3 dir = normalize(p);
     
-    // Single noise sample
-    float h = noise(sp) + audioBass * 0.2;
+    // 3D displacement creates the wavy motion
+    vec3 displacement = getDisplacement(dir, time, dispSpeed);
+    vec3 displaced = dir + dispStrength * displacement;
     
-    // Accumulate
-    float cutoff = 1.0 - i * invIter;
-    totalVolume += smoothstep(cutoff, cutoff + smoothingFactor, h) * invIter;
-    
+    // 3D heightmap - THIS is what creates the depth!
+    float heightMapVal = getHeightmap(normalize(displaced), noiseScale, time, quality);
+
+    // Slicing: cutoff decreases as we go deeper
+    float cutoff = 1.0 - i * perIteration;
+    float slice = smoothstep(cutoff, cutoff + smoothing, heightMapVal);
+
+    totalVolume += slice * perIteration;
     p += deltaRay;
   }
   
-  // Color mix
-  vec3 cA = colorA * (1.0 + audioMid * 0.15);
-  vec3 cB = colorB * 1.1;
-  vec3 color = mix(cA, cB, clamp(totalVolume * 2.0, 0.0, 1.0));
-  
-  return color / (1.0 + color);
+  return mix(colorA, colorB, totalVolume);
 }
 `
 
 /**
  * Create the crystal ball material with custom shader injection
+ * Following the tutorial's onBeforeCompile approach
  */
 export function createCrystalBallMaterial(
   uniforms: CrystalBallUniforms,
@@ -166,9 +246,9 @@ export function createCrystalBallMaterial(
     opacity: 1.0,
   })
 
-  // Hook into the shader compilation
-  material.onBeforeCompile = (shader: any) => {
-    // Add our uniforms to the shader
+  // Hook into the shader compilation (Step 1 from tutorial)
+  material.onBeforeCompile = (shader) => {
+    // Wire up our uniforms
     shader.uniforms.uTime = uniforms.uTime
     shader.uniforms.uColorA = uniforms.uColorA
     shader.uniforms.uColorB = uniforms.uColorB
@@ -176,42 +256,39 @@ export function createCrystalBallMaterial(
     shader.uniforms.uDepth = uniforms.uDepth
     shader.uniforms.uSmoothing = uniforms.uSmoothing
     shader.uniforms.uNoiseScale = uniforms.uNoiseScale
+    shader.uniforms.uQuality = uniforms.uQuality
     shader.uniforms.uDisplacementSpeed = uniforms.uDisplacementSpeed
     shader.uniforms.uDisplacementStrength = uniforms.uDisplacementStrength
-    shader.uniforms.uPulseSpeed = uniforms.uPulseSpeed
-    shader.uniforms.uPulseIntensity = uniforms.uPulseIntensity
     shader.uniforms.uBassLevel = uniforms.uBassLevel
     shader.uniforms.uMidLevel = uniforms.uMidLevel
     shader.uniforms.uHighLevel = uniforms.uHighLevel
     shader.uniforms.uAudioReactivity = uniforms.uAudioReactivity
-    shader.uniforms.uListeningTransition = uniforms.uListeningTransition
-    shader.uniforms.uThinkingTransition = uniforms.uThinkingTransition
 
-    // Add varying for object-space position in vertex shader
+    // Add varying for object-space position (CRITICAL for proper spherical mapping)
     shader.vertexShader = shader.vertexShader.replace(
       '#include <common>',
       /* glsl */ `
         #include <common>
-        varying vec3 vObjectPosition;
+        varying vec3 vObjectNormal;
       `
     )
 
-    // Set the object-space position in vertex shader
+    // Pass object-space normal (= position for unit sphere) to fragment shader
     shader.vertexShader = shader.vertexShader.replace(
       '#include <begin_vertex>',
       /* glsl */ `
         #include <begin_vertex>
-        vObjectPosition = position;
+        vObjectNormal = normal; // object-space normal = position direction for unit sphere
       `
     )
 
-    // Add uniform and varying declarations to fragment shader
+    // Add uniforms, noise functions, and raymarching to fragment shader
     shader.fragmentShader = shader.fragmentShader.replace(
       '#include <common>',
       /* glsl */ `
         #include <common>
         
-        varying vec3 vObjectPosition;
+        varying vec3 vObjectNormal;
         
         uniform float uTime;
         uniform vec3 uColorA;
@@ -220,45 +297,34 @@ export function createCrystalBallMaterial(
         uniform float uDepth;
         uniform float uSmoothing;
         uniform float uNoiseScale;
+        uniform float uQuality;
         uniform float uDisplacementSpeed;
         uniform float uDisplacementStrength;
-        uniform float uPulseSpeed;
-        uniform float uPulseIntensity;
         uniform float uBassLevel;
         uniform float uMidLevel;
         uniform float uHighLevel;
         uniform float uAudioReactivity;
-        uniform float uListeningTransition;
-        uniform float uThinkingTransition;
         
         ${noiseGLSL}
         ${raymarchGLSL}
       `
     )
 
-    // Replace the diffuse color calculation with our raymarching result
+    // Replace the diffuse color with our raymarched result
     shader.fragmentShader = shader.fragmentShader.replace(
       'vec4 diffuseColor = vec4( diffuse, opacity );',
       /* glsl */ `
-        // Use object-space position for raymarching (so interior rotates with mesh)
-        vec3 objectPos = normalize(vObjectPosition);
+        // Ray origin: surface point on unit sphere (object space)
+        vec3 rayOrigin = normalize(vObjectNormal);
         
-        // Get view-space normal for fresnel calculation
-        vec3 viewNormal = normalize(vNormal);
-        vec3 viewDir = normalize(-vViewPosition);
+        // Ray direction: toward center of sphere
+        vec3 rayDir = -rayOrigin;
         
-        // Ray origin is the object-space surface position (normalized to unit sphere)
-        vec3 rayOrigin = objectPos;
+        // Audio-reactive displacement boost
+        float dispBoost = 1.0 + uBassLevel * uAudioReactivity * 0.3;
+        float actualDispStrength = uDisplacementStrength * dispBoost;
         
-        // Ray direction: we march inward from the surface in object space
-        // Using negative object position gives us the direction toward center
-        vec3 rayDir = -objectPos;
-        
-        // Apply pulse breathing effect
-        float pulse = sin(uTime * uPulseSpeed) * uPulseIntensity;
-        rayOrigin *= (1.0 + pulse);
-        
-        // Perform raymarching to get the magical marble color
+        // Perform raymarching with procedural 3D noise
         vec3 marbleColor = marchMarble(
           rayOrigin,
           rayDir,
@@ -267,34 +333,22 @@ export function createCrystalBallMaterial(
           uDepth,
           uSmoothing,
           uNoiseScale,
+          uQuality,
           uDisplacementSpeed,
-          uDisplacementStrength,
+          actualDispStrength,
           uColorA,
-          uColorB,
-          uBassLevel,
-          uMidLevel,
-          uHighLevel,
-          uAudioReactivity,
-          uListeningTransition,
-          uThinkingTransition
+          uColorB
         );
         
-        // Add subtle fresnel glow at edges (using view-space for proper lighting)
-        float fresnel = pow(1.0 - abs(dot(viewDir, viewNormal)), 3.0);
-        vec3 glowColor = mix(uColorA, uColorB, 0.5) * fresnel * 0.5;
-        glowColor *= (1.0 + uHighLevel * uAudioReactivity * 0.5);
+        // Audio-reactive color boost
+        marbleColor *= (1.0 + uMidLevel * uAudioReactivity * 0.2);
         
-        // Combine marble color with fresnel glow
-        vec3 finalColor = marbleColor + glowColor;
-        
-        vec4 diffuseColor = vec4(finalColor, opacity);
+        vec4 diffuseColor = vec4(marbleColor, opacity);
       `
     )
 
-      // Store the shader reference for later updates
-      ; (material as unknown as { userData: { shader: any } }).userData = {
-        shader,
-      }
+    // Store shader reference
+    ;(material as any).userData = { shader }
   }
 
   return material
@@ -306,16 +360,12 @@ export function createCrystalBallMaterial(
 export function updateMaterialUniforms(
   uniforms: CrystalBallUniforms,
   time: number,
-  bassLevel: number,
-  midLevel: number,
-  highLevel: number,
-  listeningTransition: number,
-  thinkingTransition: number,
+  bassLevel: number = 0,
+  midLevel: number = 0,
+  highLevel: number = 0,
 ): void {
   uniforms.uTime.value = time
   uniforms.uBassLevel.value = bassLevel
   uniforms.uMidLevel.value = midLevel
   uniforms.uHighLevel.value = highLevel
-  uniforms.uListeningTransition.value = listeningTransition
-  uniforms.uThinkingTransition.value = thinkingTransition
 }

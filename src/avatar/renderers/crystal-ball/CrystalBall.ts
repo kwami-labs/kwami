@@ -1,3 +1,4 @@
+/// <reference types="../../../types/modules" />
 import {
   Mesh,
   Group,
@@ -6,8 +7,15 @@ import {
   PointLight,
   Vector2,
   Raycaster,
+  TextureLoader,
+  RepeatWrapping,
   type MeshStandardMaterial,
+  type Texture,
 } from 'three'
+
+// Import textures (inlined as base64 by vite plugin)
+import heightMapUrl from './textures/texture1.jpeg'
+import displacementMapUrl from './textures/texture2.jpeg'
 import { GLTFExporter } from 'three/examples/jsm/exporters/GLTFExporter.js'
 
 import {
@@ -55,6 +63,10 @@ export class CrystalBall {
   private sphere: Mesh
   private config = defaultCrystalBallConfig
   private uniforms: CrystalBallUniforms
+
+  // Textures for the marble effect
+  private heightMapTexture: Texture | null = null
+  private displacementMapTexture: Texture | null = null
 
   public currentStyle: CrystalBallStyleSelection
   private material: MeshStandardMaterial
@@ -146,7 +158,33 @@ export class CrystalBall {
       this.rotation = { ...this.animationConfig.rotationSpeed }
     }
 
-    // Create uniforms
+    // Load textures for the magical marble effect
+    const textureLoader = new TextureLoader()
+    
+    // Track texture loading
+    let texturesLoaded = 0
+    const onTextureLoad = () => {
+      texturesLoaded++
+      if (texturesLoaded === 2 && this.material) {
+        // Force material recompile when both textures are ready
+        this.material.needsUpdate = true
+        logger.info('Crystal ball textures loaded')
+      }
+    }
+    
+    this.heightMapTexture = textureLoader.load(heightMapUrl, onTextureLoad, undefined, (err) => {
+      logger.error('Failed to load heightMap texture', err)
+    })
+    this.heightMapTexture.wrapS = RepeatWrapping
+    this.heightMapTexture.wrapT = RepeatWrapping
+    
+    this.displacementMapTexture = textureLoader.load(displacementMapUrl, onTextureLoad, undefined, (err) => {
+      logger.error('Failed to load displacementMap texture', err)
+    })
+    this.displacementMapTexture.wrapS = RepeatWrapping
+    this.displacementMapTexture.wrapT = RepeatWrapping
+
+    // Create uniforms with procedural noise parameters
     this.uniforms = createCrystalBallUniforms(
       this.colors.primary,
       this.colors.secondary,
@@ -154,10 +192,11 @@ export class CrystalBall {
       this.volumeConfig.depth,
       this.volumeConfig.smoothing,
       this.volumeConfig.noiseScale,
+      this.volumeConfig.quality,
       this.animationConfig.displacementSpeed,
       this.animationConfig.displacementStrength,
-      this.animationConfig.pulseSpeed,
-      this.animationConfig.pulseIntensity,
+      this.heightMapTexture,
+      this.displacementMapTexture,
     )
 
     // Create material
@@ -273,8 +312,6 @@ export class CrystalBall {
         audioLevels.bass * this.audioEffects.reactivity,
         audioLevels.mid * this.audioEffects.reactivity,
         audioLevels.high * this.audioEffects.reactivity,
-        this.listeningTransition,
-        this.thinkingTransition,
       )
 
       // Apply rotation
@@ -337,8 +374,8 @@ export class CrystalBall {
       ...this.config.volume,
       ...styleConfig.volume,
     }
-    this.uniforms.uNoiseScale.value = this.volumeConfig.noiseScale
     this.uniforms.uIterations.value = this.volumeConfig.iterations
+    this.uniforms.uDepth.value = this.volumeConfig.depth
     this.uniforms.uSmoothing.value = this.volumeConfig.smoothing
 
     // Update animation config
@@ -445,11 +482,30 @@ export class CrystalBall {
   }
 
   /**
-   * Set noise scale
+   * Set noise scale for procedural noise
    */
   setNoiseScale(scale: number): void {
     this.volumeConfig.noiseScale = Math.max(0.5, Math.min(5.0, scale))
-    this.uniforms.uNoiseScale.value = this.volumeConfig.noiseScale
+    if (this.uniforms) {
+      this.uniforms.uNoiseScale.value = this.volumeConfig.noiseScale
+    }
+  }
+
+  /**
+   * Set quality level (1-4, controls FBM octaves)
+   */
+  setQuality(quality: number): void {
+    this.volumeConfig.quality = Math.max(1, Math.min(4, Math.round(quality)))
+    if (this.uniforms) {
+      this.uniforms.uQuality.value = this.volumeConfig.quality
+    }
+  }
+
+  /**
+   * Get current quality level
+   */
+  getQuality(): number {
+    return this.volumeConfig.quality ?? 2
   }
 
   // ==========================================================================
@@ -473,19 +529,19 @@ export class CrystalBall {
   }
 
   /**
-   * Set pulse speed
+   * Set pulse speed (kept for API compatibility)
    */
   setPulseSpeed(speed: number): void {
     this.animationConfig.pulseSpeed = Math.max(0, Math.min(5.0, speed))
-    this.uniforms.uPulseSpeed.value = this.animationConfig.pulseSpeed
+    // Note: pulse removed from shader - using texture-based approach now
   }
 
   /**
-   * Set pulse intensity
+   * Set pulse intensity (kept for API compatibility)
    */
   setPulseIntensity(intensity: number): void {
     this.animationConfig.pulseIntensity = Math.max(0, Math.min(0.3, intensity))
-    this.uniforms.uPulseIntensity.value = this.animationConfig.pulseIntensity
+    // Note: pulse removed from shader - using texture-based approach now
   }
 
   // ==========================================================================
@@ -869,6 +925,16 @@ export class CrystalBall {
     // Dispose sphere
     this.sphere.geometry.dispose()
     this.material.dispose()
+
+    // Dispose textures
+    if (this.heightMapTexture) {
+      this.heightMapTexture.dispose()
+      this.heightMapTexture = null
+    }
+    if (this.displacementMapTexture) {
+      this.displacementMapTexture.dispose()
+      this.displacementMapTexture = null
+    }
 
     // Remove lights
     if (this.lights) {
