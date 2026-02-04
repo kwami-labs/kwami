@@ -72,6 +72,10 @@ export class StarsGenesis {
   private explosionProgress = 0
   private smoothedAudioLevel = 0
   private lastFrameTime = 0
+  
+  // Orientation (base rotation in radians, set by user)
+  public orientation = { x: 0, y: 0, z: 0 }
+  private accumulatedRotation = { x: 0, y: 0, z: 0 }
 
   // Smooth transition state
   private targetFormation: StarData[] = []
@@ -365,12 +369,17 @@ export class StarsGenesis {
   private applyIdleAnimations(delta: number): void {
     if (!this.animation.enabled) return
 
-    // Auto rotation
+    // Auto rotation - accumulate rotation then apply with orientation
     if (this.animation.rotation.enabled) {
-      this.group.rotation.x += this.animation.rotation.speedX * delta
-      this.group.rotation.y += this.animation.rotation.speedY * delta
-      this.group.rotation.z += this.animation.rotation.speedZ * delta
+      this.accumulatedRotation.x += this.animation.rotation.speedX * delta
+      this.accumulatedRotation.y += this.animation.rotation.speedY * delta
+      this.accumulatedRotation.z += this.animation.rotation.speedZ * delta
     }
+    
+    // Apply orientation + accumulated rotation
+    this.group.rotation.x = this.orientation.x + this.accumulatedRotation.x
+    this.group.rotation.y = this.orientation.y + this.accumulatedRotation.y
+    this.group.rotation.z = this.orientation.z + this.accumulatedRotation.z
 
     // Floating animation affects the whole group
     if (this.animation.floating.enabled) {
@@ -664,6 +673,22 @@ export class StarsGenesis {
 
   public getMesh(): THREE.Group {
     return this.group
+  }
+
+  /**
+   * Set base orientation (in radians)
+   */
+  public setOrientation(x: number, y: number, z: number): void {
+    this.orientation = { x, y, z }
+    // Reset accumulated rotation when orientation changes
+    this.accumulatedRotation = { x: 0, y: 0, z: 0 }
+  }
+
+  /**
+   * Get base orientation
+   */
+  public getOrientation(): { x: number; y: number; z: number } {
+    return { ...this.orientation }
   }
 
   public startListening(): void {

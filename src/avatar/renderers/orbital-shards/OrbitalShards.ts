@@ -100,6 +100,8 @@ export class OrbitalShards {
 
   // Animation parameters
   public rotation = { x: 0, y: 0.002, z: 0 }
+  public orientation = { x: 0, y: 0, z: 0 } // Base orientation in radians
+  private accumulatedRotation = { x: 0, y: 0, z: 0 } // Accumulated rotation from animation
   public scale = 1.0
   public colors: { primary: string; secondary: string; accent: string }
 
@@ -305,6 +307,8 @@ export class OrbitalShards {
         this.rotation,
         this.listeningTransition,
         this.thinkingTransition,
+        this.orientation,
+        this.accumulatedRotation,
       )
 
       // Render
@@ -442,6 +446,22 @@ export class OrbitalShards {
    */
   getRotation(): { x: number; y: number; z: number } {
     return { ...this.rotation }
+  }
+
+  /**
+   * Set base orientation (in radians)
+   */
+  setOrientation(x: number, y: number, z: number): void {
+    this.orientation = { x, y, z }
+    // Reset accumulated rotation when orientation changes
+    this.accumulatedRotation = { x: 0, y: 0, z: 0 }
+  }
+
+  /**
+   * Get base orientation
+   */
+  getOrientation(): { x: number; y: number; z: number } {
+    return { ...this.orientation }
   }
 
   /**

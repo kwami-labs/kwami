@@ -212,11 +212,27 @@ export function animateOrbitalShards(
   rotation: { x: number; y: number; z: number },
   listeningTransition: number,
   thinkingTransition: number,
+  orientation?: { x: number; y: number; z: number },
+  accumulatedRotation?: { x: number; y: number; z: number },
 ): void {
-  // Global rotation
-  group.rotation.x += rotation.x
-  group.rotation.y += rotation.y
-  group.rotation.z += rotation.z
+  // Update accumulated rotation by adding rotation speed
+  if (accumulatedRotation) {
+    accumulatedRotation.x += rotation.x
+    accumulatedRotation.y += rotation.y
+    accumulatedRotation.z += rotation.z
+  }
+
+  // Apply orientation + accumulated rotation
+  if (orientation && accumulatedRotation) {
+    group.rotation.x = orientation.x + accumulatedRotation.x
+    group.rotation.y = orientation.y + accumulatedRotation.y
+    group.rotation.z = orientation.z + accumulatedRotation.z
+  } else {
+    // Fallback to original behavior
+    group.rotation.x += rotation.x
+    group.rotation.y += rotation.y
+    group.rotation.z += rotation.z
+  }
 
   // Animate individual components
   animateShards(shards, time, audioLevels, effects, listeningTransition, thinkingTransition)

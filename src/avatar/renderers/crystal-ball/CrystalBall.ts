@@ -107,6 +107,8 @@ export class CrystalBall {
 
   // Animation parameters
   public rotation = { x: 0, y: 0.001, z: 0 }
+  public orientation = { x: 0, y: 0, z: 0 } // Base orientation in radians
+  private accumulatedRotation = { x: 0, y: 0, z: 0 } // Accumulated rotation from animation
   public scale = 1.0
   public colors: { primary: string; secondary: string }
 
@@ -314,10 +316,14 @@ export class CrystalBall {
         audioLevels.high * this.audioEffects.reactivity,
       )
 
-      // Apply rotation
-      this.group.rotation.x += this.rotation.x
-      this.group.rotation.y += this.rotation.y
-      this.group.rotation.z += this.rotation.z
+      // Accumulate rotation and apply with orientation
+      this.accumulatedRotation.x += this.rotation.x
+      this.accumulatedRotation.y += this.rotation.y
+      this.accumulatedRotation.z += this.rotation.z
+      
+      this.group.rotation.x = this.orientation.x + this.accumulatedRotation.x
+      this.group.rotation.y = this.orientation.y + this.accumulatedRotation.y
+      this.group.rotation.z = this.orientation.z + this.accumulatedRotation.z
 
       // Render
       this.options.renderer.render(this.options.scene, this.options.camera)
@@ -351,6 +357,22 @@ export class CrystalBall {
    */
   getGroup(): Group {
     return this.group
+  }
+
+  /**
+   * Set base orientation (in radians)
+   */
+  setOrientation(x: number, y: number, z: number): void {
+    this.orientation = { x, y, z }
+    // Reset accumulated rotation when orientation changes
+    this.accumulatedRotation = { x: 0, y: 0, z: 0 }
+  }
+
+  /**
+   * Get base orientation
+   */
+  getOrientation(): { x: number; y: number; z: number } {
+    return { ...this.orientation }
   }
 
   // ==========================================================================

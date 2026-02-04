@@ -93,6 +93,9 @@ export class BlackHole {
   private audioMid = 0
   private audioHigh = 0
   
+  // Orientation (base rotation in radians)
+  public orientation = { x: 0, y: 0, z: 0 }
+  
   constructor(
     scene: THREE.Scene,
     camera: THREE.PerspectiveCamera,
@@ -605,6 +608,24 @@ export class BlackHole {
   
   public getMesh(): THREE.Mesh {
     return this.blackHoleMesh
+  }
+  
+  /**
+   * Set base orientation (in radians)
+   */
+  public setOrientation(x: number, y: number, z: number): void {
+    this.orientation = { x, y, z }
+    // Apply orientation directly to group
+    this.group.rotation.x = x
+    this.group.rotation.y = y
+    this.group.rotation.z = z
+  }
+  
+  /**
+   * Get base orientation
+   */
+  public getOrientation(): { x: number; y: number; z: number } {
+    return { ...this.orientation }
   }
   
   // Handle resize
