@@ -214,6 +214,62 @@ export class Agent {
     this.syncConfigToBackend('llm', options)
   }
 
+  /**
+   * Update STT settings mid-conversation (provider, model, language)
+   * Note: Changing STT provider requires agent restart on the backend
+   */
+  updateSttLive(options: {
+    provider?: string
+    model?: string
+    language?: string
+  }): void {
+    logger.info('🎤 updateSttLive called with:', options)
+    logger.info('🔌 Pipeline connected:', this.pipeline?.isConnected() ?? false)
+    this.syncConfigToBackend('voice', {
+      stt_provider: options.provider,
+      stt_model: options.model,
+      stt_language: options.language,
+    })
+  }
+
+  /**
+   * Update TTS settings mid-conversation (provider, model, voice, speed)
+   * Note: Changing TTS provider requires agent restart on the backend
+   */
+  updateTtsLive(options: {
+    provider?: string
+    model?: string
+    voice?: string
+    speed?: number
+  }): void {
+    logger.info('🔊 updateTtsLive called with:', options)
+    logger.info('🔌 Pipeline connected:', this.pipeline?.isConnected() ?? false)
+    this.syncConfigToBackend('voice', {
+      tts_provider: options.provider,
+      tts_model: options.model,
+      tts_voice: options.voice,
+      tts_speed: options.speed,
+    })
+  }
+
+  /**
+   * Update Realtime model settings mid-conversation (provider, model, voice)
+   * Note: Changing provider requires agent restart on the backend
+   */
+  updateRealtimeLive(options: {
+    provider?: string
+    model?: string
+    voice?: string
+  }): void {
+    logger.info('⚡ updateRealtimeLive called with:', options)
+    logger.info('🔌 Pipeline connected:', this.pipeline?.isConnected() ?? false)
+    this.syncConfigToBackend('voice', {
+      realtime_provider: options.provider,
+      realtime_model: options.model,
+      realtime_voice: options.voice,
+    })
+  }
+
   // ---------------------------------------------------------------------------
   // Callbacks
   // ---------------------------------------------------------------------------
