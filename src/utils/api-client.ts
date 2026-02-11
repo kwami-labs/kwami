@@ -52,7 +52,7 @@ export async function getMemoryGraph(
     userId: string,
     options?: ApiClientOptions
 ): Promise<MemoryGraph> {
-    const url = `${apiBaseUrl}/memory/${userId}/graph`
+    const url = `${apiBaseUrl}/memory/${userId}/graph?limit=1000`
     const response = await fetch(url, {
         headers: buildHeaders(options),
     })
@@ -73,19 +73,32 @@ export async function getMemoryGraph(
  * @param userId User ID to fetch memory for
  * @param options Optional settings including auth token
  */
+export interface PaginatedFacts {
+    facts: string[]
+    count: number
+    total: number
+    offset: number
+    limit: number
+    has_more: boolean
+}
+
 export async function getUserFacts(
     apiBaseUrl: string,
     userId: string,
-    options?: ApiClientOptions
-): Promise<string[]> {
-    const url = `${apiBaseUrl}/memory/${userId}/facts`
+    options?: ApiClientOptions & { limit?: number; offset?: number }
+): Promise<PaginatedFacts> {
+    const params = new URLSearchParams()
+    if (options?.limit !== undefined) params.set('limit', String(options.limit))
+    if (options?.offset !== undefined) params.set('offset', String(options.offset))
+    const qs = params.toString()
+    const url = `${apiBaseUrl}/memory/${userId}/facts${qs ? `?${qs}` : ''}`
     const response = await fetch(url, {
         headers: buildHeaders(options),
     })
 
     if (!response.ok) {
         if (response.status === 404) {
-            return []
+            return { facts: [], count: 0, total: 0, offset: 0, limit: 50, has_more: false }
         }
         throw new Error(`Failed to fetch facts: ${response.statusText}`)
     }
@@ -551,6 +564,50 @@ export async function reorganizeGraph(
     if (!response.ok) {
         const err = await response.json().catch(() => ({}))
         throw new Error(err.detail || `Failed to reorganize graph: ${response.statusText}`)
+    }
+
+    return response.json()
+}
+
+// =============================================================================
+// Connect Nodes
+// =============================================================================
+
+export interface ConnectNodesPayload {
+    source_node_uuid: string
+    target_node_uuid: string
+    relation: string
+    fact?: string
+}
+
+export interface ConnectNodesResult {
+    success: boolean
+    edge_uuid: string | null
+    source_node_uuid: string
+    target_node_uuid: string
+    relation: string
+    fact: string
+}
+
+/**
+ * Create a new edge (relationship) between two existing nodes
+ */
+export async function connectNodes(
+    apiBaseUrl: string,
+    userId: string,
+    payload: ConnectNodesPayload,
+    options?: ApiClientOptions
+): Promise<ConnectNodesResult> {
+    const url = `${apiBaseUrl}/memory/${userId}/connect`
+    const response = await fetch(url, {
+        method: 'POST',
+        headers: buildHeaders(options),
+        body: JSON.stringify(payload),
+    })
+
+    if (!response.ok) {
+        const err = await response.json().catch(() => ({}))
+        throw new Error(err.detail || `Failed to connect nodes: ${response.statusText}`)
     }
 
     return response.json()
