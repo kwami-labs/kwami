@@ -2,9 +2,11 @@ import type {
   TrackPublication,
   RemoteTrack,
   RemoteParticipant,
+  Participant,
   LocalParticipant,
   DataPacket_Kind,
-  LocalAudioTrack
+  LocalAudioTrack,
+  TranscriptionSegment,
 } from 'livekit-client';
 import {
   Room,
@@ -112,6 +114,22 @@ interface AgentDataMessage {
 }
 
 /**
+ * LiveKit agent state participant attribute key.
+ * The LiveKit Agents SDK automatically sets this attribute on the agent
+ * participant to reflect the current pipeline state.
+ */
+const AGENT_STATE_ATTRIBUTE = 'lk.agent.state'
+
+/**
+ * Check whether a participant is the agent (not a regular user).
+ */
+function isAgentParticipant(participant: Participant | RemoteParticipant): boolean {
+  const identity = participant.identity.toLowerCase()
+  return identity.startsWith('agent') ||
+    (identity.includes('kwami') && !identity.includes('user'))
+}
+
+/**
  * LiveKit Pipeline Implementation
  * 
  * Handles the actual WebRTC connection to LiveKit and voice pipeline management.
@@ -190,6 +208,17 @@ class LiveKitPipeline implements AgentPipeline {
 
       logger.info(`Connected to LiveKit room: ${this.room.name}`)
 
+      // Check for agent participant that may already be in the room
+      for (const [, p] of this.room.remoteParticipants) {
+        if (isAgentParticipant(p)) {
+          const agentState = p.attributes?.[AGENT_STATE_ATTRIBUTE]
+          if (agentState) {
+            logger.info('Found existing agent state on connect:', agentState)
+            this.applyAgentState(agentState)
+          }
+        }
+      }
+
       // Publish local audio track (microphone)
       if (this.config.audioInputEnabled !== false) {
         await this.publishMicrophone()
@@ -232,12 +261,7 @@ class LiveKitPipeline implements AgentPipeline {
 
       if (track.kind === Track.Kind.Audio) {
         // Only play audio from the agent participant, not other users
-        // Agent identity is 'agent-...' or similar, NOT 'kwami-user-...'
-        const identity = participant.identity.toLowerCase()
-        const isAgent = identity.startsWith('agent') ||
-          (identity.includes('kwami') && !identity.includes('user'))
-
-        if (!isAgent) {
+        if (!isAgentParticipant(participant)) {
           logger.debug(`Skipping audio from non-agent participant: ${participant.identity}`)
           return
         }
@@ -251,20 +275,6 @@ class LiveKitPipeline implements AgentPipeline {
 
         // Connect agent audio to the avatar's audio analyzer for visualization
         this.connectAgentAudioToAvatar(track)
-
-        // Update state to speaking when agent audio plays
-        audioElement.onplay = () => {
-          this.voiceSession.setState('speaking')
-        }
-        audioElement.onended = () => {
-          this.voiceSession.setState('listening')
-        }
-        audioElement.onpause = () => {
-          // Only switch to listening if fully stopped, not just buffering
-          if (audioElement.ended || audioElement.currentTime === 0) {
-            this.voiceSession.setState('listening')
-          }
-        }
       }
     })
 
@@ -295,9 +305,36 @@ class LiveKitPipeline implements AgentPipeline {
       }
     })
 
-    // Participant connected (agent joins)
-    this.room.on(RoomEvent.ParticipantConnected, (participant: RemoteParticipant) => {
-      logger.info(`Participant connected: ${participant.identity}`)
+    // Transcriptions from the LiveKit Agents SDK (user speech + agent text).
+    // The agent's STT publishes transcriptions for the user's track, and the
+    // agent's LLM/TTS text is published for the agent's track.
+    this.room.on(RoomEvent.TranscriptionReceived, (
+      segments: TranscriptionSegment[],
+      participant?: Participant,
+      _publication?: TrackPublication,
+    ) => {
+      const fromAgent = participant ? isAgentParticipant(participant) : false
+
+      for (const segment of segments) {
+        if (fromAgent) {
+          // Agent text output (LLM response transcript)
+          if (segment.final && segment.text) {
+            this.agentTextCb?.(segment.text)
+            this.voiceSession.triggerAgentSpeechEnded(segment.text)
+          }
+        } else {
+          // User speech transcript from the agent's STT
+          if (segment.final && segment.text) {
+            this.userSpeechCb?.(segment.text)
+            this.voiceSession.triggerUserSpeechEnded(segment.text)
+            // Immediate thinking fallback; lk.agent.state will refine it.
+            this.voiceSession.setState('thinking')
+          } else if (segment.text) {
+            this.interimTranscriptCb?.(segment.text)
+            this.voiceSession.triggerTranscript(segment.text, false)
+          }
+        }
+      }
     })
 
     // Participant disconnected
@@ -308,6 +345,36 @@ class LiveKitPipeline implements AgentPipeline {
     // Local track published
     this.room.on(RoomEvent.LocalTrackPublished, (publication, _participant: LocalParticipant) => {
       logger.debug(`Local track published: ${publication.kind}`)
+    })
+
+    // Agent state via participant attributes (ground truth from LiveKit Agents SDK).
+    // The agent pipeline automatically sets `lk.agent.state` on its participant
+    // to reflect the real pipeline state (listening, thinking, speaking).
+    // This overrides the local fallback states set in handleAgentData / audio events.
+    this.room.on(RoomEvent.ParticipantAttributesChanged, (
+      changedAttributes: Record<string, string>,
+      participant: Participant
+    ) => {
+      if (!isAgentParticipant(participant)) return
+
+      const agentState = changedAttributes[AGENT_STATE_ATTRIBUTE]
+      if (agentState) {
+        logger.info('Agent state (lk.agent.state):', agentState)
+        this.applyAgentState(agentState)
+      }
+    })
+
+    // When the agent participant connects, read its current attributes
+    // to pick up any state set before we joined.
+    this.room.on(RoomEvent.ParticipantConnected, (participant: RemoteParticipant) => {
+      logger.info(`Participant connected: ${participant.identity}`)
+      if (isAgentParticipant(participant)) {
+        const agentState = participant.attributes?.[AGENT_STATE_ATTRIBUTE]
+        if (agentState) {
+          logger.info('Initial agent state from attributes:', agentState)
+          this.applyAgentState(agentState)
+        }
+      }
     })
 
     // Audio playback status changed
@@ -333,6 +400,18 @@ class LiveKitPipeline implements AgentPipeline {
     this.room.on(RoomEvent.Reconnected, () => {
       logger.info('Reconnected to room')
     })
+  }
+
+  /**
+   * Apply a validated agent state string to the voice session.
+   */
+  private applyAgentState(agentState: string): void {
+    const validStates = ['initializing', 'listening', 'thinking', 'speaking'] as const
+    type AgentStateValue = typeof validStates[number]
+
+    if ((validStates as readonly string[]).includes(agentState)) {
+      this.voiceSession.setState(agentState as AgentStateValue)
+    }
   }
 
   /**
@@ -368,6 +447,8 @@ class LiveKitPipeline implements AgentPipeline {
           this.endSTTTracking()
           this.userSpeechCb?.(data.transcript)
           this.voiceSession.triggerUserSpeechEnded(data.transcript)
+          // Immediate local fallback so the avatar reacts right away.
+          // The real agent state from lk.agent.state will override if needed.
           this.voiceSession.setState('thinking')
         } else if (data.transcript) {
           // Interim transcript
@@ -524,6 +605,12 @@ class LiveKitPipeline implements AgentPipeline {
       await this.room.disconnect()
       this.room = null
     }
+
+    // Clear cached room name so the next connection creates a fresh room.
+    // Reusing the same room name can cause the old (shutting-down) agent to
+    // receive config meant for the new session, or LiveKit to dispatch a
+    // second agent into a room that still has a lingering one.
+    this.config.roomName = undefined
 
     this.voiceSession.setState('idle')
   }
