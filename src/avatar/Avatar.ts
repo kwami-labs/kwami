@@ -231,11 +231,11 @@ export class Avatar {
 
     // Handle state for blob renderer
     if (this.currentRenderer === 'blob-xyz' && this.blobXyz) {
+      // Clean up previous state
+      if (previousState === 'listening' && state !== 'listening') this.blobXyz.stopListening()
+      if (previousState === 'thinking' && state !== 'thinking') this.blobXyz.stopThinking()
+
       switch (state) {
-        case 'idle':
-          if (previousState === 'listening') this.blobXyz.stopListening()
-          if (previousState === 'thinking') this.blobXyz.stopThinking()
-          break
         case 'listening':
           this.blobXyz.startListening()
           break
@@ -243,18 +243,18 @@ export class Avatar {
           this.blobXyz.startThinking()
           break
         case 'speaking':
-          // Speaking state is driven by audio automatically
+        case 'idle':
+          // These states are driven by audio / connection lifecycle
           break
       }
     }
 
     // Handle state for orbital-shards renderer
     if (this.currentRenderer === 'orbital-shards' && this.crystal) {
+      if (previousState === 'listening' && state !== 'listening') this.crystal.stopListening()
+      if (previousState === 'thinking' && state !== 'thinking') this.crystal.stopThinking()
+
       switch (state) {
-        case 'idle':
-          if (previousState === 'listening') this.crystal.stopListening()
-          if (previousState === 'thinking') this.crystal.stopThinking()
-          break
         case 'listening':
           this.crystal.startListening()
           break
@@ -262,18 +262,17 @@ export class Avatar {
           this.crystal.startThinking()
           break
         case 'speaking':
-          // Speaking state is driven by audio automatically
+        case 'idle':
           break
       }
     }
 
     // Handle state for stars genesis renderer
     if (this.currentRenderer === 'stars-genesis' && this.starsGenesis) {
+      if (previousState === 'listening' && state !== 'listening') this.starsGenesis.stopListening()
+      if (previousState === 'thinking' && state !== 'thinking') this.starsGenesis.stopThinking()
+
       switch (state) {
-        case 'idle':
-          if (previousState === 'listening') this.starsGenesis.stopListening()
-          if (previousState === 'thinking') this.starsGenesis.stopThinking()
-          break
         case 'listening':
           this.starsGenesis.startListening()
           break
@@ -281,18 +280,17 @@ export class Avatar {
           this.starsGenesis.startThinking()
           break
         case 'speaking':
-          // Speaking state is driven by audio automatically
+        case 'idle':
           break
       }
     }
 
     // Handle state for crystal-ball renderer
     if (this.currentRenderer === 'crystal-ball' && this.crystalBall) {
+      if (previousState === 'listening' && state !== 'listening') this.crystalBall.stopListening()
+      if (previousState === 'thinking' && state !== 'thinking') this.crystalBall.stopThinking()
+
       switch (state) {
-        case 'idle':
-          if (previousState === 'listening') this.crystalBall.stopListening()
-          if (previousState === 'thinking') this.crystalBall.stopThinking()
-          break
         case 'listening':
           this.crystalBall.startListening()
           break
@@ -300,7 +298,7 @@ export class Avatar {
           this.crystalBall.startThinking()
           break
         case 'speaking':
-          // Speaking state is driven by audio automatically
+        case 'idle':
           break
       }
     }
