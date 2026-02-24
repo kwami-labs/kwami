@@ -102,7 +102,7 @@ export class LiveKitAdapter implements AgentAdapter {
  * Data message types from the backend agent
  */
 interface AgentDataMessage {
-  type: 'transcript' | 'agent_text' | 'state' | 'error' | 'metrics' | 'tool_call'
+  type: 'transcript' | 'agent_text' | 'state' | 'error' | 'metrics' | 'tool_call' | 'search_results'
   toolCallId?: string
   function?: { name: string; arguments: string }
   transcript?: string
@@ -505,6 +505,21 @@ class LiveKitPipeline implements AgentPipeline {
             })
         } else {
           logger.warn('Received tool_call but no executor configured or missing data', data)
+        }
+        break
+
+      case 'search_results':
+        // Server-side web search results (from LiveKit agent) for UI display
+        if (data.query !== undefined && Array.isArray(data.results) && typeof window !== 'undefined') {
+          window.dispatchEvent(
+            new CustomEvent('kwami:search_results', {
+              detail: {
+                query: data.query,
+                results: data.results,
+                answer: data.answer ?? null,
+              },
+            }),
+          )
         }
         break
     }
