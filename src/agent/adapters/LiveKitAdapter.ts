@@ -111,6 +111,10 @@ interface AgentDataMessage {
   state?: 'listening' | 'thinking' | 'speaking'
   error?: string
   metrics?: VoiceLatencyMetrics
+  /** search_results payload from agent web_search tool */
+  query?: string
+  results?: Array<{ title: string; url: string; content: string }>
+  answer?: string
 }
 
 /**
@@ -291,14 +295,20 @@ class LiveKitPipeline implements AgentPipeline {
     // Data received - transcripts and agent messages come through here
     this.room.on(RoomEvent.DataReceived, (
       payload: Uint8Array,
-      _participant?: RemoteParticipant,
+      participant?: RemoteParticipant,
       _kind?: DataPacket_Kind
     ) => {
       try {
         const decoder = new TextDecoder()
         const jsonStr = decoder.decode(payload)
         const data: AgentDataMessage = JSON.parse(jsonStr)
-
+        if (data.type === 'search_results') {
+          logger.info('DataReceived search_results', {
+            from: participant?.identity ?? 'unknown',
+            query: data.query,
+            resultsCount: data.results?.length ?? 0,
+          })
+        }
         this.handleAgentData(data)
       } catch (error) {
         logger.error('Failed to parse data message:', error)
@@ -492,7 +502,7 @@ class LiveKitPipeline implements AgentPipeline {
           let args: Record<string, unknown> = {}
           try {
             args = JSON.parse(fn.arguments)
-          } catch (e) {
+          } catch {
             logger.error('Failed to parse tool arguments', fn.arguments)
           }
 
@@ -510,16 +520,27 @@ class LiveKitPipeline implements AgentPipeline {
 
       case 'search_results':
         // Server-side web search results (from LiveKit agent) for UI display
-        if (data.query !== undefined && Array.isArray(data.results) && typeof window !== 'undefined') {
-          window.dispatchEvent(
-            new CustomEvent('kwami:search_results', {
-              detail: {
-                query: data.query,
-                results: data.results,
-                answer: data.answer ?? null,
-              },
-            }),
-          )
+        if (data.query !== undefined && Array.isArray(data.results)) {
+          const payload = {
+            query: data.query,
+            results: data.results,
+            answer: data.answer ?? null,
+          }
+          logger.info('Search results received, updating UI', { query: data.query, resultsCount: data.results.length })
+          this.config.onSearchResults?.(payload)
+          if (typeof window !== 'undefined') {
+            window.dispatchEvent(
+              new CustomEvent('kwami:search_results', {
+                detail: payload,
+              }),
+            )
+          }
+        } else {
+          logger.warn('search_results ignored: missing query/results or not in browser', {
+            hasQuery: data.query !== undefined,
+            isArray: Array.isArray(data.results),
+            inBrowser: typeof window !== 'undefined',
+          })
         }
         break
     }
