@@ -113,7 +113,7 @@ interface AgentDataMessage {
   metrics?: VoiceLatencyMetrics
   /** search_results payload from agent web_search tool */
   query?: string
-  results?: Array<{ title: string; url: string; content: string }>
+  results?: Array<{ title: string; url: string; content: string; image?: string; features?: string[] }>
   answer?: string
 }
 
@@ -526,7 +526,8 @@ class LiveKitPipeline implements AgentPipeline {
             results: data.results,
             answer: data.answer ?? null,
           }
-          logger.info('Search results received, updating UI', { query: data.query, resultsCount: data.results.length })
+          const withImage = data.results?.filter((r: { image?: string }) => r?.image).length ?? 0
+          logger.info('Search results received, updating UI', { query: data.query, resultsCount: data.results.length, withImage })
           this.config.onSearchResults?.(payload)
           if (typeof window !== 'undefined') {
             window.dispatchEvent(
