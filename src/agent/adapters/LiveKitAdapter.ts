@@ -131,6 +131,8 @@ interface AgentDataMessage {
   is_loading?: boolean
   /** nav_command fields */
   action?: string
+  description?: string
+  inputText?: string
 }
 
 /**
@@ -160,6 +162,7 @@ class LiveKitPipeline implements AgentPipeline {
   private room: Room | null = null
   private localAudioTrack: LocalAudioTrack | null = null
   private agentAudioStream: MediaStream | null = null
+  private _sendDataHandler: EventListener | null = null
 
   // Timestamps for latency tracking
   private sttStartTime = 0
@@ -247,6 +250,9 @@ class LiveKitPipeline implements AgentPipeline {
       // Send voice config to backend agent via data channel
       await this.sendVoiceConfig(options)
 
+      // Listen for data that the playground UI wants to send back to the agent
+      this.setupClientToAgentDataRelay()
+
       this.voiceSession.setState('listening')
       logger.info('LiveKit pipeline connected')
     } catch (error) {
@@ -254,6 +260,23 @@ class LiveKitPipeline implements AgentPipeline {
       this.voiceSession.setState('idle')
       throw error
     }
+  }
+
+  /**
+   * Relay data from the playground UI to the agent via the LiveKit data channel.
+   * UI components dispatch kwami:send_data with a Uint8Array payload.
+   */
+  private setupClientToAgentDataRelay(): void {
+    if (typeof window === 'undefined') return
+    this._sendDataHandler = ((e: CustomEvent) => {
+      if (!this.room) return
+      const payload = e.detail as Uint8Array
+      if (payload) {
+        this.room.localParticipant.publishData(payload, { reliable: true })
+          .catch(err => logger.warn('Failed to relay data to agent:', err))
+      }
+    }) as EventListener
+    window.addEventListener('kwami:send_data', this._sendDataHandler)
   }
 
   /**
@@ -604,10 +627,15 @@ class LiveKitPipeline implements AgentPipeline {
         break
 
       case 'nav_command':
-        logger.info('Navigation command:', data.action, data.url)
+        logger.info('Navigation command:', data.action, data.url || data.description)
         if (typeof window !== 'undefined') {
           window.dispatchEvent(new CustomEvent('kwami:nav_command', {
-            detail: { action: data.action, url: data.url },
+            detail: {
+              action: data.action,
+              url: data.url,
+              description: data.description,
+              text: data.inputText,
+            },
           }))
         }
         break
@@ -699,6 +727,12 @@ class LiveKitPipeline implements AgentPipeline {
 
   async disconnect(): Promise<void> {
     logger.info('LiveKit pipeline disconnecting...')
+
+    // Remove client-to-agent data relay
+    if (this._sendDataHandler && typeof window !== 'undefined') {
+      window.removeEventListener('kwami:send_data', this._sendDataHandler)
+      this._sendDataHandler = null
+    }
 
     // Stop local audio track
     if (this.localAudioTrack) {
