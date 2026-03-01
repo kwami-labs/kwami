@@ -10,6 +10,7 @@ export class BlobXyzPosition {
   private mesh: Mesh
   private camera: PerspectiveCamera
   private canvas: HTMLCanvasElement
+  private _animationId: number | null = null
 
   constructor(mesh: Mesh, camera: PerspectiveCamera, canvas: HTMLCanvasElement) {
     this.mesh = mesh
@@ -68,6 +69,43 @@ export class BlobXyzPosition {
     this._x = 0.5
     this._y = 0.5
     this.updatePosition()
+    return this
+  }
+
+  /**
+   * Smoothly animate to a target position over a given duration.
+   * Uses requestAnimationFrame for smooth interpolation.
+   */
+  animateTo(targetX: number, targetY: number, durationMs: number = 600): BlobXyzPosition {
+    if (this._animationId !== null) {
+      cancelAnimationFrame(this._animationId)
+      this._animationId = null
+    }
+
+    const startX = this._x
+    const startY = this._y
+    const tx = Math.max(0, Math.min(1, targetX))
+    const ty = Math.max(0, Math.min(1, targetY))
+    const startTime = performance.now()
+
+    const step = (now: number) => {
+      const elapsed = now - startTime
+      const progress = Math.min(elapsed / durationMs, 1)
+      // Ease-out cubic
+      const ease = 1 - Math.pow(1 - progress, 3)
+
+      this._x = startX + (tx - startX) * ease
+      this._y = startY + (ty - startY) * ease
+      this.updatePosition()
+
+      if (progress < 1) {
+        this._animationId = requestAnimationFrame(step)
+      } else {
+        this._animationId = null
+      }
+    }
+
+    this._animationId = requestAnimationFrame(step)
     return this
   }
 
