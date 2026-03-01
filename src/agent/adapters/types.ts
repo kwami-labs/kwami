@@ -115,8 +115,27 @@ export interface LiveKitAdapterConfig extends LiveKitConfig {
   /** Called when agent sends web search results (same data as kwami:search_results event) */
   onSearchResults?: (data: {
     query: string
-    results: Array<{ title: string; url: string; content: string; image?: string; features?: string[] }>
+    results: Array<{
+      title: string
+      url: string
+      content: string
+      image?: string
+      features?: string[]
+      product_name?: string
+      price?: string | null
+    }>
     answer: string | null
+  }) => void
+
+  /** Called when agent starts browser navigation */
+  onNavigationStarted?: () => void
+  /** Called when agent ends browser navigation */
+  onNavigationEnded?: () => void
+  /** Called when navigation state changes (URL, title, loading) */
+  onNavigationState?: (state: {
+    url?: string
+    title?: string
+    isLoading?: boolean
   }) => void
 }
 

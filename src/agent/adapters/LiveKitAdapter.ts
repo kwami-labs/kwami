@@ -102,7 +102,7 @@ export class LiveKitAdapter implements AgentAdapter {
  * Data message types from the backend agent
  */
 interface AgentDataMessage {
-  type: 'transcript' | 'agent_text' | 'state' | 'error' | 'metrics' | 'tool_call' | 'search_results'
+  type: 'transcript' | 'agent_text' | 'state' | 'error' | 'metrics' | 'tool_call' | 'search_results' | 'remove_result' | 'navigation_state' | 'navigation_started' | 'navigation_ended' | 'nav_command'
   toolCallId?: string
   function?: { name: string; arguments: string }
   transcript?: string
@@ -113,8 +113,24 @@ interface AgentDataMessage {
   metrics?: VoiceLatencyMetrics
   /** search_results payload from agent web_search tool */
   query?: string
-  results?: Array<{ title: string; url: string; content: string; image?: string; features?: string[] }>
+  results?: Array<{
+    title: string
+    url: string
+    content: string
+    image?: string
+    features?: string[]
+    product_name?: string
+    price?: string | null
+  }>
   answer?: string
+  /** remove_result: agent asks client to remove card at this index */
+  index?: number
+  /** navigation_state fields */
+  url?: string
+  title?: string
+  is_loading?: boolean
+  /** nav_command fields */
+  action?: string
 }
 
 /**
@@ -280,6 +296,7 @@ class LiveKitPipeline implements AgentPipeline {
         // Connect agent audio to the avatar's audio analyzer for visualization
         this.connectAgentAudioToAvatar(track)
       }
+
     })
 
     // Track unsubscribed
@@ -544,7 +561,71 @@ class LiveKitPipeline implements AgentPipeline {
           })
         }
         break
+
+      case 'remove_result':
+        if (typeof data.index === 'number') {
+          if (typeof window !== 'undefined') {
+            window.dispatchEvent(new CustomEvent('kwami:remove_result', { detail: { index: data.index } }))
+          }
+        }
+        break
+
+      case 'navigation_started':
+        logger.info('Navigation started')
+        if (typeof window !== 'undefined') {
+          window.dispatchEvent(new CustomEvent('kwami:navigation_started'))
+        }
+        this.config.onNavigationStarted?.()
+        break
+
+      case 'navigation_ended':
+        logger.info('Navigation ended')
+        if (typeof window !== 'undefined') {
+          window.dispatchEvent(new CustomEvent('kwami:navigation_ended'))
+        }
+        this.config.onNavigationEnded?.()
+        break
+
+      case 'navigation_state':
+        if (typeof window !== 'undefined') {
+          window.dispatchEvent(new CustomEvent('kwami:navigation_state', {
+            detail: {
+              url: data.url,
+              title: data.title,
+              isLoading: data.is_loading,
+            },
+          }))
+        }
+        this.config.onNavigationState?.({
+          url: data.url,
+          title: data.title,
+          isLoading: data.is_loading,
+        })
+        break
+
+      case 'nav_command':
+        logger.info('Navigation command:', data.action, data.url)
+        if (typeof window !== 'undefined') {
+          window.dispatchEvent(new CustomEvent('kwami:nav_command', {
+            detail: { action: data.action, url: data.url },
+          }))
+        }
+        break
     }
+  }
+
+  /**
+   * Send "find similar" request to the agent (from a search result card).
+   * The agent will run a new product search for similar items.
+   */
+  sendSearchSimilar(title: string, url: string): void {
+    if (!this.room) return
+    const message = { type: 'search_similar' as const, title: String(title).slice(0, 200), url: String(url).slice(0, 500) }
+    const encoder = new TextEncoder()
+    const data = encoder.encode(JSON.stringify(message))
+    this.room.localParticipant.publishData(data, { reliable: true })
+      .then(() => logger.info('Sent search_similar to agent'))
+      .catch((err) => logger.warn('Failed to send search_similar:', err))
   }
 
   /**

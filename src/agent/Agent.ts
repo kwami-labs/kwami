@@ -169,10 +169,21 @@ export class Agent {
   }
 
   /**
-   * Get the current pipeline (for direct access to sendConfigUpdate)
+   * Get the current pipeline (for direct access to sendConfigUpdate, sendSearchSimilar, etc.)
    */
   getPipeline(): AgentPipeline | null {
     return this.pipeline
+  }
+
+  /**
+   * Ask the agent to search for similar products to the given result (e.g. from "Find similar" on a card).
+   */
+  sendSearchSimilar(title: string, url: string): void {
+    const pipeline = this.getPipeline()
+    if (pipeline && 'sendSearchSimilar' in pipeline) {
+      (pipeline as AgentPipeline & { sendSearchSimilar: (title: string, url: string) => void })
+        .sendSearchSimilar(title, url)
+    }
   }
 
   /**
