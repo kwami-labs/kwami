@@ -1,0 +1,266 @@
+import type { PersonaConfig, EmotionalTraits, MemoryContext } from '../types'
+import { logger } from '../utils/logger'
+
+/**
+ * Persona - Manages the AI's personality and identity
+ * 
+ * The Persona defines:
+ * - Name and identity
+ * - Personality traits
+ * - System prompts
+ * - Conversation style
+ * - Emotional characteristics
+ */
+export class Persona {
+  private config: PersonaConfig
+
+  constructor(config?: PersonaConfig) {
+    this.config = config ?? this.getDefaultConfig()
+  }
+
+  private getDefaultConfig(): PersonaConfig {
+    return {
+      name: 'Kwami',
+      personality: 'A friendly and helpful AI companion',
+      systemPrompt: 'You are Kwami, a friendly AI companion. Be helpful, clear, and engaging.',
+      traits: ['friendly', 'helpful', 'curious'],
+      language: 'en',
+      conversationStyle: 'friendly',
+      responseLength: 'medium',
+      emotionalTone: 'warm',
+      emotionalTraits: this.getDefaultEmotionalTraits(),
+    }
+  }
+
+  private getDefaultEmotionalTraits(): EmotionalTraits {
+    return {
+      happiness: 0,
+      energy: 0,
+      confidence: 0,
+      calmness: 0,
+      optimism: 0,
+      socialness: 0,
+      creativity: 0,
+      patience: 0,
+      empathy: 0,
+      curiosity: 0,
+    }
+  }
+
+  /**
+   * Get the complete system prompt for AI configuration
+   * Optionally includes memory context
+   */
+  getSystemPrompt(memoryContext?: MemoryContext): string {
+    const {
+      systemPrompt,
+      personality,
+      traits,
+      conversationStyle,
+      responseLength,
+      emotionalTone,
+    } = this.config
+
+    let prompt = systemPrompt ?? ''
+
+    if (personality) {
+      prompt += `\n\nPersonality: ${personality}`
+    }
+
+    if (traits && traits.length > 0) {
+      prompt += `\n\nKey traits: ${traits.join(', ')}`
+    }
+
+    if (conversationStyle) {
+      prompt += `\n\nConversation style: ${conversationStyle}`
+    }
+
+    if (responseLength) {
+      const lengthGuide = {
+        short: 'Keep responses brief and concise (1-2 sentences).',
+        medium: 'Provide balanced responses with enough detail (2-4 sentences).',
+        long: 'Give comprehensive, detailed responses when appropriate.',
+      }
+      prompt += `\n\n${lengthGuide[responseLength]}`
+    }
+
+    if (emotionalTone) {
+      const toneGuide = {
+        neutral: 'Maintain a balanced, objective tone.',
+        warm: 'Express warmth and friendliness in your interactions.',
+        enthusiastic: 'Show enthusiasm and energy in your responses.',
+        calm: 'Maintain a calm, soothing demeanor.',
+      }
+      prompt += `\n\n${toneGuide[emotionalTone]}`
+    }
+
+    // Include memory context if provided
+    if (memoryContext) {
+      if (memoryContext.summary) {
+        prompt += `\n\n## What you remember about this user:\n${memoryContext.summary}`
+      }
+      if (memoryContext.facts && memoryContext.facts.length > 0) {
+        prompt += `\n\n## Key facts:\n${memoryContext.facts.map((f: string) => `- ${f}`).join('\n')}`
+      }
+    }
+
+    return prompt.trim()
+  }
+
+  /**
+   * Get the persona's name
+   */
+  getName(): string {
+    return this.config.name ?? 'Kwami'
+  }
+
+  /**
+   * Set the persona's name
+   */
+  setName(name: string): void {
+    this.config.name = name
+  }
+
+  /**
+   * Get all traits
+   */
+  getTraits(): string[] {
+    return this.config.traits ?? []
+  }
+
+  /**
+   * Add a trait
+   */
+  addTrait(trait: string): void {
+    if (!this.config.traits) {
+      this.config.traits = []
+    }
+    if (!this.config.traits.includes(trait)) {
+      this.config.traits.push(trait)
+    }
+  }
+
+  /**
+   * Remove a trait
+   */
+  removeTrait(trait: string): void {
+    if (this.config.traits) {
+      this.config.traits = this.config.traits.filter(t => t !== trait)
+    }
+  }
+
+  /**
+   * Get conversation style
+   */
+  getConversationStyle(): string | undefined {
+    return this.config.conversationStyle
+  }
+
+  /**
+   * Set conversation style
+   */
+  setConversationStyle(style: string): void {
+    this.config.conversationStyle = style
+  }
+
+  /**
+   * Get response length preference
+   */
+  getResponseLength(): 'short' | 'medium' | 'long' | undefined {
+    return this.config.responseLength
+  }
+
+  /**
+   * Set response length preference
+   */
+  setResponseLength(length: 'short' | 'medium' | 'long'): void {
+    this.config.responseLength = length
+  }
+
+  /**
+   * Get emotional tone
+   */
+  getEmotionalTone(): 'neutral' | 'warm' | 'enthusiastic' | 'calm' | undefined {
+    return this.config.emotionalTone
+  }
+
+  /**
+   * Set emotional tone
+   */
+  setEmotionalTone(tone: 'neutral' | 'warm' | 'enthusiastic' | 'calm'): void {
+    this.config.emotionalTone = tone
+  }
+
+  /**
+   * Get emotional traits
+   */
+  getEmotionalTraits(): EmotionalTraits | undefined {
+    return this.config.emotionalTraits
+  }
+
+  /**
+   * Set a specific emotional trait (-100 to 100)
+   */
+  setEmotionalTrait(trait: keyof EmotionalTraits, value: number): void {
+    if (!this.config.emotionalTraits) {
+      this.config.emotionalTraits = this.getDefaultEmotionalTraits()
+    }
+    this.config.emotionalTraits[trait] = Math.max(-100, Math.min(100, value))
+  }
+
+  /**
+   * Get language
+   */
+  getLanguage(): string {
+    return this.config.language ?? 'en'
+  }
+
+  /**
+   * Set language
+   */
+  setLanguage(language: string): void {
+    this.config.language = language
+  }
+
+  /**
+   * Get the full configuration
+   */
+  getConfig(): PersonaConfig {
+    return { ...this.config }
+  }
+
+  /**
+   * Update configuration
+   */
+  updateConfig(config: Partial<PersonaConfig>): void {
+    this.config = { ...this.config, ...config }
+  }
+
+  /**
+   * Load persona from a template name
+   */
+  loadTemplate(templateName: string): void {
+    // TODO: Implement template loading
+    logger.info(`Loading template: ${templateName}`)
+  }
+
+  /**
+   * Export persona as JSON string
+   */
+  exportAsJSON(): string {
+    return JSON.stringify(this.config, null, 2)
+  }
+
+  /**
+   * Import persona from JSON string
+   */
+  importFromJSON(json: string): void {
+    try {
+      const config = JSON.parse(json) as PersonaConfig
+      this.config = { ...this.config, ...config }
+    } catch (error) {
+      logger.error('Failed to import persona:', error)
+      throw error
+    }
+  }
+}

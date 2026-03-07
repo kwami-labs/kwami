@@ -1,0 +1,63 @@
+{
+  "name": "kwami-ai",
+  "version": "0.0.1",
+  "description": "3D AI companion library with voice, memory, and tools",
+  "type": "module",
+  "main": "./dist/index.js",
+  "module": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "import": "./dist/index.js",
+      "types": "./dist/index.d.ts"
+    }
+  },
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "build": "vite build && tsc --emitDeclarationOnly",
+    "dev": "vite build --watch",
+    "clean": "rm -rf dist",
+    "typecheck": "tsc --noEmit",
+    "lint": "eslint \"src/**/*.ts\" \"pg/src/**/*.ts\" \"scripts/**/*.ts\"",
+    "lint:fix": "eslint \"src/**/*.ts\" \"pg/src/**/*.ts\" \"scripts/**/*.ts\" --fix",
+    "format": "prettier --write \"src/**/*.ts\" \"pg/src/**/*.ts\" \"scripts/**/*.ts\"",
+    "format:check": "prettier --check \"src/**/*.ts\" \"pg/src/**/*.ts\" \"scripts/**/*.ts\"",
+    "test": "vitest",
+    "test:run": "vitest run"
+  },
+  "keywords": [
+    "ai",
+    "voice",
+    "agent",
+    "companion",
+    "3d",
+    "threejs",
+    "livekit",
+    "mcp"
+  ],
+  "author": "Alex Colls",
+  "license": "Apache-2.0",
+  "dependencies": {
+    "livekit-client": "^2.6.0",
+    "simplex-noise": "^4.0.3",
+    "three": ">=0.160.0"
+  },
+  "devDependencies": {
+    "@eslint/js": "^9.18.0",
+    "@types/node": "25.0.9",
+    "@types/three": "^0.170.0",
+    "eslint": "^9.18.0",
+    "globals": "^15.14.0",
+    "jiti": "2.6.1",
+    "prettier": "^3.4.2",
+    "typescript": "^5.7.0",
+    "typescript-eslint": "^8.20.0",
+    "vite": "^6.0.0",
+    "vitest": "^4.0.18"
+  },
+  "peerDependencies": {
+    "three": ">=0.160.0"
+  }
+}
