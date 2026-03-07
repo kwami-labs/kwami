@@ -1,6 +1,6 @@
 {
-  "name": "kwami-ai",
-  "version": "0.0.1",
+  "name": "kwami",
+  "version": "0.1.0",
   "description": "3D AI companion library with voice, memory, and tools",
   "type": "module",
   "main": "./dist/index.js",

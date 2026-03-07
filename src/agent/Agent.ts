@@ -1,4 +1,4 @@
-import type { AgentConfig, AgentPipeline, PipelineConnectOptions, PersonaConfig, ToolDefinition } from '../types'
+import type { AgentConfig, AgentPipeline, PipelineConnectOptions, SoulConfig, ToolDefinition } from '../types'
 import type { AgentAdapter } from './adapters/types'
 import type { VoicePipelineConfig } from './voice/types'
 import { LiveKitAdapter } from './adapters/LiveKitAdapter'
@@ -7,7 +7,7 @@ import { logger } from '../utils/logger'
 // Forward declaration to avoid circular dependency
 interface KwamiRef {
   id: string
-  persona: { getConfig(): PersonaConfig }
+  soul: { getConfig(): SoulConfig }
 }
 
 /**
@@ -153,8 +153,8 @@ export class Agent {
    * This sends a data message to the running agent to update its config
    */
   syncConfigToBackend(
-    type: 'voice' | 'persona' | 'tools' | 'full' | 'llm',
-    config: VoicePipelineConfig | PersonaConfig | ToolDefinition[] | Record<string, unknown>
+    type: 'voice' | 'soul' | 'tools' | 'full' | 'llm',
+    config: VoicePipelineConfig | SoulConfig | ToolDefinition[] | Record<string, unknown>
   ): void {
     if (!this.pipeline?.isConnected()) {
       logger.warn('Cannot sync config: not connected')

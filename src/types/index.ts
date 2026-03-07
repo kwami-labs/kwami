@@ -59,7 +59,7 @@ export type KwamiState = 'idle' | 'listening' | 'thinking' | 'speaking'
 export interface KwamiConfig {
   avatar?: AvatarConfig
   agent?: AgentConfig
-  persona?: PersonaConfig
+  soul?: SoulConfig
   memory?: MemoryConfig
   tools?: ToolsConfig
   skills?: SkillsConfig
@@ -714,8 +714,8 @@ export interface PipelineConnectOptions {
   roomName?: string
   /** LiveKit token */
   token?: string
-  /** Persona configuration (personality, system prompt, traits) */
-  persona?: PersonaConfig & {
+  /** Soul configuration (personality, system prompt, traits) */
+  soul?: SoulConfig & {
     systemPrompt?: string
   }
   /** Voice pipeline configuration (STT, LLM, TTS) */
@@ -740,10 +740,10 @@ export interface ToolDefinition {
 }
 
 // -----------------------------------------------------------------------------
-// Persona
+// Soul
 // -----------------------------------------------------------------------------
 
-export interface PersonaConfig {
+export interface SoulConfig {
   name?: string
   personality?: string
   systemPrompt?: string

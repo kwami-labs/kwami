@@ -8,7 +8,7 @@ export { Kwami } from './Kwami'
 // Modules
 export { Avatar, Scene, StarField, type StarFieldConfig, BlobXyz, BlobXyzPosition, OrbitalShards, CrystalBall, KwamiAudio, createSkin, defaultBlobXyzConfig, defaultOrbitalShardsConfig, defaultCrystalBallConfig } from './avatar'
 export { Agent } from './agent'
-export { Persona } from './persona'
+export { Soul } from './soul'
 export { Memory } from './memory'
 export { ToolRegistry } from './tools'
 export { SkillManager } from './skills'
@@ -112,8 +112,8 @@ export type {
   VoiceConfig,
   ToolDefinition,
 
-  // Persona
-  PersonaConfig,
+  // Soul
+  SoulConfig,
   EmotionalTraits,
 
   // Memory

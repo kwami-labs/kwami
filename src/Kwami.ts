@@ -1,7 +1,7 @@
 import type { KwamiConfig, KwamiState, KwamiCallbacks, MemoryContext, MemorySearchResult } from './types'
 import { Avatar } from './avatar'
 import { Agent } from './agent'
-import { Persona } from './persona'
+import { Soul } from './soul'
 import { Memory } from './memory'
 import { ToolRegistry } from './tools'
 import { SkillManager } from './skills'
@@ -26,7 +26,7 @@ const kwamiRegistry = new Map<string, Kwami>()
  * Each Kwami instance is a unique AI agent with its own:
  * - Avatar: Visual representation (3D blob, crystal, etc.)
  * - Agent: Voice pipeline (STT, LLM, TTS) deployed to LiveKit
- * - Persona: Personality, traits, and behavior
+ * - Soul: Personality, traits, and behavior
  * - Memory: Long-term recall (Zep)
  * - Tools: External capabilities (MCP)
  * - Skills: Native behaviors
@@ -38,13 +38,13 @@ const kwamiRegistry = new Map<string, Kwami>()
  * ```typescript
  * // Create a friendly assistant
  * const luna = new Kwami(canvas, {
- *   persona: { name: 'Luna', personality: 'friendly and creative' },
+ *   soul: { name: 'Luna', personality: 'friendly and creative' },
  *   agent: { voice: { llm: { model: 'gpt-4o' } } },
  * })
  * 
  * // Create a professional analyst
  * const atlas = new Kwami(canvas2, {
- *   persona: { name: 'Atlas', personality: 'professional and analytical' },
+ *   soul: { name: 'Atlas', personality: 'professional and analytical' },
  *   agent: { voice: { llm: { model: 'claude-3-opus' } } },
  * })
  * 
@@ -53,7 +53,7 @@ const kwamiRegistry = new Map<string, Kwami>()
  * await atlas.connect('user-123')
  * 
  * // Update config on the fly
- * luna.persona.setEmotionalTone('enthusiastic')
+ * luna.soul.setEmotionalTone('enthusiastic')
  * atlas.updateVoice({ tts: { voice: 'nova' } })
  * ```
  */
@@ -68,7 +68,7 @@ export class Kwami {
   public agent: Agent
   
   /** Personality and prompts */
-  public persona: Persona
+  public soul: Soul
   
   /** Long-term memory */
   public memory: Memory
@@ -111,7 +111,7 @@ export class Kwami {
     // Initialize all modules
     this.avatar = new Avatar(canvas, config?.avatar)
     this.agent = new Agent(config?.agent, this)  // Pass Kwami reference for config sync
-    this.persona = new Persona(config?.persona)
+    this.soul = new Soul(config?.soul)
     this.memory = new Memory(config?.memory)
     this.tools = new ToolRegistry(config?.tools)
     this.skills = new SkillManager(config?.skills)
@@ -125,7 +125,7 @@ export class Kwami {
     // Register this instance
     kwamiRegistry.set(this.id, this)
 
-    logger.info(`Kwami "${this.persona.getName()}" (${this.id}) initialized`)
+    logger.info(`Kwami "${this.soul.getName()}" (${this.id}) initialized`)
   }
 
   /**
@@ -187,15 +187,15 @@ export class Kwami {
   getFullConfig(): {
     kwamiId: string
     kwamiName: string
-    persona: ReturnType<Persona['getConfig']>
+    soul: ReturnType<Soul['getConfig']>
     voice: ReturnType<Agent['getVoiceConfig']>
     tools: ReturnType<ToolRegistry['getToolDefinitions']>
     skills: string[]
   } {
     return {
       kwamiId: this.id,
-      kwamiName: this.persona.getName(),
-      persona: this.persona.getConfig(),
+      kwamiName: this.soul.getName(),
+      soul: this.soul.getConfig(),
       voice: this.agent.getVoiceConfig(),
       tools: this.tools.getToolDefinitions(),
       skills: this.skills.getSkillNames(),
@@ -229,7 +229,7 @@ export class Kwami {
       }
 
       // Get system prompt with memory context
-      const systemPrompt = this.persona.getSystemPrompt(memoryContext)
+      const systemPrompt = this.soul.getSystemPrompt(memoryContext)
 
       // Get tool definitions
       const tools = this.tools.getToolDefinitions()
@@ -239,17 +239,17 @@ export class Kwami {
       // Use userId for kwamiId to ensure memory persistence across sessions
       await this.agent.connect({
         kwamiId: this.userId,
-        kwamiName: this.persona.getName(),
-        persona: {
+        kwamiName: this.soul.getName(),
+        soul: {
           systemPrompt,
-          ...this.persona.getConfig(),
+          ...this.soul.getConfig(),
         },
         voice: this.agent.getVoiceConfig(),
         tools,
       })
 
       this.setState('listening')
-      logger.info(`Kwami "${this.persona.getName()}" (${this.id}) connected with userId: ${this.userId}`)
+      logger.info(`Kwami "${this.soul.getName()}" (${this.id}) connected with userId: ${this.userId}`)
     } catch (error) {
       logger.error(`Kwami "${this.id}" failed to connect:`, error)
       this.setState('idle')
@@ -263,7 +263,7 @@ export class Kwami {
   async disconnect(): Promise<void> {
     await this.agent.disconnect()
     this.setState('idle')
-    logger.info(`Kwami "${this.persona.getName()}" (${this.id}) disconnected`)
+    logger.info(`Kwami "${this.soul.getName()}" (${this.id}) disconnected`)
   }
 
   /**
@@ -315,13 +315,13 @@ export class Kwami {
   }
 
   /**
-   * Update persona configuration on the fly
+   * Update soul configuration on the fly
    * Changes are synced to the backend agent immediately
    */
-  updatePersona(config: Parameters<Persona['updateConfig']>[0]): void {
-    this.persona.updateConfig(config)
+  updateSoul(config: Parameters<Soul['updateConfig']>[0]): void {
+    this.soul.updateConfig(config)
     if (this.isConnected()) {
-      this.agent.syncConfigToBackend('persona', this.persona.getConfig())
+      this.agent.syncConfigToBackend('soul', this.soul.getConfig())
     }
   }
 
@@ -399,6 +399,6 @@ export class Kwami {
     // Unregister from global registry
     kwamiRegistry.delete(this.id)
     
-    logger.info(`Kwami "${this.persona.getName()}" (${this.id}) disposed`)
+    logger.info(`Kwami "${this.soul.getName()}" (${this.id}) disposed`)
   }
 }

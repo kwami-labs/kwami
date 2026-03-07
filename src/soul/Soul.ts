@@ -1,24 +1,24 @@
-import type { PersonaConfig, EmotionalTraits, MemoryContext } from '../types'
+import type { SoulConfig, EmotionalTraits, MemoryContext } from '../types'
 import { logger } from '../utils/logger'
 
 /**
- * Persona - Manages the AI's personality and identity
+ * Soul - Manages the AI's personality and identity
  * 
- * The Persona defines:
+ * The Soul defines:
  * - Name and identity
  * - Personality traits
  * - System prompts
  * - Conversation style
  * - Emotional characteristics
  */
-export class Persona {
-  private config: PersonaConfig
+export class Soul {
+  private config: SoulConfig
 
-  constructor(config?: PersonaConfig) {
+  constructor(config?: SoulConfig) {
     this.config = config ?? this.getDefaultConfig()
   }
 
-  private getDefaultConfig(): PersonaConfig {
+  private getDefaultConfig(): SoulConfig {
     return {
       name: 'Kwami',
       personality: 'A friendly and helpful AI companion',
@@ -108,14 +108,14 @@ export class Persona {
   }
 
   /**
-   * Get the persona's name
+   * Get the soul's name
    */
   getName(): string {
     return this.config.name ?? 'Kwami'
   }
 
   /**
-   * Set the persona's name
+   * Set the soul's name
    */
   setName(name: string): void {
     this.config.name = name
@@ -225,19 +225,19 @@ export class Persona {
   /**
    * Get the full configuration
    */
-  getConfig(): PersonaConfig {
+  getConfig(): SoulConfig {
     return { ...this.config }
   }
 
   /**
    * Update configuration
    */
-  updateConfig(config: Partial<PersonaConfig>): void {
+  updateConfig(config: Partial<SoulConfig>): void {
     this.config = { ...this.config, ...config }
   }
 
   /**
-   * Load persona from a template name
+   * Load soul from a template name
    */
   loadTemplate(templateName: string): void {
     // TODO: Implement template loading
@@ -245,21 +245,21 @@ export class Persona {
   }
 
   /**
-   * Export persona as JSON string
+   * Export soul as JSON string
    */
   exportAsJSON(): string {
     return JSON.stringify(this.config, null, 2)
   }
 
   /**
-   * Import persona from JSON string
+   * Import soul from JSON string
    */
   importFromJSON(json: string): void {
     try {
-      const config = JSON.parse(json) as PersonaConfig
+      const config = JSON.parse(json) as SoulConfig
       this.config = { ...this.config, ...config }
     } catch (error) {
-      logger.error('Failed to import persona:', error)
+      logger.error('Failed to import soul:', error)
       throw error
     }
   }

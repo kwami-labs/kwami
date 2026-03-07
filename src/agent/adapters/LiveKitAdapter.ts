@@ -652,7 +652,7 @@ class LiveKitPipeline implements AgentPipeline {
 
   /**
    * Send full Kwami config to backend agent for initial setup
-   * This includes persona, voice pipeline, tools, and unique identifiers
+   * This includes soul, voice pipeline, tools, and unique identifiers
    */
   private async sendVoiceConfig(options: PipelineConnectOptions): Promise<void> {
     if (!this.room) return
@@ -666,8 +666,8 @@ class LiveKitPipeline implements AgentPipeline {
       kwamiName: options.kwamiName,
       // Voice pipeline configuration (STT, LLM, TTS, etc.)
       voice: options.voice ?? this.voiceSession.toLiveKitConfig(),
-      // Persona configuration (personality, system prompt, traits)
-      persona: options.persona,
+      // Soul configuration (personality, system prompt, traits)
+      soul: options.soul,
       // Tool definitions
       tools: options.tools,
       // Timestamp for debugging
@@ -858,7 +858,7 @@ class LiveKitPipeline implements AgentPipeline {
 
   /**
    * Send a configuration update to the backend agent in real-time
-   * Allows changing persona, voice settings, or tools without reconnecting
+   * Allows changing soul, voice settings, or tools without reconnecting
    */
   sendConfigUpdate(type: string, config: unknown): void {
     logger.info(`📤 sendConfigUpdate called: type=${type}`)
@@ -872,7 +872,7 @@ class LiveKitPipeline implements AgentPipeline {
 
     const message = {
       type: 'config_update',
-      updateType: type,  // 'voice' | 'persona' | 'tools' | 'full' | 'llm'
+      updateType: type,  // 'voice' | 'soul' | 'tools' | 'full' | 'llm'
       config,
       timestamp: Date.now(),
     }
