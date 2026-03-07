@@ -102,7 +102,7 @@ export class LiveKitAdapter implements AgentAdapter {
  * Data message types from the backend agent
  */
 interface AgentDataMessage {
-  type: 'transcript' | 'agent_text' | 'state' | 'error' | 'metrics' | 'tool_call' | 'search_results' | 'remove_result' | 'navigation_state' | 'navigation_started' | 'navigation_ended' | 'nav_command'
+  type: 'transcript' | 'agent_text' | 'state' | 'error' | 'metrics' | 'tool_call' | 'search_results' | 'remove_result' | 'nav_command'
   toolCallId?: string
   function?: { name: string; arguments: string }
   transcript?: string
@@ -125,14 +125,12 @@ interface AgentDataMessage {
   answer?: string
   /** remove_result: agent asks client to remove card at this index */
   index?: number
-  /** navigation_state fields */
-  url?: string
-  title?: string
-  is_loading?: boolean
   /** nav_command fields */
   action?: string
+  url?: string
   description?: string
   inputText?: string
+  element_id?: string
 }
 
 /**
@@ -593,39 +591,6 @@ class LiveKitPipeline implements AgentPipeline {
         }
         break
 
-      case 'navigation_started':
-        logger.info('Navigation started')
-        if (typeof window !== 'undefined') {
-          window.dispatchEvent(new CustomEvent('kwami:navigation_started'))
-        }
-        this.config.onNavigationStarted?.()
-        break
-
-      case 'navigation_ended':
-        logger.info('Navigation ended')
-        if (typeof window !== 'undefined') {
-          window.dispatchEvent(new CustomEvent('kwami:navigation_ended'))
-        }
-        this.config.onNavigationEnded?.()
-        break
-
-      case 'navigation_state':
-        if (typeof window !== 'undefined') {
-          window.dispatchEvent(new CustomEvent('kwami:navigation_state', {
-            detail: {
-              url: data.url,
-              title: data.title,
-              isLoading: data.is_loading,
-            },
-          }))
-        }
-        this.config.onNavigationState?.({
-          url: data.url,
-          title: data.title,
-          isLoading: data.is_loading,
-        })
-        break
-
       case 'nav_command':
         logger.info('Navigation command:', data.action, data.url || data.description)
         if (typeof window !== 'undefined') {
@@ -635,6 +600,7 @@ class LiveKitPipeline implements AgentPipeline {
               url: data.url,
               description: data.description,
               text: data.inputText,
+              elementId: data.element_id ?? (data as { elementId?: string }).elementId,
             },
           }))
         }

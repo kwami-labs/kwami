@@ -70,9 +70,6 @@ export interface KwamiCallbacks {
   onAgentResponse?: (text: string) => void
   onUserTranscript?: (text: string) => void
   onError?: (error: Error) => void
-  onNavigationStarted?: () => void
-  onNavigationEnded?: () => void
-  onNavigationState?: (state: { url?: string; title?: string; isLoading?: boolean }) => void
 }
 
 // -----------------------------------------------------------------------------

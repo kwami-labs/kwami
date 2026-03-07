@@ -127,16 +127,6 @@ export interface LiveKitAdapterConfig extends LiveKitConfig {
     answer: string | null
   }) => void
 
-  /** Called when agent starts browser navigation */
-  onNavigationStarted?: () => void
-  /** Called when agent ends browser navigation */
-  onNavigationEnded?: () => void
-  /** Called when navigation state changes (URL, title, loading) */
-  onNavigationState?: (state: {
-    url?: string
-    title?: string
-    isLoading?: boolean
-  }) => void
 }
 
 /**

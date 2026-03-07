@@ -162,19 +162,6 @@ export class Kwami {
       this.setState(mappedState)
     })
 
-    // Forward navigation events
-    if (typeof window !== 'undefined') {
-      window.addEventListener('kwami:navigation_started', () => {
-        this.callbacks.onNavigationStarted?.()
-      })
-      window.addEventListener('kwami:navigation_ended', () => {
-        this.callbacks.onNavigationEnded?.()
-      })
-      window.addEventListener('kwami:navigation_state', (e: Event) => {
-        const detail = (e as CustomEvent).detail
-        this.callbacks.onNavigationState?.(detail)
-      })
-    }
   }
 
   /**
