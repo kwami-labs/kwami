@@ -45,6 +45,7 @@
     "three": ">=0.183.2"
   },
   "devDependencies": {
+    "@types/node": "25.3.5",
     "@eslint/js": "^10.0.1",
     "@types/node": "25.0.9",
     "@types/three": "^0.170.0",
