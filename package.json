@@ -1,66 +1,63 @@
 {
   "name": "kwami",
-  "version": "1.5.11",
-  "description": "KWAMI Ecosystem - Monorepo containing the core library and all related projects",
-  "license": "SEE LICENSE IN LICENSE.md",
-  "private": true,
+  "version": "0.1.0",
+  "description": "3D AI companion library with voice, memory, and tools",
   "type": "module",
-  "workspaces": [
-    "kwami",
-    "pg",
-    "app",
-    "web",
-    "docs",
-    "dao",
-    "candy",
-    "market"
+  "main": "./dist/index.js",
+  "module": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "import": "./dist/index.js",
+      "types": "./dist/index.d.ts"
+    }
+  },
+  "files": [
+    "dist"
   ],
   "scripts": {
-    "test": "npm run test -w kwami",
-    "test:watch": "npm run test:watch -w kwami",
-    "test:ui": "npm run test:ui -w kwami",
-    "test:coverage": "npm run test:coverage -w kwami",
-    "build": "npm run build -w kwami",
-    "dev": "npm run dev -w kwami",
-    "web": "npm run dev -w web -- --port 3300",
-    "build:web": "npm run build -w web",
-    "preview:web": "npm run preview -w web",
-    "playground": "npm run dev -w pg -- --port 4400",
-    "build:playground": "npm run build -w pg",
-    "preview:playground": "npm run preview -w pg",
-    "pg": "npm run playground",
-    "build:pg": "npm run build:playground",
-    "preview:pg": "npm run preview:playground",
-    "app": "npm run dev -w app -- --port 5500",
-    "build:app": "npm run build -w app",
-    "preview:app": "npm run preview -w app",
-    "candy": "npm run dev -w candy -- --port 6600",
-    "build:candy": "npm run build -w candy",
-    "preview:candy": "npm run preview -w candy",
-    "dao": "npm run dev -w dao -- --port 7700",
-    "build:dao": "npm run build -w dao",
-    "preview:dao": "npm run preview -w dao",
-    "market": "npm run dev -w market -- --port 8800",
-    "build:market": "npm run build -w market",
-    "preview:market": "npm run preview -w market",
-    "docs": "npm run dev -w docs -- --port 9900",
-    "build:docs": "npm run build -w docs",
-    "preview:docs": "npm run preview -w docs",
-    "sync-version": "node scripts/sync-version.js",
-    "publish:kwami": "npm run sync-version && npm publish -w kwami",
-    "version:kwami": "npm view kwami"
+    "build": "vite build && tsc --emitDeclarationOnly",
+    "dev": "vite build --watch",
+    "clean": "rm -rf dist",
+    "typecheck": "tsc --noEmit",
+    "lint": "eslint \"src/**/*.ts\" \"pg/src/**/*.ts\" \"scripts/**/*.ts\"",
+    "lint:fix": "eslint \"src/**/*.ts\" \"pg/src/**/*.ts\" \"scripts/**/*.ts\" --fix",
+    "format": "prettier --write \"src/**/*.ts\" \"pg/src/**/*.ts\" \"scripts/**/*.ts\"",
+    "format:check": "prettier --check \"src/**/*.ts\" \"pg/src/**/*.ts\" \"scripts/**/*.ts\"",
+    "test": "vitest",
+    "test:run": "vitest run"
+  },
+  "keywords": [
+    "ai",
+    "voice",
+    "agent",
+    "companion",
+    "3d",
+    "threejs",
+    "livekit",
+    "mcp"
+  ],
+  "author": "Alex Colls",
+  "license": "Apache-2.0",
+  "dependencies": {
+    "livekit-client": "^2.6.0",
+    "simplex-noise": "^4.0.3",
+    "three": ">=0.160.0"
   },
   "devDependencies": {
-    "@types/node": "^24.10.1",
-    "typescript": "^5.3.0",
-    "vite": "^7.1.12",
-    "vite-plugin-node-polyfills": "^0.21.0",
-    "vitest": "^4.0.15"
+    "@eslint/js": "^9.18.0",
+    "@types/node": "25.0.9",
+    "@types/three": "^0.170.0",
+    "eslint": "^9.18.0",
+    "globals": "^15.14.0",
+    "jiti": "2.6.1",
+    "prettier": "^3.4.2",
+    "typescript": "^5.7.0",
+    "typescript-eslint": "^8.20.0",
+    "vite": "^6.0.0",
+    "vitest": "^4.0.18"
   },
-  "engines": {
-    "node": ">=22.0.0",
-    "bun": ">=1.0.0",
-    "deno": ">=1.0.0"
-  },
-  "packageManager": "npm@10.9.0"
+  "peerDependencies": {
+    "three": ">=0.160.0"
+  }
 }

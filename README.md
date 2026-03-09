@@ -1,575 +1,279 @@
-# 👻 kwami
+# kwami
 
-Kwami is an **independent, reusable** 3D interactive AI companion library (npm: `kwami`) for building companions with a real-time 3D “blob” body, voice/AI capabilities, and a personality system.
+A 3D AI companion library with voice interaction, memory, tools, and customizable avatars. Build interactive AI agents with real-time voice conversations, persistent memory, and beautiful 3D visualizations.
 
-This repository is the **KWAMI ecosystem monorepo**: the core library plus playground + apps (Candy Machine, Marketplace, DAO, Website) and Solana programs that use it.
+## Features
 
-> **Version 1.5.11** - [See what's new](#whats-new)
+- **🎭 3D Avatars**: Multiple renderer types including BlobXyz, Crystal Ball, Orbital Shards, Stars Genesis, and Black Hole
+- **🎤 Voice Pipeline**: Real-time voice interaction with STT, LLM, and TTS via LiveKit
+- **🧠 Memory**: Long-term memory support with Zep integration for context-aware conversations
+- **🛠️ Tools**: MCP (Model Context Protocol) integration for external capabilities
+- **🎨 Soul**: Customizable personality templates with emotional traits
+- **⚡ Skills**: Native behaviors and capabilities
+- **🔄 Dynamic Updates**: Update configuration on-the-fly without reconnecting
+- **📦 TypeScript**: Fully typed with comprehensive type definitions
 
-[![npm version](https://img.shields.io/npm/v/kwami.svg)](https://www.npmjs.com/package/kwami)
-[![License](https://img.shields.io/badge/license-AGPL--3.0%20%7C%20Commercial-blue.svg)](./LICENSE)
-[![Live Demo](https://img.shields.io/badge/demo-kwami.io-green.svg)](https://kwami.io)
-
-## 🧭 What’s in this repo?
-
-- **`kwami/`**: the core npm library
-- **`pg/`**: interactive playground for exploring + tuning features
-- **`app/`, `candy/`, `market/`, `dao/`, `web/`**: ecosystem apps built on top of the core library
-- **`solana/`**: on-chain programs (token/NFT infrastructure)
-- **`docs/`**: documentation (EN/ES) for the full ecosystem
-
-## ✨ Features
-
-### Mind-Body-Soul Architecture
-
-Kwami is built around three core components:
-
-- **🎨 Body** - 3D audio-reactive blob with real-time animations and touch interaction
-- **🧠 Mind** - AI capabilities (TTS, STT, Conversations) with multi-provider support
-- **🎭 Soul** - Personality system with 10-dimensional emotional intelligence
-
-### Key Features
-
-- ✅ **Audio-Reactive 3D Blob** - Real-time visualization with WebGL
-- ✅ **Multiple Shader Skins** - 3Colors collection (Poles, Donut, Vintage)
-- ✅ **Interactive Touch Effects** - Liquid-like ripples on click
-- ✅ **Animation States** - Idle, listening, thinking, speaking
-- ✅ **AI Voice Integration** - ElevenLabs & OpenAI TTS support
-- ✅ **ElevenLabs Agents** - Full agent management with Tools & Knowledge Base APIs
-- ✅ **Emotional Personalities** - Rich personality system with emotional traits
-- ✅ **Background System** - Gradients, images, videos with glass effects
-- ✅ **TypeScript First** - Fully typed for excellent DX
-- ✅ **Framework Agnostic** - Use with React, Vue, Svelte, or vanilla JS
-
-## 📦 Installation
+## Installation
 
 ```bash
-# npm
 npm install kwami
-
-# bun (recommended)
-bun add kwami
-
-# deno
-deno add npm:kwami
+# or
+pnpm add kwami
+# or
+yarn add kwami
 ```
 
-> All dependencies included: `three`, `simplex-noise`, `@elevenlabs/elevenlabs-js`
+### Peer Dependencies
 
-### 🐳 Docker Deployment
-
-All ecosystem projects now include Docker support with 3 runtime options:
+Kwami requires `three` (Three.js) as a peer dependency:
 
 ```bash
-# Node.js (default)
-docker build -f docker/Dockerfile -t kwami-app .
-
-# Bun (fast builds)
-docker build -f docker/Dockerfile.bun -t kwami-app:bun .
-
-# Deno (secure runtime)
-docker build -f docker/Dockerfile.deno -t kwami-app:deno .
+npm install three
 ```
 
-👉 **[Complete Docker Deployment Guide (EN)](./docs/en/DOCKER_DEPLOYMENT.md)** / **[ES](./docs/es/DOCKER_DEPLOYMENT.md)**
-
-## 🚀 Quick Start
+## Quick Start
 
 ```typescript
-import { Kwami } from "kwami";
+import { Kwami } from 'kwami'
 
-const canvas = document.querySelector("canvas") as HTMLCanvasElement;
+// Get a canvas element
+const canvas = document.getElementById('canvas') as HTMLCanvasElement
 
+// Create a Kwami instance
 const kwami = new Kwami(canvas, {
-  body: {
-    audioFiles: ["/audio/track.mp3"],
-    initialSkin: "Poles",
-    blob: {
-      resolution: 180,
-      colors: { x: "#ff0066", y: "#00ff66", z: "#6600ff" },
-    },
-  },
-  mind: {
-    provider: "elevenlabs",
-    apiKey: "your-api-key",
-    voiceId: "your-voice-id",
-  },
   soul: {
-    name: "Kaya",
-    emotionalTraits: {
-      happiness: 75,
-      empathy: 95,
-      energy: 60,
+    name: 'Luna',
+    personality: 'friendly and creative',
+  },
+  agent: {
+    voice: {
+      llm: { model: 'gpt-4o' },
+      tts: { voice: 'nova' },
     },
   },
-});
-
-// Play audio and animate
-await kwami.body.audio.play();
-
-// Speak with AI voice
-await kwami.speak("Hello! I am Kwami.");
-
-// Randomize appearance
-kwami.body.blob.setRandomBlob();
-```
-
-## 📚 Documentation
-
-Docs live under `docs/` (English + Spanish):
-
-- **Docs Home (EN)**: [docs/en/index.md](./docs/en/index.md)
-- **Docs Home (ES)**: [docs/es/index.md](./docs/es/index.md)
-
-### Getting Started (Core Library)
-
-- **[Quick Start](./docs/en/kwami/getting-started/quickstart.md)** - Get running in minutes
-- **[Installation](./docs/en/kwami/getting-started/installation.md)** - Detailed setup for all environments
-- **[Core Concepts](./docs/en/kwami/getting-started/concepts.md)** - Mind/Body/Soul architecture explained
-
-### Core Components (Core Library)
-
-- **[Body](./docs/en/kwami/core/body.md)** - 3D blob and scene management
-- **[Mind](./docs/en/kwami/core/mind.md)** - AI capabilities + provider system
-- **[Soul](./docs/en/kwami/core/soul.md)** - Personality + emotional traits
-
-### Guides (Core Library)
-
-- **[Configuration](./docs/en/kwami/guides/configuration.md)** - Configuration reference
-- **[Animations](./docs/en/kwami/guides/animations.md)** - Animation states and effects
-
-### Architecture (Core Library)
-
-- **[Architecture Overview](./docs/en/kwami/ARCHITECTURE.md)** - System overview
-- **[Mind Architecture](./docs/en/kwami/architecture/mind-arch.md)** - Provider internals
-- **[Body Architecture](./docs/en/kwami/architecture/body-arch.md)** - Rendering pipeline
-- **[Soul Architecture](./docs/en/kwami/architecture/soul-arch.md)** - Personality system
-
-### Advanced (Core Library)
-
-- **[Advanced Topics](./docs/en/kwami/advanced/overview.md)** - Performance, custom development, testing
-
-### API Reference (Core Library)
-
-- **[Kwami API](./docs/en/kwami/api/kwami.md)** - Complete API documentation
-
-## 🎮 Interactive Playground
-
-Try Kwami live at **[kwami.io](https://kwami.io)**
-
-Run locally:
-
-```bash
-npm run playground
-```
-
-Features:
-
-- 🎨 **Rotating Sidebar System** - Mind, Body, Soul configuration
-- 🎙️ **Voice Conversations** (Beta) - WebSocket-based interactions
-- 🤖 **Complete Mind Menu** - 50+ ElevenLabs configuration options
-- ✨ **Personality Editor** - Real-time personality customization
-- 🌈 **Background Manager** - Gradients, images, videos (15+ included)
-- 🎛️ **Audio Effects** - Fine-tune frequency response
-- 📥 **GLB Export** - Download blob as 3D model
-
-See [Playground README](./pg/README.md) for details.
-
-## 🌐 KWAMI Ecosystem
-
-### 📦 Core Library (`/kwami`)
-
-The core npm package (`kwami`) - a standalone, reusable 3D interactive AI companion library featuring a Mind-Body-Soul architecture. Published to npm for easy integration into any JavaScript/TypeScript project. This is the heart of the KWAMI ecosystem, providing the foundational 3D blob visualization, AI voice capabilities, and personality system that powers all other projects.
-
-- **npm Package:** [@kwami](https://www.npmjs.com/package/kwami)
-- **Source Code:** [kwami/](./kwami/)
-- **Documentation:** [docs/en/kwami/README.md](./docs/en/kwami/README.md)
-
-### 🎮 Playground (`/pg`)
-
-Interactive demo with full configuration UI for testing all Kwami features.
-
-- Documentation: [docs/en/pg/README.md](./docs/en/pg/README.md)
-
-### 🔮 Kwami App (`/app`)
-
-Full-featured Nuxt 4 web application providing a complete Kwami experience. Built with glassmorphic UI, multi-language support (en, fr, es), Supabase authentication, and ElevenLabs voice integration. A production-ready implementation of the Kwami 3D AI companion.
-
-- Documentation: [docs/en/app/README.md](./docs/en/app/README.md)
-
-### ⛓️ Solana Programs (`/solana`)
-
-Smart contracts for QWAMI token and KWAMI NFT system with 10B supply by 2100.
-
-- Documentation: [docs/en/solana/README.md](./docs/en/solana/README.md)
-
-### 🎨 Candy Machine (`/candy`)
-
-Mint your own KWAMI NFTs on Solana with unique DNA-based validation.
-
-- Documentation: [docs/en/candy/README.md](./docs/en/candy/README.md)
-
-### 🛒 Marketplace (`/market`)
-
-Buy, sell, and trade KWAMI NFTs on the Solana blockchain.
-
-- Documentation: [docs/en/market/README.md](./docs/en/market/README.md)
-
-### 🏛️ DAO (`/dao`)
-
-Decentralized governance platform for KWAMI NFT holders to participate in community decisions.
-
-- Documentation: [docs/en/dao/README.md](./docs/en/dao/README.md)
-
-### 🌐 Website (`/web`)
-
-Public-facing website showcasing the KWAMI ecosystem.
-
-- Documentation: [docs/en/web/README.md](./docs/en/web/README.md)
-
-### 📚 Documentation (`/docs`)
-
-Complete documentation for all components and APIs organized by project.
-Start here: [docs/en/index.md](./docs/en/index.md) (English) / [docs/es/index.md](./docs/es/index.md) (Spanish)
-
-## 🎯 Core Concepts
-
-### Body - Visual Representation
-
-```typescript
-// 3D blob with audio reactivity
-kwami.body.blob.setSkin("Poles");
-kwami.body.blob.setColors("#ff0000", "#00ff00", "#0000ff");
-kwami.body.setBackgroundGradient("#1a1a2e", "#16213e");
-
-// Interactive animations
-kwami.body.enableBlobInteraction();
-kwami.body.startListening(); // Microphone mode
-kwami.body.startThinking(); // Contemplative animation
-```
-
-### Mind - AI Capabilities
-
-```typescript
-// Multi-provider AI system
-await kwami.mind.initialize({
-  provider: "elevenlabs", // or "openai"
-  apiKey: "your-key",
-  voiceId: "voice-id",
-});
-
-// Text-to-Speech
-await kwami.mind.speak("Hello world!");
-
-// Voice fine-tuning
-kwami.mind.setStability(0.5);
-kwami.mind.setSimilarityBoost(0.75);
-
-// Advanced: Create agents with Tools & Knowledge Base
-import { AgentConfigBuilder } from "kwami";
-
-const config = new AgentConfigBuilder()
-  .withName("Support Agent")
-  .withVoice("voice_id")
-  .withLLM("gpt-4o")
-  .withTools([
-    { name: "create_ticket", url: "https://api.example.com/tickets" },
-  ])
-  .withKnowledgeBase([{ knowledge_base_id: "kb_123" }])
-  .build();
-
-const agent = await kwami.mind.createAgent(config);
-```
-
-### Soul - Personality
-
-```typescript
-// Preset personalities
-kwami.soul.loadPresetPersonality("friendly"); // Kaya
-kwami.soul.loadPresetPersonality("professional"); // Nexus
-kwami.soul.loadPresetPersonality("playful"); // Spark
-
-// Custom emotional traits
-kwami.soul.setEmotionalTrait("happiness", 80);
-kwami.soul.setEmotionalTrait("energy", 90);
-
-// Generate AI context
-const systemPrompt = kwami.soul.getSystemPrompt();
-```
-
-## 🎨 Example Use Cases
-
-### Audio Visualizer
-
-```typescript
-const kwami = new Kwami(canvas, {
-  body: {
-    audioFiles: ["/audio/music.mp3"],
-    blob: { spikes: { x: 0.5, y: 0.5, z: 0.5 } },
+  avatar: {
+    renderer: 'blob-xyz',
   },
-});
-await kwami.body.audio.play();
+})
+
+// Connect and start conversation
+await kwami.connect('user-123', {
+  onUserTranscript: (text) => console.log('User:', text),
+  onAgentResponse: (text) => console.log('Agent:', text),
+  onStateChange: (state) => console.log('State:', state),
+})
+
+// Send a message
+kwami.sendMessage('Hello!')
+
+// Cleanup when done
+await kwami.disconnect()
 ```
 
-### Voice Assistant
+## Core Concepts
+
+### Avatar
+
+The visual representation of your AI companion. Multiple renderer types are available:
+
+- **BlobXyz**: Animated 3D blob with customizable skins (donut, poles, vintage)
+- **Crystal Ball**: Mystical crystal visualization
+- **Orbital Shards**: Dynamic shard formations orbiting a core
+- **Stars Genesis**: Starfield background with animated elements
+- **Black Hole**: Minimalist black hole visualization
+
+### Agent
+
+Handles the voice pipeline and AI processing:
+- **Voice Pipeline**: STT (Speech-to-Text), LLM (Language Model), TTS (Text-to-Speech)
+- **LiveKit Integration**: Real-time voice communication
+- **Dynamic Configuration**: Update voice settings without reconnecting
+
+### Soul
+
+Defines the AI's personality and behavior:
+- Customizable traits and emotional characteristics
+- Pre-built templates (friendly, professional, creative, etc.)
+- System prompts and conversation style
+- Emotional state tracking
+
+### Memory
+
+Long-term memory for context-aware conversations:
+- Zep integration for persistent memory
+- Message history and context retrieval
+- Semantic search capabilities
+
+### Tools
+
+External capabilities via MCP (Model Context Protocol):
+- Register custom tools
+- Execute external functions
+- Dynamic tool registration/unregistration
+
+### Skills
+
+Native behaviors and capabilities:
+- Built-in skill system
+- Custom skill definitions
+- Context-aware execution
+
+## Configuration
+
+### Basic Configuration
 
 ```typescript
 const kwami = new Kwami(canvas, {
-  mind: { provider: "elevenlabs", apiKey: "key" },
-  soul: { name: "Assistant" },
-});
-
-await kwami.listen();
-kwami.think();
-await kwami.speak("How can I help you?");
-```
-
-### AI Companion
-
-```typescript
-const kwami = new Kwami(canvas, {
-  body: { initialSkin: "Poles" },
-  mind: { provider: "elevenlabs" },
+  // Avatar configuration
+  avatar: {
+    renderer: 'blob-xyz', // or 'crystal-ball', 'orbital-shards', etc.
+    scene: {
+      background: 'stars',
+      camera: { position: [0, 0, 5] },
+    },
+  },
+  
+  // Agent configuration
+  agent: {
+    voice: {
+      llm: {
+        provider: 'openai',
+        model: 'gpt-4o',
+      },
+      tts: {
+        provider: 'openai',
+        voice: 'nova',
+      },
+      stt: {
+        provider: 'deepgram',
+      },
+    },
+  },
+  
+  // Soul configuration
   soul: {
-    name: "Kaya",
-    emotionalTraits: {
-      happiness: 75,
-      empathy: 95,
-      socialness: 90,
+    name: 'Luna',
+    personality: 'friendly and creative',
+    traits: ['curious', 'helpful'],
+  },
+  
+  // Memory configuration
+  memory: {
+    adapter: 'zep',
+    // Zep configuration...
+  },
+  
+  // Tools configuration
+  tools: {
+    mcp: {
+      // MCP server configuration...
     },
   },
-});
-
-kwami.soul.loadPresetPersonality("friendly");
-await kwami.mind.startConversation({
-  systemPrompt: kwami.soul.getSystemPrompt(),
-  onUserSpeaking: () => kwami.setState("listening"),
-  onAISpeaking: () => kwami.setState("speaking"),
-});
+})
 ```
 
-## What's New
+### Dynamic Updates
 
-### v1.5.2 - Monorepo Restructuring
-
-**🏗️ Major Project Restructuring:**
-
-- **Core Library**: Moved to `kwami/` folder for npm publishing
-- **Documentation**: Reorganized into `docs/` with project-specific folders (1_kwami through 8_web)
-- **Workspace Setup**: Configured npm workspaces for all projects
-- **Playground**: Renamed from `playground/` to `pg/`
-- **Clean Separation**: Each project now has its own isolated structure
-- **CI/CD**: Updated GitHub Actions to build and publish from `kwami/`
-
-**📦 Improved Organization:**
-
-- Root now contains only monorepo-level files
-- Each project has its own README, CHANGELOG, and documentation
-- Clear separation between core library and applications
-- Proper workspace dependency management
-
-### v1.4.1 - ElevenLabs Agents
-
-**Complete ElevenLabs Conversational AI Agents Integration**
-
-**Professional-grade agent management with Tools and Knowledge Base:**
+Update configuration on-the-fly:
 
 ```typescript
-import { AgentConfigBuilder } from "kwami";
+// Update voice settings
+kwami.updateVoice({
+  tts: { voice: 'alloy' },
+})
 
-// Create an advanced agent with tools and knowledge
-const config = new AgentConfigBuilder()
-  .withName("Support Agent")
-  .withVoice("voice_id")
-  .withLLM("gpt-4o")
-  .withPrompt("You are a helpful support agent")
-  .withTools([
-    {
-      name: "create_ticket",
-      description: "Create support ticket",
-      url: "https://api.example.com/tickets",
-    },
-  ])
-  .withKnowledgeBase([{ knowledge_base_id: "kb_123" }])
-  .withMaxDuration(1800)
-  .build();
+// Update soul
+kwami.updateSoul({
+  emotionalTone: 'enthusiastic',
+})
 
-const agent = await kwami.mind.createAgent(config);
+// Register a new tool
+kwami.registerTool({
+  name: 'getWeather',
+  description: 'Get current weather',
+  // ...
+})
 ```
 
-**Key Features:**
+## Development Setup
 
-- ✨ **AgentConfigBuilder** - Fluent API for agent configuration with validation
-- 🔧 **Tools API** - Create custom tools with webhooks and parameters
-- 📚 **Knowledge Base API** - RAG support with document management (URL, text, file)
-- 🌊 **Multi-Agent Workflows** - Orchestrate complex conversations with conditional routing
-- 🎯 **Complete Type Coverage** - Full TypeScript types for all ElevenLabs APIs
-- ✅ **Validation System** - Built-in configuration validation with detailed errors
-- 📖 **Comprehensive Examples** - Complete documentation and test suite
+### Prerequisites
 
-**APIs Implemented:**
+- Node.js 18+
+- [pnpm](https://pnpm.io/) (recommended) or npm/yarn
 
-- Agent CRUD operations (create, read, update, delete, duplicate, list)
-- Tools management (create tools, manage webhooks, parameter schemas)
-- Knowledge Base (create KBs, add documents, RAG indexing, semantic search)
-- Workflow system (multi-agent orchestration, conditional routing, node types)
-- Conversation management (list, get details, download audio, send feedback)
-
-See [Mind Examples](./docs/en/kwami/mind-examples.md) for comprehensive usage guides.
-
----
-
-## What's New in v1.4.0
-
-### 🧬 KWAMI NFT System - Solana Blockchain Integration
-
-- Unique DNA-based NFTs with 1 trillion limit
-- Solana blockchain integration with Metaplex standard
-- Candy machine for minting KWAMI NFTs
-- DNA registry with on-chain validation
-- Real-time WebSocket updates (Socket.IO 4.8.1)
-
-### 🏛️ KWAMI DAO - Decentralized Governance
-
-**NEW:** Governance platform for KWAMI NFT holders built with Nuxt 4 and Solana.
+### Installation
 
 ```bash
-cd dao
-npm install
-npm run dev
+pnpm install
 ```
 
-**Features:**
+### Scripts
 
-- 🔌 Multi-wallet support (Phantom, Solflare, Backpack, etc.)
-- ✅ Automatic KWAMI NFT holder verification
-- 💰 QWAMI token balance tracking for governance
-- 📝 Create and vote on proposals
-- 🗳️ Token-weighted voting system
-- 📊 Real-time voting statistics
+```bash
+# Build the library
+pnpm build
 
-**DAO Membership:**
+# Watch mode (TypeScript)
+pnpm dev
 
-- Own at least 1 KWAMI NFT
-- Hold 100+ QWAMI tokens to participate in governance
-- One QWAMI = One vote
+# Type checking
+pnpm typecheck
 
-See [dao/README.md](./dao/README.md) and [docs/en/dao/README.md](./docs/en/dao/README.md) for complete documentation.
+# Run tests
+pnpm test
 
----
+# Run tests once
+pnpm test:run
 
-## Previous Releases
+# Lint code
+pnpm lint
 
-### v1.3.0 – Mind Provider Architecture
+# Fix linting issues
+pnpm lint:fix
 
-- Multi-vendor AI provider support (ElevenLabs, OpenAI)
-- Hot-swappable providers at runtime
-- Unified provider interface for extensibility
-- Enhanced background system with Three.js gradient overlays
-- 10-dimensional emotional personality system
-- Complete documentation
+# Format code
+pnpm format
 
-### v1.3.1-1.3.4 – Patches
+# Check formatting
+pnpm format:check
 
-- 🎭 **1.3.1** – Expanded Soul personality templates to 20+ presets
-- 🧠 **1.3.2** – Introduced Kwami Skills System (JSON/YAML-driven behaviors)
-- 🎨 **1.3.3** – Mind UI polish with provider logos and refined tabs
-- 🧪 **1.3.4** – Full Vitest suite (238 tests), hardened KwamiAudio and Soul defaults
-
-See [CHANGELOG](./CHANGELOG.md) for complete history.
-
-## 🏗️ Architecture
-
-```
-┌──────────────────────────────────────┐
-│             KWAMI                    │
-│         (Orchestrator)               │
-├──────────┬──────────────┬────────────┤
-│   BODY   │     MIND     │    SOUL    │
-│  Visual  │   AI/Voice   │ Personality│
-│          │              │            │
-│  Scene   │  Providers   │  Emotional │
-│  Blob    │  - 11Labs    │  - Traits  │
-│  Audio   │  - OpenAI    │  - Prompts │
-└──────────┴──────────────┴────────────┘
+# Clean build artifacts
+pnpm clean
 ```
 
-**Data Flow:**
+## Project Structure
 
 ```
-Audio → Web Audio API → FFT → Blob Vertices → Render
-User → Mind Provider → Soul Context → LLM → TTS → Animation
+kwami/
+├── src/
+│   ├── agent/          # Voice pipeline and LiveKit integration
+│   ├── avatar/         # 3D avatar renderers
+│   ├── memory/         # Memory adapters (Zep)
+│   ├── soul/           # Personality system
+│   ├── skills/         # Native behaviors
+│   ├── tools/          # Tool registry (MCP)
+│   ├── types/          # TypeScript definitions
+│   ├── utils/          # Utilities
+│   ├── Kwami.ts        # Main class
+│   └── index.ts        # Public API exports
+├── scripts/            # Build scripts
+├── dist/               # Build output
+└── package.json
 ```
 
-See [Architecture Overview](./docs/en/kwami/ARCHITECTURE.md) for diagrams and details.
+## API Reference
 
-## 🚀 Deployment
+The library exports a comprehensive set of types and utilities. See the TypeScript definitions for full API documentation:
 
-### Live Site
+- `Kwami` - Main class
+- `Avatar`, `Scene`, `StarField` - Avatar components
+- `Agent`, `LiveKitAdapter`, `VoiceSession` - Agent components
+- `Soul` - Personality management
+- `Memory` - Memory operations
+- `ToolRegistry` - Tool management
+- `SkillManager` - Skill execution
 
-- **Production:** [kwami.io](https://kwami.io)
-- **Branch:** `main` (protected)
-- **Auto-deploy:** On merge to main
+## License
 
-### Git Workflow
-
-```
-feature/* → [PR] → dev → [Review] → main → Deploy
-```
-
-See [Contributing Guide](./CONTRIBUTING.md) for details.
-
-## 🤝 Contributing
-
-We welcome contributions! Please:
-
-1. Read [CONTRIBUTING.md](./CONTRIBUTING.md)
-2. Fork and create branch from `dev`
-3. Make changes with tests
-4. Submit PR to `dev` (not `main`)
-
-### For Maintainers
-
-- **Automated Publishing:** Package auto-publishes to npm when version changes on `main`
-- **Setup Guide:** [.github/NPM_SETUP.md](.github/NPM_SETUP.md)
-- **Release Process:** See [CONTRIBUTING.md](./CONTRIBUTING.md#release-process-automated)
-
-## 📄 License
-
-**Dual License:**
-
-- **Personal/Non-Commercial:** Apache License 2.0
-- **Commercial:** Requires separate license
-
-Contact: [Alex Colls](https://github.com/alexcolls)
-
-See [LICENSE](./LICENSE) for full terms.
-
-## 🙏 Credits
-
-Built with:
-
-- [THREE.js](https://threejs.org/) - 3D graphics
-- [simplex-noise](https://github.com/jwagner/simplex-noise.js/) - Smooth noise
-- [ElevenLabs](https://elevenlabs.io/) - AI voice synthesis
-- TypeScript - Type safety
-
-## 📧 Support
-
-- **Documentation (EN):** [docs/en/index.md](./docs/en/index.md)
-- **Documentation (ES):** [docs/es/index.md](./docs/es/index.md)
-- **Issues:** [GitHub Issues](https://github.com/alexcolls/kwami/issues)
-- **Discussions:** [GitHub Discussions](https://github.com/alexcolls/kwami/discussions)
-
-## 🔗 Links
-
-- 🌐 **Live Demo:** [kwami.io](https://kwami.io)
-- 📦 **npm Package:** [npmjs.com/package/kwami](https://www.npmjs.com/package/kwami)
-- 💻 **GitHub:** [github.com/alexcolls/kwami](https://github.com/alexcolls/kwami)
-- 📚 **Docs (EN):** [docs/en/index.md](./docs/en/index.md)
-- 📚 **Docs (ES):** [docs/es/index.md](./docs/es/index.md)
-- 📝 **Changelog:** [CHANGELOG.md](./CHANGELOG.md)
-
----
-
-**Made with ❤️ by the KWAMI team**
+Apache-2.0
