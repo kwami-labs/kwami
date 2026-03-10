@@ -248,7 +248,7 @@ class LiveKitPipeline implements AgentPipeline {
       // Send voice config to backend agent via data channel
       await this.sendVoiceConfig(options)
 
-      // Listen for data that the playground UI wants to send back to the agent
+      // Listen for data that the app UI wants to send back to the agent
       this.setupClientToAgentDataRelay()
 
       this.voiceSession.setState('listening')
@@ -261,7 +261,7 @@ class LiveKitPipeline implements AgentPipeline {
   }
 
   /**
-   * Relay data from the playground UI to the agent via the LiveKit data channel.
+   * Relay data from the app UI to the agent via the LiveKit data channel.
    * UI components dispatch kwami:send_data with a Uint8Array payload.
    */
   private setupClientToAgentDataRelay(): void {
