@@ -24,7 +24,7 @@ const kwamiRegistry = new Map<string, Kwami>()
  * Kwami - 3D AI Companion
  * 
  * Each Kwami instance is a unique AI agent with its own:
- * - Avatar: Visual representation (3D blob, crystal, etc.)
+ * - Avatar: Visual representation (3D blob, black hole, etc.)
  * - Agent: Voice pipeline (STT, LLM, TTS) deployed to LiveKit
  * - Soul: Personality, traits, and behavior
  * - Memory: Long-term recall (Zep)
