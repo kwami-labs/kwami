@@ -359,9 +359,64 @@ class LiveKitPipeline implements AgentPipeline {
       this.voiceSession.setState('listening')
       logger.info('LiveKit pipeline connected')
     } catch (error) {
+      // Without this the room stays connected when a later step fails — denying microphone
+      // permission used to leave a live LiveKit session behind, with isConnected() still
+      // reporting true, and every retry leaked another Room and another agent dispatch.
       logger.error('Failed to connect to LiveKit:', error)
+      await this.teardownRoom()
       this.voiceSession.setState('idle')
       throw error
+    }
+  }
+
+  /**
+   * Release everything `connect()` acquired. Safe to call when half-built or already torn
+   * down, which is what lets both `disconnect()` and the `connect()` failure path share it.
+   */
+  private async teardownRoom(): Promise<void> {
+    if (this._sendDataHandler && typeof window !== 'undefined') {
+      window.removeEventListener('kwami:send_data', this._sendDataHandler)
+      this._sendDataHandler = null
+    }
+
+    if (this.localAudioTrack) {
+      this.localAudioTrack.stop()
+      this.localAudioTrack = null
+    }
+
+    // The agent's tracks belong to the remote participant; dropping our reference is enough,
+    // and stopping them would end the track for anything else holding the same stream.
+    this.agentAudioStream = null
+
+    this.removeAgentAudioElements()
+
+    if (this.room) {
+      const room = this.room
+      this.room = null
+      room.removeAllListeners()
+      try {
+        await room.disconnect()
+      } catch (error) {
+        logger.warn('Error while disconnecting the room:', error)
+      }
+    }
+
+    // Clear cached room name so the next connection creates a fresh room. Reusing the same
+    // room name can cause the old (shutting-down) agent to receive config meant for the new
+    // session, or LiveKit to dispatch a second agent into a room that still has a lingering one.
+    this.config.roomName = undefined
+  }
+
+  /**
+   * Remove every `#kwami-agent-audio` element, not just the first. The id is fixed, so a
+   * republished agent track could append a second one; `getElementById` would then leave the
+   * older, still-playing element behind on teardown.
+   */
+  private removeAgentAudioElements(): void {
+    if (typeof document === 'undefined') return
+    for (const el of Array.from(document.querySelectorAll('#kwami-agent-audio'))) {
+      ;(el as HTMLAudioElement).pause?.()
+      el.remove()
     }
   }
 
@@ -413,7 +468,10 @@ class LiveKitPipeline implements AgentPipeline {
         }
 
         // This is the agent's audio response
-        // Attach to an audio element to play it
+        // Attach to an audio element to play it. Clear any previous one first: the id is
+        // fixed, so a republished agent track (a backend restart mid-session) would otherwise
+        // stack a second element on top of the first and play both.
+        this.removeAgentAudioElements()
         const audioElement = track.attach()
         audioElement.id = 'kwami-agent-audio'
 
@@ -551,6 +609,11 @@ class LiveKitPipeline implements AgentPipeline {
     this.room.on(RoomEvent.Disconnected, (reason) => {
       logger.info('Disconnected from room:', reason)
       this.voiceSession.setState('idle')
+      // A drop we did not ask for is the consumer's problem to handle (retry, show a banner).
+      // `this.room` is already null when we tore down deliberately.
+      if (this.room) {
+        this.emitError(new Error(`Disconnected from LiveKit room: ${reason ?? 'unknown reason'}`))
+      }
     })
 
     // Reconnecting
@@ -813,43 +876,7 @@ class LiveKitPipeline implements AgentPipeline {
 
   async disconnect(): Promise<void> {
     logger.info('LiveKit pipeline disconnecting...')
-
-    // Remove client-to-agent data relay
-    if (this._sendDataHandler && typeof window !== 'undefined') {
-      window.removeEventListener('kwami:send_data', this._sendDataHandler)
-      this._sendDataHandler = null
-    }
-
-    // Stop local audio track
-    if (this.localAudioTrack) {
-      this.localAudioTrack.stop()
-      this.localAudioTrack = null
-    }
-
-    // Clean up agent audio stream
-    if (this.agentAudioStream) {
-      this.agentAudioStream.getTracks().forEach(track => track.stop())
-      this.agentAudioStream = null
-    }
-
-    // Remove agent audio element from DOM
-    const audioEl = document.getElementById('kwami-agent-audio')
-    if (audioEl) {
-      audioEl.remove()
-    }
-
-    // Disconnect from room
-    if (this.room) {
-      await this.room.disconnect()
-      this.room = null
-    }
-
-    // Clear cached room name so the next connection creates a fresh room.
-    // Reusing the same room name can cause the old (shutting-down) agent to
-    // receive config meant for the new session, or LiveKit to dispatch a
-    // second agent into a room that still has a lingering one.
-    this.config.roomName = undefined
-
+    await this.teardownRoom()
     this.voiceSession.setState('idle')
   }
 
@@ -1050,8 +1077,14 @@ class LiveKitPipeline implements AgentPipeline {
     }
   }
 
-  dispose(): void {
-    this.disconnect()
+  async dispose(): Promise<void> {
+    // `disconnect()` is async. Calling it without awaiting returned before the microphone was
+    // released and the room closed, so an app that disposed and immediately reconnected could
+    // hold two rooms and a stuck mic indicator.
+    await this.disconnect()
+    this.onErrorCb = undefined
+    this.onAgentAudioStreamCb = undefined
+    this.toolExecutor = undefined
   }
 
   // ---------------------------------------------------------------------------
@@ -1068,11 +1101,18 @@ class LiveKitPipeline implements AgentPipeline {
     // Use configured userId, or get/create persistent ID from localStorage
     let participantName = this.config.userId
     if (!participantName) {
+      // Guarded like every other browser access in this file. Unguarded, this threw a
+      // ReferenceError whenever the adapter was evaluated outside a browser (SSR, node tests).
+      // Storage can also throw in a private window or with site data blocked.
       const storageKey = 'kwami-user-id'
-      participantName = localStorage.getItem(storageKey) ?? undefined
-      if (!participantName) {
+      try {
+        participantName = globalThis.localStorage?.getItem(storageKey) ?? undefined
+        if (!participantName) {
+          participantName = `kwami-user-${Date.now()}`
+          globalThis.localStorage?.setItem(storageKey, participantName)
+        }
+      } catch {
         participantName = `kwami-user-${Date.now()}`
-        localStorage.setItem(storageKey, participantName)
       }
     }
 
