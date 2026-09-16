@@ -40,7 +40,8 @@ describe('the committed rulesets', () => {
   });
 
   it('demands a Code Owner review on main only', () => {
-    const codeOwners = (name) => rule(byName[name], 'pull_request').parameters.require_code_owner_review;
+    const codeOwners = (name) =>
+      rule(byName[name], 'pull_request').parameters.require_code_owner_review;
     assert.equal(codeOwners('main protection'), true);
     assert.equal(codeOwners('stg protection'), false);
     assert.equal(codeOwners('dev protection'), false);
@@ -74,10 +75,11 @@ describe('the tag ruleset', () => {
   // Creation is deliberately NOT blocked — semantic-release cuts a new tag on every release.
   // What is blocked is changing one after the fact.
   it('blocks deleting, moving or force-updating a released tag', () => {
-    assert.deepEqual(
-      tags.rules.map((r) => r.type).sort(),
-      ['deletion', 'non_fast_forward', 'update'],
-    );
+    assert.deepEqual(tags.rules.map((r) => r.type).sort(), [
+      'deletion',
+      'non_fast_forward',
+      'update',
+    ]);
   });
 
   // Every version, changelog entry and "what shipped" answer is derived from these tags, and
@@ -103,11 +105,14 @@ describe('withResolvedAppId', () => {
 
   it('leaves every other actor alone', () => {
     const actors = withResolvedAppId(ruleset, 99).bypass_actors;
-    assert.deepEqual(actors.find((a) => a.actor_type === 'RepositoryRole'), {
-      actor_id: 5,
-      actor_type: 'RepositoryRole',
-      bypass_mode: 'always',
-    });
+    assert.deepEqual(
+      actors.find((a) => a.actor_type === 'RepositoryRole'),
+      {
+        actor_id: 5,
+        actor_type: 'RepositoryRole',
+        bypass_mode: 'always',
+      },
+    );
   });
 
   it('does not mutate the declaration it was handed', () => {

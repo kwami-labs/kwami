@@ -121,7 +121,9 @@ function actionsAppId() {
   try {
     return gh(['api', 'apps/github-actions', '--jq', '{id: .id}']).id;
   } catch {
-    console.log(`  ! Could not resolve the github-actions app id; using ${ACTIONS_APP_ID_FALLBACK}.`);
+    console.log(
+      `  ! Could not resolve the github-actions app id; using ${ACTIONS_APP_ID_FALLBACK}.`,
+    );
     return ACTIONS_APP_ID_FALLBACK;
   }
 }
@@ -132,7 +134,9 @@ function main() {
   requireAuth();
   const appId = actionsAppId();
   console.log(`Repository: ${REPO}`);
-  console.log(`github-actions app id: ${appId}${dryRun ? '  (dry run — nothing will change)' : ''}`);
+  console.log(
+    `github-actions app id: ${appId}${dryRun ? '  (dry run — nothing will change)' : ''}`,
+  );
   console.log('');
 
   const declared = loadRulesets();
