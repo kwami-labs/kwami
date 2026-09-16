@@ -7,19 +7,39 @@ import { ToolRegistry } from './tools'
 import { SkillManager } from './skills'
 import { logger } from './utils/logger'
 
+const ID_ALPHABET = 'abcdefghijklmnopqrstuvwxyz0123456789'
+const ID_LENGTH = 8
+/** 252 = 36 x 7. Bytes at or above it would bias the modulo toward the first four letters. */
+const ID_REJECT_ABOVE = 252
+
 /**
  * Generate a unique Kwami ID.
  *
- * Math.random() over 8 characters is not enough to key a registry on: a collision silently
- * evicts the existing instance from `kwamiRegistry`, and `getInstance()` then hands callers
- * the wrong Kwami. Crypto randomness where it is available, with a widened random fallback.
+ * Eight characters of `[a-z0-9]`, which is the format consumers and the e2e suite already
+ * observe — but drawn from the CSPRNG rather than `Math.random()`, whose output is predictable
+ * from previous values. The ID keys `kwamiRegistry`, so a guessable one lets anything holding a
+ * reference to the page reach another instance through `Kwami.getInstance()`.
+ *
+ * Bytes at or above 252 are rejected rather than folded, so every character is equally likely.
  */
 function generateKwamiId(): string {
-  const bytes = globalThis.crypto?.getRandomValues?.(new Uint8Array(8))
-  if (bytes) {
-    return Array.from(bytes, (b) => b.toString(16).padStart(2, '0')).join('')
+  const random = globalThis.crypto?.getRandomValues?.bind(globalThis.crypto)
+  let id = ''
+
+  while (id.length < ID_LENGTH) {
+    if (random) {
+      for (const byte of random(new Uint8Array(ID_LENGTH))) {
+        if (byte < ID_REJECT_ABOVE && id.length < ID_LENGTH) {
+          id += ID_ALPHABET[byte % ID_ALPHABET.length]
+        }
+      }
+    } else {
+      // No CSPRNG (an old runtime, or a non-secure context). Weaker, but still an id.
+      id += ID_ALPHABET[Math.floor(Math.random() * ID_ALPHABET.length)]
+    }
   }
-  return Array.from({ length: 16 }, () => Math.floor(Math.random() * 16).toString(16)).join('')
+
+  return id
 }
 
 /**
