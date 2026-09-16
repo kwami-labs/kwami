@@ -1,0 +1,11 @@
+blank_issues_enabled: true
+contact_links:
+  - name: Security vulnerability
+    url: https://github.com/kwami-labs/kwami/security/advisories/new
+    about: Private report only — do not open a public issue.
+  - name: Documentation
+    url: https://github.com/kwami-labs/kwami/blob/main/docs/README.md
+    about: Architecture, API, security, CI/CD, and getting started.
+  - name: How to contribute
+    url: https://github.com/kwami-labs/kwami/blob/main/CONTRIBUTING.md
+    about: Branches, Conventional Commits, and the PR checklist.

@@ -1,0 +1,21 @@
+name: Question
+description: Usage question that is not a bug or a feature.
+title: 'docs: '
+labels: ['question']
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Check [docs/](https://github.com/kwami-labs/kwami/blob/main/docs/README.md) first —
+        especially getting started, API, and security.
+  - type: textarea
+    id: question
+    attributes:
+      label: Question
+    validations:
+      required: true
+  - type: input
+    id: version
+    attributes:
+      label: kwami version
+      placeholder: 2.1.1 (latest)

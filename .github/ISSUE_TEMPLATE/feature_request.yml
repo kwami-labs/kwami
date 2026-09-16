@@ -1,0 +1,39 @@
+name: Feature request
+description: Propose an additive change to the library.
+title: 'feat: '
+labels: ['enhancement']
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Features that change or remove a public export need a `BREAKING CHANGE` plan.
+        See [docs/api.md](https://github.com/kwami-labs/kwami/blob/main/docs/api.md).
+  - type: textarea
+    id: problem
+    attributes:
+      label: Problem
+      description: What you cannot do today, and who it affects.
+    validations:
+      required: true
+  - type: textarea
+    id: proposal
+    attributes:
+      label: Proposal
+      description: The API or behaviour you want. Types or a short example help.
+    validations:
+      required: true
+  - type: dropdown
+    id: surface
+    attributes:
+      label: Public API
+      options:
+        - No change to the published surface
+        - Additive only (new export or optional field)
+        - Breaking (rename, remove, or change meaning)
+    validations:
+      required: true
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Alternatives
+      description: What you tried, or why an existing hook is not enough.

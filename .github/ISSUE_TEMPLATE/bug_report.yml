@@ -1,0 +1,61 @@
+name: Bug report
+description: Something in the kwami library does not work as documented.
+title: 'fix: '
+labels: ['bug']
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Search existing issues first. Security problems go to
+        [SECURITY.md](https://github.com/kwami-labs/kwami/blob/main/SECURITY.md) — not here.
+  - type: textarea
+    id: expected
+    attributes:
+      label: Expected
+      description: What should happen.
+    validations:
+      required: true
+  - type: textarea
+    id: actual
+    attributes:
+      label: Actual
+      description: What happened instead. Include the error text, not a screenshot of it.
+    validations:
+      required: true
+  - type: textarea
+    id: reproduce
+    attributes:
+      label: Reproduction
+      description: Smallest snippet or steps. A `new Kwami(...)` config is ideal.
+      render: ts
+    validations:
+      required: true
+  - type: input
+    id: version
+    attributes:
+      label: kwami version
+      description: npm version or `Kwami.getVersion()`, and the dist-tag (`latest` / `rc` / `dev`).
+      placeholder: 2.1.1 (latest)
+    validations:
+      required: true
+  - type: input
+    id: environment
+    attributes:
+      label: Environment
+      description: Browser, OS, bundler (Vite / webpack / …).
+    validations:
+      required: true
+  - type: dropdown
+    id: layer
+    attributes:
+      label: Where it breaks
+      options:
+        - Avatar / WebGL
+        - Agent / LiveKit
+        - Soul / prompts
+        - Tools / skills
+        - API client
+        - Build / types / exports
+        - Unsure
+    validations:
+      required: true
