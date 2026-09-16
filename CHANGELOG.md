@@ -5,6 +5,35 @@ All notable changes to [Kwami](https://github.com/kwami-labs/kwami) are document
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+New releases are prepended by semantic-release from Conventional Commits. Historical
+entries below the automation baseline were reconstructed from git history.
+
+## [2.2.0-dev.1](https://github.com/kwami-labs/kwami/compare/v2.1.1...v2.2.0-dev.1) (2026-09-16)
+
+### Features
+
+* **ci:** declare branch and tag rulesets as reviewable JSON ([#87](https://github.com/kwami-labs/kwami/issues/87)) ([4a382b2](https://github.com/kwami-labs/kwami/commit/4a382b21b5a53d58e18f39efeb4d82d8ed2fc87c))
+
+### Bug Fixes
+
+* **avatar:** add .js extensions to Scene imports so declarations resolve ([#93](https://github.com/kwami-labs/kwami/issues/93)) ([b1b6010](https://github.com/kwami-labs/kwami/commit/b1b60105ebb0abab27b1ab76aad1835c2f117ec2))
+* **build:** pin changelog preset to v9 so semantic-release can write notes ([31b8ed7](https://github.com/kwami-labs/kwami/commit/31b8ed75b0378f216833120eb5d1da50ad1d946a))
+* **build:** unblock CI install and typecheck so releases can publish ([#91](https://github.com/kwami-labs/kwami/issues/91)) ([86cc69c](https://github.com/kwami-labs/kwami/commit/86cc69cd3ffdd3d81eeea372e4ce9402b5bfeb90))
+* repair lockfile install conflict and copy LiveKit data payloads ([#92](https://github.com/kwami-labs/kwami/issues/92)) ([9931951](https://github.com/kwami-labs/kwami/commit/993195185d0e10957bee0a43dd7fc2f05125cb55))
+* restore inert avatar features and harden agent and renderer lifecycle ([#86](https://github.com/kwami-labs/kwami/issues/86)) ([f0a3add](https://github.com/kwami-labs/kwami/commit/f0a3add9f29ddfef63fbfbfec3e54a104dd3b6c6))
+
+### Build & Dependencies
+
+* **deps:** bump the minor-and-patch group across 1 directory with 4 updates ([#81](https://github.com/kwami-labs/kwami/issues/81)) ([99e7275](https://github.com/kwami-labs/kwami/commit/99e7275e39be34400cae14d8bffe41a765bd6208))
+* **deps:** bump the three-ecosystem group with 2 updates ([#77](https://github.com/kwami-labs/kwami/issues/77)) ([35fdd92](https://github.com/kwami-labs/kwami/commit/35fdd92a9df7ec8574ae0c516f4baed3d24512cb))
+
+# Changelog
+
+All notable changes to [Kwami](https://github.com/kwami-labs/kwami) are documented in this file.
+
+The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
+and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
+
 Reconstructed from the full git history (**606** commits, 2025-10-20 → 2026-09-05).
 
 ### How to read this file
