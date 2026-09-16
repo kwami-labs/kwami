@@ -96,7 +96,7 @@
     "three": "^0.183.2",
     "typescript": "^5.7.0",
     "typescript-eslint": "^8.20.0",
-    "vite": "^7.3.5",
+    "vite": "^8.3.0",
     "vitest": "^4.1.11"
   },
   "peerDependencies": {
