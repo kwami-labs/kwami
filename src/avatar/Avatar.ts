@@ -44,6 +44,30 @@ export class Avatar {
 
     // Setup resize handling
     this.setupResizeHandling()
+
+    // Recover from GPU context loss instead of dying silently.
+    this.scene.onContextChange({
+      onLost: () => this.disposeActiveRenderer(),
+      onRestored: () => this.initRenderer(),
+    })
+  }
+
+  /**
+   * Tear down whichever renderer is active, leaving `currentRenderer` alone.
+   *
+   * Shared by the renderer switch, context loss and dispose, so all three release exactly the
+   * same things — the switch and the teardown used to differ, which is how the blob's mesh
+   * ended up left in the scene graph on a full dispose.
+   */
+  private disposeActiveRenderer(): void {
+    this.blobXyz?.dispose()
+    this.blackHole?.dispose()
+    this.particlesFace?.dispose()
+    this.eyeIris?.dispose()
+    this.blobXyz = null
+    this.blackHole = null
+    this.particlesFace = null
+    this.eyeIris = null
   }
 
   private initRenderer(): void {
@@ -249,19 +273,7 @@ export class Avatar {
     const savedState = this.currentState
 
     // Dispose current renderer
-    if (this.currentRenderer === 'blob-xyz' && this.blobXyz) {
-      this.blobXyz.dispose()
-      this.blobXyz = null
-    } else if (this.currentRenderer === 'black-hole' && this.blackHole) {
-      this.blackHole.dispose()
-      this.blackHole = null
-    } else if (this.currentRenderer === 'particles-face' && this.particlesFace) {
-      this.particlesFace.dispose()
-      this.particlesFace = null
-    } else if (this.currentRenderer === 'eye-iris' && this.eyeIris) {
-      this.eyeIris.dispose()
-      this.eyeIris = null
-    }
+    this.disposeActiveRenderer()
 
     // Initialize new renderer
     this.currentRenderer = newRenderer
@@ -466,15 +478,7 @@ export class Avatar {
     this.resizeObserver?.disconnect()
     this.resizeObserver = null
 
-    this.blobXyz?.dispose()
-    this.blackHole?.dispose()
-    this.particlesFace?.dispose()
-    this.eyeIris?.dispose()
-    this.blobXyz = null
-    this.blackHole = null
-    this.particlesFace = null
-    this.eyeIris = null
-
+    this.disposeActiveRenderer()
     this.audio.dispose()
     this.scene.dispose()
   }
