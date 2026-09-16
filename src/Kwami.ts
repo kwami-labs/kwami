@@ -7,17 +7,29 @@ import { ToolRegistry } from './tools'
 import { SkillManager } from './skills'
 import { logger } from './utils/logger'
 
-// Generate unique Kwami ID
+/**
+ * Generate a unique Kwami ID.
+ *
+ * Math.random() over 8 characters is not enough to key a registry on: a collision silently
+ * evicts the existing instance from `kwamiRegistry`, and `getInstance()` then hands callers
+ * the wrong Kwami. Crypto randomness where it is available, with a widened random fallback.
+ */
 function generateKwamiId(): string {
-  const chars = 'abcdefghijklmnopqrstuvwxyz0123456789'
-  let id = ''
-  for (let i = 0; i < 8; i++) {
-    id += chars.charAt(Math.floor(Math.random() * chars.length))
+  const bytes = globalThis.crypto?.getRandomValues?.(new Uint8Array(8))
+  if (bytes) {
+    return Array.from(bytes, (b) => b.toString(16).padStart(2, '0')).join('')
   }
-  return id
+  return Array.from({ length: 16 }, () => Math.floor(Math.random() * 16).toString(16)).join('')
 }
 
-// Global registry of active Kwami instances
+/**
+ * Global registry of active Kwami instances.
+ *
+ * This is a strong reference: an instance stays reachable — along with its Avatar, WebGL
+ * context, Agent and LiveKit room — until `dispose()` removes it. Always dispose a Kwami when
+ * you are done with it; a component that unmounts without disposing leaks the whole graph for
+ * the lifetime of the page.
+ */
 const kwamiRegistry = new Map<string, Kwami>()
 
 /**
@@ -82,6 +94,8 @@ export class Kwami {
   private state: KwamiState = 'idle'
   private callbacks: KwamiCallbacks = {}
   private userId: string | null = null
+  /** In-flight connect, so a second call joins it rather than dispatching a second agent. */
+  private connecting: Promise<void> | null = null
 
   /**
    * Get the library version
@@ -214,9 +228,21 @@ export class Kwami {
       this.callbacks = { ...this.callbacks, ...callbacks }
     }
 
+    if (this.connecting) return this.connecting
+    this.connecting = this.doConnect(userId).finally(() => {
+      this.connecting = null
+    })
+    return this.connecting
+  }
+
+  private async doConnect(userId?: string): Promise<void> {
     this.userId = userId ?? `user_${Date.now()}`
 
     try {
+      // Finish tool setup before the definitions are read below — MCP servers connect
+      // asynchronously and their tools would otherwise miss the dispatch payload.
+      await this.tools.ready()
+
       // Initialize memory for this user
       if (this.memory.getConfig().adapter) {
         await this.memory.initialize(this.userId)
@@ -393,16 +419,34 @@ export class Kwami {
    * Cleanup all resources
    */
   async dispose(): Promise<void> {
-    await this.disconnect()
-    this.avatar.dispose()
-    this.agent.dispose()
-    this.memory.dispose()
-    await this.tools.dispose()
-    this.skills.dispose()
-    
-    // Unregister from global registry
+    // Every step runs even if an earlier one throws. Previously a disconnect() that rejected —
+    // a room already gone, a network blip — skipped the rest, leaking the WebGL context, the
+    // audio graph and the registry entry.
+    const name = this.soul.getName()
+    const failures: unknown[] = []
+    const step = async (label: string, run: () => unknown): Promise<void> => {
+      try {
+        await run()
+      } catch (error) {
+        failures.push(error)
+        logger.error(`Kwami "${this.id}" failed to dispose ${label}:`, error)
+      }
+    }
+
+    await step('agent connection', () => this.disconnect())
+    await step('avatar', () => this.avatar.dispose())
+    await step('agent', () => this.agent.dispose())
+    await step('memory', () => this.memory.dispose())
+    await step('tools', () => this.tools.dispose())
+    await step('skills', () => this.skills.dispose())
+
     kwamiRegistry.delete(this.id)
-    
-    logger.info(`Kwami "${this.soul.getName()}" (${this.id}) disposed`)
+    this.callbacks = {}
+
+    logger.info(`Kwami "${name}" (${this.id}) disposed`)
+
+    if (failures.length > 0) {
+      throw new AggregateError(failures, `Kwami "${this.id}" disposed with ${failures.length} error(s)`)
+    }
   }
 }
