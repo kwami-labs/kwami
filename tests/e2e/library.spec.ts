@@ -147,6 +147,56 @@ test.describe('Kwami on a canvas', () => {
     expect(result).toEqual({ echoed: { q: 'kwami' } });
   });
 
+  test('mounts every renderer and draws with it', async ({ page }) => {
+    // particles-face and eye-iris had no coverage of any kind: excluded from the unit
+    // coverage metric AND never instantiated here, so a shader that failed to compile in
+    // either would have shipped.
+    await boot(page);
+    await page.evaluate(() => window.kwamiE2E.create({ avatar: { renderer: 'particles-face' } }));
+
+    for (const renderer of ['particles-face', 'eye-iris', 'blob-xyz', 'black-hole'] as const) {
+      const active = await page.evaluate((r) => window.kwamiE2E.switchRenderer(r), renderer);
+      expect(active).toBe(renderer);
+      await expect
+        .poll(() => page.evaluate(() => window.kwamiE2E.litPixels()), { timeout: 20_000 })
+        .toBeGreaterThan(0);
+    }
+  });
+
+  test('releases its GPU allocations when a renderer is swapped out', async ({ page }) => {
+    // three.js does not free geometries, materials or textures for you. Cycling every renderer
+    // and coming back to the first should leave the GPU holding what it held at the start —
+    // otherwise each switch leaks, which is what BlackHole's undisposed lensing pass did.
+    await boot(page);
+    await page.evaluate(() => window.kwamiE2E.create({ avatar: { renderer: 'blob-xyz' } }));
+    await expect
+      .poll(() => page.evaluate(() => window.kwamiE2E.litPixels()), { timeout: 20_000 })
+      .toBeGreaterThan(0);
+
+    const { before, after } = await page.evaluate(() =>
+      window.kwamiE2E.cycleRenderers(['black-hole', 'particles-face', 'eye-iris', 'blob-xyz']),
+    );
+
+    expect(after.geometries).toBeLessThanOrEqual(before.geometries);
+    expect(after.textures).toBeLessThanOrEqual(before.textures);
+  });
+
+  test('restores renderer state that black-hole overwrites', async ({ page }) => {
+    // BlackHole sets toneMapping/toneMappingExposure on the SHARED WebGLRenderer. It used not
+    // to put them back, so blob -> black-hole -> blob left the blob rendering through ACES.
+    await boot(page);
+    await page.evaluate(() => window.kwamiE2E.create({ avatar: { renderer: 'blob-xyz' } }));
+    const before = await page.evaluate(() => window.kwamiE2E.toneMapping());
+
+    await page.evaluate(() => window.kwamiE2E.switchRenderer('black-hole'));
+    const during = await page.evaluate(() => window.kwamiE2E.toneMapping());
+    await page.evaluate(() => window.kwamiE2E.switchRenderer('blob-xyz'));
+    const after = await page.evaluate(() => window.kwamiE2E.toneMapping());
+
+    expect(during).not.toBe(before);
+    expect(after).toBe(before);
+  });
+
   test('renders the black-hole renderer too', async ({ page }) => {
     await boot(page);
 

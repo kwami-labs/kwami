@@ -99,6 +99,41 @@ window.kwamiE2E = {
 
   litPixels: hasRenderedPixels,
 
+  /**
+   * three.js's own accounting of live GPU allocations, which is the only way to tell a
+   * renderer that cleaned up from one that merely stopped drawing.
+   */
+  gpuResources() {
+    if (!current) throw new Error('no Kwami instance');
+    const renderer = current.avatar.getScene().renderer;
+    return {
+      geometries: renderer.info.memory.geometries,
+      textures: renderer.info.memory.textures,
+      programs: renderer.info.programs?.length ?? 0,
+    };
+  },
+
+  /** Tone mapping is global to the renderer; BlackHole used to change it and never restore. */
+  toneMapping() {
+    if (!current) throw new Error('no Kwami instance');
+    return current.avatar.getScene().renderer.toneMapping;
+  },
+
+  switchRenderer(type) {
+    current.avatar.switchRenderer(type);
+    return current.avatar.getRendererType();
+  },
+
+  /** Cycle every renderer, then report what the GPU is still holding. */
+  async cycleRenderers(types) {
+    const before = this.gpuResources();
+    for (const type of types) {
+      current.avatar.switchRenderer(type);
+      await new Promise((resolve) => requestAnimationFrame(resolve));
+    }
+    return { before, after: this.gpuResources() };
+  },
+
   async dispose() {
     if (!current) return { instanceCount: Kwami.getInstances().size };
     const id = current.id;
