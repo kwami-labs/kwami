@@ -8,9 +8,9 @@
  * Every version, tag, CHANGELOG.md entry and GitHub Release is derived from the Conventional
  * Commits since the last tag on that channel — nothing here is ever bumped by hand.
  *
- * Publishing to npm happens when NPM_TOKEN is set, or when the release workflow enables
- * provenance (OIDC trusted publishing). A local dry-run has neither, so it still versions
- * nothing on the registry.
+ * Publishing to npm only happens when NPM_TOKEN is present. Without it the run still versions,
+ * tags, writes the changelog and cuts the GitHub Release, so a fork or a repo that has not been
+ * given a token yet gets the full pipeline minus the publish rather than a red build.
  *
  * The release commit carries `[skip actions]` and is pushed with GITHUB_TOKEN, which by design
  * does not trigger workflows — the bump cannot re-run CI or release itself in a loop.
@@ -18,8 +18,7 @@
  * See docs/releases.md.
  */
 
-const npmPublish =
-  Boolean(process.env.NPM_TOKEN) || process.env.NPM_CONFIG_PROVENANCE === 'true';
+const npmPublish = Boolean(process.env.NPM_TOKEN);
 
 module.exports = {
   branches: [
