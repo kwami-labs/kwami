@@ -48,6 +48,40 @@ Out of scope:
 - denial of service achieved by passing deliberately absurd config to your own instance;
 - missing hardening headers on a page you control.
 
+## Deploying safely
+
+Two things are your deployment's responsibility, because the library cannot enforce them from
+the browser.
+
+**Pin the agent's participant identity.** The adapter treats one participant in the LiveKit room
+as authoritative: it auto-plays that participant's audio, emits its transcripts as agent text,
+drives the UI state machine from its attributes, and — most importantly — executes the
+`tool_call` data messages it sends against the tools you registered with `registerTool()`.
+Participants choose their own identity, so tell the library which one is the agent:
+
+```ts
+new Kwami(canvas, {
+  agent: {
+    livekit: {
+      tokenEndpoint: '/api/livekit/token',
+      agentIdentity: 'agent-7f3a', // or agentIdentityPrefix: 'kwami-agent:'
+    },
+  },
+});
+```
+
+Set it from the same backend that mints the room token, and have that backend refuse to issue a
+token for that identity to anyone else. Without it the library falls back to a name heuristic
+(`agent*`, or `*kwami*` without `user`) that another participant can satisfy by choosing a
+matching name.
+
+**Do not put provider API keys in the browser.** `VoicePipelineConfig` accepts `llm.apiKey`,
+`tts.apiKey`, `realtime.apiKey` and `stt.extra.apiKey` because the backend agent needs them, but
+anything you pass there ships to every visitor's browser and travels over the room's data
+channel. Hold those keys on your agent backend and leave the client fields unset. The logger
+masks them (see [`src/utils/logger.ts`](./src/utils/logger.ts)) so they do not reach the console,
+but masking a log line is not the same as the key not being there.
+
 ## Handling secrets
 
 Kwami never persists credentials. A LiveKit token or backend auth token passed into the library

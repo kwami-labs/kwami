@@ -14,19 +14,19 @@ import {
   type ShaderMaterial,
 } from 'three'
 import { GLTFExporter } from 'three/examples/jsm/exporters/GLTFExporter.js'
-import { createBlobXyzGeometry } from './geometry'
-import { animateBlobXyz, type LiquidPhysics } from './animation'
-import { createSkin } from './skins'
-import { defaultBlobXyzConfig } from './config'
-import { BlobXyzPosition } from './position'
+import { createBlobXyzGeometry } from './geometry.js'
+import { animateBlobXyz, type LiquidPhysics } from './animation.js'
+import { createSkin } from './skins/index.js'
+import { defaultBlobXyzConfig } from './config.js'
+import { BlobXyzPosition } from './position.js'
 import {
   getRandomBetween,
   getRandomBoolean,
   getRandomHexColor,
   genDNA,
-} from '../../../utils/randoms'
-import type { BlobXyzOptions, BlobXyzSkin, BlobXyzAudioEffects, TricolorSkinConfig } from './types'
-import { logger } from '../../../utils/logger'
+} from '../../../utils/randoms.js'
+import type { BlobXyzOptions, BlobXyzSkin, BlobXyzAudioEffects, TricolorSkinConfig } from './types.js'
+import { logger } from '../../../utils/logger.js'
 
 
 /**
@@ -40,6 +40,10 @@ export class BlobXyz {
   private skins: Map<BlobXyzSkin, ShaderMaterial> = new Map()
 
   private animationFrameId: number | null = null
+  /** Matches BlackHole/EyeIris/ParticlesFace: makes dispose() idempotent and stops the loop. */
+  private disposed = false
+  /** Timestamp of the previous frame, for delta-time normalisation. 0 until the first frame. */
+  private lastFrameTime = 0
 
   // Tricolor lights
   private lights: { x: PointLight; y: PointLight; z: PointLight } | null = null
@@ -313,24 +317,43 @@ export class BlobXyz {
    */
   private startAnimation(): void {
     const animate = () => {
+      if (this.disposed) return
+
+      /**
+       * How many 60 Hz frames' worth of time this frame represents.
+       *
+       * Every increment below was written as a per-frame constant, so the blob span twice as
+       * fast on a 120 Hz display as on a 60 Hz one and crawled on a throttled tab — unlike
+       * BlackHole, EyeIris and ParticlesFace, which all scale by `clock.getDelta()`. Scaling
+       * by this factor keeps the tuned 60 Hz behaviour identical and makes every other refresh
+       * rate match it. Clamped so returning to a backgrounded tab does not jump.
+       */
+      const now = performance.now()
+      const frameScale = this.lastFrameTime === 0
+        ? 1
+        : Math.min((now - this.lastFrameTime) / (1000 / 60), 3)
+      this.lastFrameTime = now
+
+      const transitionStep = this.transitionSpeed * frameScale
+
       // Update state transitions smoothly
       if (this.isListening) {
-        this.listeningTransition = Math.min(1, this.listeningTransition + this.transitionSpeed)
+        this.listeningTransition = Math.min(1, this.listeningTransition + transitionStep)
       } else {
-        this.listeningTransition = Math.max(0, this.listeningTransition - this.transitionSpeed)
+        this.listeningTransition = Math.max(0, this.listeningTransition - transitionStep)
       }
 
       if (this.isThinking) {
-        this.thinkingTransition = Math.min(1, this.thinkingTransition + this.transitionSpeed)
+        this.thinkingTransition = Math.min(1, this.thinkingTransition + transitionStep)
       } else {
-        this.thinkingTransition = Math.max(0, this.thinkingTransition - this.transitionSpeed)
+        this.thinkingTransition = Math.max(0, this.thinkingTransition - transitionStep)
       }
 
       const currentX = this.mesh.position.x
       const currentY = this.mesh.position.y
       const rawVX = currentX - this.prevMeshX
       const rawVY = currentY - this.prevMeshY
-      const smoothing = 0.15
+      const smoothing = Math.min(1, 0.15 * frameScale)
       this.smoothVelocityX += (rawVX - this.smoothVelocityX) * smoothing
       this.smoothVelocityY += (rawVY - this.smoothVelocityY) * smoothing
       this.liquidPhysics.velocityX = this.smoothVelocityX
@@ -369,14 +392,14 @@ export class BlobXyz {
         )
 
         const keepRotating = this.audioEffects.rotateWhilePlaying ?? true
-        const rotationScale = audioDriven && !keepRotating ? 0 : audioDriven ? 0.4 : 1
+        const rotationScale = (audioDriven && !keepRotating ? 0 : audioDriven ? 0.4 : 1) * frameScale
         this.mesh.rotation.x += this.rotation.x * rotationScale
         this.mesh.rotation.y += this.rotation.y * rotationScale
         this.mesh.rotation.z += this.rotation.z * rotationScale
       } else {
-        this.mesh.rotation.x += this.rotation.x
-        this.mesh.rotation.y += this.rotation.y
-        this.mesh.rotation.z += this.rotation.z
+        this.mesh.rotation.x += this.rotation.x * frameScale
+        this.mesh.rotation.y += this.rotation.y * frameScale
+        this.mesh.rotation.z += this.rotation.z * frameScale
       }
 
       if (this.cursorFollowEnabled) {
@@ -390,8 +413,9 @@ export class BlobXyz {
           ? this.pointerTarget.x * 0.55 * s
           : driftX
 
-        this.mesh.rotation.y += (desiredY - this.mesh.rotation.y) * 0.08
-        this.mesh.rotation.x += (desiredX - this.mesh.rotation.x) * 0.08
+        const followLerp = Math.min(1, 0.08 * frameScale)
+        this.mesh.rotation.y += (desiredY - this.mesh.rotation.y) * followLerp
+        this.mesh.rotation.x += (desiredX - this.mesh.rotation.x) * followLerp
       }
 
       // Clean up expired touch points
@@ -422,6 +446,7 @@ export class BlobXyz {
       cancelAnimationFrame(this.animationFrameId)
       this.animationFrameId = null
     }
+    this.lastFrameTime = 0
   }
 
   /**
@@ -495,6 +520,11 @@ export class BlobXyz {
    */
   getAmplitude(): { x: number; y: number; z: number } {
     return { ...this.amplitude }
+  }
+
+  /** Whether pointer interaction is currently bound. Pairs with enable/disableClickInteraction. */
+  isClickInteractionEnabled(): boolean {
+    return this.clickEnabled
   }
 
   /**
@@ -1231,7 +1261,7 @@ export class BlobXyz {
     try {
       await this.options.audio.startMicrophoneListening()
       this.isListening = true
-      logger.info('🎤 Started listening to microphone')
+      logger.debug('Started listening to microphone')
     } catch (error) {
       logger.error('Failed to start listening:', error)
       throw error
@@ -1281,10 +1311,20 @@ export class BlobXyz {
    * Cleanup and dispose resources
    */
   dispose(): void {
+    // The other three renderers all guard; without it a second dispose() double-frees.
+    if (this.disposed) return
+    this.disposed = true
+
     this.unbindPointerTracking()
     this.disableClickInteraction()
     this.stopThinking()
     this.stopAnimation()
+    this.position.dispose()
+
+    // Remove our own mesh. Avatar.switchRenderer() used to do this externally while
+    // Avatar.dispose() did not, so a full teardown left the mesh in the scene graph with a
+    // disposed geometry attached to it.
+    this.options.scene.remove(this.mesh)
     this.mesh.geometry.dispose()
 
     this.skins.forEach(material => material.dispose())

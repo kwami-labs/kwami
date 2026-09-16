@@ -1,5 +1,5 @@
-import type { ToolsConfig, ToolDefinition, MCPConfig } from '../types'
-import { logger } from '../utils/logger'
+import type { ToolsConfig, ToolDefinition, MCPConfig } from '../types/index.js'
+import { logger } from '../utils/logger.js'
 
 /**
  * ToolRegistry - Manages external tools and MCP integrations
@@ -18,6 +18,7 @@ export class ToolRegistry {
   private config: ToolsConfig
   private tools: Map<string, ToolDefinition> = new Map()
   private mcpClients: Map<string, MCPClient> = new Map()
+  private readyPromise: Promise<void> | null = null
 
   constructor(config?: ToolsConfig) {
     this.config = config ?? {}
@@ -31,11 +32,32 @@ export class ToolRegistry {
         this.register(tool)
       }
     }
+  }
 
-    // Initialize MCP connections
-    if (this.config.mcp) {
-      for (const mcpConfig of this.config.mcp) {
-        this.connectMCP(mcpConfig)
+  /**
+   * Finish any asynchronous setup — today, connecting the configured MCP servers.
+   *
+   * MCP connections used to be started from the constructor with the promise dropped on the
+   * floor: nothing could await them, nothing could observe a failure, and `getToolDefinitions()`
+   * could be read before any MCP tool had registered. `Kwami.connect()` awaits this, so the
+   * dispatch payload is complete by the time it is sent.
+   *
+   * Idempotent, and safe to call concurrently.
+   */
+  ready(): Promise<void> {
+    this.readyPromise ??= this.initAsync()
+    return this.readyPromise
+  }
+
+  private async initAsync(): Promise<void> {
+    if (!this.config.mcp) return
+
+    const results = await Promise.allSettled(
+      this.config.mcp.map((mcpConfig) => this.connectMCP(mcpConfig)),
+    )
+    for (const [i, result] of results.entries()) {
+      if (result.status === 'rejected') {
+        logger.error(`Failed to connect MCP server "${this.config.mcp[i]?.name}":`, result.reason)
       }
     }
   }

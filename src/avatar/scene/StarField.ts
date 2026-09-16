@@ -233,6 +233,17 @@ export class StarField {
   /**
    * Update the star field animation
    */
+  /**
+   * The elapsed time the twinkle shader is running on, or null when the field is off.
+   *
+   * Exposed because it is the only externally visible sign that the field is animating at all:
+   * `Scene.update()` had no caller for a long time, so an enabled field rendered but never
+   * twinkled or rotated, and nothing about the scene made that observable.
+   */
+  getTime(): number | null {
+    return this.uniforms?.uTime.value ?? null
+  }
+
   update(deltaTime?: number): void {
     if (!this._enabled || !this.starPoints || !this.uniforms) return
 

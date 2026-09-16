@@ -12,8 +12,7 @@ CHANGELOG.md
 # The library source and the build config predate this pipeline and have never been run
 # through Prettier: reformatting them is a ~100-file, 7k-line diff that would bury every
 # behavioural change in review and conflict with every open branch. Do it deliberately in its
-# own `style:` commit (drop these three lines, run `pnpm format`, merge nothing else with it),
+# own `style:` commit (drop these two lines, run `pnpm format`, merge nothing else with it),
 # not as a side effect of a CI change.
 src/
-scripts/copy-assets.ts
 vite.config.ts
