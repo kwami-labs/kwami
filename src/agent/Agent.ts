@@ -53,55 +53,6 @@ function isMergeableObject(value: unknown): value is Record<string, unknown> {
   return typeof value === 'object' && value !== null && !Array.isArray(value)
 }
 
-/** The states a voice session reports. */
-export type AgentState = 'idle' | 'listening' | 'thinking' | 'speaking' | 'initializing'
-
-/**
- * Call every listener, isolating each one: a consumer callback that throws must not stop the
- * others from running, nor propagate into LiveKit's event emitter.
- */
-function dispatch<T>(listeners: Set<(value: T) => void>, value: T, label: string): void {
-  for (const listener of listeners) {
-    try {
-      listener(value)
-    } catch (error) {
-      logger.error(`${label} listener threw:`, error)
-    }
-  }
-}
-
-/** The `VoicePipelineConfig` keys whose values are objects and must merge, not replace. */
-const NESTED_VOICE_KEYS = ['vad', 'stt', 'llm', 'tts', 'realtime', 'turnDetection', 'noiseCancellation'] as const
-
-/**
- * Merge a partial voice config into the current one, one level deep.
- *
- * Top-level scalars replace. The provider blocks merge field by field, so updating a single
- * field (`{ tts: { voice: 'nova' } }`) keeps the provider and model already configured.
- */
-function mergeVoiceConfig(
-  current: VoicePipelineConfig | undefined,
-  update: Partial<VoicePipelineConfig>,
-): VoicePipelineConfig {
-  const merged = { ...current, ...update } as Record<string, unknown>
-  const base = (current ?? {}) as Record<string, unknown>
-  const patch = update as Record<string, unknown>
-
-  for (const key of NESTED_VOICE_KEYS) {
-    const existing = base[key]
-    const incoming = patch[key]
-    if (isMergeableObject(existing) && isMergeableObject(incoming)) {
-      merged[key] = { ...existing, ...incoming }
-    }
-  }
-
-  return merged as VoicePipelineConfig
-}
-
-function isMergeableObject(value: unknown): value is Record<string, unknown> {
-  return typeof value === 'object' && value !== null && !Array.isArray(value)
-}
-
 // Forward declaration to avoid circular dependency
 interface KwamiRef {
   id: string
