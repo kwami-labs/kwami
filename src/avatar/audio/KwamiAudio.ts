@@ -13,6 +13,14 @@ export class KwamiAudio {
   private analyser: AnalyserNode | null = null
   private audioContext: AudioContext | null = null
   private streamSource: MediaStreamAudioSourceNode | null = null
+  /**
+   * Whether the currently attached MediaStream is ours to stop.
+   *
+   * True only for a stream this class opened via `startMicrophoneListening()`. A stream handed
+   * in through `connectMediaStream()` — the agent's LiveKit track, say — belongs to the caller:
+   * we analyse it and let go of it, we never end it.
+   */
+  private ownsStream = false
   private sourceNode: MediaElementAudioSourceNode | null = null
   private highpassFilter: BiquadFilterNode | null = null
   private isHighpassEnabled = false
@@ -407,7 +415,7 @@ export class KwamiAudio {
    * Note: This is for VISUALIZATION ONLY - audio playback is handled by the audio element
    * We do NOT connect to audioContext.destination to avoid echo/double playback
    */
-  async connectMediaStream(stream: MediaStream): Promise<void> {
+  async connectMediaStream(stream: MediaStream, options?: { owned?: boolean }): Promise<void> {
     if (!this.audioContext) {
       const AudioContextClass = (window as unknown as { AudioContext?: typeof AudioContext; webkitAudioContext?: typeof AudioContext }).AudioContext || (window as unknown as { webkitAudioContext: typeof AudioContext }).webkitAudioContext
       this.audioContext = new AudioContextClass()
@@ -435,6 +443,7 @@ export class KwamiAudio {
     if (this.audioContext && this.analyser) {
       this.streamSource = this.audioContext.createMediaStreamSource(stream)
       this.streamSource.connect(this.analyser)
+      this.ownsStream = options?.owned ?? false
     }
   }
 
@@ -446,6 +455,7 @@ export class KwamiAudio {
       this.streamSource.disconnect()
       this.streamSource = null
     }
+    this.ownsStream = false
   }
 
   /**
@@ -467,7 +477,7 @@ export class KwamiAudio {
           autoGainControl: true
         } 
       })
-      await this.connectMediaStream(stream)
+      await this.connectMediaStream(stream, { owned: true })
     } catch (error) {
       logger.error('Failed to access microphone:', error)
       throw error
@@ -478,7 +488,10 @@ export class KwamiAudio {
    * Stop listening to microphone input
    */
   stopMicrophoneListening(): void {
-    if (this.streamSource && this.streamSource.mediaStream) {
+    // Only end tracks we opened. This used to stop whatever stream happened to be attached,
+    // so disposing a Kwami killed the agent's live LiveKit audio track for the whole host
+    // application — Kwami.wireUp() feeds that remote stream straight into connectMediaStream().
+    if (this.ownsStream && this.streamSource?.mediaStream) {
       this.streamSource.mediaStream.getTracks().forEach(track => track.stop())
     }
     this.disconnectMediaStream()
@@ -601,6 +614,7 @@ export class KwamiAudio {
       this.audioContext.close().catch(() => {
         // Ignore errors during cleanup
       })
+      this.audioContext = null
     }
   }
 }
