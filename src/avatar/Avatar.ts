@@ -158,6 +158,10 @@ export class Avatar {
           if (this.currentRenderer === 'blob-xyz') {
             this.blobXyz?.position.refresh()
           }
+          // BlackHole owns an EffectComposer, a bloom pass and a lensing pass, none of which
+          // the Scene knows about. Without this its post-processing chain stayed at the size
+          // it was built with, so any resize skewed the lensing and blurred the bloom.
+          this.blackHole?.onResize(width, height)
         }
       }
     })
@@ -246,7 +250,6 @@ export class Avatar {
 
     // Dispose current renderer
     if (this.currentRenderer === 'blob-xyz' && this.blobXyz) {
-      this.scene.scene.remove(this.blobXyz.getMesh())
       this.blobXyz.dispose()
       this.blobXyz = null
     } else if (this.currentRenderer === 'black-hole' && this.blackHole) {
@@ -461,10 +464,17 @@ export class Avatar {
    */
   dispose(): void {
     this.resizeObserver?.disconnect()
+    this.resizeObserver = null
+
     this.blobXyz?.dispose()
     this.blackHole?.dispose()
     this.particlesFace?.dispose()
     this.eyeIris?.dispose()
+    this.blobXyz = null
+    this.blackHole = null
+    this.particlesFace = null
+    this.eyeIris = null
+
     this.audio.dispose()
     this.scene.dispose()
   }
