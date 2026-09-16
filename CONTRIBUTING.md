@@ -1,7 +1,10 @@
 # Contributing to Kwami
 
 Thanks for working on Kwami. This covers the workflow; the [`README`](./README.md) covers the
-library itself and [`docs/`](./docs) holds the deep dives.
+library itself and [`docs/`](./docs/README.md) holds the deep dives (architecture, API,
+security, testing, CI, releases).
+
+By participating you agree to the [Code of Conduct](./CODE_OF_CONDUCT.md).
 
 ## Setup
 
@@ -109,3 +112,6 @@ read the job that failed rather than pushing a blind fix.
 ## Reporting a vulnerability
 
 See [`SECURITY.md`](./SECURITY.md). Please do not open a public issue for one.
+
+Integrator-facing hardening (identity pin, keys, tools) is documented in
+[`docs/security.md`](./docs/security.md).

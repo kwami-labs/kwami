@@ -1,5 +1,9 @@
 # Security Policy
 
+How to report a vulnerability and which versions we patch. How to **deploy** the library
+without trusting the wrong LiveKit participant or shipping provider keys is
+[docs/security.md](./docs/security.md).
+
 ## Supported versions
 
 Kwami releases from three channels; only the stable line receives security fixes.
