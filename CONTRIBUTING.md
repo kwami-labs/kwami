@@ -31,6 +31,10 @@ that direction. Details: [`docs/ci-cd.md`](./docs/ci-cd.md).
 Direct pushes to `dev`, `stg` and `main` are blocked by [`.husky/pre-push`](./.husky/pre-push)
 and by branch protection.
 
+Those protections are configuration, not etiquette: they are declared as data in
+[`.github/rulesets/`](./.github/rulesets/) and applied with `pnpm rules:apply`. Released `v*`
+tags are covered too — they cannot be deleted, moved or force-updated by anyone.
+
 ## Commits
 
 [Conventional Commits](https://www.conventionalcommits.org/) are mandatory. `commitlint` runs in
@@ -52,8 +56,9 @@ build(deps): bump three to 0.184.0
   [`docs/releases.md`](./docs/releases.md).
 - Never hand-edit `CHANGELOG.md` or the `version` field — semantic-release owns both.
 
-Feature PRs are **squash merged**, so the PR title becomes the released commit subject. Make it
-a good one.
+Feature PRs are **squash merged**, so the PR title becomes the released commit subject — and the
+branch commits are thrown away. CI therefore lints the title as well as the commits, against the
+same config. Make it a good one.
 
 ## Making a change
 
@@ -97,8 +102,8 @@ Fill in [the template](./.github/pull_request_template.md). It asks for the scop
 and whether the public surface moved — all three change how the PR is reviewed and what it
 releases.
 
-CI runs commitlint, lint, format, typecheck, the dependency audit, all three test layers and the
-build on every PR. The single required check is **`ci gate`**; if it is red, open the run and
+CI runs commitlint over the commits and the PR title, lint, format, typecheck, the dependency
+audit, all three test layers and the build on every PR. The single required check is **`ci gate`**; if it is red, open the run and
 read the job that failed rather than pushing a blind fix.
 
 ## Reporting a vulnerability
