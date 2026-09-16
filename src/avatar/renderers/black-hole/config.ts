@@ -112,7 +112,11 @@ export function getDefaultColors(): BlackHoleDiskColors {
 
 export function getDefaultStars(): BlackHoleStarsConfig {
   return {
-    count: 150000,
+    // 150,000 was the previous default: nineteen times the standalone StarField's 8,000, every
+    // point additively blended every frame, on top of a 256x128 accretion ring and a
+    // bloom + lensing post chain. No shipped preset overrode it, so every black-hole avatar
+    // paid for it. 20,000 still reads as a dense field at the default field radius.
+    count: 20000,
     fieldRadius: 2000,
     twinkleSpeed: 2.5,
   }
