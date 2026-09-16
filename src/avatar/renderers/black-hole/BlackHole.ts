@@ -77,6 +77,8 @@ export class BlackHole {
   private composer: EffectComposer
   private bloomPass: UnrealBloomPass
   private lensingPass: ShaderPass
+  private previousToneMapping: THREE.ToneMapping = THREE.NoToneMapping
+  private previousToneMappingExposure = 1
   
   // Configuration
   private config: BlackHoleConfig
@@ -160,7 +162,12 @@ export class BlackHole {
     this.lensingUniforms.aspectRatio.value = this.renderer.domElement.width / this.renderer.domElement.height
     this.composer.addPass(this.lensingPass)
     
-    // Configure renderer for better visuals
+    // Configure renderer for better visuals. The WebGLRenderer is shared with whatever
+    // renderer runs next, so remember what we clobbered and put it back in dispose() —
+    // otherwise switching blob -> black-hole -> blob leaves the blob rendering through ACES
+    // at 1.2 exposure, visibly washed out, with nothing to point at.
+    this.previousToneMapping = this.renderer.toneMapping
+    this.previousToneMappingExposure = this.renderer.toneMappingExposure
     this.renderer.toneMapping = THREE.ACESFilmicToneMapping
     this.renderer.toneMappingExposure = 1.2
     
@@ -647,9 +654,17 @@ export class BlackHole {
     // Stop animation loop
     this.stopAnimation()
     
-    // Dispose post-processing
+    // Restore the shared renderer to how we found it.
+    this.renderer.toneMapping = this.previousToneMapping
+    this.renderer.toneMappingExposure = this.previousToneMappingExposure
+
+    // Dispose post-processing. EffectComposer.dispose() releases its two render targets and
+    // its internal copy pass — it does NOT touch passes added with addPass(), so the
+    // ShaderPass's material and full-screen quad have to go explicitly or every renderer
+    // switch leaks a compiled shader program.
     this.composer.dispose()
     this.bloomPass.dispose()
+    this.lensingPass.dispose()
     
     // Dispose geometries
     this.blackHoleMesh.geometry.dispose()

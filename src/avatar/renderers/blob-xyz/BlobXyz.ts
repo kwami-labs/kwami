@@ -40,6 +40,8 @@ export class BlobXyz {
   private skins: Map<BlobXyzSkin, ShaderMaterial> = new Map()
 
   private animationFrameId: number | null = null
+  /** Matches BlackHole/EyeIris/ParticlesFace: makes dispose() idempotent and stops the loop. */
+  private disposed = false
 
   // Tricolor lights
   private lights: { x: PointLight; y: PointLight; z: PointLight } | null = null
@@ -313,6 +315,8 @@ export class BlobXyz {
    */
   private startAnimation(): void {
     const animate = () => {
+      if (this.disposed) return
+
       // Update state transitions smoothly
       if (this.isListening) {
         this.listeningTransition = Math.min(1, this.listeningTransition + this.transitionSpeed)
@@ -1231,7 +1235,7 @@ export class BlobXyz {
     try {
       await this.options.audio.startMicrophoneListening()
       this.isListening = true
-      logger.info('🎤 Started listening to microphone')
+      logger.debug('Started listening to microphone')
     } catch (error) {
       logger.error('Failed to start listening:', error)
       throw error
@@ -1281,10 +1285,20 @@ export class BlobXyz {
    * Cleanup and dispose resources
    */
   dispose(): void {
+    // The other three renderers all guard; without it a second dispose() double-frees.
+    if (this.disposed) return
+    this.disposed = true
+
     this.unbindPointerTracking()
     this.disableClickInteraction()
     this.stopThinking()
     this.stopAnimation()
+    this.position.dispose()
+
+    // Remove our own mesh. Avatar.switchRenderer() used to do this externally while
+    // Avatar.dispose() did not, so a full teardown left the mesh in the scene graph with a
+    // disposed geometry attached to it.
+    this.options.scene.remove(this.mesh)
     this.mesh.geometry.dispose()
 
     this.skins.forEach(material => material.dispose())

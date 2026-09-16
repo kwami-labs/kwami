@@ -110,6 +110,20 @@ export class BlobXyzPosition {
   }
 
   /**
+   * Cancel any in-flight `animateTo()`.
+   *
+   * Without this, disposing the renderer mid-animation left the rAF loop running: it kept
+   * calling `updatePosition()` on a mesh that had been removed from the scene and whose
+   * geometry was already disposed, for the remainder of the animation's duration.
+   */
+  dispose(): void {
+    if (this._animationId !== null) {
+      cancelAnimationFrame(this._animationId)
+      this._animationId = null
+    }
+  }
+
+  /**
    * Update the actual mesh position based on normalized coordinates
    */
   updatePosition(): void {

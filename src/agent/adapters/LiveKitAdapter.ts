@@ -82,7 +82,10 @@ export class LiveKitAdapter implements AgentAdapter {
    * Update configuration
    */
   updateConfig(config: Partial<LiveKitAdapterConfig>): void {
-    this.config = { ...this.config, ...config }
+    // Mutate in place rather than replacing the reference. `createPipeline()` hands this exact
+    // object to the LiveKitPipeline, so reassigning it left a connected pipeline reading
+    // connect-time values for userId, echoCancellation, roomName and the rest, forever.
+    Object.assign(this.config, config)
 
     // Update voice session if voice config changed
     if (config.voice) {
@@ -143,13 +146,34 @@ interface AgentDataMessage {
  */
 const AGENT_STATE_ATTRIBUTE = 'lk.agent.state'
 
+/** The subset of the adapter config that decides who counts as the agent. */
+export interface AgentIdentityConfig {
+  agentIdentity?: string
+  agentIdentityPrefix?: string
+}
+
 /**
- * Check whether a participant is the agent (not a regular user).
+ * Decide whether a LiveKit identity is the backend agent.
+ *
+ * Everything this adapter treats as authoritative — the audio it auto-plays, the transcripts it
+ * emits as agent text, the pipeline state it drives the UI from, and the `tool_call` messages it
+ * executes in the host application — is gated on this answer. A participant chooses its own
+ * identity, so the only trustworthy form of this check is an exact identity (or a namespaced
+ * prefix) issued by the same backend that mints the room token.
+ *
+ * Resolution order:
+ *  1. `agentIdentity` — exact match. Use this.
+ *  2. `agentIdentityPrefix` — for backends that suffix a session id onto a fixed prefix.
+ *  3. The legacy name heuristic, kept so existing deployments keep working. It is a guess about
+ *     a self-declared string and must not be relied on where the room is not otherwise trusted.
  */
-function isAgentParticipant(participant: Participant | RemoteParticipant): boolean {
-  const identity = participant.identity.toLowerCase()
-  return identity.startsWith('agent') ||
-    (identity.includes('kwami') && !identity.includes('user'))
+export function isAgentIdentity(identity: string, config?: AgentIdentityConfig): boolean {
+  if (config?.agentIdentity) return identity === config.agentIdentity
+  if (config?.agentIdentityPrefix) return identity.startsWith(config.agentIdentityPrefix)
+
+  const lower = identity.toLowerCase()
+  return lower.startsWith('agent') ||
+    (lower.includes('kwami') && !lower.includes('user'))
 }
 
 /**
@@ -173,6 +197,7 @@ class LiveKitPipeline implements AgentPipeline {
 
   // Callbacks (user/agent text delivered via VoiceSession only — see onUserSpeech / onAgentText)
   private onAgentAudioStreamCb?: (stream: MediaStream) => void
+  private onErrorCb?: (error: Error) => void
   private toolExecutor?: ToolExecutor
 
   /** LiveKit often delivers the same final transcript via TranscriptionReceived and DataReceived — dedupe. */
@@ -189,6 +214,45 @@ class LiveKitPipeline implements AgentPipeline {
 
   setToolExecutor(executor: ToolExecutor): void {
     this.toolExecutor = executor
+  }
+
+  /** See {@link isAgentIdentity} — gates everything this adapter treats as authoritative. */
+  private isAgentParticipant(participant: Participant | RemoteParticipant): boolean {
+    return isAgentIdentity(participant.identity, this.config)
+  }
+
+  onError(callback: (error: Error) => void): void {
+    this.onErrorCb = callback
+  }
+
+  /**
+   * Publish on the data channel and observe the result.
+   *
+   * `publishData()` returns a promise. Three call sites used to drop it, so a send that failed
+   * because the channel was not ready — reconnecting, or a message fired straight after
+   * connect — surfaced as an unhandled rejection instead of an error the app could see.
+   */
+  private publish(message: unknown, what: string): void {
+    if (!this.room) return
+    const data = new TextEncoder().encode(JSON.stringify(message))
+    this.room.localParticipant.publishData(data, { reliable: true }).catch((err: unknown) => {
+      this.emitError(new Error(`Failed to send ${what}: ${err instanceof Error ? err.message : String(err)}`))
+    })
+  }
+
+  /**
+   * Surface an out-of-band failure.
+   *
+   * Both paths matter: the VoiceSession event is what a consumer subscribed through
+   * `adapter.getVoiceSession()` sees, and `onErrorCb` is what `Agent` forwards to the
+   * `onError` callback registered on `Kwami`. Before this existed, neither fired — the agent's
+   * own `{ type: 'error' }` messages were logged and dropped, `VoiceSession.triggerError()` had
+   * no callers at all, and `Agent._onErrorCallback` was stored and never invoked.
+   */
+  private emitError(error: Error): void {
+    logger.error('Pipeline error:', error)
+    this.voiceSession.triggerError(error)
+    this.onErrorCb?.(error)
   }
 
   /** Same utterance often arrives via DataReceived and TranscriptionReceived with minor text differences. */
@@ -290,7 +354,7 @@ class LiveKitPipeline implements AgentPipeline {
 
       // Check for agent participant that may already be in the room
       for (const [, p] of this.room.remoteParticipants) {
-        if (isAgentParticipant(p)) {
+        if (this.isAgentParticipant(p)) {
           const agentState = p.attributes?.[AGENT_STATE_ATTRIBUTE]
           if (agentState) {
             logger.info('Found existing agent state on connect:', agentState)
@@ -313,9 +377,64 @@ class LiveKitPipeline implements AgentPipeline {
       this.voiceSession.setState('listening')
       logger.info('LiveKit pipeline connected')
     } catch (error) {
+      // Without this the room stays connected when a later step fails — denying microphone
+      // permission used to leave a live LiveKit session behind, with isConnected() still
+      // reporting true, and every retry leaked another Room and another agent dispatch.
       logger.error('Failed to connect to LiveKit:', error)
+      await this.teardownRoom()
       this.voiceSession.setState('idle')
       throw error
+    }
+  }
+
+  /**
+   * Release everything `connect()` acquired. Safe to call when half-built or already torn
+   * down, which is what lets both `disconnect()` and the `connect()` failure path share it.
+   */
+  private async teardownRoom(): Promise<void> {
+    if (this._sendDataHandler && typeof window !== 'undefined') {
+      window.removeEventListener('kwami:send_data', this._sendDataHandler)
+      this._sendDataHandler = null
+    }
+
+    if (this.localAudioTrack) {
+      this.localAudioTrack.stop()
+      this.localAudioTrack = null
+    }
+
+    // The agent's tracks belong to the remote participant; dropping our reference is enough,
+    // and stopping them would end the track for anything else holding the same stream.
+    this.agentAudioStream = null
+
+    this.removeAgentAudioElements()
+
+    if (this.room) {
+      const room = this.room
+      this.room = null
+      room.removeAllListeners()
+      try {
+        await room.disconnect()
+      } catch (error) {
+        logger.warn('Error while disconnecting the room:', error)
+      }
+    }
+
+    // Clear cached room name so the next connection creates a fresh room. Reusing the same
+    // room name can cause the old (shutting-down) agent to receive config meant for the new
+    // session, or LiveKit to dispatch a second agent into a room that still has a lingering one.
+    this.config.roomName = undefined
+  }
+
+  /**
+   * Remove every `#kwami-agent-audio` element, not just the first. The id is fixed, so a
+   * republished agent track could append a second one; `getElementById` would then leave the
+   * older, still-playing element behind on teardown.
+   */
+  private removeAgentAudioElements(): void {
+    if (typeof document === 'undefined') return
+    for (const el of Array.from(document.querySelectorAll('#kwami-agent-audio'))) {
+      ;(el as HTMLAudioElement).pause?.()
+      el.remove()
     }
   }
 
@@ -361,13 +480,16 @@ class LiveKitPipeline implements AgentPipeline {
 
       if (track.kind === Track.Kind.Audio) {
         // Only play audio from the agent participant, not other users
-        if (!isAgentParticipant(participant)) {
+        if (!this.isAgentParticipant(participant)) {
           logger.debug(`Skipping audio from non-agent participant: ${participant.identity}`)
           return
         }
 
         // This is the agent's audio response
-        // Attach to an audio element to play it
+        // Attach to an audio element to play it. Clear any previous one first: the id is
+        // fixed, so a republished agent track (a backend restart mid-session) would otherwise
+        // stack a second element on top of the first and play both.
+        this.removeAgentAudioElements()
         const audioElement = track.attach()
         audioElement.id = 'kwami-agent-audio'
 
@@ -389,19 +511,34 @@ class LiveKitPipeline implements AgentPipeline {
       track.detach()
     })
 
-    // Data received - transcripts and agent messages come through here
+    // Data received - transcripts and agent messages come through here.
+    //
+    // This handler is the highest-privilege entry point in the adapter: handleAgentData() runs
+    // `tool_call` messages against the host application's registered tools, and dispatches
+    // `nav_command` / `browser_session` / `search_results` as window events the host acts on.
+    // It therefore has to authorize the sender the same way TrackSubscribed,
+    // TranscriptionReceived and ParticipantAttributesChanged already do — otherwise any other
+    // participant in the room can invoke the host's tools with arguments of their choosing.
     this.room.on(RoomEvent.DataReceived, (
       payload: Uint8Array,
       participant?: RemoteParticipant,
       _kind?: DataPacket_Kind
     ) => {
+      // A packet with no sender cannot be attributed to the agent, so it is not trusted either.
+      if (!participant || !this.isAgentParticipant(participant)) {
+        logger.warn(
+          `Ignoring data message from non-agent participant: ${participant?.identity ?? 'unknown'}`
+        )
+        return
+      }
+
       try {
         const decoder = new TextDecoder()
         const jsonStr = decoder.decode(payload)
         const data: AgentDataMessage = JSON.parse(jsonStr)
         if (data.type === 'search_results') {
-          logger.info('DataReceived search_results', {
-            from: participant?.identity ?? 'unknown',
+          logger.debug('DataReceived search_results', {
+            from: participant.identity,
             query: data.query,
             resultsCount: data.results?.length ?? 0,
           })
@@ -422,7 +559,7 @@ class LiveKitPipeline implements AgentPipeline {
       participant?: Participant,
       _publication?: TrackPublication,
     ) => {
-      const fromAgent = participant ? isAgentParticipant(participant) : false
+      const fromAgent = participant ? this.isAgentParticipant(participant) : false
 
       for (const segment of segments) {
         if (fromAgent) {
@@ -456,7 +593,7 @@ class LiveKitPipeline implements AgentPipeline {
       changedAttributes: Record<string, string>,
       participant: Participant
     ) => {
-      if (!isAgentParticipant(participant)) return
+      if (!this.isAgentParticipant(participant)) return
 
       const agentState = changedAttributes[AGENT_STATE_ATTRIBUTE]
       if (agentState) {
@@ -469,7 +606,7 @@ class LiveKitPipeline implements AgentPipeline {
     // to pick up any state set before we joined.
     this.room.on(RoomEvent.ParticipantConnected, (participant: RemoteParticipant) => {
       logger.info(`Participant connected: ${participant.identity}`)
-      if (isAgentParticipant(participant)) {
+      if (this.isAgentParticipant(participant)) {
         const agentState = participant.attributes?.[AGENT_STATE_ATTRIBUTE]
         if (agentState) {
           logger.info('Initial agent state from attributes:', agentState)
@@ -490,6 +627,11 @@ class LiveKitPipeline implements AgentPipeline {
     this.room.on(RoomEvent.Disconnected, (reason) => {
       logger.info('Disconnected from room:', reason)
       this.voiceSession.setState('idle')
+      // A drop we did not ask for is the consumer's problem to handle (retry, show a banner).
+      // `this.room` is already null when we tore down deliberately.
+      if (this.room) {
+        this.emitError(new Error(`Disconnected from LiveKit room: ${reason ?? 'unknown reason'}`))
+      }
     })
 
     // Reconnecting
@@ -572,8 +714,8 @@ class LiveKitPipeline implements AgentPipeline {
         break
 
       case 'error':
-        // Error from agent
-        logger.error('Agent error:', data.error)
+        // Error from the backend agent. This used to be logged and dropped.
+        this.emitError(new Error(data.error ?? 'Unknown agent error'))
         break
 
       case 'tool_call':
@@ -735,8 +877,9 @@ class LiveKitPipeline implements AgentPipeline {
     const encoder = new TextEncoder()
     const data = encoder.encode(JSON.stringify(configMessage))
 
-    // Log detailed config being sent
-    logger.info('📤 Sending config to agent:', {
+    // The voice config carries provider credentials. `logger` redacts them, but there is no
+    // reason to print the whole pipeline at `info` on every connect either.
+    logger.debug('Sending config to agent:', {
       kwamiId: options.kwamiId,
       kwamiName: options.kwamiName,
       voice: configMessage.voice,
@@ -746,48 +889,12 @@ class LiveKitPipeline implements AgentPipeline {
       reliable: true,
     })
 
-    logger.info('✅ Config sent to agent')
+    logger.debug('Config sent to agent')
   }
 
   async disconnect(): Promise<void> {
     logger.info('LiveKit pipeline disconnecting...')
-
-    // Remove client-to-agent data relay
-    if (this._sendDataHandler && typeof window !== 'undefined') {
-      window.removeEventListener('kwami:send_data', this._sendDataHandler)
-      this._sendDataHandler = null
-    }
-
-    // Stop local audio track
-    if (this.localAudioTrack) {
-      this.localAudioTrack.stop()
-      this.localAudioTrack = null
-    }
-
-    // Clean up agent audio stream
-    if (this.agentAudioStream) {
-      this.agentAudioStream.getTracks().forEach(track => track.stop())
-      this.agentAudioStream = null
-    }
-
-    // Remove agent audio element from DOM
-    const audioEl = document.getElementById('kwami-agent-audio')
-    if (audioEl) {
-      audioEl.remove()
-    }
-
-    // Disconnect from room
-    if (this.room) {
-      await this.room.disconnect()
-      this.room = null
-    }
-
-    // Clear cached room name so the next connection creates a fresh room.
-    // Reusing the same room name can cause the old (shutting-down) agent to
-    // receive config meant for the new session, or LiveKit to dispatch a
-    // second agent into a room that still has a lingering one.
-    this.config.roomName = undefined
-
+    await this.teardownRoom()
     this.voiceSession.setState('idle')
   }
 
@@ -916,9 +1023,7 @@ class LiveKitPipeline implements AgentPipeline {
    * Allows changing soul, voice settings, or tools without reconnecting
    */
   sendConfigUpdate(type: string, config: unknown): void {
-    logger.info(`📤 sendConfigUpdate called: type=${type}`)
-    logger.info(`📤 Room exists: ${!!this.room}`)
-    logger.info(`📤 Room connected: ${this.room?.state}`)
+    logger.debug(`sendConfigUpdate: type=${type}, room=${this.room?.state ?? 'none'}`)
 
     if (!this.room) {
       logger.warn('Cannot send config update: room not available')
@@ -932,17 +1037,17 @@ class LiveKitPipeline implements AgentPipeline {
       timestamp: Date.now(),
     }
 
-    logger.info(`📤 Sending message:`, message)
+    logger.debug('Sending config update:', message)
 
     const encoder = new TextEncoder()
     const data = encoder.encode(JSON.stringify(message))
 
     this.room.localParticipant.publishData(data, { reliable: true })
       .then(() => {
-        logger.info(`✅ Successfully sent ${type} config update to agent`)
+        logger.debug(`Sent ${type} config update to agent`)
       })
       .catch((err) => {
-        logger.error(`❌ Failed to send ${type} config update:`, err)
+        logger.error(`Failed to send ${type} config update:`, err)
       })
   }
 
@@ -959,9 +1064,7 @@ class LiveKitPipeline implements AgentPipeline {
       error
     }
 
-    const encoder = new TextEncoder()
-    const data = encoder.encode(JSON.stringify(message))
-    this.room.localParticipant.publishData(data, { reliable: true })
+    this.publish(message, 'tool result')
   }
 
   interrupt(): void {
@@ -969,11 +1072,7 @@ class LiveKitPipeline implements AgentPipeline {
     this.voiceSession.triggerInterruption()
 
     // Send interrupt signal via data channel
-    if (this.room) {
-      const encoder = new TextEncoder()
-      const data = encoder.encode(JSON.stringify({ type: 'interrupt' }))
-      this.room.localParticipant.publishData(data, { reliable: true })
-    }
+    this.publish({ type: 'interrupt' }, 'interrupt')
   }
 
   sendText(text: string): void {
@@ -981,17 +1080,21 @@ class LiveKitPipeline implements AgentPipeline {
 
     // Send text via data channel
     if (this.room) {
-      const encoder = new TextEncoder()
-      const data = encoder.encode(JSON.stringify({ type: 'text', text }))
-      this.room.localParticipant.publishData(data, { reliable: true })
+      this.publish({ type: 'text', text }, 'text message')
 
       // Mirror typed input through the same path as voice STT (single listener chain).
       this.voiceSession.triggerUserSpeechEnded(text)
     }
   }
 
-  dispose(): void {
-    this.disconnect()
+  async dispose(): Promise<void> {
+    // `disconnect()` is async. Calling it without awaiting returned before the microphone was
+    // released and the room closed, so an app that disposed and immediately reconnected could
+    // hold two rooms and a stuck mic indicator.
+    await this.disconnect()
+    this.onErrorCb = undefined
+    this.onAgentAudioStreamCb = undefined
+    this.toolExecutor = undefined
   }
 
   // ---------------------------------------------------------------------------
@@ -1008,11 +1111,18 @@ class LiveKitPipeline implements AgentPipeline {
     // Use configured userId, or get/create persistent ID from localStorage
     let participantName = this.config.userId
     if (!participantName) {
+      // Guarded like every other browser access in this file. Unguarded, this threw a
+      // ReferenceError whenever the adapter was evaluated outside a browser (SSR, node tests).
+      // Storage can also throw in a private window or with site data blocked.
       const storageKey = 'kwami-user-id'
-      participantName = localStorage.getItem(storageKey) ?? undefined
-      if (!participantName) {
+      try {
+        participantName = globalThis.localStorage?.getItem(storageKey) ?? undefined
+        if (!participantName) {
+          participantName = `kwami-user-${Date.now()}`
+          globalThis.localStorage?.setItem(storageKey, participantName)
+        }
+      } catch {
         participantName = `kwami-user-${Date.now()}`
-        localStorage.setItem(storageKey, participantName)
       }
     }
 

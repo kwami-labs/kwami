@@ -55,21 +55,25 @@ export default defineConfig({
        * build pass — that turns a ratchet back into a suggestion.
        */
       /**
-       * Measured 2026-09-04 on the suite that introduced this pipeline: 33.74 / 29.78 / 38.95
-       * / 33.29. The floor sits a couple of points under each — v8 drifts slightly run to run,
+       * Measured 2026-09-16 after the agent-lifecycle suite landed: 46.35 / 42.58 / 48.04 /
+       * 46.36. The floor sits a couple of points under each — v8 drifts slightly run to run,
        * and newly added SOURCE dilutes the ratio until its tests land, so a floor set flush
        * against the last reading turns red for reasons that are not a regression.
        *
-       * The big remaining gaps are Kwami.ts, Agent.ts, VoiceSession.ts and Avatar.ts — the
-       * orchestration and transport layers. They are reachable: Avatar is covered end to end
-       * by the e2e layer, and the other three need a fake AgentAdapter. That is the next
-       * meaningful raise.
+       * (Earlier readings: 33.74 / 29.78 / 38.95 / 33.29 at a 31/27/36/31 floor on 2026-09-04,
+       * then 38.92 / 37.02 / 42.35 / 38.38 at 36/34/40/36. Both jumps came from
+       * tests/helpers/fake-livekit.ts, which drives a pipeline through a real connect and took
+       * Agent.ts from 0% to 56% and VoiceSession.ts off zero.)
+       *
+       * The big remaining gaps are Kwami.ts and Avatar.ts. Both need a WebGL context — Kwami
+       * constructs an Avatar in its constructor — so they belong to the browser layer, not
+       * this one.
        */
       thresholds: {
-        statements: 31,
-        branches: 27,
-        functions: 36,
-        lines: 31,
+        statements: 44,
+        branches: 40,
+        functions: 46,
+        lines: 44,
       },
     },
   },
