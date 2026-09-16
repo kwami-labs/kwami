@@ -44,24 +44,25 @@ export default defineConfig({
        * build pass — that turns a ratchet back into a suggestion.
        */
       /**
-       * Measured 2026-09-16 after the LiveKit security suite landed: 38.92 / 37.02 / 42.35 /
-       * 38.38. The floor sits a couple of points under each — v8 drifts slightly run to run,
+       * Measured 2026-09-16 after the agent-lifecycle suite landed: 46.35 / 42.58 / 48.04 /
+       * 46.36. The floor sits a couple of points under each — v8 drifts slightly run to run,
        * and newly added SOURCE dilutes the ratio until its tests land, so a floor set flush
        * against the last reading turns red for reasons that are not a regression.
        *
-       * (Previous reading, 2026-09-04: 33.74 / 29.78 / 38.95 / 33.29 at a 31/27/36/31 floor.
-       * The jump came from tests/helpers/fake-livekit.ts, which drives a pipeline through a
-       * real connect for the first time and pulled VoiceSession.ts off zero.)
+       * (Earlier readings: 33.74 / 29.78 / 38.95 / 33.29 at a 31/27/36/31 floor on 2026-09-04,
+       * then 38.92 / 37.02 / 42.35 / 38.38 at 36/34/40/36. Both jumps came from
+       * tests/helpers/fake-livekit.ts, which drives a pipeline through a real connect and took
+       * Agent.ts from 0% to 56% and VoiceSession.ts off zero.)
        *
-       * The big remaining gaps are Kwami.ts, Agent.ts and Avatar.ts. Kwami and Agent need a
-       * fake AgentAdapter — the same trick as the fake Room, one layer up. Avatar needs a GL
-       * context, which means the browser layer, not this one.
+       * The big remaining gaps are Kwami.ts and Avatar.ts. Both need a WebGL context — Kwami
+       * constructs an Avatar in its constructor — so they belong to the browser layer, not
+       * this one.
        */
       thresholds: {
-        statements: 36,
-        branches: 34,
-        functions: 40,
-        lines: 36,
+        statements: 44,
+        branches: 40,
+        functions: 46,
+        lines: 44,
       },
     },
   },
