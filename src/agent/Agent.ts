@@ -4,6 +4,38 @@ import type { VoicePipelineConfig } from './voice/types'
 import { LiveKitAdapter } from './adapters/LiveKitAdapter'
 import { logger } from '../utils/logger'
 
+/** The `VoicePipelineConfig` keys whose values are objects and must merge, not replace. */
+const NESTED_VOICE_KEYS = ['vad', 'stt', 'llm', 'tts', 'realtime', 'turnDetection', 'noiseCancellation'] as const
+
+/**
+ * Merge a partial voice config into the current one, one level deep.
+ *
+ * Top-level scalars replace. The provider blocks merge field by field, so updating a single
+ * field (`{ tts: { voice: 'nova' } }`) keeps the provider and model already configured.
+ */
+function mergeVoiceConfig(
+  current: VoicePipelineConfig | undefined,
+  update: Partial<VoicePipelineConfig>,
+): VoicePipelineConfig {
+  const merged = { ...current, ...update } as Record<string, unknown>
+  const base = (current ?? {}) as Record<string, unknown>
+  const patch = update as Record<string, unknown>
+
+  for (const key of NESTED_VOICE_KEYS) {
+    const existing = base[key]
+    const incoming = patch[key]
+    if (isMergeableObject(existing) && isMergeableObject(incoming)) {
+      merged[key] = { ...existing, ...incoming }
+    }
+  }
+
+  return merged as VoicePipelineConfig
+}
+
+function isMergeableObject(value: unknown): value is Record<string, unknown> {
+  return typeof value === 'object' && value !== null && !Array.isArray(value)
+}
+
 // Forward declaration to avoid circular dependency
 interface KwamiRef {
   id: string
@@ -26,6 +58,8 @@ export class Agent {
   private config: AgentConfig
   private adapter: AgentAdapter | null = null
   private pipeline: AgentPipeline | null = null
+  /** In-flight connect, so a second call joins it instead of building a second pipeline. */
+  private connecting: Promise<void> | null = null
   private clientTools: Map<string, (args: Record<string, unknown>) => Promise<unknown>> = new Map()
 
   // Callbacks
@@ -60,6 +94,21 @@ export class Agent {
    * Dispatches a unique agent instance with the provided configuration
    */
   async connect(options?: PipelineConnectOptions): Promise<void> {
+    // Two concurrent connects used to build two pipelines and abandon the first, leaking a
+    // live room and an agent dispatch. Callers now join the connect already in flight.
+    if (this.connecting) return this.connecting
+    if (this.pipeline?.isConnected()) {
+      logger.warn('Already connected; ignoring connect()')
+      return
+    }
+
+    this.connecting = this.doConnect(options).finally(() => {
+      this.connecting = null
+    })
+    return this.connecting
+  }
+
+  private async doConnect(options?: PipelineConnectOptions): Promise<void> {
     if (!this.adapter) {
       throw new Error('No adapter configured')
     }
@@ -68,50 +117,68 @@ export class Agent {
       throw new Error('Adapter is not properly configured. Check your credentials.')
     }
 
-    // Create pipeline from adapter
-    this.pipeline = this.adapter.createPipeline()
+    // Built into a local first. Assigning this.pipeline up front meant a failed connect left
+    // the Agent holding a half-built pipeline that still reported isConnected() === true.
+    const pipeline = this.adapter.createPipeline()
 
     // Wire up callbacks
     if (this.onUserSpeechCallback) {
-      this.pipeline.onUserSpeech(this.onUserSpeechCallback)
+      pipeline.onUserSpeech(this.onUserSpeechCallback)
     }
     if (this.onAgentTextCallback) {
-      this.pipeline.onAgentText(this.onAgentTextCallback)
+      pipeline.onAgentText(this.onAgentTextCallback)
     }
-    if (this.onInterimTranscriptCallback && typeof this.pipeline.onInterimTranscript === 'function') {
-      this.pipeline.onInterimTranscript(this.onInterimTranscriptCallback)
+    if (this.onInterimTranscriptCallback && typeof pipeline.onInterimTranscript === 'function') {
+      pipeline.onInterimTranscript(this.onInterimTranscriptCallback)
     }
 
+    // Out-of-band failures reach the consumer's onError callback from here.
+    pipeline.onError?.((error) => this.emitError(error))
+
     // Wire up agent audio stream callback for avatar visualization
-    if (this.onAgentAudioStreamCallback && 'onAgentAudioStream' in this.pipeline) {
-      (this.pipeline as AgentPipeline & { onAgentAudioStream: (cb: (s: MediaStream) => void) => void })
+    if (this.onAgentAudioStreamCallback && 'onAgentAudioStream' in pipeline) {
+      (pipeline as AgentPipeline & { onAgentAudioStream: (cb: (s: MediaStream) => void) => void })
         .onAgentAudioStream(this.onAgentAudioStreamCallback)
     }
 
     // Register tool executor
-    this.pipeline.setToolExecutor(this.handleToolExecution.bind(this))
+    pipeline.setToolExecutor(this.handleToolExecution.bind(this))
 
-    // Append dynamically registered tools to options
-    const optionsWithTools = options ? { ...options } : {}
-    if (this.clientTools.size > 0) {
-      if (!optionsWithTools.tools) {
-        optionsWithTools.tools = []
-      }
-      // Note: We currently rely on the user passing 'tools' definitions in options.
-      // Ideally 'registerTool' would take definitions too.
+    // NOTE: tools registered through `Agent.registerTool(name, handler)` alone are executable
+    // but never advertised — only definitions passed in `options.tools` (which `Kwami`
+    // populates from the ToolRegistry) reach the backend, so the LLM never learns about a
+    // handler-only tool. Fixing that means `registerTool` taking a definition too.
+    try {
+      await pipeline.connect(options ?? {})
+    } catch (error) {
+      // The pipeline cleans up its own room; drop our reference to it too.
+      await Promise.resolve(pipeline.dispose()).catch(() => {})
+      throw error
     }
 
-    // Connect with full Kwami config for agent dispatch
-    await this.pipeline.connect(optionsWithTools)
+    this.pipeline = pipeline
     logger.info('Agent connected')
+  }
+
+  /** Invoke the consumer's error callback, never letting it take down the caller. */
+  private emitError(error: Error): void {
+    try {
+      this._onErrorCallback?.(error)
+    } catch (callbackError) {
+      logger.error('onError callback threw:', callbackError)
+    }
   }
 
   /**
    * Disconnect from the AI backend
    */
   async disconnect(): Promise<void> {
-    await this.pipeline?.disconnect()
+    const pipeline = this.pipeline
     this.pipeline = null
+    if (pipeline) {
+      await pipeline.disconnect()
+      await pipeline.dispose()
+    }
     logger.info('Agent disconnected')
   }
 
@@ -141,10 +208,10 @@ export class Agent {
     if (!this.config.livekit) {
       this.config.livekit = {}
     }
-    this.config.livekit.voice = {
-      ...this.config.livekit.voice,
-      ...config,
-    }
+    // Merged one level deep. A shallow spread replaced the whole `tts` object, so the
+    // `updateVoice({ tts: { voice: 'nova' } })` in Kwami's own class doc silently dropped
+    // tts.provider and tts.model and sent the backend a config it had to guess at.
+    this.config.livekit.voice = mergeVoiceConfig(this.config.livekit.voice, config)
 
     // Update adapter config
     if (this.adapter && 'updateConfig' in this.adapter) {
@@ -388,13 +455,6 @@ export class Agent {
   // ---------------------------------------------------------------------------
 
   /**
-   * Get the error callback
-   */
-  getErrorCallback(): ((error: Error) => void) | undefined {
-    return this._onErrorCallback
-  }
-
-  /**
    * Get current configuration
    */
   getConfig(): AgentConfig {
@@ -422,11 +482,21 @@ export class Agent {
   /**
    * Cleanup resources
    */
-  dispose(): void {
-    this.pipeline?.dispose()
-    this.adapter?.dispose()
+  async dispose(): Promise<void> {
+    const pipeline = this.pipeline
     this.pipeline = null
+    // Awaited, so callers know the room is actually closed and the microphone released before
+    // they build a replacement Agent.
+    if (pipeline) await pipeline.dispose()
+    this.adapter?.dispose()
     this.adapter = null
+    this.connecting = null
+    this.clientTools.clear()
+    this.onUserSpeechCallback = undefined
+    this.onAgentTextCallback = undefined
+    this.onInterimTranscriptCallback = undefined
+    this.onAgentAudioStreamCallback = undefined
+    this._onErrorCallback = undefined
   }
 
   // ---------------------------------------------------------------------------
