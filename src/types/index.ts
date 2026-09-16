@@ -406,9 +406,18 @@ export interface SceneConfig {
     bottom?: number
     ambient?: number
   }
+  /**
+   * Cast/receive shadows. Off by default: no renderer's meshes opt into shadows, so enabling
+   * it allocates large depth targets and runs a shadow pass every frame for no visible effect.
+   */
   enableShadows?: boolean
   enableControls?: boolean
   preserveDrawingBuffer?: boolean
+  /**
+   * Upper bound on `devicePixelRatio`. Defaults to 2 — above that the extra fragments are not
+   * visible on a handheld display but the full-screen passes cost the same.
+   */
+  maxPixelRatio?: number
   background?: SceneBackgroundConfig
   starField?: StarFieldConfig
 }

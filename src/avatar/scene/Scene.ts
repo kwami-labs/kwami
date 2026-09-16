@@ -7,9 +7,12 @@ import {
   PCFSoftShadowMap,
   Color,
   CanvasTexture,
+  Texture,
 } from 'three'
+import type { Material, Mesh, Object3D } from 'three'
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js'
 import type { SceneConfig } from '../../types'
+import { logger } from '../../utils/logger'
 import { StarField, type StarFieldConfig } from './StarField'
 
 /**
@@ -23,7 +26,26 @@ export class Scene {
   public controls: OrbitControls | null
   public starField: StarField
 
+  private readonly canvas: HTMLCanvasElement
+  private contextLost = false
+  private onContextLostCb: (() => void) | null = null
+  private onContextRestoredCb: (() => void) | null = null
+  private readonly handleContextLost = (event: Event): void => {
+    // Without preventDefault the browser will not fire `webglcontextrestored` at all, and the
+    // avatar is dead until the page reloads.
+    event.preventDefault()
+    this.contextLost = true
+    logger.warn('WebGL context lost')
+    this.onContextLostCb?.()
+  }
+  private readonly handleContextRestored = (): void => {
+    this.contextLost = false
+    logger.info('WebGL context restored')
+    this.onContextRestoredCb?.()
+  }
+
   constructor(canvas: HTMLCanvasElement, config?: SceneConfig) {
+    this.canvas = canvas
     this.renderer = createRenderer(canvas, config)
     this.camera = createCamera(canvas, config)
     this.scene = new ThreeScene()
@@ -40,14 +62,36 @@ export class Scene {
 
     // Initialize star field (disabled by default)
     this.starField = new StarField(this.scene, this.renderer, config?.starField)
+
+    this.canvas.addEventListener('webglcontextlost', this.handleContextLost)
+    this.canvas.addEventListener('webglcontextrestored', this.handleContextRestored)
+  }
+
+  /**
+   * Whether the GPU has taken the context away.
+   *
+   * A backgrounded mobile tab, a driver reset or another page exhausting the browser's WebGL
+   * context budget all cause this. Drawing into a lost context is a no-op, so render loops
+   * should stop until it comes back.
+   */
+  isContextLost(): boolean {
+    return this.contextLost
+  }
+
+  /** Register handlers for GPU context loss and recovery. */
+  onContextChange(handlers: { onLost?: () => void; onRestored?: () => void }): void {
+    this.onContextLostCb = handlers.onLost ?? null
+    this.onContextRestoredCb = handlers.onRestored ?? null
   }
 
   /**
    * Update renderer and camera on resize
    */
   resize(width: number, height: number): void {
-    this.renderer.setSize(width, height)
-    this.camera.aspect = width / height
+    const safeWidth = Math.max(1, width)
+    const safeHeight = Math.max(1, height)
+    this.renderer.setSize(safeWidth, safeHeight)
+    this.camera.aspect = safeWidth / safeHeight
     this.camera.updateProjectionMatrix()
     this.starField.onResize()
   }
@@ -90,13 +134,82 @@ export class Scene {
   }
 
   /**
-   * Dispose of all resources
+   * Dispose of all resources.
+   *
+   * `renderer.dispose()` alone releases the renderer's own caches but nothing in the scene
+   * graph: every geometry, material and texture still held a GPU allocation. The traversal
+   * below releases them, and `forceContextLoss()` tells the driver the context is finished
+   * rather than waiting for the canvas to be garbage collected — browsers cap the number of
+   * live WebGL contexts per page, so an app that mounts and unmounts avatars would eventually
+   * fail to get one at all.
    */
   dispose(): void {
-    this.renderer.dispose()
-    this.controls?.dispose()
+    this.canvas.removeEventListener('webglcontextlost', this.handleContextLost)
+    this.canvas.removeEventListener('webglcontextrestored', this.handleContextRestored)
+    this.onContextLostCb = null
+    this.onContextRestoredCb = null
+
     this.starField.dispose()
+    this.controls?.dispose()
+    this.controls = null
+
+    disposeSceneGraph(this.scene)
+    this.scene.clear()
+
+    this.renderer.dispose()
+    this.renderer.forceContextLoss()
   }
+}
+
+/** Release every GPU resource reachable from `root`. */
+function disposeSceneGraph(root: Object3D): void {
+  root.traverse((object) => {
+    const mesh = object as Partial<Mesh>
+    mesh.geometry?.dispose()
+
+    const material = mesh.material
+    if (!material) return
+    for (const entry of Array.isArray(material) ? material : [material]) {
+      disposeMaterial(entry)
+    }
+  })
+}
+
+/** Materials own textures, and three.js does not release them for you. */
+function disposeMaterial(material: Material): void {
+  for (const value of Object.values(material as unknown as Record<string, unknown>)) {
+    if (value instanceof Texture) value.dispose()
+  }
+  material.dispose()
+}
+
+/**
+ * Canvas dimensions that cannot produce a NaN or Infinite aspect ratio.
+ *
+ * A canvas inside a `display: none` container — a collapsed tab, an accordion, a modal that
+ * has not opened yet — reports 0x0, and `0 / 0` is NaN. That NaN reaches the projection matrix
+ * and the avatar never draws again, even after the container becomes visible. The
+ * ResizeObserver in Avatar corrects the size as soon as it is real.
+ */
+function safeCanvasSize(canvas: HTMLCanvasElement): { width: number; height: number } {
+  return {
+    width: Math.max(1, canvas.clientWidth),
+    height: Math.max(1, canvas.clientHeight),
+  }
+}
+
+/**
+ * Device pixel ratio, capped.
+ *
+ * Uncapped, a 3x-DPI phone renders nine times the fragments — and this library's heaviest
+ * shaders are full-screen (the black hole's bloom and lensing passes) or per-fragment noise,
+ * so the cost lands exactly where it hurts. Two is the conventional ceiling; above it the
+ * difference is not visible on a handheld display.
+ */
+function resolvePixelRatio(config?: SceneConfig): number {
+  const available = typeof window === 'undefined' ? 1 : window.devicePixelRatio || 1
+  const cap = config?.maxPixelRatio ?? 2
+  return Math.min(available, cap)
 }
 
 /**
@@ -123,10 +236,14 @@ function createRenderer(
 
   renderer.autoClearStencil = true
 
-  renderer.setSize(canvas.clientWidth, canvas.clientHeight)
-  renderer.setPixelRatio(window.devicePixelRatio || 1)
+  const { width, height } = safeCanvasSize(canvas)
+  renderer.setSize(width, height)
+  renderer.setPixelRatio(resolvePixelRatio(config))
 
-  if (config?.enableShadows !== false) {
+  // Opt-in. No mesh in any shipped renderer sets castShadow or receiveShadow, so with this on
+  // three.js allocated multi-megabyte depth targets and ran a shadow pass every frame that
+  // produced nothing. Turning it off changes no pixel of the shipped renderers.
+  if (config?.enableShadows === true) {
     renderer.shadowMap.enabled = true
     renderer.shadowMap.type = PCFSoftShadowMap
   }
@@ -145,12 +262,8 @@ function createCamera(
   const near = config?.near || 0.1
   const far = config?.far || 1000
 
-  const camera = new PerspectiveCamera(
-    fov,
-    canvas.clientWidth / canvas.clientHeight,
-    near,
-    far,
-  )
+  const { width, height } = safeCanvasSize(canvas)
+  const camera = new PerspectiveCamera(fov, width / height, near, far)
 
   const position = config?.cameraPosition || { x: 0, y: 0, z: 6 }
   camera.position.set(position.x, position.y, position.z)
@@ -168,29 +281,35 @@ function createLights(config?: SceneConfig) {
   const bottomIntensity = intensity.bottom ?? 0.4
   const ambientIntensity = intensity.ambient ?? 1
 
+  const shadowsEnabled = config?.enableShadows === true
+
   const top = new DirectionalLight(0xFFFFFF, topIntensity)
   top.position.set(0, 500, 2000)
-  top.castShadow = true
-  top.shadow.mapSize.width = 4048
-  top.shadow.mapSize.height = 4048
-  top.shadow.camera.near = 0
-  top.shadow.camera.far = 1000
-  top.shadow.camera.left = -200
-  top.shadow.camera.right = 200
-  top.shadow.camera.top = 200
-  top.shadow.camera.bottom = -200
+  if (shadowsEnabled) {
+    top.castShadow = true
+    top.shadow.mapSize.width = 4048
+    top.shadow.mapSize.height = 4048
+    top.shadow.camera.near = 0
+    top.shadow.camera.far = 1000
+    top.shadow.camera.left = -200
+    top.shadow.camera.right = 200
+    top.shadow.camera.top = 200
+    top.shadow.camera.bottom = -200
+  }
 
   const bottom = new DirectionalLight(0xFFFFFF, bottomIntensity)
   bottom.position.set(0, -500, 400)
-  bottom.castShadow = true
-  bottom.shadow.mapSize.width = 5048
-  bottom.shadow.mapSize.height = 5048
-  bottom.shadow.camera.near = 0.5
-  bottom.shadow.camera.far = 1000
-  bottom.shadow.camera.left = -200
-  bottom.shadow.camera.right = 200
-  bottom.shadow.camera.top = 200
-  bottom.shadow.camera.bottom = -200
+  if (shadowsEnabled) {
+    bottom.castShadow = true
+    bottom.shadow.mapSize.width = 5048
+    bottom.shadow.mapSize.height = 5048
+    bottom.shadow.camera.near = 0.5
+    bottom.shadow.camera.far = 1000
+    bottom.shadow.camera.left = -200
+    bottom.shadow.camera.right = 200
+    bottom.shadow.camera.top = 200
+    bottom.shadow.camera.bottom = -200
+  }
 
   const ambient = new AmbientLight(0x798296, ambientIntensity)
 
