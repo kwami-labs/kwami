@@ -119,6 +119,25 @@ window.kwamiE2E = {
     return current.avatar.getScene().renderer.toneMapping;
   },
 
+  /** Enable the star field. Its shader time staying at 0 means nothing is driving it. */
+  enableStarField() {
+    current.avatar.getScene().setStarFieldEnabled(true);
+    return current.avatar.getScene().starField.getTime();
+  },
+
+  starFieldTime() {
+    return current.avatar.getScene().starField.getTime();
+  },
+
+  /** Read back what the blob renderer actually received from the declarative config. */
+  blobAmplitude() {
+    return current.avatar.getBlob().getAmplitude();
+  },
+
+  clickInteractionEnabled() {
+    return current.avatar.getBlob().isClickInteractionEnabled();
+  },
+
   switchRenderer(type) {
     current.avatar.switchRenderer(type);
     return current.avatar.getRendererType();

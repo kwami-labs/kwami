@@ -25,6 +25,8 @@ export class Avatar {
   private audio: KwamiAudio
   private currentState: KwamiState = 'idle'
   private resizeObserver: ResizeObserver | null = null
+  private tickHandle: number | null = null
+  private lastTickTime = 0
   private currentRenderer: AvatarRendererType = 'blob-xyz'
   private sceneControlsInitiallyEnabled = false
 
@@ -47,9 +49,47 @@ export class Avatar {
 
     // Recover from GPU context loss instead of dying silently.
     this.scene.onContextChange({
-      onLost: () => this.disposeActiveRenderer(),
-      onRestored: () => this.initRenderer(),
+      onLost: () => {
+        this.stopTicking()
+        this.disposeActiveRenderer()
+      },
+      onRestored: () => {
+        this.initRenderer()
+        this.startTicking()
+      },
     })
+
+    this.startTicking()
+  }
+
+  /**
+   * Drive `Scene.update()` once per frame.
+   *
+   * Each renderer owns its own draw loop but none of them holds this `Scene` wrapper, so its
+   * per-frame work — the star field, the OrbitControls damping integrator — had no caller at
+   * all. A second rAF callback is cheap; PR-era note: this collapses into the renderers' loop
+   * once they share a common interface.
+   */
+  private startTicking(): void {
+    if (this.tickHandle !== null || typeof requestAnimationFrame === 'undefined') return
+
+    this.lastTickTime = 0
+    const tick = (now: number): void => {
+      // Clamped: returning to a backgrounded tab hands back one enormous delta, which would
+      // jump the star field's rotation by seconds in a single frame.
+      const deltaSeconds = this.lastTickTime === 0 ? 0 : Math.min((now - this.lastTickTime) / 1000, 0.05)
+      this.lastTickTime = now
+      this.scene.update(deltaSeconds)
+      this.tickHandle = requestAnimationFrame(tick)
+    }
+    this.tickHandle = requestAnimationFrame(tick)
+  }
+
+  private stopTicking(): void {
+    if (this.tickHandle !== null) {
+      cancelAnimationFrame(this.tickHandle)
+      this.tickHandle = null
+    }
   }
 
   /**
@@ -125,8 +165,51 @@ export class Avatar {
       this.blobXyz.position.set(blobConfig.position.x, blobConfig.position.y)
     }
 
-    // Enable click interaction by default
-    this.blobXyz.enableClickInteraction()
+    // amplitude, touch and transition are declared on BlobXyzConfig and were accepted here and
+    // then dropped — the setters existed but only `avatar.getBlob()` could reach them, so the
+    // declarative config silently did nothing for these three.
+    if (blobConfig.amplitude) {
+      const { x, y, z } = blobConfig.amplitude
+      this.blobXyz.setAmplitude(x, y, z)
+    }
+    if (blobConfig.touch) {
+      const { strength, duration, maxPoints } = blobConfig.touch
+      if (strength !== undefined) this.blobXyz.setTouchStrength(strength)
+      if (duration !== undefined) this.blobXyz.setTouchDuration(duration)
+      if (maxPoints !== undefined) this.blobXyz.setMaxTouchPoints(maxPoints)
+    }
+    if (blobConfig.transition?.speed !== undefined) {
+      this.blobXyz.setTransitionSpeed(blobConfig.transition.speed)
+    }
+
+    this.applyInteractionConfig()
+  }
+
+  /**
+   * Apply `AvatarConfig.interaction`.
+   *
+   * The `InteractionConfig` type has always been part of the public config surface but nothing
+   * ever read it: click handling was hardcoded on. Absent config keeps the previous default
+   * (click enabled), so this is additive.
+   */
+  private applyInteractionConfig(): void {
+    const interaction = this.config.interaction
+    const clickEnabled = interaction?.click?.enabled ?? true
+
+    if (clickEnabled) {
+      this.blobXyz?.enableClickInteraction()
+    } else {
+      this.blobXyz?.disableClickInteraction()
+    }
+
+    if (interaction?.hover?.cursorStyle) {
+      this.canvas.style.cursor = interaction.hover.cursorStyle
+    }
+
+    const dragEnabled = interaction?.drag?.enabled
+    if (dragEnabled !== undefined && this.scene.controls) {
+      this.scene.controls.enabled = dragEnabled
+    }
   }
 
   private initBlackHoleRenderer(): void {
@@ -475,6 +558,7 @@ export class Avatar {
    * Cleanup and dispose all resources
    */
   dispose(): void {
+    this.stopTicking()
     this.resizeObserver?.disconnect()
     this.resizeObserver = null
 

@@ -127,10 +127,18 @@ export class Scene {
   }
 
   /**
-   * Update scene effects (call in animation loop)
+   * Advance the scene's own per-frame work: the star field's time uniform and rotation, and
+   * the OrbitControls damping integrator.
+   *
+   * Driven by `Avatar`'s ticker. Nothing called this before, with two visible consequences:
+   * a star field enabled through `setStarFieldEnabled(true)` rendered but never twinkled or
+   * rotated, and `enableDamping` did nothing — dragging tracked the pointer only because
+   * OrbitControls calls `update()` from its own pointer handlers, so rotation stopped dead on
+   * pointer-up instead of easing out.
    */
   update(deltaTime?: number): void {
     this.starField.update(deltaTime)
+    this.controls?.update()
   }
 
   /**

@@ -45,6 +45,10 @@ declare global {
       registerTool(name: string, description: string): string[];
       executeTool(name: string, params: Record<string, unknown>): Promise<unknown>;
       litPixels(): number;
+      enableStarField(): number | null;
+      starFieldTime(): number | null;
+      blobAmplitude(): { x: number; y: number; z: number };
+      clickInteractionEnabled(): boolean;
       gpuResources(): KwamiE2EGpuResources;
       toneMapping(): number;
       switchRenderer(type: string): string;

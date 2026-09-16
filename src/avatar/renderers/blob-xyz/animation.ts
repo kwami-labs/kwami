@@ -6,11 +6,33 @@ const noise3D = createNoise3D()
 
 const previousDisplacementMap = new WeakMap<Mesh, Float32Array>()
 
-const audioSmoothing = {
-  low: 0,
-  mid: 0,
-  high: 0,
-  level: 0,
+/** Scratch vector for the per-vertex direction, reused across the whole displacement loop. */
+const scratchDirection = new Vector3()
+
+interface AudioSmoothing {
+  low: number
+  mid: number
+  high: number
+  level: number
+}
+
+/**
+ * Per-mesh audio smoothing state.
+ *
+ * This used to be one module-level object shared by every BlobXyz on the page, so two avatars
+ * — the multi-instance case the library's own docs lead with — cross-contaminated each other's
+ * audio reactivity. Keyed by mesh and weak, exactly like `previousDisplacementMap` above, so
+ * the state dies with the renderer it belongs to.
+ */
+const audioSmoothingMap = new WeakMap<Mesh, AudioSmoothing>()
+
+export function getAudioSmoothing(mesh: Mesh): AudioSmoothing {
+  let state = audioSmoothingMap.get(mesh)
+  if (!state) {
+    state = { low: 0, mid: 0, high: 0, level: 0 }
+    audioSmoothingMap.set(mesh, state)
+  }
+  return state
 }
 
 function getFrequencyBands(frequencyData: Uint8Array): {
@@ -111,6 +133,7 @@ export function animateBlobXyz(
   const reactivity = audioEffects.reactivity ?? 1.8
   const breathing = audioEffects.breathing ?? 0.035
 
+  const audioSmoothing = getAudioSmoothing(mesh)
   const smoothFactor = 0.12 + responseSpeed * 0.35
   audioSmoothing.low += (bands.low - audioSmoothing.low) * smoothFactor
   audioSmoothing.mid += (bands.mid - audioSmoothing.mid) * smoothFactor
@@ -159,7 +182,10 @@ export function animateBlobXyz(
   for (let i = 0; i < positions.count; i++) {
     vertex.fromBufferAttribute(positions, i)
 
-    const direction = vertex.clone().normalize()
+    // Reused scratch vector. `vertex.clone()` here allocated one Vector3 per vertex per frame
+    // — at the resolution shipped presets use that is roughly 67,000 allocations every frame,
+    // purely to feed the GC.
+    const direction = scratchDirection.copy(vertex).normalize()
 
     const amplitudeMultiplier =
       Math.abs(direction.x) * amplitudeX +

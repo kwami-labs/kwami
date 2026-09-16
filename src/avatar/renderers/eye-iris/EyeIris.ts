@@ -435,7 +435,9 @@ export class EyeIris {
 
   public update(deltaTime?: number): void {
     if (this.disposed) return
-    const dt = deltaTime ?? this.clock.getDelta()
+    // Clamped like ParticlesFace — see the note there; an unclamped delta after a tab
+    // regains focus snaps the iris pattern instead of resuming it.
+    const dt = Math.min(deltaTime ?? this.clock.getDelta(), 0.05)
     this.uniforms.uTime.value += dt * (0.5 + this.config.animation.shimmerSpeed)
     const t = this.uniforms.uTime.value
     const idleDriftX = Math.sin(t * 0.42) * 0.02 + Math.sin(t * 0.93) * 0.008
