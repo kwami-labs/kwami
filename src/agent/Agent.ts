@@ -210,8 +210,7 @@ export class Agent {
     language?: string
     model?: string
   }): void {
-    logger.info('🔊 updateVoiceLive called with:', options)
-    logger.info('🔌 Pipeline connected:', this.pipeline?.isConnected() ?? false)
+    logger.debug('updateVoiceLive:', options)
     this.syncConfigToBackend('voice', options)
   }
 
@@ -224,8 +223,7 @@ export class Agent {
     model?: string
     temperature?: number
   }): void {
-    logger.info('🧠 updateLlmLive called with:', options)
-    logger.info('🔌 Pipeline connected:', this.pipeline?.isConnected() ?? false)
+    logger.debug('updateLlmLive:', options)
     this.syncConfigToBackend('llm', options)
   }
 
@@ -238,8 +236,7 @@ export class Agent {
     model?: string
     language?: string
   }): void {
-    logger.info('🎤 updateSttLive called with:', options)
-    logger.info('🔌 Pipeline connected:', this.pipeline?.isConnected() ?? false)
+    logger.debug('updateSttLive:', options)
     this.syncConfigToBackend('voice', {
       stt_provider: options.provider,
       stt_model: options.model,
@@ -257,8 +254,7 @@ export class Agent {
     voice?: string
     speed?: number
   }): void {
-    logger.info('🔊 updateTtsLive called with:', options)
-    logger.info('🔌 Pipeline connected:', this.pipeline?.isConnected() ?? false)
+    logger.debug('updateTtsLive:', options)
     this.syncConfigToBackend('voice', {
       tts_provider: options.provider,
       tts_model: options.model,
@@ -276,8 +272,7 @@ export class Agent {
     model?: string
     voice?: string
   }): void {
-    logger.info('⚡ updateRealtimeLive called with:', options)
-    logger.info('🔌 Pipeline connected:', this.pipeline?.isConnected() ?? false)
+    logger.debug('updateRealtimeLive:', options)
     this.syncConfigToBackend('voice', {
       realtime_provider: options.provider,
       realtime_model: options.model,

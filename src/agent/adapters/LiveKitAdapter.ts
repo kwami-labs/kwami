@@ -143,13 +143,34 @@ interface AgentDataMessage {
  */
 const AGENT_STATE_ATTRIBUTE = 'lk.agent.state'
 
+/** The subset of the adapter config that decides who counts as the agent. */
+export interface AgentIdentityConfig {
+  agentIdentity?: string
+  agentIdentityPrefix?: string
+}
+
 /**
- * Check whether a participant is the agent (not a regular user).
+ * Decide whether a LiveKit identity is the backend agent.
+ *
+ * Everything this adapter treats as authoritative — the audio it auto-plays, the transcripts it
+ * emits as agent text, the pipeline state it drives the UI from, and the `tool_call` messages it
+ * executes in the host application — is gated on this answer. A participant chooses its own
+ * identity, so the only trustworthy form of this check is an exact identity (or a namespaced
+ * prefix) issued by the same backend that mints the room token.
+ *
+ * Resolution order:
+ *  1. `agentIdentity` — exact match. Use this.
+ *  2. `agentIdentityPrefix` — for backends that suffix a session id onto a fixed prefix.
+ *  3. The legacy name heuristic, kept so existing deployments keep working. It is a guess about
+ *     a self-declared string and must not be relied on where the room is not otherwise trusted.
  */
-function isAgentParticipant(participant: Participant | RemoteParticipant): boolean {
-  const identity = participant.identity.toLowerCase()
-  return identity.startsWith('agent') ||
-    (identity.includes('kwami') && !identity.includes('user'))
+export function isAgentIdentity(identity: string, config?: AgentIdentityConfig): boolean {
+  if (config?.agentIdentity) return identity === config.agentIdentity
+  if (config?.agentIdentityPrefix) return identity.startsWith(config.agentIdentityPrefix)
+
+  const lower = identity.toLowerCase()
+  return lower.startsWith('agent') ||
+    (lower.includes('kwami') && !lower.includes('user'))
 }
 
 /**
@@ -189,6 +210,11 @@ class LiveKitPipeline implements AgentPipeline {
 
   setToolExecutor(executor: ToolExecutor): void {
     this.toolExecutor = executor
+  }
+
+  /** See {@link isAgentIdentity} — gates everything this adapter treats as authoritative. */
+  private isAgentParticipant(participant: Participant | RemoteParticipant): boolean {
+    return isAgentIdentity(participant.identity, this.config)
   }
 
   /** Same utterance often arrives via DataReceived and TranscriptionReceived with minor text differences. */
@@ -290,7 +316,7 @@ class LiveKitPipeline implements AgentPipeline {
 
       // Check for agent participant that may already be in the room
       for (const [, p] of this.room.remoteParticipants) {
-        if (isAgentParticipant(p)) {
+        if (this.isAgentParticipant(p)) {
           const agentState = p.attributes?.[AGENT_STATE_ATTRIBUTE]
           if (agentState) {
             logger.info('Found existing agent state on connect:', agentState)
@@ -361,7 +387,7 @@ class LiveKitPipeline implements AgentPipeline {
 
       if (track.kind === Track.Kind.Audio) {
         // Only play audio from the agent participant, not other users
-        if (!isAgentParticipant(participant)) {
+        if (!this.isAgentParticipant(participant)) {
           logger.debug(`Skipping audio from non-agent participant: ${participant.identity}`)
           return
         }
@@ -389,19 +415,34 @@ class LiveKitPipeline implements AgentPipeline {
       track.detach()
     })
 
-    // Data received - transcripts and agent messages come through here
+    // Data received - transcripts and agent messages come through here.
+    //
+    // This handler is the highest-privilege entry point in the adapter: handleAgentData() runs
+    // `tool_call` messages against the host application's registered tools, and dispatches
+    // `nav_command` / `browser_session` / `search_results` as window events the host acts on.
+    // It therefore has to authorize the sender the same way TrackSubscribed,
+    // TranscriptionReceived and ParticipantAttributesChanged already do — otherwise any other
+    // participant in the room can invoke the host's tools with arguments of their choosing.
     this.room.on(RoomEvent.DataReceived, (
       payload: Uint8Array,
       participant?: RemoteParticipant,
       _kind?: DataPacket_Kind
     ) => {
+      // A packet with no sender cannot be attributed to the agent, so it is not trusted either.
+      if (!participant || !this.isAgentParticipant(participant)) {
+        logger.warn(
+          `Ignoring data message from non-agent participant: ${participant?.identity ?? 'unknown'}`
+        )
+        return
+      }
+
       try {
         const decoder = new TextDecoder()
         const jsonStr = decoder.decode(payload)
         const data: AgentDataMessage = JSON.parse(jsonStr)
         if (data.type === 'search_results') {
-          logger.info('DataReceived search_results', {
-            from: participant?.identity ?? 'unknown',
+          logger.debug('DataReceived search_results', {
+            from: participant.identity,
             query: data.query,
             resultsCount: data.results?.length ?? 0,
           })
@@ -422,7 +463,7 @@ class LiveKitPipeline implements AgentPipeline {
       participant?: Participant,
       _publication?: TrackPublication,
     ) => {
-      const fromAgent = participant ? isAgentParticipant(participant) : false
+      const fromAgent = participant ? this.isAgentParticipant(participant) : false
 
       for (const segment of segments) {
         if (fromAgent) {
@@ -456,7 +497,7 @@ class LiveKitPipeline implements AgentPipeline {
       changedAttributes: Record<string, string>,
       participant: Participant
     ) => {
-      if (!isAgentParticipant(participant)) return
+      if (!this.isAgentParticipant(participant)) return
 
       const agentState = changedAttributes[AGENT_STATE_ATTRIBUTE]
       if (agentState) {
@@ -469,7 +510,7 @@ class LiveKitPipeline implements AgentPipeline {
     // to pick up any state set before we joined.
     this.room.on(RoomEvent.ParticipantConnected, (participant: RemoteParticipant) => {
       logger.info(`Participant connected: ${participant.identity}`)
-      if (isAgentParticipant(participant)) {
+      if (this.isAgentParticipant(participant)) {
         const agentState = participant.attributes?.[AGENT_STATE_ATTRIBUTE]
         if (agentState) {
           logger.info('Initial agent state from attributes:', agentState)
@@ -735,8 +776,9 @@ class LiveKitPipeline implements AgentPipeline {
     const encoder = new TextEncoder()
     const data = encoder.encode(JSON.stringify(configMessage))
 
-    // Log detailed config being sent
-    logger.info('📤 Sending config to agent:', {
+    // The voice config carries provider credentials. `logger` redacts them, but there is no
+    // reason to print the whole pipeline at `info` on every connect either.
+    logger.debug('Sending config to agent:', {
       kwamiId: options.kwamiId,
       kwamiName: options.kwamiName,
       voice: configMessage.voice,
@@ -746,7 +788,7 @@ class LiveKitPipeline implements AgentPipeline {
       reliable: true,
     })
 
-    logger.info('✅ Config sent to agent')
+    logger.debug('Config sent to agent')
   }
 
   async disconnect(): Promise<void> {
@@ -916,9 +958,7 @@ class LiveKitPipeline implements AgentPipeline {
    * Allows changing soul, voice settings, or tools without reconnecting
    */
   sendConfigUpdate(type: string, config: unknown): void {
-    logger.info(`📤 sendConfigUpdate called: type=${type}`)
-    logger.info(`📤 Room exists: ${!!this.room}`)
-    logger.info(`📤 Room connected: ${this.room?.state}`)
+    logger.debug(`sendConfigUpdate: type=${type}, room=${this.room?.state ?? 'none'}`)
 
     if (!this.room) {
       logger.warn('Cannot send config update: room not available')
@@ -932,17 +972,17 @@ class LiveKitPipeline implements AgentPipeline {
       timestamp: Date.now(),
     }
 
-    logger.info(`📤 Sending message:`, message)
+    logger.debug('Sending config update:', message)
 
     const encoder = new TextEncoder()
     const data = encoder.encode(JSON.stringify(message))
 
     this.room.localParticipant.publishData(data, { reliable: true })
       .then(() => {
-        logger.info(`✅ Successfully sent ${type} config update to agent`)
+        logger.debug(`Sent ${type} config update to agent`)
       })
       .catch((err) => {
-        logger.error(`❌ Failed to send ${type} config update:`, err)
+        logger.error(`Failed to send ${type} config update:`, err)
       })
   }
 

@@ -1231,7 +1231,7 @@ export class BlobXyz {
     try {
       await this.options.audio.startMicrophoneListening()
       this.isListening = true
-      logger.info('🎤 Started listening to microphone')
+      logger.debug('Started listening to microphone')
     } catch (error) {
       logger.error('Failed to start listening:', error)
       throw error

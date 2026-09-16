@@ -44,21 +44,24 @@ export default defineConfig({
        * build pass — that turns a ratchet back into a suggestion.
        */
       /**
-       * Measured 2026-09-04 on the suite that introduced this pipeline: 33.74 / 29.78 / 38.95
-       * / 33.29. The floor sits a couple of points under each — v8 drifts slightly run to run,
+       * Measured 2026-09-16 after the LiveKit security suite landed: 38.92 / 37.02 / 42.35 /
+       * 38.38. The floor sits a couple of points under each — v8 drifts slightly run to run,
        * and newly added SOURCE dilutes the ratio until its tests land, so a floor set flush
        * against the last reading turns red for reasons that are not a regression.
        *
-       * The big remaining gaps are Kwami.ts, Agent.ts, VoiceSession.ts and Avatar.ts — the
-       * orchestration and transport layers. They are reachable: Avatar is covered end to end
-       * by the e2e layer, and the other three need a fake AgentAdapter. That is the next
-       * meaningful raise.
+       * (Previous reading, 2026-09-04: 33.74 / 29.78 / 38.95 / 33.29 at a 31/27/36/31 floor.
+       * The jump came from tests/helpers/fake-livekit.ts, which drives a pipeline through a
+       * real connect for the first time and pulled VoiceSession.ts off zero.)
+       *
+       * The big remaining gaps are Kwami.ts, Agent.ts and Avatar.ts. Kwami and Agent need a
+       * fake AgentAdapter — the same trick as the fake Room, one layer up. Avatar needs a GL
+       * context, which means the browser layer, not this one.
        */
       thresholds: {
-        statements: 31,
-        branches: 27,
-        functions: 36,
-        lines: 31,
+        statements: 36,
+        branches: 34,
+        functions: 40,
+        lines: 36,
       },
     },
   },

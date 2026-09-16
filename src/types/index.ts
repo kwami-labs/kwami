@@ -454,6 +454,22 @@ export interface LiveKitConfig {
   /** Auth token for API authentication (e.g., Supabase JWT) */
   authToken?: string
 
+  /**
+   * Exact LiveKit identity of the backend agent.
+   *
+   * Everything the adapter treats as authoritative is gated on this: the audio it auto-plays,
+   * the transcripts it emits as agent text, the pipeline state it drives the UI from, and the
+   * `tool_call` messages it executes against your registered tools. Participants choose their
+   * own identity, so set this from the same backend that mints the room token — without it the
+   * adapter falls back to a name heuristic that another participant can satisfy.
+   */
+  agentIdentity?: string
+  /**
+   * Identity prefix for backends that append a session id to a fixed agent identity.
+   * Ignored when {@link LiveKitConfig.agentIdentity} is set.
+   */
+  agentIdentityPrefix?: string
+
   // ---------------------------------------------------------------------------
   // Voice Pipeline Configuration
   // ---------------------------------------------------------------------------
