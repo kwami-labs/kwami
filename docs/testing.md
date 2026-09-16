@@ -2,6 +2,21 @@
 
 Three layers, each answering a question the layer below it structurally cannot.
 
+```mermaid
+flowchart TB
+  subgraph Unit["Unit — happy-dom"]
+    U[src/ pure logic]
+  end
+  subgraph Integration["Integration — node:http"]
+    I[api-client + assembled config]
+  end
+  subgraph E2E["E2E — Chromium + WebGL2"]
+    E[built dist/ as a consumer]
+  end
+  Unit --> Integration
+  Integration --> E2E
+```
+
 | Layer           | Runs against                                       | Environment                | Config                                                            |
 | --------------- | -------------------------------------------------- | -------------------------- | ----------------------------------------------------------------- |
 | **Unit**        | `src/` directly                                    | `happy-dom`                | [`vitest.config.ts`](../vitest.config.ts)                         |

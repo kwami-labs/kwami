@@ -55,6 +55,21 @@ BREAKING CHANGE: `agent.voice.pipeline` is now `agent.voice.type`. Replace
 
 ## The pipeline
 
+```mermaid
+flowchart TD
+  A[PR merges to a channel] --> B[ci.yml full matrix]
+  B -->|success + push + tip unchanged| C[release.yml]
+  C --> D[ensure baseline v* tag]
+  D --> E[pnpm build]
+  E --> F[semantic-release]
+  F --> G[CHANGELOG + version + tag]
+  F --> H[GitHub Release]
+  F --> I[npm publish if NPM_TOKEN]
+  G --> J{branch is main?}
+  J -->|yes| K[back-merge into stg and dev]
+  J -->|no| L[done]
+```
+
 1. A PR lands on a channel. `ci` runs the full matrix on the push.
 2. `release.yml` fires on `workflow_run: [ci] completed` — only for a **success** on a **push**,
    so no version is ever cut from a red commit.

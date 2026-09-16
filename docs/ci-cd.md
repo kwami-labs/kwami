@@ -9,15 +9,16 @@ How a change gets from a feature branch to a published package.
 
 ## Overview
 
-```text
-feature/*  ──PR──►  dev  ──PR──►  stg  ──PR──►  main
-                     │             │             │
-                  ci gates      ci gates      ci gates
-                     │             │             │
-                 2.2.0-dev.N   2.2.0-rc.N      2.2.0
-                  npm @dev      npm @rc      npm @latest
-                                                 │
-                                    back-merge into stg and dev
+```mermaid
+flowchart LR
+  F[feature/*] -->|PR| D[dev]
+  D -->|PR current tip| S[stg]
+  S -->|PR current tip| M[main]
+  D -->|semantic-release| ND["npm @dev<br/>x.y.z-dev.N"]
+  S -->|semantic-release| NR["npm @rc<br/>x.y.z-rc.N"]
+  M -->|semantic-release| NL["npm @latest<br/>x.y.z"]
+  M -->|back-merge| S
+  M -->|back-merge| D
 ```
 
 Three channels, one release line. `dev` is where work lands, `stg` is the release candidate,
@@ -57,12 +58,21 @@ Every job runs on PRs into `dev`, `stg` and `main`, and again on the push that l
 There is no cheaper tier for the lower channels: the artifact _is_ the product, so a broken
 build is never survivable.
 
-```text
-              ┌─ commits  (PR only)
-              ├─ pr-title (PR only)
-checkout ──►  ├─ verify ──┬─ unit ────────┐
-              │           ├─ integration ─┤
-              │           └─ build ──► e2e┴──► gate
+```mermaid
+flowchart TB
+  checkout[checkout]
+  checkout --> commits[commits — PR only]
+  checkout --> title[pr-title — PR only]
+  checkout --> verify[verify]
+  verify --> unit[unit + coverage]
+  verify --> integ[integration]
+  verify --> build[build]
+  build --> e2e[e2e on dist artifact]
+  commits --> gate[ci gate]
+  title --> gate
+  unit --> gate
+  integ --> gate
+  e2e --> gate
 ```
 
 ### `commits` — commitlint (pull requests only)
