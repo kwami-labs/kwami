@@ -310,7 +310,9 @@ export class BlackHole {
   public update(deltaTime?: number): void {
     if (this.disposed) return
     
-    const dt = deltaTime ?? this.clock.getDelta()
+    // Clamped like ParticlesFace: returning from a backgrounded tab hands back one huge
+    // delta, which used to jump the disk and star rotation by seconds in a single frame.
+    const dt = Math.min(deltaTime ?? this.clock.getDelta(), 0.05)
     const elapsedTime = this.clock.getElapsedTime()
     
     // Update audio smoothing
