@@ -14,3 +14,12 @@
 # The public surface of the library — a change here is a change to the published API.
 /src/index.ts @alexcolls
 /src/types/ @alexcolls
+
+# Project docs ship with the repo; they are how outsiders learn the API and the gates.
+/docs/ @alexcolls
+/README.md @alexcolls
+/CONTRIBUTING.md @alexcolls
+/SECURITY.md @alexcolls
+/CODE_OF_CONDUCT.md @alexcolls
+/GOVERNANCE.md @alexcolls
+/SUPPORT.md @alexcolls
