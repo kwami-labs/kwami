@@ -50,6 +50,31 @@ jobs:
             git log -1 --pretty=%B "$sha" | pnpm exec commitlint --verbose
           done < <(git rev-list --first-parent "${BASE_SHA}..${HEAD_SHA}")
 
+  pr-title:
+    name: pr title
+    if: github.event_name == 'pull_request'
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v7
+      - uses: ./.github/actions/setup-workspace
+
+      # `commits` lints the commits ON the branch; this lints the title, and for a squash merge
+      # those are different things. A feature branch lands on `dev` as a SQUASH (see
+      # .github/rulesets/dev.json), which throws the branch commits away and uses the PR title
+      # as the subject — so the one string semantic-release will actually read is the one
+      # `commits` never inspects. A non-conventional title squashed into `dev` is silently
+      # unreleasable work.
+      #
+      # Piped through the same commitlint config as everything else rather than a regex of its
+      # own: the rules for what a subject may say belong in one file, not two.
+      - name: Lint the pull request title
+        env:
+          TITLE: ${{ github.event.pull_request.title }}
+        run: |
+          set -euo pipefail
+          printf '%s\n' "$TITLE" | pnpm exec commitlint --verbose
+
   verify:
     name: lint · format · typecheck · audit
     runs-on: ubuntu-latest
@@ -182,14 +207,15 @@ jobs:
 
   gate:
     name: ci gate
-    needs: [commits, verify, unit, integration, build, e2e]
+    needs: [commits, pr-title, verify, unit, integration, build, e2e]
     if: always()
     runs-on: ubuntu-latest
     timeout-minutes: 5
     steps:
-      # One required status check to protect the branches with, instead of six that each have
-      # to be added by name and re-added whenever a job is renamed. `commits` is skipped on
-      # push, so `skipped` has to count as passing — but `failure` and `cancelled` never do.
+      # One required status check to protect the branches with, instead of seven that each have
+      # to be added by name and re-added whenever a job is renamed. `commits` and `pr-title` are
+      # skipped on push, so `skipped` has to count as passing — but `failure` and `cancelled`
+      # never do.
       - name: Require no failures
         env:
           RESULTS: ${{ join(needs.*.result, ' ') }}
