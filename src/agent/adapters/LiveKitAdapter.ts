@@ -82,7 +82,10 @@ export class LiveKitAdapter implements AgentAdapter {
    * Update configuration
    */
   updateConfig(config: Partial<LiveKitAdapterConfig>): void {
-    this.config = { ...this.config, ...config }
+    // Mutate in place rather than replacing the reference. `createPipeline()` hands this exact
+    // object to the LiveKitPipeline, so reassigning it left a connected pipeline reading
+    // connect-time values for userId, echoCancellation, roomName and the rest, forever.
+    Object.assign(this.config, config)
 
     // Update voice session if voice config changed
     if (config.voice) {
@@ -220,6 +223,21 @@ class LiveKitPipeline implements AgentPipeline {
 
   onError(callback: (error: Error) => void): void {
     this.onErrorCb = callback
+  }
+
+  /**
+   * Publish on the data channel and observe the result.
+   *
+   * `publishData()` returns a promise. Three call sites used to drop it, so a send that failed
+   * because the channel was not ready — reconnecting, or a message fired straight after
+   * connect — surfaced as an unhandled rejection instead of an error the app could see.
+   */
+  private publish(message: unknown, what: string): void {
+    if (!this.room) return
+    const data = new TextEncoder().encode(JSON.stringify(message))
+    this.room.localParticipant.publishData(data, { reliable: true }).catch((err: unknown) => {
+      this.emitError(new Error(`Failed to send ${what}: ${err instanceof Error ? err.message : String(err)}`))
+    })
   }
 
   /**
@@ -1046,9 +1064,7 @@ class LiveKitPipeline implements AgentPipeline {
       error
     }
 
-    const encoder = new TextEncoder()
-    const data = encoder.encode(JSON.stringify(message))
-    this.room.localParticipant.publishData(data, { reliable: true })
+    this.publish(message, 'tool result')
   }
 
   interrupt(): void {
@@ -1056,11 +1072,7 @@ class LiveKitPipeline implements AgentPipeline {
     this.voiceSession.triggerInterruption()
 
     // Send interrupt signal via data channel
-    if (this.room) {
-      const encoder = new TextEncoder()
-      const data = encoder.encode(JSON.stringify({ type: 'interrupt' }))
-      this.room.localParticipant.publishData(data, { reliable: true })
-    }
+    this.publish({ type: 'interrupt' }, 'interrupt')
   }
 
   sendText(text: string): void {
@@ -1068,9 +1080,7 @@ class LiveKitPipeline implements AgentPipeline {
 
     // Send text via data channel
     if (this.room) {
-      const encoder = new TextEncoder()
-      const data = encoder.encode(JSON.stringify({ type: 'text', text }))
-      this.room.localParticipant.publishData(data, { reliable: true })
+      this.publish({ type: 'text', text }, 'text message')
 
       // Mirror typed input through the same path as voice STT (single listener chain).
       this.voiceSession.triggerUserSpeechEnded(text)
