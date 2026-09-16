@@ -522,6 +522,11 @@ export class BlobXyz {
     return { ...this.amplitude }
   }
 
+  /** Whether pointer interaction is currently bound. Pairs with enable/disableClickInteraction. */
+  isClickInteractionEnabled(): boolean {
+    return this.clickEnabled
+  }
+
   /**
    * Set amplitude values for noise depth
    */
