@@ -71,6 +71,9 @@ export class EyeIris {
   }
 
   private setupPointerFollow(): void {
+    // Guarded like BlobXyz's equivalent. Unguarded, constructing an EyeIris outside a browser
+    // (SSR pre-render, a node-based test) threw a ReferenceError on `window`.
+    if (typeof window === 'undefined') return
     const dom = this.renderer.domElement
     const onPointerMove = (event: PointerEvent) => {
       const rect = dom.getBoundingClientRect()
