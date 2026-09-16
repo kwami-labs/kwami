@@ -4,6 +4,23 @@ import type { VoicePipelineConfig } from './voice/types'
 import { LiveKitAdapter } from './adapters/LiveKitAdapter'
 import { logger } from '../utils/logger'
 
+/** The states a voice session reports. */
+export type AgentState = 'idle' | 'listening' | 'thinking' | 'speaking' | 'initializing'
+
+/**
+ * Call every listener, isolating each one: a consumer callback that throws must not stop the
+ * others from running, nor propagate into LiveKit's event emitter.
+ */
+function dispatch<T>(listeners: Set<(value: T) => void>, value: T, label: string): void {
+  for (const listener of listeners) {
+    try {
+      listener(value)
+    } catch (error) {
+      logger.error(`${label} listener threw:`, error)
+    }
+  }
+}
+
 /** The `VoicePipelineConfig` keys whose values are objects and must merge, not replace. */
 const NESTED_VOICE_KEYS = ['vad', 'stt', 'llm', 'tts', 'realtime', 'turnDetection', 'noiseCancellation'] as const
 
@@ -62,12 +79,26 @@ export class Agent {
   private connecting: Promise<void> | null = null
   private clientTools: Map<string, (args: Record<string, unknown>) => Promise<unknown>> = new Map()
 
-  // Callbacks
-  private onUserSpeechCallback?: (transcript: string) => void
-  private onAgentTextCallback?: (text: string) => void
-  private onInterimTranscriptCallback?: (text: string) => void
-  private _onErrorCallback?: (error: Error) => void
-  private onAgentAudioStreamCallback?: (stream: MediaStream) => void
+  /**
+   * Listener sets, one per event.
+   *
+   * These replace a mix of two broken registration styles: `onUserSpeech`/`onAgentText` wrapped
+   * each new callback around the previous one, building a closure chain that grew without
+   * bound and could never be unsubscribed, while `onStateChange`/`onAgentAudioStream` were
+   * last-wins and silently dropped the previously registered listener. Every `on*` method now
+   * adds to a set and hands back an unsubscribe function.
+   */
+  private readonly listeners = {
+    userSpeech: new Set<(transcript: string) => void>(),
+    agentText: new Set<(text: string) => void>(),
+    interimTranscript: new Set<(text: string) => void>(),
+    agentAudioStream: new Set<(stream: MediaStream) => void>(),
+    error: new Set<(error: Error) => void>(),
+    stateChange: new Set<(state: AgentState) => void>(),
+  }
+
+  /** Set once on the adapter's voice session; re-registering would replace, not add. */
+  private stateChangeBound = false
 
   constructor(config?: AgentConfig, _kwamiRef?: KwamiRef) {
     this.config = config ?? {}
@@ -121,24 +152,21 @@ export class Agent {
     // the Agent holding a half-built pipeline that still reported isConnected() === true.
     const pipeline = this.adapter.createPipeline()
 
-    // Wire up callbacks
-    if (this.onUserSpeechCallback) {
-      pipeline.onUserSpeech(this.onUserSpeechCallback)
-    }
-    if (this.onAgentTextCallback) {
-      pipeline.onAgentText(this.onAgentTextCallback)
-    }
-    if (this.onInterimTranscriptCallback && typeof pipeline.onInterimTranscript === 'function') {
-      pipeline.onInterimTranscript(this.onInterimTranscriptCallback)
+    // One stable dispatcher per event, registered once. Listeners can then come and go over
+    // the life of the Agent without touching the pipeline.
+    pipeline.onUserSpeech((transcript) => dispatch(this.listeners.userSpeech, transcript, 'onUserSpeech'))
+    pipeline.onAgentText((text) => dispatch(this.listeners.agentText, text, 'onAgentText'))
+    if (typeof pipeline.onInterimTranscript === 'function') {
+      pipeline.onInterimTranscript((text) => dispatch(this.listeners.interimTranscript, text, 'onInterimTranscript'))
     }
 
-    // Out-of-band failures reach the consumer's onError callback from here.
+    // Out-of-band failures reach the consumer's onError callbacks from here.
     pipeline.onError?.((error) => this.emitError(error))
 
     // Wire up agent audio stream callback for avatar visualization
-    if (this.onAgentAudioStreamCallback && 'onAgentAudioStream' in pipeline) {
+    if ('onAgentAudioStream' in pipeline) {
       (pipeline as AgentPipeline & { onAgentAudioStream: (cb: (s: MediaStream) => void) => void })
-        .onAgentAudioStream(this.onAgentAudioStreamCallback)
+        .onAgentAudioStream((stream) => dispatch(this.listeners.agentAudioStream, stream, 'onAgentAudioStream'))
     }
 
     // Register tool executor
@@ -160,13 +188,9 @@ export class Agent {
     logger.info('Agent connected')
   }
 
-  /** Invoke the consumer's error callback, never letting it take down the caller. */
+  /** Fan an error out to every registered listener. */
   private emitError(error: Error): void {
-    try {
-      this._onErrorCallback?.(error)
-    } catch (callbackError) {
-      logger.error('onError callback threw:', callbackError)
-    }
+    dispatch(this.listeners.error, error, 'onError')
   }
 
   /**
@@ -352,41 +376,30 @@ export class Agent {
   // ---------------------------------------------------------------------------
 
   /**
-   * Register callback for user speech transcripts
+   * Register callback for user speech transcripts.
+   *
+   * @returns an unsubscribe function.
    */
-  onUserSpeech(callback: (transcript: string) => void): void {
-    const previous = this.onUserSpeechCallback
-    this.onUserSpeechCallback = (transcript: string) => {
-      previous?.(transcript)
-      callback(transcript)
-    }
-    this.pipeline?.onUserSpeech(this.onUserSpeechCallback)
+  onUserSpeech(callback: (transcript: string) => void): () => void {
+    return this.addListener(this.listeners.userSpeech, callback)
   }
 
   /**
-   * Register callback for agent text responses
+   * Register callback for agent text responses.
+   *
+   * @returns an unsubscribe function.
    */
-  onAgentText(callback: (text: string) => void): void {
-    const previous = this.onAgentTextCallback
-    this.onAgentTextCallback = (text: string) => {
-      previous?.(text)
-      callback(text)
-    }
-    this.pipeline?.onAgentText(this.onAgentTextCallback)
+  onAgentText(callback: (text: string) => void): () => void {
+    return this.addListener(this.listeners.agentText, callback)
   }
 
   /**
-   * Register callback for interim user speech (STT in progress)
+   * Register callback for interim user speech (STT in progress).
+   *
+   * @returns an unsubscribe function.
    */
-  onInterimTranscript(callback: (text: string) => void): void {
-    const previous = this.onInterimTranscriptCallback
-    this.onInterimTranscriptCallback = (text: string) => {
-      previous?.(text)
-      callback(text)
-    }
-    if (this.pipeline && typeof this.pipeline.onInterimTranscript === 'function') {
-      this.pipeline.onInterimTranscript(this.onInterimTranscriptCallback)
-    }
+  onInterimTranscript(callback: (text: string) => void): () => void {
+    return this.addListener(this.listeners.interimTranscript, callback)
   }
 
   /**
@@ -397,34 +410,51 @@ export class Agent {
   }
 
   /**
-   * Register error callback
+   * Register a callback for out-of-band failures — an error reported by the backend agent, an
+   * unexpected room disconnect, a data-channel send that could not be delivered. Errors raised
+   * while `connect()` is running reject that promise instead.
+   *
+   * @returns an unsubscribe function.
    */
-  onError(callback: (error: Error) => void): void {
-    this._onErrorCallback = callback
+  onError(callback: (error: Error) => void): () => void {
+    return this.addListener(this.listeners.error, callback)
   }
 
   /**
-   * Register callback for agent audio stream (for avatar visualization)
+   * Register callback for agent audio stream (for avatar visualization).
+   *
+   * @returns an unsubscribe function.
    */
-  onAgentAudioStream(callback: (stream: MediaStream) => void): void {
-    this.onAgentAudioStreamCallback = callback
-    // If pipeline exists and has the method, register immediately
-    if (this.pipeline && 'onAgentAudioStream' in this.pipeline) {
-      (this.pipeline as AgentPipeline & { onAgentAudioStream: (cb: (s: MediaStream) => void) => void })
-        .onAgentAudioStream(callback)
-    }
+  onAgentAudioStream(callback: (stream: MediaStream) => void): () => void {
+    return this.addListener(this.listeners.agentAudioStream, callback)
   }
 
   /**
-   * Register callback for voice session state changes
+   * Register callback for voice session state changes.
+   *
+   * @returns an unsubscribe function.
    */
-  onStateChange(callback: (state: 'idle' | 'listening' | 'thinking' | 'speaking' | 'initializing') => void): void {
-    // Wire up via adapter's voice session
+  onStateChange(callback: (state: AgentState) => void): () => void {
+    this.bindStateChange()
+    return this.addListener(this.listeners.stateChange, callback)
+  }
+
+  private addListener<T>(set: Set<(value: T) => void>, callback: (value: T) => void): () => void {
+    set.add(callback)
+    return () => set.delete(callback)
+  }
+
+  /**
+   * Subscribe once to the adapter's voice session. `VoiceSession.on()` merges by key, so
+   * registering per listener would mean each new one replaced the last.
+   */
+  private bindStateChange(): void {
+    if (this.stateChangeBound) return
     if (this.adapter && 'getVoiceSession' in this.adapter) {
-      const voiceSession = (this.adapter as LiveKitAdapter).getVoiceSession()
-      voiceSession.on({
-        onStateChange: callback
+      ;(this.adapter as LiveKitAdapter).getVoiceSession().on({
+        onStateChange: (state) => dispatch(this.listeners.stateChange, state, 'onStateChange'),
       })
+      this.stateChangeBound = true
     }
   }
 
@@ -467,10 +497,13 @@ export class Agent {
   updateConfig(config: Partial<AgentConfig>): void {
     this.config = { ...this.config, ...config }
 
-    // Reinitialize adapter if adapter type changed
+    // Reinitialize adapter if adapter type changed. The new adapter brings a new VoiceSession,
+    // so the state-change subscription has to be re-established on it.
     if (config.adapter) {
       this.adapter?.dispose()
       this.initAdapter()
+      this.stateChangeBound = false
+      if (this.listeners.stateChange.size > 0) this.bindStateChange()
     }
 
     // Update adapter config for livekit changes
@@ -492,11 +525,8 @@ export class Agent {
     this.adapter = null
     this.connecting = null
     this.clientTools.clear()
-    this.onUserSpeechCallback = undefined
-    this.onAgentTextCallback = undefined
-    this.onInterimTranscriptCallback = undefined
-    this.onAgentAudioStreamCallback = undefined
-    this._onErrorCallback = undefined
+    for (const set of Object.values(this.listeners)) set.clear()
+    this.stateChangeBound = false
   }
 
   // ---------------------------------------------------------------------------
