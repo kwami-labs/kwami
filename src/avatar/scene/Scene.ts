@@ -11,9 +11,9 @@ import {
 } from 'three'
 import type { Material, Mesh, Object3D } from 'three'
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js'
-import type { SceneConfig } from '../../types'
-import { logger } from '../../utils/logger'
-import { StarField, type StarFieldConfig } from './StarField'
+import type { SceneConfig } from '../../types/index.js'
+import { logger } from '../../utils/logger.js'
+import { StarField, type StarFieldConfig } from './StarField.js'
 
 /**
  * Scene - Manages the THREE.js scene configuration for Kwami

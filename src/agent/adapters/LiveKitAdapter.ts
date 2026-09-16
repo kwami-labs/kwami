@@ -446,9 +446,10 @@ class LiveKitPipeline implements AgentPipeline {
     if (typeof window === 'undefined') return
     this._sendDataHandler = ((e: CustomEvent) => {
       if (!this.room) return
-      const payload = e.detail as Uint8Array
+      const payload = e.detail as Uint8Array | undefined
       if (payload) {
-        this.room.localParticipant.publishData(payload, { reliable: true })
+        const data = new Uint8Array(payload)
+        this.room.localParticipant.publishData(data, { reliable: true })
           .catch(err => logger.warn('Failed to relay data to agent:', err))
       }
     }) as EventListener
