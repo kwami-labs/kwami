@@ -147,6 +147,58 @@ test.describe('Kwami on a canvas', () => {
     expect(result).toEqual({ echoed: { q: 'kwami' } });
   });
 
+  test('animates the star field once it is enabled', async ({ page }) => {
+    // `Scene.update()` had zero callers, so `StarField.update()` never ran: an enabled field
+    // rendered a static spray of specks that never twinkled or rotated. Avatar drives a ticker
+    // now; a shader time that stays put means that ticker is gone again.
+    await boot(page);
+    await page.evaluate(() => window.kwamiE2E.create({ avatar: { renderer: 'blob-xyz' } }));
+    const initial = await page.evaluate(() => window.kwamiE2E.enableStarField());
+    expect(initial).not.toBeNull();
+
+    await expect
+      .poll(() => page.evaluate(() => window.kwamiE2E.starFieldTime()), { timeout: 10_000 })
+      .toBeGreaterThan(initial!);
+  });
+
+  test('forwards declarative blob config the renderer used to ignore', async ({ page }) => {
+    // amplitude, touch and transition are declared on BlobXyzConfig and were accepted and then
+    // dropped — the setters existed but only avatar.getBlob() could reach them.
+    await boot(page);
+    await page.evaluate(() =>
+      window.kwamiE2E.create({
+        avatar: { renderer: 'blob-xyz', blob: { amplitude: { x: 0.25, y: 0.5, z: 0.75 } } },
+      }),
+    );
+
+    expect(await page.evaluate(() => window.kwamiE2E.blobAmplitude())).toEqual({
+      x: 0.25,
+      y: 0.5,
+      z: 0.75,
+    });
+  });
+
+  test('honours AvatarConfig.interaction, which was never read', async ({ page }) => {
+    await boot(page);
+    await page.evaluate(() =>
+      window.kwamiE2E.create({
+        avatar: {
+          renderer: 'blob-xyz',
+          interaction: { click: { action: 'pulse', enabled: false } },
+        },
+      }),
+    );
+
+    expect(await page.evaluate(() => window.kwamiE2E.clickInteractionEnabled())).toBe(false);
+  });
+
+  test('leaves click interaction on when no interaction config is given', async ({ page }) => {
+    await boot(page);
+    await page.evaluate(() => window.kwamiE2E.create({ avatar: { renderer: 'blob-xyz' } }));
+
+    expect(await page.evaluate(() => window.kwamiE2E.clickInteractionEnabled())).toBe(true);
+  });
+
   test('mounts every renderer and draws with it', async ({ page }) => {
     // particles-face and eye-iris had no coverage of any kind: excluded from the unit
     // coverage metric AND never instantiated here, so a shader that failed to compile in
