@@ -194,6 +194,7 @@ class LiveKitPipeline implements AgentPipeline {
 
   // Callbacks (user/agent text delivered via VoiceSession only — see onUserSpeech / onAgentText)
   private onAgentAudioStreamCb?: (stream: MediaStream) => void
+  private onErrorCb?: (error: Error) => void
   private toolExecutor?: ToolExecutor
 
   /** LiveKit often delivers the same final transcript via TranscriptionReceived and DataReceived — dedupe. */
@@ -215,6 +216,25 @@ class LiveKitPipeline implements AgentPipeline {
   /** See {@link isAgentIdentity} — gates everything this adapter treats as authoritative. */
   private isAgentParticipant(participant: Participant | RemoteParticipant): boolean {
     return isAgentIdentity(participant.identity, this.config)
+  }
+
+  onError(callback: (error: Error) => void): void {
+    this.onErrorCb = callback
+  }
+
+  /**
+   * Surface an out-of-band failure.
+   *
+   * Both paths matter: the VoiceSession event is what a consumer subscribed through
+   * `adapter.getVoiceSession()` sees, and `onErrorCb` is what `Agent` forwards to the
+   * `onError` callback registered on `Kwami`. Before this existed, neither fired — the agent's
+   * own `{ type: 'error' }` messages were logged and dropped, `VoiceSession.triggerError()` had
+   * no callers at all, and `Agent._onErrorCallback` was stored and never invoked.
+   */
+  private emitError(error: Error): void {
+    logger.error('Pipeline error:', error)
+    this.voiceSession.triggerError(error)
+    this.onErrorCb?.(error)
   }
 
   /** Same utterance often arrives via DataReceived and TranscriptionReceived with minor text differences. */
@@ -613,8 +633,8 @@ class LiveKitPipeline implements AgentPipeline {
         break
 
       case 'error':
-        // Error from agent
-        logger.error('Agent error:', data.error)
+        // Error from the backend agent. This used to be logged and dropped.
+        this.emitError(new Error(data.error ?? 'Unknown agent error'))
         break
 
       case 'tool_call':

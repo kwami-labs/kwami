@@ -565,7 +565,13 @@ export interface AgentPipeline {
   /** Optional: interim STT (e.g. LiveKit pipeline) */
   onInterimTranscript?(callback: (text: string) => void): void
   onAgentSpeech(callback: (audio: ArrayBuffer) => void): void
-  dispose(): void
+  /**
+   * Out-of-band failures: an error reported by the backend agent, an unexpected room
+   * disconnect, a data-channel send that could not be delivered. Failures that happen while
+   * `connect()` is still running reject that promise instead.
+   */
+  onError?(callback: (error: Error) => void): void
+  dispose(): Promise<void> | void
   setToolExecutor(executor: ToolExecutor): void
 }
 
