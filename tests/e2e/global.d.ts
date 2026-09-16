@@ -22,6 +22,12 @@ interface KwamiE2ESnapshot {
   instanceCount: number;
 }
 
+interface KwamiE2EGpuResources {
+  geometries: number;
+  textures: number;
+  programs: number;
+}
+
 interface KwamiE2EBlobState {
   skin: { colors: { x: string; y: string; z: string }; resolution: number };
   shape: { scale: number };
@@ -39,6 +45,16 @@ declare global {
       registerTool(name: string, description: string): string[];
       executeTool(name: string, params: Record<string, unknown>): Promise<unknown>;
       litPixels(): number;
+      enableStarField(): number | null;
+      starFieldTime(): number | null;
+      blobAmplitude(): { x: number; y: number; z: number };
+      clickInteractionEnabled(): boolean;
+      gpuResources(): KwamiE2EGpuResources;
+      toneMapping(): number;
+      switchRenderer(type: string): string;
+      cycleRenderers(
+        types: readonly string[],
+      ): Promise<{ before: KwamiE2EGpuResources; after: KwamiE2EGpuResources }>;
       dispose(): Promise<{ instanceCount: number; stillRegistered?: boolean }>;
       exports: {
         soulPresetCount(): number;

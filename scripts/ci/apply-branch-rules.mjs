@@ -1,21 +1,29 @@
 #!/usr/bin/env node
 /**
- * Apply this repository's branch rulesets, as code.
+ * Apply this repository's rulesets, as code.
  *
  * The pipeline assumes protections that live in GitHub rather than in this repo (see
  * docs/ci-cd.md). Clicking them into the UI means they drift silently and nobody can diff them,
- * so they are declared here instead and applied idempotently: an existing ruleset with the same
- * name is updated in place rather than duplicated.
+ * so they are declared as data in `.github/rulesets/*.json` — the literal API payloads — and
+ * this script applies them idempotently: an existing ruleset with the same name is updated in
+ * place rather than duplicated.
+ *
+ * The declarations are JSON rather than object literals in this file for one reason: a rule is
+ * a decision about who can change what, and a decision should be reviewable on its own. A diff
+ * of `.github/rulesets/main.json` says "the approval count went from 1 to 0" in one line, and
+ * CODEOWNERS already puts `/.github/` behind a review.
  *
  *   main   PR + 1 approval + Code Owner review, `ci gate` and `enforce promotion path` required,
  *          up to date before merging, no force pushes, no deletion, merge commits only.
  *   stg    the same, minus the Code Owner review.
  *   dev    PR required and `ci gate` required, but no approval count and squash merges — this is
  *          where work lands, and blocking it on a reviewer stalls a solo repo.
+ *   tags   `v*` cannot be deleted, moved or force-updated by anyone, bot included.
  *
- * `github-actions[bot]` bypasses the pull-request rule everywhere: release.yml pushes the
+ * `github-actions[bot]` bypasses the pull-request rule on the branches: release.yml pushes the
  * release commit, the tag and the post-release back-merges directly. It does NOT bypass the
- * status checks.
+ * status checks, and it does NOT bypass the tag rules — nothing in the release flow ever needs
+ * to delete or move a tag, and semantic-release's entire notion of "what shipped" is those tags.
  *
  * Usage:
  *   gh auth login                       # needs `repo` / admin on the repository
@@ -23,11 +31,57 @@
  */
 
 import { execFileSync } from 'node:child_process';
+import { readdirSync, readFileSync } from 'node:fs';
+import { dirname, join } from 'node:path';
+import { fileURLToPath } from 'node:url';
+
+const RULESETS_DIR = join(dirname(fileURLToPath(import.meta.url)), '../../.github/rulesets');
+
+/** The GitHub Actions app id, as committed in the JSON. Resolved from the API when possible. */
+const ACTIONS_APP_ID_FALLBACK = 15368;
+
+/**
+ * Read the ruleset declarations off disk, in a stable order.
+ *
+ * Exported for the unit test, which asserts the committed JSON still says what docs/ci-cd.md
+ * claims it does — a ruleset that silently loses its status checks is the kind of thing nobody
+ * notices until a red PR merges.
+ */
+export function loadRulesets(dir = RULESETS_DIR) {
+  return readdirSync(dir)
+    .filter((name) => name.endsWith('.json'))
+    .sort()
+    .map((name) => ({ file: name, ruleset: JSON.parse(readFileSync(join(dir, name), 'utf8')) }));
+}
+
+/**
+ * Point every `Integration` bypass actor at the real app id.
+ *
+ * The id in the JSON is a fallback, not a fact: app ids are per-instance on GitHub Enterprise,
+ * and a literal nobody can verify is a literal that will be wrong somewhere. Pure so the test
+ * can check it rewrites the id without touching anything else.
+ */
+export function withResolvedAppId(ruleset, appId) {
+  if (!appId || !ruleset.bypass_actors?.length) return ruleset;
+  return {
+    ...ruleset,
+    bypass_actors: ruleset.bypass_actors.map((actor) =>
+      actor.actor_type === 'Integration' ? { ...actor, actor_id: appId } : actor,
+    ),
+  };
+}
+
+/** Strip the Actions bypass, for the 422 fallback below. */
+export function withoutAppBypass(ruleset) {
+  return {
+    ...ruleset,
+    bypass_actors: (ruleset.bypass_actors ?? []).filter((a) => a.actor_type !== 'Integration'),
+  };
+}
 
 const args = process.argv.slice(2);
 const dryRun = args.includes('--dry-run');
 const repoArg = args[args.indexOf('--repo') + 1];
-const REPO = args.includes('--repo') ? repoArg : detectRepo();
 
 function detectRepo() {
   const url = execFileSync('git', ['remote', 'get-url', 'origin'], { encoding: 'utf8' }).trim();
@@ -36,10 +90,10 @@ function detectRepo() {
   return match[1];
 }
 
-function gh(args, body) {
+function gh(argv, body) {
   const input = body === undefined ? undefined : JSON.stringify(body);
-  const argv = body === undefined ? args : [...args, '--input', '-'];
-  const out = execFileSync('gh', argv, { encoding: 'utf8', input });
+  const withInput = body === undefined ? argv : [...argv, '--input', '-'];
+  const out = execFileSync('gh', withInput, { encoding: 'utf8', input });
   return out.trim() ? JSON.parse(out) : null;
 }
 
@@ -63,104 +117,44 @@ function requireAuth() {
   }
 }
 
-/** The GitHub Actions app, so the release bot can push past the pull-request rule. */
 function actionsAppId() {
-  return gh(['api', 'apps/github-actions', '--jq', '{id: .id}']).id;
+  try {
+    return gh(['api', 'apps/github-actions', '--jq', '{id: .id}']).id;
+  } catch {
+    console.log(
+      `  ! Could not resolve the github-actions app id; using ${ACTIONS_APP_ID_FALLBACK}.`,
+    );
+    return ACTIONS_APP_ID_FALLBACK;
+  }
 }
-
-function ruleset({ branch, approvals, codeOwners, checks, mergeMethods, botAppId }) {
-  return {
-    name: `${branch} protection`,
-    target: 'branch',
-    enforcement: 'active',
-    bypass_actors: [
-      // Repository admins, so the owner is never locked out of their own branches by a
-      // ruleset this script created.
-      { actor_id: 5, actor_type: 'RepositoryRole', bypass_mode: 'always' },
-      // `always`, not `pull_request`: the release push is not a PR. Dropped automatically
-      // when the organization has not installed GitHub Actions as a bypass actor — see the
-      // 422 fallback below.
-      { actor_id: botAppId, actor_type: 'Integration', bypass_mode: 'always' },
-    ],
-    conditions: { ref_name: { include: [`refs/heads/${branch}`], exclude: [] } },
-    rules: [
-      { type: 'deletion' },
-      { type: 'non_fast_forward' },
-      {
-        type: 'pull_request',
-        parameters: {
-          required_approving_review_count: approvals,
-          dismiss_stale_reviews_on_push: true,
-          require_code_owner_review: codeOwners,
-          require_last_push_approval: false,
-          required_review_thread_resolution: false,
-          allowed_merge_methods: mergeMethods,
-        },
-      },
-      {
-        type: 'required_status_checks',
-        parameters: {
-          // "Require branches to be up to date before merging" — a promote PR must be rebased
-          // onto the tip it is promoting, which is what assert-promotion-path.mjs demands too.
-          strict_required_status_checks_policy: true,
-          required_status_checks: checks.map((context) => ({ context })),
-        },
-      },
-    ],
-  };
-}
-
-let botBypassBlocked = false;
 
 function main() {
+  const REPO = args.includes('--repo') ? repoArg : detectRepo();
+
   requireAuth();
-  const botAppId = actionsAppId();
+  const appId = actionsAppId();
   console.log(`Repository: ${REPO}`);
   console.log(
-    `github-actions app id: ${botAppId}${dryRun ? '  (dry run — nothing will change)' : ''}\n`,
+    `github-actions app id: ${appId}${dryRun ? '  (dry run — nothing will change)' : ''}`,
   );
+  console.log('');
 
-  const desired = [
-    ruleset({
-      branch: 'main',
-      approvals: 1,
-      codeOwners: true,
-      checks: ['ci gate', 'enforce promotion path'],
-      // Merge commit, not squash: a stg → main promotion must carry the individual subjects
-      // into main's history, or semantic-release loses them from the stable changelog.
-      mergeMethods: ['merge'],
-      botAppId,
-    }),
-    ruleset({
-      branch: 'stg',
-      approvals: 1,
-      codeOwners: false,
-      checks: ['ci gate', 'enforce promotion path'],
-      mergeMethods: ['merge'],
-      botAppId,
-    }),
-    ruleset({
-      branch: 'dev',
-      approvals: 0,
-      codeOwners: false,
-      // `enforce promotion path` runs on dev too, but it lets any feature branch through, so
-      // requiring it here only adds a wait.
-      checks: ['ci gate'],
-      // Squash: the PR title becomes the released commit subject.
-      mergeMethods: ['squash'],
-      botAppId,
-    }),
-  ];
+  const declared = loadRulesets();
+  if (declared.length === 0) {
+    console.error(`No ruleset declarations found in ${RULESETS_DIR}`);
+    process.exit(1);
+  }
 
   const existing = gh(['api', `repos/${REPO}/rulesets`, '--jq', '[.[] | {id, name}]']) ?? [];
+  let botBypassBlocked = false;
 
-  for (const rules of desired) {
-    const match = existing.find((entry) => entry.name === rules.name);
-    const verb = match ? 'updating' : 'creating';
-    console.log(`${verb} "${rules.name}"`);
+  for (const { file, ruleset } of declared) {
+    const payload = withResolvedAppId(ruleset, appId);
+    const match = existing.find((entry) => entry.name === payload.name);
+    console.log(`${match ? 'updating' : 'creating'} "${payload.name}"  (${file})`);
 
     if (dryRun) {
-      console.log(JSON.stringify(rules, null, 2));
+      console.log(JSON.stringify(payload, null, 2));
       continue;
     }
 
@@ -171,7 +165,7 @@ function main() {
 
     let result;
     try {
-      result = write(rules);
+      result = write(payload);
     } catch (error) {
       // A repository-level ruleset can only name the GitHub Actions app as a bypass actor
       // when the owning organization has installed it as one. Without that, GitHub answers
@@ -183,15 +177,12 @@ function main() {
 
       console.log('  ! GitHub Actions cannot be added as a bypass actor from the API here.');
       botBypassBlocked = true;
-      result = write({
-        ...rules,
-        bypass_actors: rules.bypass_actors.filter((a) => a.actor_type !== 'Integration'),
-      });
+      result = write(withoutAppBypass(payload));
     }
     console.log(`  → ruleset ${result.id} (${result.enforcement})`);
   }
 
-  console.log('\nDone. Verify at: https://github.com/' + REPO + '/settings/rules');
+  console.log(`\nDone. Verify at: https://github.com/${REPO}/settings/rules`);
 
   if (botBypassBlocked) {
     console.log('');
@@ -207,4 +198,5 @@ function main() {
   }
 }
 
-main();
+// Importable by the test without shelling out to `gh`.
+if (process.argv[1] === fileURLToPath(import.meta.url)) main();

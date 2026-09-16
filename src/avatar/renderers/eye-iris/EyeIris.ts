@@ -1,16 +1,16 @@
 import * as THREE from 'three'
-import type { KwamiState } from '../../../types'
+import type { KwamiState } from '../../../types/index.js'
 import {
   getDefaultEyeIrisConfig,
   getEyeIrisPalette,
-} from './config'
+} from './config.js'
 import type {
   EyeIrisColorConfig,
   EyeIrisConfig,
   EyeIrisOptions,
   EyeIrisPalettePreset,
   EyeIrisUniforms,
-} from './types'
+} from './types.js'
 
 export class EyeIris {
   private scene: THREE.Scene
@@ -71,6 +71,9 @@ export class EyeIris {
   }
 
   private setupPointerFollow(): void {
+    // Guarded like BlobXyz's equivalent. Unguarded, constructing an EyeIris outside a browser
+    // (SSR pre-render, a node-based test) threw a ReferenceError on `window`.
+    if (typeof window === 'undefined') return
     const dom = this.renderer.domElement
     const onPointerMove = (event: PointerEvent) => {
       const rect = dom.getBoundingClientRect()
@@ -432,7 +435,9 @@ export class EyeIris {
 
   public update(deltaTime?: number): void {
     if (this.disposed) return
-    const dt = deltaTime ?? this.clock.getDelta()
+    // Clamped like ParticlesFace — see the note there; an unclamped delta after a tab
+    // regains focus snaps the iris pattern instead of resuming it.
+    const dt = Math.min(deltaTime ?? this.clock.getDelta(), 0.05)
     this.uniforms.uTime.value += dt * (0.5 + this.config.animation.shimmerSpeed)
     const t = this.uniforms.uTime.value
     const idleDriftX = Math.sin(t * 0.42) * 0.02 + Math.sin(t * 0.93) * 0.008

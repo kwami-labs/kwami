@@ -3,7 +3,7 @@
 // =============================================================================
 
 // Import types used in this file
-import type { VoicePipelineConfig as VoicePipelineConfigType } from '../agent/voice/types'
+import type { VoicePipelineConfig as VoicePipelineConfigType } from '../agent/voice/types.js'
 
 // Re-export voice types for convenience
 export type {
@@ -37,7 +37,7 @@ export type {
   VoicePipelineConfig,
   VoicePipelinePreset,
   VoicePipelineType,
-} from '../agent/voice/types'
+} from '../agent/voice/types.js'
 
 // Re-export voice utilities
 export {
@@ -48,7 +48,7 @@ export {
   PRESET_VOICES,
   findPresetVoice,
   filterPresetVoices,
-} from '../agent/voice/types'
+} from '../agent/voice/types.js'
 
 // -----------------------------------------------------------------------------
 // Core
@@ -406,9 +406,18 @@ export interface SceneConfig {
     bottom?: number
     ambient?: number
   }
+  /**
+   * Cast/receive shadows. Off by default: no renderer's meshes opt into shadows, so enabling
+   * it allocates large depth targets and runs a shadow pass every frame for no visible effect.
+   */
   enableShadows?: boolean
   enableControls?: boolean
   preserveDrawingBuffer?: boolean
+  /**
+   * Upper bound on `devicePixelRatio`. Defaults to 2 — above that the extra fragments are not
+   * visible on a handheld display but the full-screen passes cost the same.
+   */
+  maxPixelRatio?: number
   background?: SceneBackgroundConfig
   starField?: StarFieldConfig
 }
@@ -424,8 +433,8 @@ export interface CameraConfig {
 // Agent
 // -----------------------------------------------------------------------------
 
-import type { VoicePipelineConfig } from '../agent/voice/types'
-import type { VoiceSessionEvents } from '../agent/voice/VoiceSession'
+import type { VoicePipelineConfig } from '../agent/voice/types.js'
+import type { VoiceSessionEvents } from '../agent/voice/VoiceSession.js'
 
 export interface AgentConfig {
   /** Adapter type */
@@ -453,6 +462,22 @@ export interface LiveKitConfig {
   userId?: string
   /** Auth token for API authentication (e.g., Supabase JWT) */
   authToken?: string
+
+  /**
+   * Exact LiveKit identity of the backend agent.
+   *
+   * Everything the adapter treats as authoritative is gated on this: the audio it auto-plays,
+   * the transcripts it emits as agent text, the pipeline state it drives the UI from, and the
+   * `tool_call` messages it executes against your registered tools. Participants choose their
+   * own identity, so set this from the same backend that mints the room token — without it the
+   * adapter falls back to a name heuristic that another participant can satisfy.
+   */
+  agentIdentity?: string
+  /**
+   * Identity prefix for backends that append a session id to a fixed agent identity.
+   * Ignored when {@link LiveKitConfig.agentIdentity} is set.
+   */
+  agentIdentityPrefix?: string
 
   // ---------------------------------------------------------------------------
   // Voice Pipeline Configuration
@@ -549,7 +574,13 @@ export interface AgentPipeline {
   /** Optional: interim STT (e.g. LiveKit pipeline) */
   onInterimTranscript?(callback: (text: string) => void): void
   onAgentSpeech(callback: (audio: ArrayBuffer) => void): void
-  dispose(): void
+  /**
+   * Out-of-band failures: an error reported by the backend agent, an unexpected room
+   * disconnect, a data-channel send that could not be delivered. Failures that happen while
+   * `connect()` is still running reject that promise instead.
+   */
+  onError?(callback: (error: Error) => void): void
+  dispose(): Promise<void> | void
   setToolExecutor(executor: ToolExecutor): void
 }
 

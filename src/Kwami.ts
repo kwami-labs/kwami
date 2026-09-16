@@ -1,23 +1,55 @@
-import type { KwamiConfig, KwamiState, KwamiCallbacks, MemoryContext, MemorySearchResult } from './types'
-import { Avatar } from './avatar'
-import { Agent } from './agent'
-import { Soul } from './soul'
-import { Memory } from './memory'
-import { ToolRegistry } from './tools'
-import { SkillManager } from './skills'
-import { logger } from './utils/logger'
+import type { KwamiConfig, KwamiState, KwamiCallbacks, MemoryContext, MemorySearchResult } from './types/index.js'
+import { Avatar } from './avatar/index.js'
+import { Agent } from './agent/index.js'
+import { Soul } from './soul/index.js'
+import { Memory } from './memory/index.js'
+import { ToolRegistry } from './tools/index.js'
+import { SkillManager } from './skills/index.js'
+import { logger } from './utils/logger.js'
 
-// Generate unique Kwami ID
+const ID_ALPHABET = 'abcdefghijklmnopqrstuvwxyz0123456789'
+const ID_LENGTH = 8
+/** 252 = 36 x 7. Bytes at or above it would bias the modulo toward the first four letters. */
+const ID_REJECT_ABOVE = 252
+
+/**
+ * Generate a unique Kwami ID.
+ *
+ * Eight characters of `[a-z0-9]`, which is the format consumers and the e2e suite already
+ * observe — but drawn from the CSPRNG rather than `Math.random()`, whose output is predictable
+ * from previous values. The ID keys `kwamiRegistry`, so a guessable one lets anything holding a
+ * reference to the page reach another instance through `Kwami.getInstance()`.
+ *
+ * Bytes at or above 252 are rejected rather than folded, so every character is equally likely.
+ */
 function generateKwamiId(): string {
-  const chars = 'abcdefghijklmnopqrstuvwxyz0123456789'
+  const random = globalThis.crypto?.getRandomValues?.bind(globalThis.crypto)
   let id = ''
-  for (let i = 0; i < 8; i++) {
-    id += chars.charAt(Math.floor(Math.random() * chars.length))
+
+  while (id.length < ID_LENGTH) {
+    if (random) {
+      for (const byte of random(new Uint8Array(ID_LENGTH))) {
+        if (byte < ID_REJECT_ABOVE && id.length < ID_LENGTH) {
+          id += ID_ALPHABET[byte % ID_ALPHABET.length]
+        }
+      }
+    } else {
+      // No CSPRNG (an old runtime, or a non-secure context). Weaker, but still an id.
+      id += ID_ALPHABET[Math.floor(Math.random() * ID_ALPHABET.length)]
+    }
   }
+
   return id
 }
 
-// Global registry of active Kwami instances
+/**
+ * Global registry of active Kwami instances.
+ *
+ * This is a strong reference: an instance stays reachable — along with its Avatar, WebGL
+ * context, Agent and LiveKit room — until `dispose()` removes it. Always dispose a Kwami when
+ * you are done with it; a component that unmounts without disposing leaks the whole graph for
+ * the lifetime of the page.
+ */
 const kwamiRegistry = new Map<string, Kwami>()
 
 /**
@@ -82,12 +114,14 @@ export class Kwami {
   private state: KwamiState = 'idle'
   private callbacks: KwamiCallbacks = {}
   private userId: string | null = null
+  /** In-flight connect, so a second call joins it rather than dispatching a second agent. */
+  private connecting: Promise<void> | null = null
 
   /**
    * Get the library version
    */
   static getVersion(): string {
-    return '2.0.0'
+    return __KWAMI_VERSION__
   }
 
   /**
@@ -214,9 +248,21 @@ export class Kwami {
       this.callbacks = { ...this.callbacks, ...callbacks }
     }
 
+    if (this.connecting) return this.connecting
+    this.connecting = this.doConnect(userId).finally(() => {
+      this.connecting = null
+    })
+    return this.connecting
+  }
+
+  private async doConnect(userId?: string): Promise<void> {
     this.userId = userId ?? `user_${Date.now()}`
 
     try {
+      // Finish tool setup before the definitions are read below — MCP servers connect
+      // asynchronously and their tools would otherwise miss the dispatch payload.
+      await this.tools.ready()
+
       // Initialize memory for this user
       if (this.memory.getConfig().adapter) {
         await this.memory.initialize(this.userId)
@@ -393,16 +439,34 @@ export class Kwami {
    * Cleanup all resources
    */
   async dispose(): Promise<void> {
-    await this.disconnect()
-    this.avatar.dispose()
-    this.agent.dispose()
-    this.memory.dispose()
-    await this.tools.dispose()
-    this.skills.dispose()
-    
-    // Unregister from global registry
+    // Every step runs even if an earlier one throws. Previously a disconnect() that rejected —
+    // a room already gone, a network blip — skipped the rest, leaking the WebGL context, the
+    // audio graph and the registry entry.
+    const name = this.soul.getName()
+    const failures: unknown[] = []
+    const step = async (label: string, run: () => unknown): Promise<void> => {
+      try {
+        await run()
+      } catch (error) {
+        failures.push(error)
+        logger.error(`Kwami "${this.id}" failed to dispose ${label}:`, error)
+      }
+    }
+
+    await step('agent connection', () => this.disconnect())
+    await step('avatar', () => this.avatar.dispose())
+    await step('agent', () => this.agent.dispose())
+    await step('memory', () => this.memory.dispose())
+    await step('tools', () => this.tools.dispose())
+    await step('skills', () => this.skills.dispose())
+
     kwamiRegistry.delete(this.id)
-    
-    logger.info(`Kwami "${this.soul.getName()}" (${this.id}) disposed`)
+    this.callbacks = {}
+
+    logger.info(`Kwami "${name}" (${this.id}) disposed`)
+
+    if (failures.length > 0) {
+      throw new AggregateError(failures, `Kwami "${this.id}" disposed with ${failures.length} error(s)`)
+    }
   }
 }

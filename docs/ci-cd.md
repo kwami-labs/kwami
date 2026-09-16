@@ -58,7 +58,8 @@ There is no cheaper tier for the lower channels: the artifact _is_ the product, 
 build is never survivable.
 
 ```text
-              ┌─ commits (PR only)
+              ┌─ commits  (PR only)
+              ├─ pr-title (PR only)
 checkout ──►  ├─ verify ──┬─ unit ────────┐
               │           ├─ integration ─┤
               │           └─ build ──► e2e┴──► gate
@@ -71,6 +72,18 @@ Lints every first-parent commit in the PR range against
 history from the channel below it, and re-litigating subjects that already shipped would fail
 every promotion. semantic-release derives the version, tag and changelog from this history, so a
 non-conventional subject is silently unreleasable work.
+
+### `pr-title` — commitlint on the title (pull requests only)
+
+The same commitlint config, applied to the pull request title. That is a different string from
+the ones `commits` reads, and for a squash merge it is the only one that survives: a feature
+branch lands on `dev` as a **squash** ([`dev.json`](../.github/rulesets/dev.json)), which
+discards the branch commits and uses the PR title as the subject. So the one line
+semantic-release will actually read is the one `commits` never inspects — a non-conventional
+title squashed into `dev` lands unreleasable work with every gate green.
+
+Both jobs exist because both strings reach `main` by some path: the title through a squash into
+`dev`, the individual subjects through the merge commits that carry them up to `stg` and `main`.
 
 ### `verify` — lint · format · typecheck · audit
 
@@ -111,15 +124,16 @@ report are uploaded on failure.
 
 ### `gate` — one required check
 
-Aggregates every job into a single status. `skipped` counts as passing (the `commits` job is
-skipped on push); `failure` and `cancelled` never do. Protect the branches with **`ci gate`**
-alone rather than six checks that have to be re-added by name whenever a job is renamed.
+Aggregates every job into a single status. `skipped` counts as passing (`commits` and `pr-title`
+are skipped on push); `failure` and `cancelled` never do. Protect the branches with **`ci gate`**
+alone rather than seven checks that have to be re-added by name whenever a job is renamed.
 
 ## Repository settings
 
-These live in GitHub, not in this repo, and the pipeline assumes them. They are declared as code
-in [`apply-branch-rules.mjs`](../scripts/ci/apply-branch-rules.mjs) so they can be diffed and
-re-applied rather than clicked in and forgotten:
+These live in GitHub, not in this repo, and the pipeline assumes them. They are declared as data
+in [`.github/rulesets/`](../.github/rulesets/) — the literal API payloads, one file per ruleset —
+and applied by [`apply-branch-rules.mjs`](../scripts/ci/apply-branch-rules.mjs), so they can be
+diffed and re-applied rather than clicked in and forgotten:
 
 ```bash
 gh auth login                          # needs admin on the repository
@@ -127,7 +141,19 @@ pnpm rules:apply --dry-run             # print the rulesets, change nothing
 pnpm rules:apply                       # create or update them, idempotently
 ```
 
-The rulesets it applies:
+Reconciliation is by ruleset **name**: an existing one is updated in place, never duplicated.
+The declarations are themselves gated — `/.github/` is CODEOWNER-owned, and
+[`apply-branch-rules.test.mjs`](../scripts/ci/apply-branch-rules.test.mjs) asserts in the `unit`
+job that the committed JSON still says what this page claims it does.
+
+| File                                         | Ruleset           | Covers            |
+| -------------------------------------------- | ----------------- | ----------------- |
+| [`main.json`](../.github/rulesets/main.json) | `main protection` | `refs/heads/main` |
+| [`stg.json`](../.github/rulesets/stg.json)   | `stg protection`  | `refs/heads/stg`  |
+| [`dev.json`](../.github/rulesets/dev.json)   | `dev protection`  | `refs/heads/dev`  |
+| [`tags.json`](../.github/rulesets/tags.json) | `release tags`    | `refs/tags/v*`    |
+
+What they enforce:
 
 **Rulesets / branch protection on `main` and `stg`:**
 
@@ -141,6 +167,14 @@ The rulesets it applies:
 
 **On `dev`:** the same, minus the Code Owner review, and with `enforce promotion path` optional
 (the gate lets any feature branch in; it is only strict about `stg` and `main`).
+
+**On the `v*` tags:** they cannot be deleted, moved or force-updated — by anyone, the release bot
+included. Creation is deliberately left alone, because that is exactly what semantic-release does
+on every release; what is blocked is changing a tag after the fact. This matters more here than
+on most repositories: semantic-release derives the next version on **all three channels** from
+`git tag --merged <branch>`, so a tag that is quietly moved or deleted does not just lose a
+record of what shipped, it changes what the next release is numbered. Nothing in the release flow
+ever needs to move one, so nothing gets a bypass.
 
 **Merge strategy:** squash merge for `feature/* → dev` — the PR title becomes the commit subject
 that semantic-release reads. Use a **merge commit** for `dev → stg` and `stg → main` so the
