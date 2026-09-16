@@ -2,13 +2,52 @@
 
 [![License](https://img.shields.io/badge/license-Apache%202.0-blue.svg)](./LICENSE)
 [![npm](https://img.shields.io/npm/v/kwami.svg)](https://www.npmjs.com/package/kwami)
+[![npm rc](https://img.shields.io/npm/v/kwami/rc.svg?label=rc)](https://www.npmjs.com/package/kwami?activeTab=versions)
+[![npm dev](https://img.shields.io/npm/v/kwami/dev.svg?label=dev)](https://www.npmjs.com/package/kwami?activeTab=versions)
 [![CI](https://github.com/kwami-labs/kwami/actions/workflows/ci.yml/badge.svg)](https://github.com/kwami-labs/kwami/actions/workflows/ci.yml)
-[![Node](https://img.shields.io/badge/node-%3E%3D22.14-brightgreen.svg)](./.nvmrc)
-[![pnpm](https://img.shields.io/badge/pnpm-%3E%3D10-yellow.svg)](https://pnpm.io/)
+[![Release](https://github.com/kwami-labs/kwami/actions/workflows/release.yml/badge.svg)](https://github.com/kwami-labs/kwami/actions/workflows/release.yml)
+[![Node](https://img.shields.io/node/v/kwami.svg)](./.nvmrc)
+[![pnpm](https://img.shields.io/badge/pnpm-%3E%3D10-F69220.svg?logo=pnpm&logoColor=white)](https://pnpm.io/)
 
-**Kwami v3** is a Solana NFT collection and fully on-chain web3 app. Connect with [Phantom](https://phantom.app/), fund via [MoonPay](https://www.moonpay.com/), mint a Kwami, publish it, and let others challenge it in a timed voice duel for a share of its account balance.
+[![TypeScript](https://img.shields.io/badge/TypeScript-5-3178C6.svg?logo=typescript&logoColor=white)](https://www.typescriptlang.org/)
+[![ESM](https://img.shields.io/badge/module-ESM-ed2c6e.svg)](https://nodejs.org/api/esm.html)
+[![types](https://img.shields.io/npm/types/kwami.svg)](https://www.npmjs.com/package/kwami)
+[![bundle size](https://img.shields.io/bundlephobia/minzip/kwami.svg)](https://bundlephobia.com/package/kwami)
+[![npm downloads](https://img.shields.io/npm/dm/kwami.svg)](https://www.npmjs.com/package/kwami)
+[![npm downloads total](https://img.shields.io/npm/dt/kwami.svg)](https://www.npmjs.com/package/kwami)
+[![GitHub release](https://img.shields.io/github/v/release/kwami-labs/kwami.svg)](https://github.com/kwami-labs/kwami/releases)
+[![GitHub stars](https://img.shields.io/github/stars/kwami-labs/kwami.svg?style=social)](https://github.com/kwami-labs/kwami/stargazers)
 
-> Mint · fund · publish · challenge · win (or grow the pot)
+[![last commit](https://img.shields.io/github/last-commit/kwami-labs/kwami.svg)](https://github.com/kwami-labs/kwami/commits)
+[![commit activity](https://img.shields.io/github/commit-activity/m/kwami-labs/kwami.svg)](https://github.com/kwami-labs/kwami/commits)
+[![issues](https://img.shields.io/github/issues/kwami-labs/kwami.svg)](https://github.com/kwami-labs/kwami/issues)
+[![pull requests](https://img.shields.io/github/issues-pr/kwami-labs/kwami.svg)](https://github.com/kwami-labs/kwami/pulls)
+[![contributors](https://img.shields.io/github/contributors/kwami-labs/kwami.svg)](https://github.com/kwami-labs/kwami/graphs/contributors)
+[![code size](https://img.shields.io/github/languages/code-size/kwami-labs/kwami.svg)](https://github.com/kwami-labs/kwami)
+[![PRs welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg)](./CONTRIBUTING.md)
+
+[![code style: prettier](https://img.shields.io/badge/code_style-prettier-ff69b4.svg?logo=prettier&logoColor=white)](https://prettier.io/)
+[![linted with eslint](https://img.shields.io/badge/linted-ESLint-4B32C3.svg?logo=eslint&logoColor=white)](https://eslint.org/)
+[![conventional commits](https://img.shields.io/badge/commits-conventional-FE5196.svg?logo=conventionalcommits&logoColor=white)](https://www.conventionalcommits.org/)
+[![semantic-release](https://img.shields.io/badge/release-semantic--release-e10079.svg?logo=semantic-release&logoColor=white)](https://semantic-release.gitbook.io/)
+[![Vite](https://img.shields.io/badge/bundler-Vite-646CFF.svg?logo=vite&logoColor=white)](https://vite.dev/)
+[![Vitest](https://img.shields.io/badge/unit-Vitest-6E9F18.svg?logo=vitest&logoColor=white)](https://vitest.dev/)
+[![Playwright](https://img.shields.io/badge/e2e-Playwright-2EAD33.svg?logo=playwright&logoColor=white)](https://playwright.dev/)
+
+[![three.js](https://img.shields.io/badge/3D-three.js-000000.svg?logo=threedotjs&logoColor=white)](https://threejs.org/)
+[![LiveKit](https://img.shields.io/badge/voice-LiveKit-1C1C1C.svg)](https://livekit.io/)
+[![MCP](https://img.shields.io/badge/tools-MCP-412991.svg)](https://modelcontextprotocol.io/)
+[![WebGL](https://img.shields.io/badge/graphics-WebGL-990000.svg)](https://www.khronos.org/webgl/)
+[![STT](https://img.shields.io/badge/speech-STT-0A7CFF.svg)](./src/agent/voice)
+[![LLM](https://img.shields.io/badge/model-LLM-10A37F.svg)](./src/agent/voice)
+[![TTS](https://img.shields.io/badge/speech-TTS-7C3AED.svg)](./src/agent/voice)
+[![website](https://img.shields.io/badge/website-kwami.io-111111.svg)](https://kwami.io)
+
+**Kwami** is a browser TypeScript library for 3D AI companions. Drop a canvas on the page, give the companion a soul, and it can speak, listen, remember, and use tools — with a WebGL avatar that reacts in real time.
+
+> Avatar · voice · memory · tools · skills
+
+Site: [kwami.io](https://kwami.io) · Package: [npmjs.com/package/kwami](https://www.npmjs.com/package/kwami)
 
 ---
 
@@ -16,8 +55,8 @@
 
 - [Overview](#overview)
 - [Features](#features)
-- [How it works](#how-it-works)
-- [Wallet & onboarding](#wallet--onboarding)
+- [Architecture](#architecture)
+- [Quick start](#quick-start)
 - [Getting started](#getting-started)
 - [Scripts](#scripts)
 - [Project structure](#project-structure)
@@ -31,71 +70,106 @@
 
 ## Overview
 
-Kwami combines a **Solana NFT**, a **funded on-chain account**, and a **voice AI companion**. Authors mint and publish Kwamis; challengers pay in **SOL** or **USDC** for a **3-minute** voice session to discover the secret word or phrase.
+Each `Kwami` instance is an independent agent:
 
-| Outcome                            | Result                                                       |
-| ---------------------------------- | ------------------------------------------------------------ |
-| Challenger says the secret in time | Receives **80%** of the Kwami’s account balance (SOL + USDC) |
-| Time runs out or secret is wrong   | Ticket is lost; the author’s Kwami account keeps growing     |
+| Piece      | What it does                                                                    |
+| ---------- | ------------------------------------------------------------------------------- |
+| **Avatar** | WebGL renderer on an `HTMLCanvasElement` (blob, black hole, particles, iris)    |
+| **Agent**  | Voice pipeline over [LiveKit](https://livekit.io/) — STT, LLM, TTS, or realtime |
+| **Soul**   | Name, personality, emotional traits, and system prompt                          |
+| **Memory** | Long-term recall (Zep adapter)                                                  |
+| **Tools**  | External capabilities via [MCP](https://modelcontextprotocol.io/)               |
+| **Skills** | Native in-process behaviors                                                     |
 
-Kwamis are **immutable** metadata but **transferable** assets — they can be bought and sold. The 3D model can be embedded in third-party apps. Minted owners unlock an **AI program builder** that generates Solana sub-programs for complex financial games before publish.
+Several instances can share a page. Configuration can change after `connect()` without tearing the room down.
+
+```ts
+import { Kwami } from 'kwami';
+
+const luna = new Kwami(canvas, {
+  soul: { name: 'Luna', personality: 'friendly and creative' },
+  agent: { voice: { llm: { model: 'gpt-4o' } } },
+});
+
+await luna.connect('user-123', {
+  onStateChange: (state) => console.log(state),
+  onUserTranscript: (text) => console.log('user:', text),
+  onAgentResponse: (text) => console.log('luna:', text),
+});
+```
 
 ---
 
 ## Features
 
-- **Solana NFT collection** — mint, own, transfer, and trade Kwamis
-- **Phantom wallet** — connect and sign on Solana
-- **MoonPay on-ramp** — fiat → SOL/USDC without leaving the app
-- **Paid voice challenges** — SOL or USDC tickets, 3-minute sessions
-- **Account economics** — 80% reward on win; pot grows on miss
-- **Kwami death** — dies after losing **99%** of account value, or when balance falls under **~$1 USD**
-- **Immutable + transferable** — metadata locked; ownership can change on secondary markets
-- **Embeddable 3D model** — integrate the Kwami avatar in any third-party app
-- **AI program builder** — generate Solana sub-programs and smart-contract logic for custom financial games before publishing
+- **3D avatars** — `blob-xyz`, `black-hole`, `particles-face`, and `eye-iris`, with skins, presets, and audio-reactive motion
+- **Voice pipeline** — mix-and-match STT / LLM / TTS, or a realtime provider, dispatched through LiveKit
+- **Provider catalog** — Deepgram, OpenAI, Anthropic, Gemini, ElevenLabs, Groq, Cartesia, AssemblyAI, and more
+- **Soul presets** — ready-made personalities (Kaya, Nexus, Phoenix, Haven, …) plus live trait updates
+- **Memory** — optional long-term context so the companion remembers the user across sessions
+- **MCP tools** — connect Model Context Protocol servers and expose their tools to the agent
+- **Skills** — register native behaviors that run in the page
+- **Typed ESM** — `kwami` ships as ESM with generated `.d.ts`; `three` is a peer dependency
 
 ---
 
-## How it works
+## Architecture
 
 ```text
-Author                         Challenger
-──────                         ──────────
-Mint Kwami NFT
-Fund account (SOL / USDC)
-Set secret word/phrase
-Customize on-chain logic
-        │  Publish
-        ▼
-                  Pay ticket (SOL / USDC)
-                  Speak to Kwami (≤ 3 min)
-                            │
-              ┌─────────────┴─────────────┐
-              ▼                           ▼
-        Secret guessed              Time / miss
-        → 80% balance               → ticket lost
-          to challenger               pot grows
+                         ┌─────────────────────────────────────┐
+                         │              Kwami                  │
+                         │  id · state · connect / disconnect  │
+                         └───────────────┬─────────────────────┘
+          ┌──────────┬───────────┬───────┼────────┬──────────┬──────────┐
+          ▼          ▼           ▼       ▼        ▼          ▼
+       Avatar      Agent        Soul   Memory   Tools      Skills
+      (WebGL)    (LiveKit)   (persona)  (Zep)   (MCP)     (native)
+          │          │
+          │          └── VoiceSession  STT → LLM → TTS
+          └── Scene · skins · audio bands · renderer
 ```
 
-| Concept                | Detail                                                                                              |
-| ---------------------- | --------------------------------------------------------------------------------------------------- |
-| **Mint & publish**     | Create a Kwami NFT, fund its account, set a secret, optionally customize Solana logic, then publish |
-| **Paid interaction**   | Challengers pay in SOL or USDC for a voice session                                                  |
-| **Voice challenge**    | 3-minute window to discover the secret by speaking to the Kwami                                     |
-| **Reward split**       | Correct guess → 80% of balance to the challenger; miss → author keeps the ticket                    |
-| **Death**              | Loses 99% of account value, or balance under ~$1 USD                                                |
-| **Ownership**          | Immutable metadata; transferable NFT (buy / sell)                                                   |
-| **3D model**           | Embeddable in third-party applications                                                              |
-| **AI program builder** | Generate Solana sub-programs for complex games before publish                                       |
+| Concept            | Detail                                                                                            |
+| ------------------ | ------------------------------------------------------------------------------------------------- |
+| **Construct**      | `new Kwami(canvas, config?)` creates avatar, agent, soul, memory, tools, and skills               |
+| **Connect**        | `connect(userId)` initializes memory, builds the system prompt, and dispatches a LiveKit agent    |
+| **Speak / listen** | User speech and agent replies update avatar state: `idle` → `listening` → `thinking` → `speaking` |
+| **Update live**    | Soul, voice, tools, and skills can change while the room is up                                    |
+| **Dispose**        | Call `dispose()` so the WebGL context, LiveKit room, and registry entry are released              |
 
 ---
 
-## Wallet & onboarding
+## Quick start
 
-| Integration                         | Role                                   |
-| ----------------------------------- | -------------------------------------- |
-| [Phantom](https://phantom.app/)     | Wallet connect and Solana transactions |
-| [MoonPay](https://www.moonpay.com/) | Fiat on-ramp for SOL / USDC            |
+```bash
+pnpm add kwami three
+```
+
+`three` is a **peer** dependency. Install it beside `kwami`; do not rely on a transitive copy.
+
+```ts
+import { Kwami } from 'kwami';
+
+const canvas = document.querySelector('canvas')!;
+const kwami = new Kwami(canvas, {
+  soul: { name: 'Kaya', personality: 'A warm, friendly AI companion' },
+});
+
+await kwami.connect('user-123');
+kwami.sendMessage('Hello — who are you?');
+
+// Later
+await kwami.disconnect();
+kwami.dispose();
+```
+
+Channels:
+
+```bash
+pnpm add kwami          # latest stable (main)
+pnpm add kwami@rc       # release candidate (stg)
+pnpm add kwami@dev      # prerelease (dev)
+```
 
 ---
 
@@ -125,20 +199,6 @@ pnpm install    # also installs husky hooks
 ```bash
 pnpm build
 pnpm lint && pnpm typecheck && pnpm test:run
-```
-
-### Consume the package
-
-```bash
-pnpm add kwami          # latest stable (main)
-pnpm add kwami@rc       # release candidate (stg)
-pnpm add kwami@dev      # prerelease (dev)
-```
-
-`three` is a peer dependency when embedding the 3D model:
-
-```bash
-pnpm add three
 ```
 
 ---
@@ -177,11 +237,11 @@ pnpm release:dry-run    # print next version; change nothing
 
 ```text
 kwami/
-├── src/                  # Library & app source
-│   ├── agent/            # Voice pipeline
-│   ├── avatar/           # 3D renderers
+├── src/                  # Library source
+│   ├── agent/            # Voice pipeline, LiveKit adapter, VoiceSession
+│   ├── avatar/           # WebGL renderers, scene, skins, audio
 │   ├── memory/           # Memory adapters
-│   ├── soul/             # Personality
+│   ├── soul/             # Personality and presets
 │   ├── skills/           # Native behaviors
 │   ├── tools/            # Tool registry (MCP)
 │   ├── types/            # TypeScript definitions
@@ -261,7 +321,7 @@ Details: [docs/releases.md](./docs/releases.md) · History: [CHANGELOG.md](./CHA
 
 ## License
 
-Copyright © 2025 [Alex Colls Outumuro](https://github.com/alexcolls)
+Copyright © 2025–2026 [Alex Colls Outumuro](https://github.com/alexcolls)
 
 Licensed under the **Apache License, Version 2.0**. See the [LICENSE](./LICENSE) file for the full text.
 
