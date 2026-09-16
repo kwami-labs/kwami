@@ -26,7 +26,7 @@ interface AudioSmoothing {
  */
 const audioSmoothingMap = new WeakMap<Mesh, AudioSmoothing>()
 
-function getAudioSmoothing(mesh: Mesh): AudioSmoothing {
+export function getAudioSmoothing(mesh: Mesh): AudioSmoothing {
   let state = audioSmoothingMap.get(mesh)
   if (!state) {
     state = { low: 0, mid: 0, high: 0, level: 0 }
