@@ -48,6 +48,7 @@ declare global {
       enableStarField(): number | null;
       starFieldTime(): number | null;
       blobAmplitude(): { x: number; y: number; z: number };
+      blobSurface(): { offMainThread: boolean; version: number };
       clickInteractionEnabled(): boolean;
       gpuResources(): KwamiE2EGpuResources;
       toneMapping(): number;

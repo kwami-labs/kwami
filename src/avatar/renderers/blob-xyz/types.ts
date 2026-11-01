@@ -64,6 +64,11 @@ export interface BlobXyzOptions {
     enabled?: boolean
     sensitivity?: number
   }
+  /**
+   * Displace the surface in a Web Worker (default true). False keeps all of it on the main
+   * thread, as before; it also falls back there by itself when a worker cannot start.
+   */
+  displacementWorker?: boolean
   onAfterRender?: () => void
 }
 

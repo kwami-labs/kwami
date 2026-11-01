@@ -15,7 +15,9 @@ import {
 } from 'three'
 import { GLTFExporter } from 'three/examples/jsm/exporters/GLTFExporter.js'
 import { createBlobXyzGeometry } from './geometry.js'
-import { animateBlobXyz, type LiquidPhysics } from './animation.js'
+import { animateBlobXyz, computeBlobFrame, type LiquidPhysics } from './animation.js'
+import { BlobDisplacementWorker } from './displacementWorker.js'
+import { createDisplacementWorker } from './displacementWorkerFactory.js'
 import { createSkin } from './skins/index.js'
 import { defaultBlobXyzConfig } from './config.js'
 import { BlobXyzPosition } from './position.js'
@@ -42,6 +44,9 @@ export class BlobXyz {
   private animationFrameId: number | null = null
   /** Matches BlackHole/EyeIris/ParticlesFace: makes dispose() idempotent and stops the loop. */
   private disposed = false
+
+  /** Re-shapes the surface off the main thread; null (or inactive) → animateBlobXyz here. */
+  private displacement: BlobDisplacementWorker | null = null
   /** Timestamp of the previous frame, for delta-time normalisation. 0 until the first frame. */
   private lastFrameTime = 0
 
@@ -170,6 +175,10 @@ export class BlobXyz {
     this.mesh = new Mesh(geometry, material)
     this.updateMaterialOpacity(this.opacity)
     this.updateLightIntensityUniforms()
+
+    if (options.displacementWorker !== false) {
+      this.displacement = BlobDisplacementWorker.create(this.mesh, createDisplacementWorker)
+    }
 
     this.position = new BlobXyzPosition(
       this.mesh,
@@ -369,27 +378,57 @@ export class BlobXyz {
           ? (Date.now() - this.thinkingStartTime) / this.thinkingDuration
           : 0
 
-        const audioDriven = animateBlobXyz(
-          this.mesh,
-          frequencyData,
-          analyser,
-          this.spikes.x,
-          this.spikes.y,
-          this.spikes.z,
-          this.amplitude.x,
-          this.amplitude.y,
-          this.amplitude.z,
-          this.time.x,
-          this.time.y,
-          this.time.z,
-          this.baseScale,
-          this.touchPoints,
-          this.listeningTransition,
-          this.thinkingTransition,
-          thinkingProgress,
-          this.audioEffects,
-          this.liquidPhysics,
-        )
+        // The vertex half of the frame runs in the worker when there is one; the cheap half
+        // (audio bands, breathing scale) always runs here, every frame.
+        const displacement = this.displacement
+        let audioDriven: boolean
+        if (displacement?.active) {
+          const { frame, audioActive } = computeBlobFrame(
+            this.mesh,
+            frequencyData,
+            analyser,
+            this.spikes.x,
+            this.spikes.y,
+            this.spikes.z,
+            this.amplitude.x,
+            this.amplitude.y,
+            this.amplitude.z,
+            this.time.x,
+            this.time.y,
+            this.time.z,
+            this.baseScale,
+            this.touchPoints,
+            this.listeningTransition,
+            this.thinkingTransition,
+            thinkingProgress,
+            this.audioEffects,
+            this.liquidPhysics,
+          )
+          displacement.submit(frame)
+          audioDriven = audioActive
+        } else {
+          audioDriven = animateBlobXyz(
+            this.mesh,
+            frequencyData,
+            analyser,
+            this.spikes.x,
+            this.spikes.y,
+            this.spikes.z,
+            this.amplitude.x,
+            this.amplitude.y,
+            this.amplitude.z,
+            this.time.x,
+            this.time.y,
+            this.time.z,
+            this.baseScale,
+            this.touchPoints,
+            this.listeningTransition,
+            this.thinkingTransition,
+            thinkingProgress,
+            this.audioEffects,
+            this.liquidPhysics,
+          )
+        }
 
         const keepRotating = this.audioEffects.rotateWhilePlaying ?? true
         const rotationScale = (audioDriven && !keepRotating ? 0 : audioDriven ? 0.4 : 1) * frameScale
@@ -652,6 +691,16 @@ export class BlobXyz {
       meshMaterial.opacity = value
       meshMaterial.needsUpdate = true
     }
+  }
+
+  /**
+   * Whether the surface is being re-shaped in a Web Worker right now (true by default where
+   * workers can run). False means it runs on the main thread: `displacementWorker: false`, no
+   * Worker support, or a worker that failed to start — in which case a host page may want to
+   * pace the blob itself.
+   */
+  isDisplacementOffMainThread(): boolean {
+    return this.displacement?.active ?? false
   }
 
   /**
@@ -1319,6 +1368,8 @@ export class BlobXyz {
     this.disableClickInteraction()
     this.stopThinking()
     this.stopAnimation()
+    this.displacement?.dispose()
+    this.displacement = null
     this.position.dispose()
 
     // Remove our own mesh. Avatar.switchRenderer() used to do this externally while
