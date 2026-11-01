@@ -209,6 +209,8 @@ const kwami = new Kwami(canvas, {
 });
 ```
 
+The blob re-shapes its surface in a Web Worker that ships inside the package, so your page's main thread stays free. It falls back to the main thread by itself where a worker cannot start: a Content-Security-Policy without `worker-src blob:` (or `data:`), say. Pass `avatar: { blob: { displacementWorker: false } }` to keep it on the main thread, and check `kwami.avatar.getBlob()?.isDisplacementOffMainThread()` to see which path is live.
+
 ### Connecting
 
 Pin the agent participant and keep provider keys on the server. The adapter treats that identity as authoritative for audio, transcripts, and `tool_call` messages.
