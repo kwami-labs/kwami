@@ -159,9 +159,13 @@ export class KwamiAudio {
       })
     }
 
+    // The analyser is a tap for the visualizers, never a hop on the way to the speakers.
+    // connectMediaStream() feeds the agent's LiveKit track into this same analyser, and that
+    // track is already audible through the <audio> element LiveKit attaches. Routing the
+    // analyser to the destination played the agent a second time, a few milliseconds behind
+    // the element: two voices, metallic, like an echo. Music reaches the speakers directly.
     currentNode.connect(this.analyser)
-
-    this.analyser.connect(this.audioContext.destination)
+    currentNode.connect(this.audioContext.destination)
   }
 
   /**

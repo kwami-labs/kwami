@@ -134,6 +134,15 @@ window.kwamiE2E = {
     return current.avatar.getBlob().getAmplitude();
   },
 
+  /** Is the surface displaced off the main thread, and how many times has it moved? */
+  blobSurface() {
+    const blob = current.avatar.getBlob();
+    return {
+      offMainThread: blob.isDisplacementOffMainThread(),
+      version: blob.getMesh().geometry.attributes.position.version,
+    };
+  },
+
   clickInteractionEnabled() {
     return current.avatar.getBlob().isClickInteractionEnabled();
   },

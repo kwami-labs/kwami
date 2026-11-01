@@ -9,6 +9,12 @@ declare module '*.glsl' {
   export default shader
 }
 
+// Web Workers bundled and inlined at library build time (Vite's `?worker&inline`)
+declare module '*?worker&inline' {
+  const WorkerFactory: new (options?: { name?: string }) => Worker
+  export default WorkerFactory
+}
+
 // Image/texture modules
 declare module '*.jpeg' {
   const url: string

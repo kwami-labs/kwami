@@ -164,6 +164,7 @@ export class Avatar {
       shininess: blobConfig.shininess,
       wireframe: blobConfig.wireframe,
       cursorFollow: blobConfig.cursorFollow,
+      displacementWorker: blobConfig.displacementWorker,
     })
 
     // Add blob mesh to scene
