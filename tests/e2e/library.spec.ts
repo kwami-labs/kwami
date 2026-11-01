@@ -94,6 +94,43 @@ test.describe('Kwami on a canvas', () => {
       .toBeGreaterThan(0);
   });
 
+  test('re-shapes the blob surface in a worker, off the main thread', async ({ page }) => {
+    // The displacement worker is inlined into dist/ by the library build; this proves it
+    // survives a consumer's bundler and actually starts in a real browser — and that the
+    // surface keeps moving with the work happening off the main thread.
+    await boot(page);
+    await page.evaluate(() => window.kwamiE2E.create({ avatar: { renderer: 'blob-xyz' } }));
+
+    const first = await page.evaluate(() => window.kwamiE2E.blobSurface());
+    expect(first.offMainThread).toBe(true);
+    await expect
+      .poll(
+        async () =>
+          (await page.evaluate(() => window.kwamiE2E.blobSurface())).version - first.version,
+        { timeout: 20_000 },
+      )
+      .toBeGreaterThan(5);
+    expect((await page.evaluate(() => window.kwamiE2E.blobSurface())).offMainThread).toBe(true);
+  });
+
+  test('keeps the surface on the main thread when asked to', async ({ page }) => {
+    await boot(page);
+    await page.evaluate(() =>
+      window.kwamiE2E.create({
+        avatar: { renderer: 'blob-xyz', blob: { displacementWorker: false } },
+      }),
+    );
+    const first = await page.evaluate(() => window.kwamiE2E.blobSurface());
+    expect(first.offMainThread).toBe(false);
+    await expect
+      .poll(
+        async () =>
+          (await page.evaluate(() => window.kwamiE2E.blobSurface())).version - first.version,
+        { timeout: 20_000 },
+      )
+      .toBeGreaterThan(5);
+  });
+
   test('registers itself, exposes its config, and unregisters on dispose', async ({ page }) => {
     await boot(page);
 
