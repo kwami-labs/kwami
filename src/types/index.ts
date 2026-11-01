@@ -237,6 +237,12 @@ export interface BlobXyzConfig {
     enabled?: boolean
     sensitivity?: number
   }
+  /**
+   * Re-shape the surface in a Web Worker, off the page's main thread (default true). It falls
+   * back to the main thread by itself when a worker cannot start (e.g. a CSP without
+   * `worker-src blob:`); false forces the main thread.
+   */
+  displacementWorker?: boolean
 }
 
 // -----------------------------------------------------------------------------

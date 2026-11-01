@@ -1,6 +1,7 @@
 import { createNoise3D } from 'simplex-noise'
-import { type Mesh, Vector3 } from 'three'
+import type { Mesh, Vector3 } from 'three'
 import type { BlobXyzAudioEffects } from './types.js'
+import { displaceVertices, type DisplacementFrame } from './displacement.js'
 
 const noise3D = createNoise3D()
 
@@ -15,9 +16,6 @@ const previousDisplacementMap = new WeakMap<Mesh, Float32Array>()
  * baked a cone into the body that only a geometry rebuild could undo.
  */
 const restDirectionsMap = new WeakMap<Mesh, Float32Array>()
-
-/** Scratch vector for the per-vertex direction, reused across the whole displacement loop. */
-const scratchDirection = new Vector3()
 
 function getRestDirections(
   mesh: Mesh,
@@ -103,7 +101,34 @@ export interface LiquidPhysics {
   stretch: number
 }
 
-export function animateBlobXyz(
+export interface BlobTouchPoint {
+  position: Vector3
+  strength: number
+  startTime: number
+  duration: number
+}
+
+const DEFAULT_AUDIO_EFFECTS: BlobXyzAudioEffects = {
+  bassSpike: 0.55,
+  midSpike: 0.65,
+  highSpike: 0.35,
+  enabled: true,
+  reactivity: 1.8,
+  sensitivity: 0.08,
+  breathing: 0.035,
+  responseSpeed: 0.65,
+  transientBoost: 0.4,
+}
+
+/**
+ * The cheap, per-frame half of a blob frame: read the analyser, smooth the audio bands, set
+ * the breathing scale on the mesh, and work out every number the per-vertex loop will need.
+ *
+ * Runs on the main thread every frame (it owns the analyser and the mesh transform). The
+ * expensive half — `displaceVertices` over every vertex — then runs either right here
+ * (`animateBlobXyz`) or in the displacement worker.
+ */
+export function computeBlobFrame(
   mesh: Mesh,
   frequencyData: Uint8Array<ArrayBuffer>,
   analyser: AnalyserNode,
@@ -117,40 +142,13 @@ export function animateBlobXyz(
   timeY: number,
   timeZ: number,
   baseScale: number = 1.0,
-  touchPoints: Array<{
-    position: Vector3
-    strength: number
-    startTime: number
-    duration: number
-  }> = [],
+  touchPoints: BlobTouchPoint[] = [],
   listeningBlend: number = 0,
   thinkingBlend: number = 0,
   thinkingProgress: number = 0,
-  audioEffects: BlobXyzAudioEffects = {
-    bassSpike: 0.55,
-    midSpike: 0.65,
-    highSpike: 0.35,
-    enabled: true,
-    reactivity: 1.8,
-    sensitivity: 0.08,
-    breathing: 0.035,
-    responseSpeed: 0.65,
-    transientBoost: 0.4,
-  },
+  audioEffects: BlobXyzAudioEffects = DEFAULT_AUDIO_EFFECTS,
   liquidPhysics?: LiquidPhysics,
-): boolean {
-  const positions = mesh.geometry.attributes.position
-  if (!positions) return false
-
-  const vertex = new Vector3()
-
-  let previousDisplacements = previousDisplacementMap.get(mesh)
-  if (!previousDisplacements || previousDisplacements.length !== positions.count) {
-    previousDisplacements = new Float32Array(positions.count)
-    previousDisplacements.fill(1)
-    previousDisplacementMap.set(mesh, previousDisplacements)
-  }
-
+): { frame: DisplacementFrame; audioActive: boolean } {
   const reduction = 0.00003
   const perf = performance.now() * reduction
 
@@ -199,178 +197,97 @@ export function animateBlobXyz(
     ? Math.min(3.0, (bassEnergy * 0.7 + midEnergy * 0.9 + highEnergy * 0.5) * reactivity)
     : 0
 
-  const tX = perf * timeX
-  const tY = perf * timeY
-  const tZ = perf * timeZ
+  const spikeDensity = audioEffects.spikeDensity ?? 1.5
+
+  // Touch points become flat numbers: each one's ease and progress only depend on the time,
+  // so they are worked out once here rather than once per vertex.
+  const touches: number[] = []
+  if (touchPoints.length > 0) {
+    const currentTime = Date.now()
+    for (const touch of touchPoints) {
+      const progress = (currentTime - touch.startTime) / touch.duration
+      let easeFactor
+      if (progress < 0.25) {
+        const t = progress / 0.25
+        easeFactor = t * t
+      } else {
+        const t = (progress - 0.25) / 0.75
+        easeFactor = 1 - Math.pow(t, 3)
+      }
+      if (easeFactor <= 0.01) continue
+      touches.push(touch.position.x, touch.position.y, touch.position.z, touch.strength, easeFactor, progress)
+    }
+  }
+
+  const frame: DisplacementFrame = {
+    tX: perf * timeX,
+    tY: perf * timeY,
+    tZ: perf * timeZ,
+    freqX: Math.max(0.025, spikeX),
+    freqY: Math.max(0.025, spikeY),
+    freqZ: Math.max(0.025, spikeZ),
+    ampX: amplitudeX,
+    ampY: amplitudeY,
+    ampZ: amplitudeZ,
+    audioPush,
+    audioFreqBoost: 1 + audioPush * spikeDensity,
+    audioActive,
+    responseSpeed,
+    listeningBlend,
+    thinkingBlend,
+    thinkingProgress,
+    touches,
+    liquidVX: liquidPhysics?.velocityX ?? 0,
+    liquidVY: liquidPhysics?.velocityY ?? 0,
+    liquidStretch: liquidPhysics?.stretch ?? 0,
+  }
+  return { frame, audioActive }
+}
+
+/**
+ * One whole blob frame on the MAIN thread: the bookkeeping, then every vertex, then normals.
+ * BlobXyz runs the vertex half in a worker when it can; this is the fallback, and the
+ * reference the worker path is tested against.
+ */
+export function animateBlobXyz(
+  mesh: Mesh,
+  frequencyData: Uint8Array<ArrayBuffer>,
+  analyser: AnalyserNode,
+  spikeX: number,
+  spikeY: number,
+  spikeZ: number,
+  amplitudeX: number = 1.0,
+  amplitudeY: number = 1.0,
+  amplitudeZ: number = 1.0,
+  timeX: number,
+  timeY: number,
+  timeZ: number,
+  baseScale: number = 1.0,
+  touchPoints: BlobTouchPoint[] = [],
+  listeningBlend: number = 0,
+  thinkingBlend: number = 0,
+  thinkingProgress: number = 0,
+  audioEffects: BlobXyzAudioEffects = DEFAULT_AUDIO_EFFECTS,
+  liquidPhysics?: LiquidPhysics,
+): boolean {
+  const positions = mesh.geometry.attributes.position
+  if (!positions) return false
+
+  const { frame, audioActive } = computeBlobFrame(
+    mesh, frequencyData, analyser, spikeX, spikeY, spikeZ, amplitudeX, amplitudeY, amplitudeZ,
+    timeX, timeY, timeZ, baseScale, touchPoints, listeningBlend, thinkingBlend, thinkingProgress,
+    audioEffects, liquidPhysics,
+  )
+
+  let previousDisplacements = previousDisplacementMap.get(mesh)
+  if (!previousDisplacements || previousDisplacements.length !== positions.count) {
+    previousDisplacements = new Float32Array(positions.count)
+    previousDisplacements.fill(1)
+    previousDisplacementMap.set(mesh, previousDisplacements)
+  }
   const restDirections = getRestDirections(mesh, positions)
 
-  const baseFreqX = Math.max(0.025, spikeX)
-  const baseFreqY = Math.max(0.025, spikeY)
-  const baseFreqZ = Math.max(0.025, spikeZ)
-
-  const spikeDensity = audioEffects.spikeDensity ?? 1.5
-  const audioFreqBoost = 1 + audioPush * spikeDensity
-
-  for (let i = 0; i < positions.count; i++) {
-    const restOffset = i * 3
-    const direction = scratchDirection.set(
-      restDirections[restOffset] ?? 0,
-      restDirections[restOffset + 1] ?? 0,
-      restDirections[restOffset + 2] ?? 0,
-    )
-    vertex.copy(direction).multiplyScalar(previousDisplacements[i] ?? 1)
-
-    const amplitudeMultiplier =
-      Math.abs(direction.x) * amplitudeX +
-      Math.abs(direction.y) * amplitudeY +
-      Math.abs(direction.z) * amplitudeZ
-
-    // Idle noise: low frequency, gentle organic morphing
-    const idleNoise = noise3D(
-      direction.x * baseFreqX * 0.5 + tX,
-      direction.y * baseFreqY * 0.5 + tY,
-      direction.z * baseFreqZ * 0.5 + tZ,
-    ) * 0.6 + noise3D(
-      direction.x * baseFreqX * 0.3 + tX * 0.7,
-      direction.y * baseFreqY * 0.3 + tY * 0.7,
-      direction.z * baseFreqZ * 0.3 + tZ * 0.7,
-    ) * 0.4
-
-    // Audio spike noise: higher frequency, MORE spikes when louder.
-    // audioFreqBoost increases the noise frequency with audio energy,
-    // creating new spikes that didn't exist in the idle state.
-    const spikeNoise = noise3D(
-      direction.x * baseFreqX * audioFreqBoost + tX * 1.3,
-      direction.y * baseFreqY * audioFreqBoost + tY * 1.3,
-      direction.z * baseFreqZ * audioFreqBoost + tZ * 1.3,
-    )
-
-    // High-frequency detail that only appears during loud audio
-    const detailNoise = audioPush > 0.2 ? noise3D(
-      direction.x * baseFreqX * audioFreqBoost * 2 + tX * 1.8,
-      direction.y * baseFreqY * audioFreqBoost * 2 + tY * 1.8,
-      direction.z * baseFreqZ * audioFreqBoost * 2 + tZ * 1.8,
-    ) * Math.min(1, (audioPush - 0.2) * 1.5) : 0
-
-    const idleAmp = 0.14 * amplitudeMultiplier
-
-    // Audio amplitude: sound pushes spikes outward from inside.
-    // spikeNoise provides the spike pattern, audioPush controls how far they push.
-    // Positive spikeNoise = spike bursts outward, negative = surface dents inward.
-    const audioAmp = audioPush * 0.25 * amplitudeMultiplier
-    const audioDetail = audioPush * 0.08 * amplitudeMultiplier
-
-    // Blend: idle morphing + audio-driven spikes bursting out
-    const speakingDisplacement = idleAmp * idleNoise
-      + audioAmp * spikeNoise
-      + audioDetail * detailNoise
-
-    const listeningDisplacement = -idleAmp * idleNoise * 0.7
-      + audioAmp * 0.4 * spikeNoise
-
-    let thinkingDisplacement = 0
-    if (thinkingBlend > 0.01) {
-      const thinkNoise1 = noise3D(
-        direction.x * 2 + tX * 3.5 + Math.sin(thinkingProgress * Math.PI * 2) * 1.5,
-        direction.y * 2 + tY * 3.5 + Math.cos(thinkingProgress * Math.PI * 2.5) * 1.5,
-        direction.z * 2 + tZ * 3.5 + Math.sin(thinkingProgress * Math.PI * 3) * 1.5,
-      )
-      const thinkNoise2 = noise3D(
-        direction.x * 1 + tX * 2.5 - thinkingProgress * 3,
-        direction.y * 1 + tY * 2.5 + thinkingProgress * 2.5,
-        direction.z * 1 + tZ * 2.5 - thinkingProgress * 3.5,
-      )
-      const thinkNoise3 = noise3D(
-        direction.x * 0.5 + tX * 1.5,
-        direction.y * 0.5 + tY * 1.5,
-        direction.z * 0.5 + tZ * 1.5,
-      )
-      const pulse = Math.sin(thinkingProgress * Math.PI * 5) * 0.3 + 0.7
-      const fadeOut = 1 - Math.pow(thinkingProgress, 2)
-      const thinkingNoise = (thinkNoise1 * 0.4 + thinkNoise2 * 0.35 + thinkNoise3 * 0.25) * pulse
-      thinkingDisplacement = thinkingNoise * 0.35 * fadeOut * amplitudeMultiplier
-    }
-
-    let finalDisplacement
-    if (thinkingBlend > 0.01) {
-      const normalDisp = speakingDisplacement * (1 - listeningBlend) + listeningDisplacement * listeningBlend
-      finalDisplacement = normalDisp * (1 - thinkingBlend) + thinkingDisplacement * thinkingBlend
-    } else {
-      finalDisplacement = speakingDisplacement * (1 - listeningBlend) + listeningDisplacement * listeningBlend
-    }
-
-    let displacement = 1 + finalDisplacement
-
-    if (touchPoints.length > 0) {
-      const currentTime = Date.now()
-      let touchDisplacement = 0
-
-      for (const touch of touchPoints) {
-        const elapsed = currentTime - touch.startTime
-        const progress = elapsed / touch.duration
-
-        let easeFactor
-        if (progress < 0.25) {
-          const t = progress / 0.25
-          easeFactor = t * t
-        } else {
-          const t = (progress - 0.25) / 0.75
-          easeFactor = 1 - Math.pow(t, 3)
-        }
-
-        if (easeFactor <= 0.01) continue
-
-        const dist = vertex.distanceTo(touch.position)
-        const influenceRadius = 2.1
-        if (dist > influenceRadius) continue
-
-        const influence = Math.max(0, 1 - dist / influenceRadius)
-        const smoothInfluence = Math.pow(influence, 3.2)
-
-        const sink = -touch.strength * 0.42 * smoothInfluence * easeFactor
-        const wave = Math.sin(dist * 2.4 - progress * 5.4) * 0.24 * smoothInfluence * easeFactor
-
-        touchDisplacement += sink + wave
-      }
-
-      if (touchDisplacement !== 0) {
-        touchDisplacement = Math.max(-0.7, Math.min(0.5, touchDisplacement))
-        displacement += touchDisplacement
-      }
-    }
-
-    const minDisplacement = 0.55
-    const maxDisplacement = 1.45
-    const targetDisplacement = Math.max(minDisplacement, Math.min(maxDisplacement, displacement))
-
-    const previous = previousDisplacements[i]
-    const smoothing = audioActive ? 0.3 + responseSpeed * 0.4 : 0.25
-    const smoothedDisplacement = previous + (targetDisplacement - previous) * smoothing
-    previousDisplacements[i] = smoothedDisplacement
-
-    vertex.copy(direction).multiplyScalar(smoothedDisplacement)
-
-    if (liquidPhysics) {
-      const { velocityX, velocityY, stretch } = liquidPhysics
-      const velocityMagnitude = Math.sqrt(velocityX * velocityX + velocityY * velocityY)
-
-      if (velocityMagnitude > 0.0005) {
-        const velDirX = velocityX / velocityMagnitude
-        const velDirY = velocityY / velocityMagnitude
-        const alignment = direction.x * velDirX + direction.y * velDirY
-        const velocityInfluence = Math.min(velocityMagnitude * 8, 0.8)
-        const stretchAmount = alignment * velocityInfluence * stretch
-        const deformation = stretchAmount > 0
-          ? stretchAmount * 0.25
-          : stretchAmount * 0.15
-        const radialScale = smoothedDisplacement
-        vertex.x += velDirX * deformation * radialScale
-        vertex.y += velDirY * deformation * radialScale
-      }
-    }
-
-    positions.setXYZ(i, vertex.x, vertex.y, vertex.z)
-  }
+  displaceVertices(frame, restDirections, previousDisplacements, positions.array as Float32Array, noise3D)
 
   positions.needsUpdate = true
   mesh.geometry.computeVertexNormals()
