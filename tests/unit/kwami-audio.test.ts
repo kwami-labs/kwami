@@ -1,6 +1,11 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { KwamiAudio } from '../../src/avatar/audio/KwamiAudio';
-import { FakeAudioContext, FakeMediaStream, installFakeAudio } from '../helpers/fake-audio';
+import {
+  FakeAudioContext,
+  FakeMediaStream,
+  installFakeAudio,
+  type FakeAudioNode,
+} from '../helpers/fake-audio';
 
 let restoreAudio: () => void;
 
@@ -97,6 +102,67 @@ describe('KwamiAudio stream ownership', () => {
     audio.dispose();
 
     expect(audio.isStreamConnected()).toBe(false);
+  });
+});
+
+/** Whether audio fed into `from` comes out of `to`, following the fake graph's edges. */
+function reaches(from: FakeAudioNode, to: FakeAudioNode, seen = new Set<FakeAudioNode>()): boolean {
+  if (from === to) return true;
+  if (seen.has(from)) return false;
+  seen.add(from);
+  return from.connected.some((next) => reaches(next, to, seen));
+}
+
+/** The graph's private ends, read the way the browser would hear them. */
+function graphOf(audio: KwamiAudio) {
+  const internals = audio as unknown as {
+    sourceNode: FakeAudioNode;
+    streamSource: FakeAudioNode | null;
+  };
+  return {
+    speakers: FakeAudioContext.instances.at(-1)!.destination,
+    element: internals.sourceNode,
+    stream: internals.streamSource,
+    analyser: audio.getAnalyser() as unknown as FakeAudioNode,
+  };
+}
+
+describe('KwamiAudio playback routing', () => {
+  /**
+   * Defends the "two voices, slightly delayed, metallic" echo heard on kwami.io. The agent's
+   * voice is already audible through the <audio> element LiveKit attaches. The constructor
+   * builds the element graph, which used to end `analyser -> destination`; `connectMediaStream()`
+   * then fed the agent's track into that same analyser, so the voice came out of the speakers a
+   * second time through the AudioContext, a few milliseconds behind the element.
+   */
+  it('never sends a connected stream to the speakers', async () => {
+    const audio = new KwamiAudio();
+    await attach(audio, new FakeMediaStream());
+    const graph = graphOf(audio);
+
+    expect(reaches(graph.stream!, graph.speakers)).toBe(false);
+    // ...while the avatar can still see it.
+    expect(reaches(graph.stream!, graph.analyser)).toBe(true);
+  });
+
+  it('keeps the stream off the speakers when a filter rebuilds the graph', async () => {
+    const audio = new KwamiAudio();
+    await attach(audio, new FakeMediaStream());
+    audio.enableHighpassFilter();
+    audio.enableLowpassFilter();
+    audio.disableHighpassFilter();
+    const graph = graphOf(audio);
+
+    expect(reaches(graph.stream!, graph.speakers)).toBe(false);
+  });
+
+  it('still plays music from the element, filtered, and still visualizes it', () => {
+    const audio = new KwamiAudio();
+    audio.enableLowpassFilter();
+    const graph = graphOf(audio);
+
+    expect(reaches(graph.element, graph.speakers)).toBe(true);
+    expect(reaches(graph.element, graph.analyser)).toBe(true);
   });
 });
 
