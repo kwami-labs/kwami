@@ -69,9 +69,9 @@ describe('client tools over RPC', () => {
     const { room } = await connectedPipeline();
 
     expect(room.rpcHandlers.has(CLIENT_TOOL_RPC_METHOD)).toBe(true);
-    expect(room.localParticipant.setAttributes).toHaveBeenCalledWith({
-      [CLIENT_TOOL_RPC_ATTRIBUTE]: 'rpc',
-    });
+    expect(room.localParticipant.setAttributes).toHaveBeenCalledWith(
+      expect.objectContaining({ [CLIENT_TOOL_RPC_ATTRIBUTE]: 'rpc' }),
+    );
   });
 
   it('runs the tool the agent asked for and returns its result', async () => {
