@@ -197,6 +197,12 @@ export const CLIENT_TOOL_RPC_METHOD = 'kwami.client_tool'
  */
 export const CLIENT_TOOL_RPC_ATTRIBUTE = 'kwami.client_tools'
 
+/** The text-stream topic the agent sends messages too large for one data packet on. */
+export const AGENT_MESSAGE_TOPIC = 'kwami.message'
+
+/** The participant attribute that tells the agent this client reads {@link AGENT_MESSAGE_TOPIC}. */
+export const AGENT_MESSAGES_ATTRIBUTE = 'kwami.messages'
+
 /** LiveKit caps an RPC response at 15 KiB; leave room for the envelope. */
 const RPC_MAX_RESPONSE_BYTES = 14_000
 
@@ -990,22 +996,63 @@ class LiveKitPipeline implements AgentPipeline {
   }
 
   /**
-   * Register the `kwami.client_tool` RPC method and advertise it with a participant attribute.
+   * Open the agent's extra channels and advertise them with participant attributes.
    *
-   * An RPC is a request with its own answer, error and deadline, addressed to this participant
-   * alone — what `tool_call` / `tool_result` rebuilt by hand over a broadcast data channel. Both
-   * stay: an agent that predates RPC keeps sending `tool_call`, and a failure here only means the
-   * agent never sees the attribute and keeps using the data channel.
+   * - `kwami.client_tool` RPC: an RPC is a request with its own answer, error and deadline,
+   *   addressed to this participant alone — what `tool_call` / `tool_result` rebuilt by hand over a
+   *   broadcast data channel.
+   * - `kwami.message` text stream: agent messages too large for one data packet (search results
+   *   with images) arrive whole instead of trimmed to fit.
+   *
+   * Each is advertised only once it is registered, and the data channel stays for everything: an
+   * agent that predates either keeps using it, and a failure here only means the agent never sees
+   * that attribute.
    */
   private async enableClientToolRpc(): Promise<void> {
     const room = this.room
-    if (!room || typeof room.registerRpcMethod !== 'function') return
+    if (!room) return
+    const attributes: Record<string, string> = {}
+    if (typeof room.registerRpcMethod === 'function') {
+      try {
+        room.registerRpcMethod(CLIENT_TOOL_RPC_METHOD, (data) => this.handleClientToolRpc(data))
+        attributes[CLIENT_TOOL_RPC_ATTRIBUTE] = 'rpc'
+      } catch (error) {
+        logger.warn('Client tools over RPC unavailable; the data channel carries them', error)
+      }
+    }
+    if (typeof room.registerTextStreamHandler === 'function') {
+      try {
+        room.registerTextStreamHandler(AGENT_MESSAGE_TOPIC, (reader, participantInfo) => {
+          void this.handleAgentMessageStream(reader, participantInfo.identity)
+        })
+        attributes[AGENT_MESSAGES_ATTRIBUTE] = 'stream'
+      } catch (error) {
+        logger.warn('Large agent messages unavailable; the agent trims them to fit', error)
+      }
+    }
+    if (Object.keys(attributes).length === 0) return
     try {
-      room.registerRpcMethod(CLIENT_TOOL_RPC_METHOD, (data) => this.handleClientToolRpc(data))
-      await room.localParticipant.setAttributes({ [CLIENT_TOOL_RPC_ATTRIBUTE]: 'rpc' })
-      logger.info('Client tools over RPC enabled')
+      await room.localParticipant.setAttributes(attributes)
+      logger.info('Agent channels enabled:', Object.keys(attributes).join(', '))
     } catch (error) {
-      logger.warn('Client tools over RPC unavailable; the data channel carries them', error)
+      logger.warn('Could not advertise the agent channels; the data channel carries everything', error)
+    }
+  }
+
+  /** One agent message that came as a text stream: same gate and handling as a data packet. */
+  private async handleAgentMessageStream(
+    reader: { readAll(): Promise<string> },
+    identity: string
+  ): Promise<void> {
+    if (!isAgentIdentity(identity, this.config)) {
+      logger.warn(`Ignoring a message stream from non-agent participant: ${identity}`)
+      return
+    }
+    try {
+      const data: AgentDataMessage = JSON.parse(await reader.readAll())
+      this.handleAgentData(data)
+    } catch (error) {
+      logger.error('Failed to read an agent message stream:', error)
     }
   }
 
