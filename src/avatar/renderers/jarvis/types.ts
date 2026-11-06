@@ -50,6 +50,30 @@ export interface JarvisConfig {
   title: string
   /** User scale on top of the automatic viewport fit. */
   scale: number
+  /** Draw the floating holographic data panels around the reactor. */
+  panels: boolean
+  /** Draw the perspective floor grid under the reactor. */
+  grid: boolean
+  /**
+   * How far the layers spread through depth. 0 flattens the HUD onto one plane, 1 is the
+   * reference volume, 2 doubles the separation between layers.
+   */
+  depth: number
+}
+
+/**
+ * Something that happened outside the renderer and that the HUD should acknowledge: a tool
+ * call, a message, a finished task, a failure. Each kind has its own weight (shockwave, data
+ * burst, colour), and `error`/`warning` tint the interface with the alert colour for a moment.
+ */
+export type JarvisSignal = 'info' | 'message' | 'tool' | 'success' | 'warning' | 'error'
+
+/** A row of the SYSTEMS panel, pushed by the host application. */
+export interface JarvisStatus {
+  label: string
+  value: string
+  /** Draw the value highlighted. */
+  hot?: boolean
 }
 
 export interface JarvisOptions extends Partial<Omit<JarvisConfig, 'color'>> {
