@@ -10,13 +10,14 @@ vi.mock('livekit-client', async (importOriginal) => {
   return { ...actual, Room: Fake, createLocalTracks: vi.fn(async () => []) };
 });
 
-const { LiveKitAdapter, CLIENT_TOOL_RPC_ATTRIBUTE, CLIENT_TOOL_RPC_METHOD, fitUtf8 } = await import(
-  '../../src/agent/adapters/LiveKitAdapter'
-);
+const { LiveKitAdapter, CLIENT_TOOL_RPC_ATTRIBUTE, CLIENT_TOOL_RPC_METHOD, fitUtf8 } =
+  await import('../../src/agent/adapters/LiveKitAdapter');
 
 const AGENT = 'agent-7f3a';
 
-async function connectedPipeline(executor?: (name: string, args: Record<string, unknown>) => Promise<string>) {
+async function connectedPipeline(
+  executor?: (name: string, args: Record<string, unknown>) => Promise<string>,
+) {
   const adapter = new LiveKitAdapter({
     url: 'wss://example.invalid',
     token: 'test-token',
@@ -135,9 +136,7 @@ describe('client tools over RPC', () => {
   });
 
   it('serialises a non-string result rather than dropping it', async () => {
-    const { handler } = await connectedPipeline(
-      async () => ({ ok: true }) as unknown as string,
-    );
+    const { handler } = await connectedPipeline(async () => ({ ok: true }) as unknown as string);
 
     expect(await handler(invocation({ name: 'read_state' }))).toBe('{"ok":true}');
   });
@@ -168,7 +167,11 @@ describe('client tools over RPC', () => {
     });
     const pipeline = adapter.createPipeline();
     const original = FakeRoom.prototype.connect;
-    vi.spyOn(FakeRoom.prototype, 'connect').mockImplementation(async function (this: FakeRoom, url, token) {
+    vi.spyOn(FakeRoom.prototype, 'connect').mockImplementation(async function (
+      this: FakeRoom,
+      url,
+      token,
+    ) {
       this.localParticipant.setAttributes.mockRejectedValueOnce(new Error('no permission'));
       return original.call(this, url, token);
     });
