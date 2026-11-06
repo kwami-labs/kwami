@@ -169,6 +169,24 @@ export interface AgentIdentityConfig {
  *  3. The legacy name heuristic, kept so existing deployments keep working. It is a guess about
  *     a self-declared string and must not be relied on where the room is not otherwise trusted.
  */
+/** The element that plays the agent's voice. Apps read it (recording), so its id is stable. */
+export const AGENT_VOICE_ELEMENT_ID = 'kwami-agent-audio'
+
+/** Elements for agent audio tracks that are not its voice. */
+export const AGENT_EXTRA_AUDIO_ELEMENT_ID = 'kwami-agent-audio-extra'
+
+/**
+ * Agent tracks that are not its voice. livekit-agents publishes the voice as `roomio_audio` (or
+ * whatever `audio_track_name` the agent set) and its BackgroundAudioPlayer as `background_audio`.
+ * Listing the non-voice names, not the voice name, keeps a renamed voice track working.
+ */
+const AGENT_NON_VOICE_TRACK_NAMES = new Set(['background_audio'])
+
+/** Whether an agent audio track, by its publication name, carries the agent's voice. */
+export function isAgentVoiceTrack(trackName: string | undefined): boolean {
+  return !AGENT_NON_VOICE_TRACK_NAMES.has(trackName ?? '')
+}
+
 /** The RPC method the agent calls to run a client tool (kwami-lk-agent `tools/client.py`). */
 export const CLIENT_TOOL_RPC_METHOD = 'kwami.client_tool'
 
@@ -500,6 +518,7 @@ class LiveKitPipeline implements AgentPipeline {
     this.agentAudioStream = null
 
     this.removeAgentAudioElements()
+    this.removeExtraAgentAudioElements()
 
     if (this.room) {
       const room = this.room
@@ -525,10 +544,31 @@ class LiveKitPipeline implements AgentPipeline {
    */
   private removeAgentAudioElements(): void {
     if (typeof document === 'undefined') return
-    for (const el of Array.from(document.querySelectorAll('#kwami-agent-audio'))) {
+    for (const el of Array.from(document.querySelectorAll(`#${AGENT_VOICE_ELEMENT_ID}`))) {
       ;(el as HTMLAudioElement).pause?.()
       el.remove()
     }
+  }
+
+  /** Remove the elements of the agent's extra audio tracks (see {@link attachExtraAgentAudio}). */
+  private removeExtraAgentAudioElements(): void {
+    if (typeof document === 'undefined') return
+    for (const el of Array.from(document.querySelectorAll(`#${AGENT_EXTRA_AUDIO_ELEMENT_ID}`))) {
+      ;(el as HTMLAudioElement).pause?.()
+      el.remove()
+    }
+  }
+
+  /**
+   * Play an agent audio track that is not its voice. It gets an element of its own and never
+   * reaches the avatar's analyser or `getAgentAudioStream()`, which stay on the voice.
+   */
+  private attachExtraAgentAudio(track: RemoteTrack): void {
+    if (typeof document === 'undefined') return
+    const element = track.attach()
+    element.id = AGENT_EXTRA_AUDIO_ELEMENT_ID
+    document.body.appendChild(element)
+    logger.debug('Playing an extra agent audio track alongside the voice')
   }
 
   /**
@@ -567,7 +607,7 @@ class LiveKitPipeline implements AgentPipeline {
     // Track subscribed - agent audio comes through here
     this.room.on(RoomEvent.TrackSubscribed, (
       track: RemoteTrack,
-      _publication: TrackPublication,
+      publication: TrackPublication,
       participant: RemoteParticipant
     ) => {
       logger.debug(`Track subscribed: ${track.kind} from ${participant.identity}`)
@@ -579,13 +619,22 @@ class LiveKitPipeline implements AgentPipeline {
           return
         }
 
+        // An agent can publish more than its voice: livekit-agents' BackgroundAudioPlayer adds
+        // a `background_audio` track (ambience, a thinking sound). Treating every agent track as
+        // the voice made that track replace it — the voice element was removed and the avatar
+        // started reacting to keyboard clicks. Extra tracks play on their own element.
+        if (!isAgentVoiceTrack(publication.trackName)) {
+          this.attachExtraAgentAudio(track)
+          return
+        }
+
         // This is the agent's audio response
         // Attach to an audio element to play it. Clear any previous one first: the id is
         // fixed, so a republished agent track (a backend restart mid-session) would otherwise
         // stack a second element on top of the first and play both.
         this.removeAgentAudioElements()
         const audioElement = track.attach()
-        audioElement.id = 'kwami-agent-audio'
+        audioElement.id = AGENT_VOICE_ELEMENT_ID
 
         document.body.appendChild(audioElement)
 
@@ -602,7 +651,11 @@ class LiveKitPipeline implements AgentPipeline {
       participant: RemoteParticipant
     ) => {
       logger.debug(`Track unsubscribed: ${track.kind} from ${participant.identity}`)
-      track.detach()
+      // `detach()` stops the elements but leaves them in the page; an extra agent track's
+      // element has no other owner, so it is removed here.
+      for (const element of track.detach()) {
+        if (element.id === AGENT_EXTRA_AUDIO_ELEMENT_ID) element.remove()
+      }
     })
 
     // Data received - transcripts and agent messages come through here.
