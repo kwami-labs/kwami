@@ -15,6 +15,8 @@ export class FakeRoom {
 
   readonly remoteParticipants = new Map<string, FakeRemoteParticipant>();
   readonly publishedData: Uint8Array[] = [];
+  /** RPC method name -> the handler the pipeline registered. */
+  readonly rpcHandlers = new Map<string, (data: unknown) => Promise<string>>();
 
   name = 'fake-room';
   state = 'disconnected';
@@ -28,7 +30,17 @@ export class FakeRoom {
     setMicrophoneEnabled: vi.fn(async () => {}),
     publishTrack: vi.fn(async () => {}),
     unpublishTrack: vi.fn(async () => {}),
+    setAttributes: vi.fn(async (attributes: Record<string, string>) => {
+      void attributes;
+    }),
   };
+
+  registerRpcMethod(method: string, handler: (data: unknown) => Promise<string>): void {
+    if (this.rpcHandlers.has(method)) {
+      throw new Error(`RPC handler already registered for method ${method}`);
+    }
+    this.rpcHandlers.set(method, handler);
+  }
 
   constructor(public readonly options?: unknown) {
     FakeRoom.instances.push(this);

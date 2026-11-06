@@ -6,11 +6,13 @@ import type {
   LocalParticipant,
   DataPacket_Kind,
   LocalAudioTrack,
+  RpcInvocationData,
   TranscriptionSegment,
 } from 'livekit-client';
 import {
   Room,
   RoomEvent,
+  RpcError,
   Track,
   ConnectionState,
   createLocalTracks
@@ -167,6 +169,37 @@ export interface AgentIdentityConfig {
  *  3. The legacy name heuristic, kept so existing deployments keep working. It is a guess about
  *     a self-declared string and must not be relied on where the room is not otherwise trusted.
  */
+/** The RPC method the agent calls to run a client tool (kwami-lk-agent `tools/client.py`). */
+export const CLIENT_TOOL_RPC_METHOD = 'kwami.client_tool'
+
+/**
+ * The participant attribute that tells the agent this client takes client tools by RPC. Without
+ * it the agent keeps the `tool_call` / `tool_result` data-channel pair, so old and new clients
+ * and agents interoperate in every combination.
+ */
+export const CLIENT_TOOL_RPC_ATTRIBUTE = 'kwami.client_tools'
+
+/** LiveKit caps an RPC response at 15 KiB; leave room for the envelope. */
+const RPC_MAX_RESPONSE_BYTES = 14_000
+
+/** Cut `text` to at most `maxBytes` of UTF-8 without splitting a character. */
+export function fitUtf8(text: string, maxBytes: number = RPC_MAX_RESPONSE_BYTES): string {
+  const encoder = new TextEncoder()
+  if (encoder.encode(text).length <= maxBytes) return text
+  let low = 0
+  let high = text.length
+  while (low < high) {
+    const mid = Math.ceil((low + high) / 2)
+    if (encoder.encode(text.slice(0, mid)).length <= maxBytes) low = mid
+    else high = mid - 1
+  }
+  let cut = text.slice(0, low)
+  // Never end on half of a surrogate pair.
+  const last = cut.charCodeAt(cut.length - 1)
+  if (last >= 0xd800 && last <= 0xdbff) cut = cut.slice(0, -1)
+  return cut
+}
+
 export function isAgentIdentity(identity: string, config?: AgentIdentityConfig): boolean {
   if (config?.agentIdentity) return identity === config.agentIdentity
   if (config?.agentIdentityPrefix) return identity.startsWith(config.agentIdentityPrefix)
@@ -430,6 +463,9 @@ class LiveKitPipeline implements AgentPipeline {
 
       // Listen for data that the client wants to send back to the agent
       this.setupClientToAgentDataRelay()
+
+      // Let the agent call client tools as RPCs (falls back to the data channel on its own)
+      await this.enableClientToolRpc()
 
       this.voiceSession.setState('listening')
       logger.info('LiveKit pipeline connected')
@@ -901,6 +937,63 @@ class LiveKitPipeline implements AgentPipeline {
   }
 
   /**
+   * Register the `kwami.client_tool` RPC method and advertise it with a participant attribute.
+   *
+   * An RPC is a request with its own answer, error and deadline, addressed to this participant
+   * alone — what `tool_call` / `tool_result` rebuilt by hand over a broadcast data channel. Both
+   * stay: an agent that predates RPC keeps sending `tool_call`, and a failure here only means the
+   * agent never sees the attribute and keeps using the data channel.
+   */
+  private async enableClientToolRpc(): Promise<void> {
+    const room = this.room
+    if (!room || typeof room.registerRpcMethod !== 'function') return
+    try {
+      room.registerRpcMethod(CLIENT_TOOL_RPC_METHOD, (data) => this.handleClientToolRpc(data))
+      await room.localParticipant.setAttributes({ [CLIENT_TOOL_RPC_ATTRIBUTE]: 'rpc' })
+      logger.info('Client tools over RPC enabled')
+    } catch (error) {
+      logger.warn('Client tools over RPC unavailable; the data channel carries them', error)
+    }
+  }
+
+  /**
+   * Run one client tool for the agent. Gated exactly like the data-channel `tool_call`: only the
+   * agent may invoke the host application's tools.
+   */
+  private async handleClientToolRpc(data: RpcInvocationData): Promise<string> {
+    if (!isAgentIdentity(data.callerIdentity, this.config)) {
+      logger.warn('Ignoring a client tool RPC from a non-agent participant', data.callerIdentity)
+      throw new RpcError(RpcError.ErrorCode.APPLICATION_ERROR, 'Only the agent may run client tools')
+    }
+    if (!this.toolExecutor) {
+      // The agent retries this over the data channel, which logs the missing executor there.
+      throw RpcError.builtIn('UNSUPPORTED_METHOD')
+    }
+
+    let name: string
+    let args: Record<string, unknown> = {}
+    try {
+      const call = JSON.parse(data.payload) as { name?: unknown; arguments?: unknown }
+      name = typeof call.name === 'string' ? call.name : ''
+      const raw = typeof call.arguments === 'string' ? JSON.parse(call.arguments) : call.arguments
+      if (raw && typeof raw === 'object' && !Array.isArray(raw)) args = raw as Record<string, unknown>
+    } catch {
+      throw new RpcError(RpcError.ErrorCode.APPLICATION_ERROR, 'Malformed client tool call')
+    }
+    if (!name) {
+      throw new RpcError(RpcError.ErrorCode.APPLICATION_ERROR, 'Client tool call without a name')
+    }
+
+    try {
+      const result = await this.toolExecutor(name, args)
+      return fitUtf8(typeof result === 'string' ? result : JSON.stringify(result ?? ''))
+    } catch (error) {
+      const message = error instanceof Error ? error.message : String(error)
+      throw new RpcError(RpcError.ErrorCode.APPLICATION_ERROR, fitUtf8(message, 2_000))
+    }
+  }
+
+  /**
    * Publish microphone audio track
    */
   private async publishMicrophone(): Promise<void> {
@@ -919,6 +1012,13 @@ class LiveKitPipeline implements AgentPipeline {
       const audioTrack = tracks.find(t => t.kind === Track.Kind.Audio) as LocalAudioTrack
       if (audioTrack) {
         this.localAudioTrack = audioTrack
+        // The agent is dispatched after this client joins and arrives a second or two later.
+        // Recording from now and handing the recording to the agent when it subscribes means
+        // whatever the user says in that gap is heard instead of lost. livekit-client sends it
+        // on `lk.agent.pre-connect-audio-buffer`, which livekit-agents reads by default.
+        if (this.config.preConnectBuffer !== false && typeof audioTrack.startPreConnectBuffer === 'function') {
+          audioTrack.startPreConnectBuffer()
+        }
         await this.room.localParticipant.publishTrack(audioTrack)
         logger.info('Microphone published')
       }
