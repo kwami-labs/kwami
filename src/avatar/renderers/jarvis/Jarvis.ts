@@ -9,6 +9,15 @@
  * - Circuit traces whose data pulses flow outward while speaking and inward while listening
  * - Core, radar sweep, syllable shockwaves, sparks, dust and bokeh
  * - Live text readouts (state decode, voice level, pitch, uptime)
+ * - Six holographic data panels flanking the reactor, angled like a cockpit and set at
+ *   different depths; they hover, and a click brings one forward
+ * - A perspective floor grid that the voice ripples across, and wireframe solids turning in
+ *   the reactor chamber
+ *
+ * It reacts to everything it can observe: the voice, the pointer (a reticle on the HUD plane,
+ * ring and panel hover, clicks anywhere), drag (tilt, with the layers pulling apart as it
+ * turns), the wheel (zoom), typing, window focus, the network link, the device's gyroscope,
+ * and whatever the host application reports through `signal()`, `log()` and `setStatus()`.
  * - Bloom + hologram post-processing (chromatic aberration, scanlines, glitch, grain)
  *
  * Voice comes from the shared `KwamiAudio` analyser, to which `Kwami` connects the agent's
@@ -28,6 +37,8 @@ import type {
   JarvisOptions,
   JarvisPalettePreset,
   JarvisQuality,
+  JarvisSignal,
+  JarvisStatus,
 } from './types.js'
 import { getDefaultJarvisConfig, getJarvisPalette, jarvisQualityProfiles } from './config.js'
 import { JarvisAudioAnalyzer, synthesizeSpeechSpectrum, type JarvisAudioFrame } from './audio.js'
@@ -55,6 +66,25 @@ import {
   telemetryKey,
   type TelemetryContent,
 } from './labels.js'
+import {
+  HudPanel,
+  drawChronoPanel,
+  drawLogPanel,
+  drawSpectrumPanel,
+  drawSystemsPanel,
+  drawTrackingPanel,
+  drawWaveformPanel,
+  formatStamp,
+  getPanelPlacements,
+  logReveal,
+  spectrumKey,
+  trackingKey,
+  type JarvisPanelId,
+  type LogLine,
+  type PanelPlacement,
+  type SpectrumContent,
+  type TrackingContent,
+} from './panels.js'
 
 const CAMERA_FOV = 35
 const CAMERA_DISTANCE = 8
@@ -65,6 +95,16 @@ const WAVE_SLOTS = 4
 const TRACE_Z = -0.38
 /** After this long "speaking" with a silent analyser, animate from a synthetic voice. */
 const SILENT_SPEECH_FALLBACK_S = 0.35
+/** Bars of the spectrum panel (pairs of analyser bands). */
+const PANEL_BARS = 32
+/** Floor grid: height under the reactor, centre along the view axis, and half-size. */
+const GRID_Y = -1.82
+const GRID_Z = -2.2
+const GRID_HALF_WIDTH = 8
+const GRID_HALF_DEPTH = 5.6
+/** How close the camera dollies in at full zoom, in world units. */
+const ZOOM_DOLLY = 2.4
+const LOG_CAPACITY = 24
 
 interface Mood {
   /** Ring rotation multiplier. */
@@ -92,6 +132,35 @@ const MOODS: Record<KwamiState, Mood> = {
   listening: { spin: 0.55, glow: 0.8, sweep: 1, chase: 0, flow: -1, focus: 0.962, core: 0.45, meter: 0.18, dust: 0.45 },
   thinking: { spin: 3.2, glow: 0.92, sweep: 0, chase: 1, flow: 0.6, focus: 1, core: 1, meter: 0, dust: 1.6 },
   speaking: { spin: 1.35, glow: 0.75, sweep: 0, chase: 0, flow: 1, focus: 1.015, core: 0.35, meter: 0, dust: 1.1 },
+}
+
+const STATE_NAME: Record<KwamiState, string> = {
+  idle: 'STANDBY',
+  listening: 'LISTENING',
+  thinking: 'PROCESSING',
+  speaking: 'RESPONDING',
+}
+
+/** How hard each kind of host signal hits the interface. */
+interface SignalProfile {
+  wave: number
+  sparks: number
+  glitch: number
+  flash: number
+  /** Data burst along the circuit traces. */
+  burst: number
+  /** Alert tint over the whole interface. */
+  alert: number
+  label: string
+}
+
+const SIGNALS: Record<JarvisSignal, SignalProfile> = {
+  info: { wave: 0.22, sparks: 6, glitch: 0.08, flash: 0.15, burst: 0.5, alert: 0, label: 'NOTICE' },
+  message: { wave: 0.3, sparks: 10, glitch: 0.1, flash: 0.25, burst: 0.8, alert: 0, label: 'MESSAGE RECEIVED' },
+  tool: { wave: 0.36, sparks: 14, glitch: 0.18, flash: 0.2, burst: 1, alert: 0, label: 'TOOL CALL' },
+  success: { wave: 0.6, sparks: 26, glitch: 0.1, flash: 0.8, burst: 0.7, alert: 0, label: 'TASK COMPLETE' },
+  warning: { wave: 0.45, sparks: 12, glitch: 0.45, flash: 0.3, burst: 0.5, alert: 0.55, label: 'WARNING' },
+  error: { wave: 0.7, sparks: 20, glitch: 0.9, flash: 0.4, burst: 0.4, alert: 1, label: 'ERROR' },
 }
 
 const STATE_TEXT: Record<KwamiState, string> = {
@@ -126,6 +195,15 @@ interface MarkerEntry {
   spec: MarkerSpec
   mesh: THREE.Mesh
   uniforms: Record<string, THREE.IUniform>
+}
+
+interface LatticeSolid {
+  lines: THREE.LineSegments
+  uniforms: Record<string, THREE.IUniform>
+  axis: THREE.Vector3
+  /** Turns per second about `axis`; sign is direction. */
+  speed: number
+  opacity: number
 }
 
 interface Shockwave {
@@ -198,6 +276,27 @@ export class Jarvis {
   private sparks: SparkPool | null = null
   private sparkUniforms!: Record<string, THREE.IUniform>
 
+  private gridMesh!: THREE.Mesh
+  private gridUniforms!: Record<string, THREE.IUniform>
+  private readonly latticeGroup = new THREE.Group()
+  private lattice: LatticeSolid[] = []
+  private reticle!: THREE.Mesh
+  private reticleUniforms!: Record<string, THREE.IUniform>
+
+  // Panels.
+  private panels: HudPanel[] = []
+  private hoveredPanel: HudPanel | null = null
+  private focusedPanel: JarvisPanelId | null = null
+  private readonly panelBars = new Float32Array(PANEL_BARS)
+  private readonly panelPeaks = new Float32Array(PANEL_BARS)
+  private panelClock = 0
+  private readonly logLines: LogLine[] = []
+  private logCounter = 0
+  private readonly statuses = new Map<string, JarvisStatus>()
+  private fps = 60
+  private fpsShown = 60
+  private fpsShownAt = -1
+
   private titleLabel!: HudLabel
   private telemetryLabel!: HudLabel
   private readonly stateText = new ScrambleText()
@@ -265,6 +364,32 @@ export class Jarvis {
   private readonly scratch3 = new THREE.Vector3()
   private readonly scratchMatrix = new THREE.Matrix4()
   private readonly removeListeners: Array<() => void> = []
+  private pointerInside = false
+  private readonly pointerPrevious = new THREE.Vector2(99, 99)
+  private pointerSpeed = 0
+  private press = 0
+  private ping = 0
+  private over = 0
+
+  // Depth and zoom.
+  private zoom = 0
+  private zoomTarget = 0
+  private zoomAt = -100
+  private depthScale = 1
+
+  // Everything else the HUD answers to.
+  /** 1 while the window has the operator's attention; lower dims an idle interface. */
+  private attention = 1
+  private windowActive = true
+  private online = true
+  /** Typing activity, 0–1. */
+  private typing = 0
+  /** Data burst along the traces after a host signal, 0–1. */
+  private burst = 0
+  private alertMix = 0
+  private readonly gyro = new THREE.Vector2()
+  private gyroBase: { beta: number; gamma: number } | null = null
+  private gyroAt = -100
 
   constructor(
     scene: THREE.Scene,
@@ -331,9 +456,12 @@ export class Jarvis {
     this.createReactor()
     this.createCore()
     this.createGlobe()
+    this.createLattice()
+    this.createGrid()
     this.createCrosshairs()
     this.createMarkers()
     this.createLabels()
+    this.createReticle()
     this.createParticles()
     this.computeFit(true)
 
@@ -362,7 +490,9 @@ export class Jarvis {
     ;(this.hologramPass.uniforms.uResolution!.value as THREE.Vector2).copy(this.drawingBufferSize)
 
     this.stateText.set(STATE_TEXT.idle, 0)
+    this.log('HOLOGRAPHIC INTERFACE ONLINE')
     this.setupPointer()
+    this.setupEnvironment()
     this.setupFontReload()
     this.startAnimation()
   }
@@ -619,6 +749,111 @@ export class Jarvis {
     this.globe.rotation.x = 0.38
     this.globe.renderOrder = 2
     this.hud.add(this.globe)
+  }
+
+  /**
+   * Wireframe solids turning on their own axes around the core. They are the one thing in the
+   * chamber that is unmistakably three-dimensional even head-on.
+   */
+  private createLattice(): void {
+    const solids: Array<{ solid: THREE.BufferGeometry; opacity: number; axis: THREE.Vector3; speed: number }> = [
+      { solid: new THREE.IcosahedronGeometry(0.33, 1), opacity: 0.34, axis: new THREE.Vector3(0.3, 1, 0.2), speed: 0.045 },
+      { solid: new THREE.OctahedronGeometry(0.2, 0), opacity: 0.6, axis: new THREE.Vector3(-1, 0.4, 0.6), speed: -0.08 },
+    ]
+    for (const { solid, opacity, axis, speed } of solids) {
+      const edges = new THREE.EdgesGeometry(solid, 1)
+      solid.dispose()
+      const uniforms: Record<string, THREE.IUniform> = {
+        uColor: this.colors.primary,
+        uHot: this.colors.accent,
+        uOpacity: new THREE.Uniform(0),
+        uHeat: new THREE.Uniform(0),
+        uSwell: new THREE.Uniform(0),
+      }
+      const lines = new THREE.LineSegments(
+        edges,
+        this.additive({ uniforms, vertexShader: shaders.latticeVertexShader, fragmentShader: shaders.latticeFragmentShader }),
+      )
+      lines.renderOrder = 4
+      this.latticeGroup.add(lines)
+      this.lattice.push({ lines, uniforms, axis: axis.normalize(), speed, opacity })
+    }
+    this.latticeGroup.rotation.set(0.35, 0.2, 0)
+    this.hud.add(this.latticeGroup)
+  }
+
+  /** Perspective floor under the reactor. Shares the shockwaves with the FX plane. */
+  private createGrid(): void {
+    this.gridUniforms = {
+      uColor: this.colors.secondary,
+      uHot: this.colors.primary,
+      uOpacity: new THREE.Uniform(0),
+      uLevel: new THREE.Uniform(0),
+      uWavePhase: this.uWavePhase,
+      uExtent: new THREE.Uniform(new THREE.Vector2(GRID_HALF_WIDTH, GRID_HALF_DEPTH)),
+      // Local +y runs away from the viewer once the plane lies flat, so the point under the
+      // reactor (z = 0) is at local y = GRID_Z.
+      uCentre: new THREE.Uniform(new THREE.Vector2(0, GRID_Z)),
+      uPointerX: new THREE.Uniform(0),
+      uPointerAmt: new THREE.Uniform(0),
+      uWaves: this.fxUniforms.uWaves!,
+    }
+    this.gridMesh = new THREE.Mesh(
+      new THREE.PlaneGeometry(GRID_HALF_WIDTH * 2, GRID_HALF_DEPTH * 2),
+      this.additive({ uniforms: this.gridUniforms, vertexShader: shaders.gridVertexShader, fragmentShader: shaders.gridFragmentShader }),
+    )
+    this.gridMesh.rotation.x = -Math.PI / 2
+    this.gridMesh.position.set(0, GRID_Y, GRID_Z)
+    this.gridMesh.frustumCulled = false
+    this.gridMesh.renderOrder = 0
+    this.gridMesh.visible = this.config.grid
+    this.hud.add(this.gridMesh)
+  }
+
+  /** The cursor, drawn on the HUD plane so it tilts with the interface. */
+  private createReticle(): void {
+    this.reticleUniforms = {
+      uColor: this.colors.primary,
+      uHot: this.colors.accent,
+      uOpacity: new THREE.Uniform(0),
+      uTime: this.uTime,
+      uPress: new THREE.Uniform(0),
+      uPing: new THREE.Uniform(0),
+      uOver: new THREE.Uniform(0),
+    }
+    this.reticle = new THREE.Mesh(
+      new THREE.PlaneGeometry(1, 1),
+      this.additive({ uniforms: this.reticleUniforms, vertexShader: shaders.markerVertexShader, fragmentShader: shaders.reticleFragmentShader }),
+    )
+    this.reticle.scale.setScalar(0.36)
+    this.reticle.position.set(99, 99, 0)
+    this.reticle.renderOrder = 8
+    this.hud.add(this.reticle)
+  }
+
+  /** Create, move or drop panels so they match the placements for the current layout. */
+  private syncPanels(placements: PanelPlacement[]): void {
+    const wanted = new Set(placements.map((placement) => placement.id))
+    this.panels = this.panels.filter((panel) => {
+      if (wanted.has(panel.id)) return true
+      this.hud.remove(panel.mesh)
+      panel.dispose()
+      return false
+    })
+    const uniforms = { uColor: this.colors.primary, uHot: this.colors.accent, uTime: this.uTime }
+    for (const placement of placements) {
+      const existing = this.panels.find((panel) => panel.id === placement.id)
+      if (existing) {
+        existing.applyPlacement(placement)
+        continue
+      }
+      const panel = new HudPanel(placement, uniforms)
+      panel.mesh.visible = this.config.panels
+      this.hud.add(panel.mesh)
+      this.panels.push(panel)
+    }
+    if (this.hoveredPanel && !wanted.has(this.hoveredPanel.id)) this.hoveredPanel = null
+    if (this.focusedPanel && !wanted.has(this.focusedPanel)) this.focusedPanel = null
   }
 
   private createCore(): void {
@@ -934,6 +1169,7 @@ export class Jarvis {
       const y = -(((event.clientY - rect.top) / rect.height) * 2 - 1)
       this.pointer.set(THREE.MathUtils.clamp(x, -1.2, 1.2), THREE.MathUtils.clamp(y, -1.2, 1.2))
       this.pointerSeenAt = this.elapsed
+      this.pointerInside = Math.abs(x) <= 1 && Math.abs(y) <= 1
 
       // Hover over the reactor, measured in pixels against the fitted radius.
       const pixelsPerUnit = rect.height / this.visibleHeight()
@@ -972,15 +1208,31 @@ export class Jarvis {
     const onUp = (): void => {
       if (!this.drag.active) return
       this.drag.active = false
-      if (this.drag.moved < 6 && performance.now() - this.drag.downAt < 350 && this.hoverTarget > 0) {
+      if (this.drag.moved >= 6 || performance.now() - this.drag.downAt >= 350) return
+      // A click, not a drag. A panel takes it first, then the reactor, then empty space.
+      this.ping = 1
+      if (this.hoveredPanel) {
+        this.focusPanel(this.hoveredPanel.id === this.focusedPanel ? null : this.hoveredPanel.id)
+      } else if (this.focusedPanel) {
+        this.focusPanel(null)
+      } else if (this.hoverTarget > 0) {
         this.pulse()
+      } else {
+        this.tap()
       }
+    }
+    const onWheel = (event: WheelEvent): void => {
+      // Passive: the page keeps its own scrolling; the HUD only reads the gesture.
+      const step = event.deltaMode === 1 ? event.deltaY * 32 : event.deltaY
+      this.zoomTarget = THREE.MathUtils.clamp(this.zoomTarget - step * 0.0012, -0.3, 1)
+      this.zoomAt = this.elapsed
     }
     const onDoubleClick = (): void => {
       void this.onDoubleClick?.()
     }
     const onLeave = (): void => {
       this.hoverTarget = 0
+      this.pointerInside = false
     }
 
     window.addEventListener('pointermove', onMove, { passive: true })
@@ -988,12 +1240,84 @@ export class Jarvis {
     window.addEventListener('pointerup', onUp)
     dom.addEventListener('dblclick', onDoubleClick)
     dom.addEventListener('pointerleave', onLeave)
+    dom.addEventListener('wheel', onWheel, { passive: true })
     this.removeListeners.push(
+      () => dom.removeEventListener('wheel', onWheel),
       () => window.removeEventListener('pointermove', onMove),
       () => dom.removeEventListener('pointerdown', onDown),
       () => window.removeEventListener('pointerup', onUp),
       () => dom.removeEventListener('dblclick', onDoubleClick),
       () => dom.removeEventListener('pointerleave', onLeave),
+    )
+  }
+
+  /**
+   * Everything that is not the pointer: typing, window focus, the network link and the
+   * device's gyroscope. None of it is stored — the HUD only answers that something happened.
+   */
+  private setupEnvironment(): void {
+    if (typeof window === 'undefined') return
+    this.windowActive = typeof document === 'undefined' || (!document.hidden && document.hasFocus())
+    this.online = typeof navigator === 'undefined' || navigator.onLine !== false
+
+    const onKey = (event: KeyboardEvent): void => {
+      if (event.key === 'Escape') {
+        if (this.focusedPanel) this.focusPanel(null)
+        return
+      }
+      if (event.repeat || event.ctrlKey || event.metaKey || event.altKey) return
+      this.keystroke()
+    }
+    const onActive = (): void => {
+      if (this.windowActive) return
+      this.windowActive = true
+      // Wake-up surge.
+      this.spawnShockwave(0.35)
+      this.flash = Math.max(this.flash, 0.45)
+    }
+    const onInactive = (): void => {
+      this.windowActive = false
+    }
+    const onVisibility = (): void => {
+      if (document.hidden) onInactive()
+      else onActive()
+    }
+    const onOnline = (): void => {
+      this.online = true
+      this.signal('success', 'UPLINK RESTORED')
+    }
+    const onOffline = (): void => {
+      this.online = false
+      this.signal('error', 'UPLINK LOST')
+    }
+    const onOrientation = (event: DeviceOrientationEvent): void => {
+      if (event.beta === null || event.gamma === null) return
+      if (!this.gyroBase) this.gyroBase = { beta: event.beta, gamma: event.gamma }
+      // The neutral pose drifts toward wherever the device is held, so a new grip re-centres.
+      this.gyroBase.beta += (event.beta - this.gyroBase.beta) * 0.01
+      this.gyroBase.gamma += (event.gamma - this.gyroBase.gamma) * 0.01
+      this.gyro.set(
+        THREE.MathUtils.clamp((event.gamma - this.gyroBase.gamma) / 25, -1, 1),
+        THREE.MathUtils.clamp((event.beta - this.gyroBase.beta) / 25, -1, 1),
+      )
+      this.gyroAt = this.elapsed
+    }
+
+    window.addEventListener('keydown', onKey)
+    window.addEventListener('focus', onActive)
+    window.addEventListener('blur', onInactive)
+    document.addEventListener('visibilitychange', onVisibility)
+    window.addEventListener('online', onOnline)
+    window.addEventListener('offline', onOffline)
+    window.addEventListener('deviceorientation', onOrientation)
+    this.removeListeners.push(
+      () => window.removeEventListener('keydown', onKey),
+      () => window.removeEventListener('focus', onActive),
+      () => window.removeEventListener('blur', onInactive),
+      () => document.removeEventListener('visibilitychange', onVisibility),
+      () => window.removeEventListener('online', onOnline),
+      () => window.removeEventListener('offline', onOffline),
+      () => window.removeEventListener('deviceorientation', onOrientation),
     )
   }
 
@@ -1003,6 +1327,7 @@ export class Jarvis {
     const onLoaded = (): void => {
       this.titleLabel.invalidate()
       this.telemetryLabel.invalidate()
+      for (const panel of this.panels) panel.invalidate()
     }
     document.fonts.addEventListener('loadingdone', onLoaded)
     this.removeListeners.push(() => document.fonts.removeEventListener('loadingdone', onLoaded))
@@ -1027,7 +1352,7 @@ export class Jarvis {
     const visibleWidth = visibleHeight * aspect
     const layout: LabelLayout = aspect >= 1.05 ? 'wide' : 'stacked'
 
-    if (!this.config.labels) {
+    if (!this.config.labels && !this.config.panels) {
       this.fitScale = 0.31 * Math.min(visibleHeight, visibleWidth)
     } else if (layout === 'wide') {
       this.fitScale = Math.min(0.31 * visibleHeight, visibleWidth / 5.8)
@@ -1042,10 +1367,11 @@ export class Jarvis {
       this.titleLabel.applyPlacement(placements.title)
       this.telemetryLabel.applyPlacement(placements.telemetry)
     }
+    this.syncPanels(getPanelPlacements(layout, visibleHeight / (2 * this.fitScale)))
   }
 
   private resetCamera(): void {
-    this.camera.position.set(0, 0, CAMERA_DISTANCE)
+    this.camera.position.set(0, 0, CAMERA_DISTANCE - this.zoom * ZOOM_DOLLY)
     this.camera.up.set(0, 1, 0)
     this.camera.lookAt(0, 0, 0)
   }
@@ -1103,6 +1429,7 @@ export class Jarvis {
     this.elapsed += dt
     const t = this.elapsed
     this.uTime.value = t
+    this.fps = damp(this.fps, 1 / Math.max(dt, 1e-3), 2, dt)
 
     // Keep the view locked: OrbitControls (disabled for this renderer) still runs update().
     this.resetCamera()
@@ -1140,16 +1467,26 @@ export class Jarvis {
     this.aberrationKick *= Math.exp(-dt * 5)
     this.flash *= Math.exp(-dt * 4)
     this.hover = damp(this.hover, this.hoverTarget, 6, dt)
+    this.typing *= Math.exp(-dt * 2.4)
+    this.burst *= Math.exp(-dt * 1.7)
+    this.alertMix *= Math.exp(-dt * 1.1)
+    this.ping *= Math.exp(-dt * 3.2)
+    this.press = damp(this.press, this.drag.active ? 1 : 0, 18, dt)
+    // An idle interface dims while the window is in the background; anything live keeps it lit.
+    const attentive =
+      this.windowActive || this.state !== 'idle' || drive > 0.05 || this.elapsed - this.pointerSeenAt < 3
+    this.attention = damp(this.attention, attentive ? 1 : 0.7, attentive ? 5 : 1.2, dt)
 
     // ---- boot -----------------------------------------------------------------------
     const intro = easeOutCubic(t / 1.4)
     const glow = 0.6 + mood.glow * 0.55 + this.hover * 0.12
-    const intensity = this.config.intensity
+    const intensity = this.config.intensity * this.attention
 
     // ---- motion phases ----------------------------------------------------------------
     // Comets speed up with the voice and when thinking; the radial wave rolls faster and
     // harder while speaking; the dust current flows out when speaking, in when listening.
-    this.uRunnerPhase.value += dt * (0.18 + mood.chase * 0.5 + drive * 0.9) * this.config.rotationSpeed
+    this.uRunnerPhase.value +=
+      dt * (0.18 + mood.chase * 0.5 + drive * 0.9 + this.typing * 0.9 + this.burst * 1.4) * this.config.rotationSpeed
     this.uWavePhase.value += dt * (1.1 + drive * 7 + mood.chase * 2)
     this.uWaveAmp.value = damp(this.uWaveAmp.value, 0.1 + drive * 0.55 + mood.chase * 0.12, 6, dt)
     this.streamDirection = damp(this.streamDirection, mood.flow >= 0 ? 1 : -1, 2, dt)
@@ -1158,11 +1495,14 @@ export class Jarvis {
     // ---- transform ------------------------------------------------------------------
     this.updateTilt(dt)
     this.updatePointerLocal(dt)
+    this.updateDepth(dt)
+    this.updatePointerFeedback(dt)
     const breath = 1 + Math.sin(t * 0.8) * 0.004 + drive * 0.014
     this.hud.scale.setScalar(this.fitScale * this.config.scale * (0.86 + 0.14 * intro) * breath)
 
     // ---- rings ----------------------------------------------------------------------
-    const spin = mood.spin * this.config.rotationSpeed
+    const spin = mood.spin * this.config.rotationSpeed * (1 + this.typing * 0.5)
+    const pointerRadius = this.pointerLocal.length()
     const meterValue = Math.max(mood.meter * (0.75 + 0.25 * Math.sin(t * 1.4)), Math.min(1, drive * 1.2))
     for (const ring of this.rings) {
       ring.angle += ring.spec.speed * spin * dt
@@ -1179,7 +1519,10 @@ export class Jarvis {
       }
       const reveal = easeOutCubic((t - ring.spec.bootDelay) / 0.9)
       ring.uniforms.uReveal!.value = reveal
-      ring.uniforms.uGain!.value = (glow + drive * ring.spec.audioGain * 0.6) * Math.sqrt(intensity)
+      // The ring the pointer is riding lights up.
+      const near = this.pointerInfluence * Math.exp(-Math.pow((pointerRadius - ring.spec.radius) / 0.07, 2))
+      ring.uniforms.uGain!.value = (glow + drive * ring.spec.audioGain * 0.6 + near * 0.8) * Math.sqrt(intensity)
+      ring.mesh.position.z = ring.spec.z * this.depthScale
       if (ring.spec.meter) {
         ring.uniforms.uMeterValue!.value = meterValue
         ring.uniforms.uChase!.value = mood.chase
@@ -1198,7 +1541,6 @@ export class Jarvis {
     ru.uGain!.value = (0.64 + mood.glow * 0.42 + this.hover * 0.3 + this.flash * 0.6) * Math.sqrt(intensity)
     // Blocks under the pointer lift toward it (pointer bearing in the reactor's own frame).
     ru.uPointerAngle!.value = Math.atan2(this.pointerLocal.y, this.pointerLocal.x)
-    const pointerRadius = this.pointerLocal.length()
     ru.uPointerNear!.value = this.pointerInfluence * Math.exp(-Math.pow((pointerRadius - 0.9) / 0.35, 2))
 
     // Globe: slow turn, a thinking spin-up, and a voice swell.
@@ -1206,6 +1548,19 @@ export class Jarvis {
     this.globeUniforms.uLevel!.value = drive
     this.globeUniforms.uReveal!.value = clamp01((t - 0.3) / 1.2)
     this.globeUniforms.uOpacity!.value = (0.38 + mood.glow * 0.15) * Math.sqrt(intensity)
+
+    // Core lattice: spins up while thinking, swells and heats with the voice.
+    const latticeReveal = clamp01((t - 0.5) / 1.2)
+    const latticePulse = mood.core * (0.5 + 0.5 * Math.sin(t * 6.2))
+    for (const solid of this.lattice) {
+      const turns = solid.speed * (1 + mood.chase * 6 + drive * 3 + this.typing * 1.5) * this.config.rotationSpeed
+      solid.lines.rotateOnAxis(solid.axis, turns * Math.PI * 2 * dt)
+      solid.uniforms.uOpacity!.value =
+        solid.opacity * latticeReveal * (0.6 + mood.glow * 0.5 + drive * 0.9 + this.flash) * Math.sqrt(intensity)
+      solid.uniforms.uHeat!.value = drive * 0.9 + latticePulse * 0.45 + this.flash
+      solid.uniforms.uSwell!.value = drive * 0.2 + latticePulse * 0.05 + this.flash * 0.12
+    }
+    this.latticeGroup.position.z = 0.12 * this.depthScale
 
     // ---- core & fx ------------------------------------------------------------------
     const thinkingPulse = mood.core * (0.5 + 0.5 * Math.sin(t * 6.2))
@@ -1224,13 +1579,18 @@ export class Jarvis {
 
     // ---- traces, crosshair, markers ---------------------------------------------------
     const traceReveal = clamp01((t - 0.8) / 1.1)
-    this.flowPhase += dt * (0.35 + Math.abs(mood.flow) * 0.55 + drive * 1.8)
+    this.flowPhase += dt * (0.35 + Math.abs(mood.flow) * 0.55 + drive * 1.8 + this.typing * 1.2 + this.burst * 2.5)
     const tu = this.traceUniforms
     tu.uFlow!.value = mood.flow >= 0 ? 1 : -1
     tu.uFlowPhase!.value = this.flowPhase
-    tu.uPulse!.value = (0.25 + Math.abs(mood.flow) * 0.35 + drive * 0.9 + mood.chase * 0.3) * Math.sqrt(intensity)
+    tu.uPulse!.value =
+      (0.25 + Math.abs(mood.flow) * 0.35 + drive * 0.9 + mood.chase * 0.3 + this.typing * 0.5 + this.burst * 1.2) *
+      Math.sqrt(intensity)
     tu.uReveal!.value = traceReveal
     this.padUniforms.uReveal!.value = traceReveal
+    // The trace geometry carries TRACE_Z itself; the pads are placed by their mesh.
+    if (this.traceMesh) this.traceMesh.position.z = TRACE_Z * (this.depthScale - 1)
+    if (this.padMesh) this.padMesh.position.z = TRACE_Z * this.depthScale
 
     for (const { uniforms } of this.crosshairs) {
       uniforms.uReveal!.value = easeOutCubic((t - 0.15) / 1.2)
@@ -1239,11 +1599,22 @@ export class Jarvis {
     for (const marker of this.markers) {
       marker.uniforms.uOpacity!.value = marker.spec.opacity * markerOpacity * (0.85 + glow * 0.15)
       marker.uniforms.uLevel!.value = drive
+      marker.mesh.position.z = marker.spec.z * this.depthScale
     }
     this.updateTracker(dt)
 
     // ---- labels ---------------------------------------------------------------------
+    this.titleLabel.mesh.position.z = 0.35 * this.depthScale
+    this.telemetryLabel.mesh.position.z = 0.35 * this.depthScale
     this.updateLabels(dt, frame, t)
+    this.updatePanels(dt, frame, t, (0.75 + mood.glow * 0.3) * Math.sqrt(intensity))
+
+    // ---- floor ----------------------------------------------------------------------
+    const gu = this.gridUniforms
+    gu.uOpacity!.value = clamp01((t - 1) / 1.4) * (0.55 + mood.glow * 0.5) * Math.sqrt(intensity)
+    gu.uLevel!.value = drive
+    gu.uPointerX!.value = this.pointerLocal.x
+    gu.uPointerAmt!.value = this.pointerInside ? this.pointerInfluence : 0
 
     // ---- particles ------------------------------------------------------------------
     this.dustUniforms.uSpeed!.value = mood.dust * this.config.rotationSpeed + drive * 1.5
@@ -1273,6 +1644,8 @@ export class Jarvis {
     // Hologram flicker: almost always steady, with rare brief dips.
     const flickerDip = Math.sin(t * 0.73) > 0.995 ? 0.9 : 1
     hu.uFlicker!.value = (0.988 + 0.012 * Math.sin(t * 47)) * flickerDip
+    ;(hu.uAlert!.value as THREE.Color).copy(this.colors.alert.value)
+    hu.uAlertMix!.value = Math.min(0.85, this.alertMix)
   }
 
   private updateTilt(dt: number): void {
@@ -1293,8 +1666,12 @@ export class Jarvis {
     const t = this.elapsed
     const idleX = Math.sin(t * 0.31) * 0.035
     const idleY = Math.cos(t * 0.27) * 0.025
-    const targetYaw = (this.pointer.x * 0.36 * pointerWeight + idleX) * parallax + this.dragOffset.x
-    const targetPitch = (-this.pointer.y * 0.26 * pointerWeight + idleY) * parallax + this.dragOffset.y
+    // A handheld device tilts the HUD with its own gyroscope.
+    const gyroWeight = clamp01(1 - (this.elapsed - this.gyroAt - 1))
+    const targetYaw =
+      (this.pointer.x * 0.36 * pointerWeight + this.gyro.x * 0.3 * gyroWeight + idleX) * parallax + this.dragOffset.x
+    const targetPitch =
+      (-this.pointer.y * 0.26 * pointerWeight + this.gyro.y * 0.22 * gyroWeight + idleY) * parallax + this.dragOffset.y
     this.tiltCurrent.x = damp(this.tiltCurrent.x, targetYaw, this.drag.active ? 16 : 5, dt)
     this.tiltCurrent.y = damp(this.tiltCurrent.y, targetPitch, this.drag.active ? 16 : 5, dt)
     this.tilt.rotation.set(this.tiltCurrent.y, this.tiltCurrent.x, 0)
@@ -1317,6 +1694,150 @@ export class Jarvis {
     if (!hit) return
     hit.applyMatrix4(this.scratchMatrix.copy(this.hud.matrixWorld).invert())
     this.pointerLocal.set(hit.x, hit.y)
+  }
+
+  private updateDepth(dt: number): void {
+    // The wheel zooms. Left alone, the view eases back, so the HUD is never left stranded.
+    if (this.elapsed - this.zoomAt > 8) this.zoomTarget = damp(this.zoomTarget, 0, 1.2, dt)
+    this.zoom = damp(this.zoom, this.zoomTarget, 6, dt)
+    // Turning the interface (or zooming in) pulls its layers apart: the depth shows exactly
+    // when there is an angle to see it from, and head-on the HUD keeps its composed look.
+    const turn = Math.min(1, Math.hypot(this.tiltCurrent.x, this.tiltCurrent.y) / 0.9)
+    const target = this.config.depth * (1 + Math.max(0, this.zoom) * 0.9 + turn * 0.8)
+    this.depthScale = damp(this.depthScale, target, 5, dt)
+  }
+
+  /** Panel hover, the pointer's spark trail and the reticle. */
+  private updatePointerFeedback(dt: number): void {
+    let hovered: HudPanel | null = null
+    if (this.config.panels && this.pointerInside && this.pointerInfluence > 0.05) {
+      this.raycaster.setFromCamera(this.pointer, this.camera)
+      let nearest = Infinity
+      for (const panel of this.panels) {
+        const hit = this.raycaster.intersectObject(panel.mesh, false)[0]
+        if (hit && hit.distance < nearest) {
+          nearest = hit.distance
+          hovered = panel
+        }
+      }
+    }
+    if (hovered !== this.hoveredPanel) {
+      this.hoveredPanel = hovered
+      this.renderer.domElement.style.cursor = hovered ? 'pointer' : ''
+    }
+
+    // A fast sweep across the HUD leaves a trail of sparks.
+    const travelled = this.pointerPrevious.distanceTo(this.pointerLocal)
+    this.pointerPrevious.copy(this.pointerLocal)
+    this.pointerSpeed = damp(this.pointerSpeed, travelled < 4 ? travelled / Math.max(dt, 1e-3) : 0, 10, dt)
+    if (this.pointerInside && this.pointerSpeed > 3.2 && this.pointerInfluence > 0.5) {
+      this.spawnSparksAt(this.pointerLocal.x, this.pointerLocal.y, 1, 0.25)
+    }
+
+    this.over = damp(this.over, hovered || this.hoverTarget > 0 ? 1 : 0, 10, dt)
+    const uniforms = this.reticleUniforms
+    const visible = this.pointerInside ? this.pointerInfluence : 0
+    uniforms.uOpacity!.value = damp(uniforms.uOpacity!.value as number, visible * 0.9, 8, dt)
+    uniforms.uPress!.value = this.press
+    uniforms.uPing!.value = this.ping
+    uniforms.uOver!.value = this.over
+    this.reticle.position.set(this.pointerLocal.x, this.pointerLocal.y, 0)
+  }
+
+  /** Pose every panel, then refresh the ones whose content changed (at most ~20 Hz). */
+  private updatePanels(dt: number, frame: JarvisAudioFrame, t: number, gain: number): void {
+    if (this.panels.length === 0) return
+    const focused = this.focusedPanel
+    for (const panel of this.panels) {
+      panel.update(dt, {
+        hovered: panel === this.hoveredPanel,
+        focused: panel.id === focused,
+        dimmed: focused !== null && panel.id !== focused,
+        depth: this.depthScale,
+        time: t,
+        gain,
+      })
+    }
+    if (!this.config.panels) return
+
+    // Peak-hold runs every frame so the caps fall smoothly whatever the redraw rate.
+    const perBar = SPECTRUM_BANDS / PANEL_BARS
+    for (let bar = 0; bar < PANEL_BARS; bar++) {
+      let max = 0
+      for (let band = Math.floor(bar * perBar); band < Math.floor((bar + 1) * perBar); band++) {
+        max = Math.max(max, frame.spectrum[band] ?? 0)
+      }
+      this.panelBars[bar] = max
+      this.panelPeaks[bar] = Math.max(max, this.panelPeaks[bar]! - dt * 0.45)
+    }
+    if (Math.floor(t) !== this.fpsShownAt) {
+      this.fpsShownAt = Math.floor(t)
+      this.fpsShown = Math.round(this.fps)
+    }
+
+    this.panelClock += dt
+    if (this.panelClock < 1 / 20) return
+    this.panelClock = 0
+
+    for (const panel of this.panels) {
+      switch (panel.id) {
+        case 'spectrum': {
+          const content: SpectrumContent = {
+            bars: this.panelBars,
+            peaks: this.panelPeaks,
+            db: frame.db,
+            hz: frame.peakHz,
+            active: frame.active,
+          }
+          panel.draw(spectrumKey(content), (context, width, height) => drawSpectrumPanel(context, width, height, content))
+          break
+        }
+        case 'waveform': {
+          const key = frame.active ? `live|${Math.floor(t * 20)}` : 'idle'
+          panel.draw(key, (context, width, height) =>
+            drawWaveformPanel(context, width, height, { spectrum: frame.spectrum, level: frame.level, time: t, active: frame.active }),
+          )
+          break
+        }
+        case 'systems': {
+          const rows: JarvisStatus[] = [
+            { label: 'CORE', value: STATE_NAME[this.state], hot: this.state !== 'idle' },
+            { label: 'VOICE', value: frame.active ? 'LIVE' : 'SILENT', hot: frame.active },
+            ...this.statuses.values(),
+            { label: 'UPLINK', value: this.online ? 'ONLINE' : 'OFFLINE', hot: this.online },
+            { label: 'RENDER', value: `${this.fpsShown} FPS`, hot: false },
+          ]
+          const key = rows.map((row) => `${row.label}:${row.value}:${row.hot ? 1 : 0}`).join('|')
+          panel.draw(key, (context, width, height) => drawSystemsPanel(context, width, height, rows))
+          break
+        }
+        case 'log': {
+          const newest = this.logLines[this.logLines.length - 1]
+          const key = `${newest?.id ?? 0}|${logReveal(newest, t)}`
+          panel.draw(key, (context, width, height) => drawLogPanel(context, width, height, this.logLines, t))
+          break
+        }
+        case 'tracking': {
+          const content: TrackingContent = {
+            x: this.pointerLocal.x,
+            y: this.pointerLocal.y,
+            active: this.pointerInside && this.pointerInfluence > 0.3,
+            yaw: this.tiltCurrent.x,
+            pitch: this.tiltCurrent.y,
+            zoom: 1 + this.zoom,
+          }
+          panel.draw(trackingKey(content), (context, width, height) => drawTrackingPanel(context, width, height, content))
+          break
+        }
+        case 'chrono': {
+          const now = new Date()
+          panel.draw(`${Math.floor(now.getTime() / 1000)}`, (context, width, height) =>
+            drawChronoPanel(context, width, height, now, t),
+          )
+          break
+        }
+      }
+    }
   }
 
   /** A caret on the outer ring that follows the pointer's bearing. */
@@ -1431,6 +1952,27 @@ export class Jarvis {
     }
   }
 
+  /** A radial burst from a point on the HUD plane (clicks, the pointer's trail). */
+  private spawnSparksAt(x: number, y: number, count: number, speed: number): void {
+    const pool = this.sparks
+    if (!pool) return
+    const capacity = pool.life.length
+    for (let n = 0; n < count; n++) {
+      const angle = Math.random() * Math.PI * 2
+      const velocity = speed * (0.4 + Math.random() * 0.9)
+      const i = pool.cursor
+      pool.cursor = (pool.cursor + 1) % capacity
+      pool.positions[i * 3] = x
+      pool.positions[i * 3 + 1] = y
+      pool.positions[i * 3 + 2] = 0.04
+      pool.velocities[i * 3] = Math.cos(angle) * velocity
+      pool.velocities[i * 3 + 1] = Math.sin(angle) * velocity
+      pool.velocities[i * 3 + 2] = (Math.random() - 0.3) * 0.3
+      pool.life[i] = 1
+      pool.decay[i] = 1.3 + Math.random() * 1.6
+    }
+  }
+
   private updateSparks(dt: number): void {
     const pool = this.sparks
     if (!pool) return
@@ -1479,6 +2021,7 @@ export class Jarvis {
     this.aberrationKick = Math.max(this.aberrationKick, 0.6)
     this.spawnShockwave(0.3)
     if (state !== 'speaking') this.silentSpeech = 0
+    this.log(`CORE > ${STATE_NAME[state]}`)
   }
 
   public getState(): KwamiState {
@@ -1497,6 +2040,71 @@ export class Jarvis {
   /** Alias used by the app's interaction actions. */
   public triggerPulse(): void {
     this.pulse()
+  }
+
+  /** Click on empty space: a few sparks where the pointer is (the reticle pings on its own). */
+  private tap(): void {
+    this.spawnSparksAt(this.pointerLocal.x, this.pointerLocal.y, 10, 0.9)
+    this.glitch = Math.max(this.glitch, 0.12)
+    this.aberrationKick = Math.max(this.aberrationKick, 0.35)
+  }
+
+  /** A key was pressed somewhere in the window: data runs faster along the circuits. */
+  private keystroke(): void {
+    this.typing = Math.min(1, this.typing + 0.2)
+    this.spawnSparks(1, null)
+  }
+
+  /**
+   * Acknowledge something that happened in the host application — a tool call, a message, a
+   * finished task, a failure. The HUD answers with a shockwave, a data burst along the traces
+   * and a line in the event log; `warning` and `error` also tint it with the alert colour.
+   */
+  public signal(kind: JarvisSignal, label?: string): void {
+    const profile = SIGNALS[kind] ?? SIGNALS.info
+    this.spawnShockwave(profile.wave)
+    this.spawnSparks(profile.sparks, this.lastFrame)
+    this.glitch = Math.max(this.glitch, profile.glitch)
+    this.aberrationKick = Math.max(this.aberrationKick, Math.min(1, profile.glitch * 1.5))
+    this.flash = Math.max(this.flash, profile.flash)
+    this.burst = Math.max(this.burst, profile.burst)
+    this.alertMix = Math.max(this.alertMix, profile.alert)
+    this.log(label ?? profile.label)
+  }
+
+  /** Add a line to the event log panel. */
+  public log(text: string): void {
+    const line = text.replace(/\s+/g, ' ').trim().toUpperCase().slice(0, 48)
+    if (!line) return
+    this.logLines.push({ id: ++this.logCounter, stamp: formatStamp(new Date()), text: line, bornAt: this.elapsed })
+    if (this.logLines.length > LOG_CAPACITY) this.logLines.shift()
+    const panel = this.panels.find((candidate) => candidate.id === 'log')
+    if (panel) panel.flash = 1
+  }
+
+  /**
+   * Show a row in the SYSTEMS panel (model, credits, connection…), keyed so it can be updated
+   * or removed with `null`. Host rows sit between the built-in CORE/VOICE and UPLINK/RENDER.
+   */
+  public setStatus(key: string, status: JarvisStatus | null): void {
+    if (!status) {
+      this.statuses.delete(key)
+      return
+    }
+    this.statuses.set(key, {
+      label: status.label.trim().toUpperCase().slice(0, 12),
+      value: status.value.trim().toUpperCase().slice(0, 16),
+      hot: status.hot === true,
+    })
+  }
+
+  /** Bring a panel forward, or release the focused one with `null`. */
+  public focusPanel(id: JarvisPanelId | null): void {
+    if (id !== null && !this.panels.some((panel) => panel.id === id)) return
+    if (id === this.focusedPanel) return
+    this.focusedPanel = id
+    this.glitch = Math.max(this.glitch, 0.15)
+    this.spawnShockwave(0.18)
   }
 
   /**
@@ -1581,6 +2189,27 @@ export class Jarvis {
     this.computeFit(true)
   }
 
+  public setPanels(enabled: boolean): void {
+    this.config.panels = enabled
+    for (const panel of this.panels) panel.mesh.visible = enabled
+    if (!enabled) {
+      this.focusedPanel = null
+      this.hoveredPanel = null
+      this.renderer.domElement.style.cursor = ''
+    }
+    this.computeFit(true)
+  }
+
+  public setGrid(enabled: boolean): void {
+    this.config.grid = enabled
+    this.gridMesh.visible = enabled
+  }
+
+  /** 0 flattens the HUD onto one plane, 1 is the reference volume, 2 doubles it. */
+  public setDepth(value: number): void {
+    this.config.depth = THREE.MathUtils.clamp(value, 0, 2)
+  }
+
   public setTitle(title: string): void {
     this.config.title = title.trim().toUpperCase().slice(0, 24) || 'J.A.R.V.I.S.'
   }
@@ -1632,6 +2261,8 @@ export class Jarvis {
     this.camera.updateProjectionMatrix()
 
     this.scene.remove(this.root)
+    this.renderer.domElement.style.cursor = ''
+    for (const panel of this.panels) panel.dispose()
     this.titleLabel.dispose()
     this.telemetryLabel.dispose()
     const materials = new Set<THREE.Material>()
