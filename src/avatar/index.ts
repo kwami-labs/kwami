@@ -17,6 +17,9 @@ export type {
   JarvisOptions,
   JarvisPalettePreset,
   JarvisQuality,
+  JarvisSignal,
+  JarvisStatus,
+  JarvisPanelId,
   JarvisAudioFrame,
 } from './renderers/jarvis/index.js'
 export {

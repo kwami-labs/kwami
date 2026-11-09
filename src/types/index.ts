@@ -190,6 +190,9 @@ export interface JarvisAvatarConfig {
   labels?: boolean
   title?: string
   scale?: number
+  panels?: boolean
+  grid?: boolean
+  depth?: number
 }
 
 export interface AudioConfig {

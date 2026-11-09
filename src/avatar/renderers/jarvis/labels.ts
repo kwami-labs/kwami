@@ -10,15 +10,15 @@ import type { LabelPlacement } from './layout.js'
  * redraws a canvas. Canvases redraw only when their content string changes.
  */
 
-const TEXT_FONT = '"Rajdhani", "Orbitron", "Segoe UI", "Roboto", "Helvetica Neue", Arial, sans-serif'
-const MONO_FONT = '"Share Tech Mono", "Roboto Mono", Consolas, "Courier New", monospace'
+export const TEXT_FONT = '"Rajdhani", "Orbitron", "Segoe UI", "Roboto", "Helvetica Neue", Arial, sans-serif'
+export const MONO_FONT = '"Share Tech Mono", "Roboto Mono", Consolas, "Courier New", monospace'
 const SCRAMBLE_GLYPHS = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789#%&*+<>/\\'
 const CANVAS_WIDTH = 1024
 
-const BODY = 'rgb(255,0,0)'
-const BODY_DIM = 'rgb(120,0,0)'
-const BODY_FAINT = 'rgb(70,0,0)'
-const HOT = 'rgb(0,255,0)'
+export const BODY = 'rgb(255,0,0)'
+export const BODY_DIM = 'rgb(120,0,0)'
+export const BODY_FAINT = 'rgb(70,0,0)'
+export const HOT = 'rgb(0,255,0)'
 
 export class HudLabel {
   readonly mesh: THREE.Mesh
@@ -135,7 +135,7 @@ export class ScrambleText {
   }
 }
 
-function setFont(context: CanvasRenderingContext2D, weight: number, size: number, family: string, spacing: number): void {
+export function setFont(context: CanvasRenderingContext2D, weight: number, size: number, family: string, spacing: number): void {
   context.font = `${weight} ${size}px ${family}`
   // letterSpacing is widely supported but not in every lib.dom version.
   ;(context as unknown as { letterSpacing: string }).letterSpacing = `${spacing}px`
@@ -200,7 +200,7 @@ export interface TelemetryContent {
   active: boolean
 }
 
-function formatUptime(seconds: number): string {
+export function formatUptime(seconds: number): string {
   const total = Math.max(0, Math.floor(seconds))
   const h = Math.floor(total / 3600)
   const m = Math.floor((total % 3600) / 60)

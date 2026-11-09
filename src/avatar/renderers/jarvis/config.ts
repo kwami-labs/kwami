@@ -61,6 +61,9 @@ export function getDefaultJarvisConfig(): JarvisConfig {
     labels: true,
     title: 'J.A.R.V.I.S.',
     scale: 1,
+    panels: true,
+    grid: true,
+    depth: 1,
   }
 }
 

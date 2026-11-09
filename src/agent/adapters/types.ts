@@ -58,6 +58,12 @@ export interface LiveKitAdapterConfig extends LiveKitConfig {
   noiseSuppression?: boolean
   /** Enable auto gain control */
   autoGainControl?: boolean
+  /**
+   * Record the microphone from the moment it is published and hand the recording to the agent
+   * when it joins, so speech in the second or two before the agent arrives is not lost.
+   * Defaults to true.
+   */
+  preConnectBuffer?: boolean
 
   // ---------------------------------------------------------------------------
   // Voice Pipeline Configuration (NEW)
