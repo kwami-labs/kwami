@@ -14,6 +14,9 @@ export type {
   JarvisOptions,
   JarvisPalettePreset,
   JarvisQuality,
+  JarvisSignal,
+  JarvisStatus,
+  JarvisPanelId,
   JarvisAudioFrame,
 } from './avatar/index.js'
 export { Agent } from './agent/index.js'

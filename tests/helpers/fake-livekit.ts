@@ -15,6 +15,13 @@ export class FakeRoom {
 
   readonly remoteParticipants = new Map<string, FakeRemoteParticipant>();
   readonly publishedData: Uint8Array[] = [];
+  /** RPC method name -> the handler the pipeline registered. */
+  readonly rpcHandlers = new Map<string, (data: unknown) => Promise<string>>();
+  /** Text-stream topic -> the handler the pipeline registered. */
+  readonly textStreamHandlers = new Map<
+    string,
+    (reader: { readAll(): Promise<string> }, participant: { identity: string }) => void
+  >();
 
   name = 'fake-room';
   state = 'disconnected';
@@ -28,7 +35,34 @@ export class FakeRoom {
     setMicrophoneEnabled: vi.fn(async () => {}),
     publishTrack: vi.fn(async () => {}),
     unpublishTrack: vi.fn(async () => {}),
+    setAttributes: vi.fn(async (attributes: Record<string, string>) => {
+      void attributes;
+    }),
   };
+
+  registerTextStreamHandler(
+    topic: string,
+    handler: (reader: { readAll(): Promise<string> }, participant: { identity: string }) => void,
+  ): void {
+    if (this.textStreamHandlers.has(topic)) {
+      throw new Error(`A text stream handler for topic "${topic}" has already been set.`);
+    }
+    this.textStreamHandlers.set(topic, handler);
+  }
+
+  /** Deliver a text stream on `topic` as `identity`, the way the agent's `send_text` would. */
+  streamText(topic: string, text: string, identity: string): void {
+    const handler = this.textStreamHandlers.get(topic);
+    if (!handler) throw new Error(`No text stream handler for ${topic}`);
+    handler({ readAll: async () => text }, { identity });
+  }
+
+  registerRpcMethod(method: string, handler: (data: unknown) => Promise<string>): void {
+    if (this.rpcHandlers.has(method)) {
+      throw new Error(`RPC handler already registered for method ${method}`);
+    }
+    this.rpcHandlers.set(method, handler);
+  }
 
   constructor(public readonly options?: unknown) {
     FakeRoom.instances.push(this);

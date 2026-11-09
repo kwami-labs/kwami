@@ -18,7 +18,7 @@
  * spiral currents.
  */
 
-import { Vector2 } from 'three'
+import { Color, Vector2 } from 'three'
 
 const COMMON = /* glsl */ `
   #define TAU 6.28318530718
@@ -925,6 +925,196 @@ export const sparkFragmentShader = /* glsl */ `
 `
 
 // ---------------------------------------------------------------------------------------------
+// Holographic panels (canvas content as an alpha mask, framed here)
+// ---------------------------------------------------------------------------------------------
+
+export const panelFragmentShader = /* glsl */ `
+  precision highp float;
+  ${COMMON}
+  uniform sampler2D uMap;
+  uniform vec3 uColor;
+  uniform vec3 uHot;
+  uniform float uOpacity;
+  uniform float uTime;
+  uniform float uAspect; // width / height
+  uniform float uHover;
+  uniform float uFlash;
+  uniform float uReveal;
+  uniform float uSeed;
+  varying vec2 vUv;
+  void main() {
+    vec4 texel = texture2D(uMap, vUv);
+    float body = texel.r;
+    float hot = texel.g;
+
+    // Distance to the nearest edge, in units of panel height, so the frame has the same
+    // weight on a wide panel as on a slim one.
+    vec2 d = (0.5 - abs(vUv - 0.5)) * vec2(uAspect, 1.0);
+    float edge = min(d.x, d.y);
+    float px = fwidth(edge);
+    float inset = 0.03;
+    float border = aaBand(abs(edge - inset), 0.0028, px);
+    // Corner brackets: the frame thickens where both edges are close, and reaches further
+    // along the sides while the pointer is over the panel.
+    float reach = inset + 0.15 + uHover * 0.1;
+    float corner = 1.0 - step(reach, max(d.x, d.y));
+    float bracket = aaBand(abs(edge - inset), 0.009, px) * corner;
+    float inside = smoothstep(inset - px, inset + px, edge);
+
+    // Boot: the panel opens from its centre line.
+    float wipe = 1.0 - smoothstep(uReveal, uReveal + 0.02, abs(vUv.y - 0.5) * 2.0);
+
+    float glass = (0.022 + uHover * 0.045) * (0.55 + 0.45 * vUv.y);
+    // One slow refresh band per panel, far wider than a pixel.
+    float scan = exp(-pow((fract(vUv.y * 0.7 - uTime * 0.11 + uSeed) - 0.5) * 16.0, 2.0)) * (0.04 + uHover * 0.05);
+    float shimmer = 0.93 + 0.07 * sin(uTime * 2.3 - vUv.y * 5.0 + uSeed * 6.0);
+
+    float text = (body * 1.2 + hot * 2.2) * shimmer;
+    float frame = border * 0.42 + bracket * (1.0 + uHover * 0.9);
+    float energy = (text + glass + scan) * inside + frame;
+    energy *= (1.0 + uFlash * 1.4 + uHover * 0.25) * uOpacity * wipe;
+    vec3 colour = mix(uColor, uHot, clamp(hot * 0.7 + bracket * 0.35 + uFlash * 0.3, 0.0, 1.0));
+    gl_FragColor = vec4(colour * energy, clamp(energy, 0.0, 1.0));
+  }
+`
+
+// ---------------------------------------------------------------------------------------------
+// Floor grid: a perspective plane under the reactor that the voice ripples across
+// ---------------------------------------------------------------------------------------------
+
+export const gridVertexShader = /* glsl */ `
+  varying vec2 vPlane;
+  void main() {
+    vPlane = position.xy;
+    gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
+  }
+`
+
+export const gridFragmentShader = /* glsl */ `
+  precision highp float;
+  ${COMMON}
+  uniform vec3 uColor;
+  uniform vec3 uHot;
+  uniform float uOpacity;
+  uniform float uLevel;
+  uniform float uWavePhase;
+  uniform vec2 uExtent; // half-size of the plane
+  uniform vec2 uCentre; // point of the plane directly under the reactor
+  uniform float uPointerX;
+  uniform float uPointerAmt;
+  uniform vec4 uWaves[4]; // radius, strength, width, unused
+  varying vec2 vPlane;
+
+  // Anti-aliased grid lines. A cell that shrinks toward a few pixels dissolves instead of
+  // aliasing into moiré, which is what happens to every grid at its horizon.
+  float gridLines(vec2 p, float density) {
+    vec2 g = p * density;
+    vec2 w = max(fwidth(g), vec2(1e-5));
+    vec2 a = abs(fract(g - 0.5) - 0.5) / w;
+    float line = 1.0 - min(min(a.x, a.y), 1.0);
+    return line * (1.0 - smoothstep(0.18, 0.5, max(w.x, w.y)));
+  }
+
+  void main() {
+    vec2 rel = vPlane - uCentre;
+    float r = length(rel);
+    float minor = gridLines(vPlane, 4.0);
+    float major = gridLines(vPlane, 1.0);
+
+    // No hard border: the plane fades toward its far edge and its sides.
+    vec2 e = abs(vPlane) / uExtent;
+    float fade = (1.0 - smoothstep(0.45, 1.0, e.x)) * (1.0 - smoothstep(0.35, 1.0, e.y));
+
+    // The shared radial wave rolls outward along the floor, and each syllable's shockwave
+    // continues from the reactor onto it.
+    float roll = exp(-pow((fract(r * 0.33 - uWavePhase * 0.07) - 0.5) * 6.0, 2.0));
+    float shock = 0.0;
+    for (int i = 0; i < 4; i++) {
+      vec4 wave = uWaves[i];
+      shock += wave.y * exp(-pow((r - wave.x * 1.5) / (wave.z * 5.0 + 0.1), 2.0));
+    }
+    float pointer = uPointerAmt * exp(-pow((vPlane.x - uPointerX) * 1.3, 2.0));
+
+    float lines = minor * 0.2 + major * 0.5;
+    float energy = lines * (0.3 + roll * (0.45 + uLevel * 2.2) + shock * 2.4 + pointer * 0.55);
+    // Pool of light where the reactor's projection lands.
+    energy += exp(-r * r * 0.7) * (0.03 + uLevel * 0.12);
+    energy *= fade * uOpacity;
+    vec3 colour = mix(uColor, uHot, clamp(shock + roll * uLevel * 1.5, 0.0, 1.0) * 0.6);
+    gl_FragColor = vec4(colour * energy, clamp(energy, 0.0, 1.0));
+  }
+`
+
+// ---------------------------------------------------------------------------------------------
+// Core lattice: wireframe solids turning inside the reactor chamber
+// ---------------------------------------------------------------------------------------------
+
+export const latticeVertexShader = /* glsl */ `
+  uniform float uSwell;
+  varying float vFacing;
+  void main() {
+    // Edges of a solid centred on the origin: the vertex direction is its own normal.
+    vFacing = normalize(normalMatrix * normalize(position)).z;
+    gl_Position = projectionMatrix * modelViewMatrix * vec4(position * (1.0 + uSwell), 1.0);
+  }
+`
+
+export const latticeFragmentShader = /* glsl */ `
+  precision highp float;
+  uniform vec3 uColor;
+  uniform vec3 uHot;
+  uniform float uOpacity;
+  uniform float uHeat;
+  varying float vFacing;
+  void main() {
+    // Edges on the far side dim, so the wireframe reads as a solid turning in space rather
+    // than as a flat tangle of lines.
+    float facing = 0.22 + 0.78 * smoothstep(-0.5, 0.7, vFacing);
+    float energy = uOpacity * facing;
+    gl_FragColor = vec4(mix(uColor, uHot, clamp(uHeat, 0.0, 1.0)) * energy, clamp(energy, 0.0, 1.0));
+  }
+`
+
+// ---------------------------------------------------------------------------------------------
+// Pointer reticle: the cursor, drawn on the HUD plane
+// ---------------------------------------------------------------------------------------------
+
+export const reticleFragmentShader = /* glsl */ `
+  precision highp float;
+  ${COMMON}
+  uniform vec3 uColor;
+  uniform vec3 uHot;
+  uniform float uOpacity;
+  uniform float uTime;
+  uniform float uPress;
+  uniform float uPing; // 1 at the click, decays to 0
+  uniform float uOver; // over something interactive
+  varying vec2 vUv;
+  void main() {
+    vec2 p = (vUv - 0.5) * 2.0;
+    float r = length(p);
+    float angle = atan(p.y, p.x);
+    float px = fwidth(r);
+
+    float ringRadius = mix(0.3, 0.2, uPress) + uOver * 0.09;
+    float ring = aaBand(abs(r - ringRadius), 0.011, px);
+    // Three arcs orbiting the ring; they close up while a button is held.
+    float turn = fract((angle + uTime * (1.2 + uOver * 2.0)) / TAU * 3.0);
+    float arcs = aaBand(abs(r - (ringRadius + 0.11)), 0.009, px) * step(mix(0.55, 0.15, uPress), turn);
+    // Four axis ticks.
+    float off = abs(fract(angle / TAU * 4.0 + 0.5) - 0.5) * (TAU / 4.0) * r;
+    float ticks = aaBand(off, 0.009, fwidth(off)) * step(ringRadius + 0.19, r) * step(r, ringRadius + 0.3);
+    float dotCore = 1.0 - smoothstep(0.03, 0.03 + px * 1.5, r);
+    // Click ping: a ring that expands to the edge of the quad and fades.
+    float ping = aaBand(abs(r - (1.0 - uPing) * 0.94), 0.006 + 0.03 * uPing, px) * uPing * step(0.001, uPing);
+
+    float energy = (ring * 0.85 + arcs * 0.65 + ticks * 0.55 + dotCore * 1.5 + ping * 1.8) * uOpacity;
+    vec3 colour = mix(uColor, uHot, clamp(dotCore + ping + uPress * 0.5 + uOver * 0.3, 0.0, 1.0));
+    gl_FragColor = vec4(colour * energy, clamp(energy, 0.0, 1.0));
+  }
+`
+
+// ---------------------------------------------------------------------------------------------
 // Backdrop (full-screen, drawn first)
 // ---------------------------------------------------------------------------------------------
 
@@ -977,6 +1167,8 @@ export const hologramShader = {
     uVignette: { value: 0.35 },
     uGlitch: { value: 0 },
     uFlicker: { value: 1 },
+    uAlert: { value: new Color(1, 0.24, 0.43) },
+    uAlertMix: { value: 0 },
   },
   vertexShader: /* glsl */ `
     varying vec2 vUv;
@@ -996,6 +1188,8 @@ export const hologramShader = {
     uniform float uVignette;
     uniform float uGlitch;
     uniform float uFlicker;
+    uniform vec3 uAlert;
+    uniform float uAlertMix;
     varying vec2 vUv;
 
     void main() {
@@ -1028,6 +1222,10 @@ export const hologramShader = {
       if (uGrain > 0.0) colour += (hash21(uv * uResolution + fract(uTime) * 100.0) - 0.5) * uGrain;
       colour *= mix(1.0, 1.0 - smoothstep(0.3, 0.95, dist), uVignette);
       colour *= uFlicker;
+      // Alert tint: the whole interface leans toward the alert colour, keeping its luminance
+      // structure, for the moment an error or warning is signalled.
+      float luma = dot(colour, vec3(0.299, 0.587, 0.114));
+      colour = mix(colour, uAlert * luma * 1.7, uAlertMix);
 
       gl_FragColor = vec4(max(colour, 0.0), base.a);
     }

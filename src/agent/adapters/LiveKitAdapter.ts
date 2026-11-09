@@ -6,11 +6,13 @@ import type {
   LocalParticipant,
   DataPacket_Kind,
   LocalAudioTrack,
+  RpcInvocationData,
   TranscriptionSegment,
 } from 'livekit-client';
 import {
   Room,
   RoomEvent,
+  RpcError,
   Track,
   ConnectionState,
   createLocalTracks
@@ -167,6 +169,61 @@ export interface AgentIdentityConfig {
  *  3. The legacy name heuristic, kept so existing deployments keep working. It is a guess about
  *     a self-declared string and must not be relied on where the room is not otherwise trusted.
  */
+/** The element that plays the agent's voice. Apps read it (recording), so its id is stable. */
+export const AGENT_VOICE_ELEMENT_ID = 'kwami-agent-audio'
+
+/** Elements for agent audio tracks that are not its voice. */
+export const AGENT_EXTRA_AUDIO_ELEMENT_ID = 'kwami-agent-audio-extra'
+
+/**
+ * Agent tracks that are not its voice. livekit-agents publishes the voice as `roomio_audio` (or
+ * whatever `audio_track_name` the agent set) and its BackgroundAudioPlayer as `background_audio`.
+ * Listing the non-voice names, not the voice name, keeps a renamed voice track working.
+ */
+const AGENT_NON_VOICE_TRACK_NAMES = new Set(['background_audio'])
+
+/** Whether an agent audio track, by its publication name, carries the agent's voice. */
+export function isAgentVoiceTrack(trackName: string | undefined): boolean {
+  return !AGENT_NON_VOICE_TRACK_NAMES.has(trackName ?? '')
+}
+
+/** The RPC method the agent calls to run a client tool (kwami-lk-agent `tools/client.py`). */
+export const CLIENT_TOOL_RPC_METHOD = 'kwami.client_tool'
+
+/**
+ * The participant attribute that tells the agent this client takes client tools by RPC. Without
+ * it the agent keeps the `tool_call` / `tool_result` data-channel pair, so old and new clients
+ * and agents interoperate in every combination.
+ */
+export const CLIENT_TOOL_RPC_ATTRIBUTE = 'kwami.client_tools'
+
+/** The text-stream topic the agent sends messages too large for one data packet on. */
+export const AGENT_MESSAGE_TOPIC = 'kwami.message'
+
+/** The participant attribute that tells the agent this client reads {@link AGENT_MESSAGE_TOPIC}. */
+export const AGENT_MESSAGES_ATTRIBUTE = 'kwami.messages'
+
+/** LiveKit caps an RPC response at 15 KiB; leave room for the envelope. */
+const RPC_MAX_RESPONSE_BYTES = 14_000
+
+/** Cut `text` to at most `maxBytes` of UTF-8 without splitting a character. */
+export function fitUtf8(text: string, maxBytes: number = RPC_MAX_RESPONSE_BYTES): string {
+  const encoder = new TextEncoder()
+  if (encoder.encode(text).length <= maxBytes) return text
+  let low = 0
+  let high = text.length
+  while (low < high) {
+    const mid = Math.ceil((low + high) / 2)
+    if (encoder.encode(text.slice(0, mid)).length <= maxBytes) low = mid
+    else high = mid - 1
+  }
+  let cut = text.slice(0, low)
+  // Never end on half of a surrogate pair.
+  const last = cut.charCodeAt(cut.length - 1)
+  if (last >= 0xd800 && last <= 0xdbff) cut = cut.slice(0, -1)
+  return cut
+}
+
 export function isAgentIdentity(identity: string, config?: AgentIdentityConfig): boolean {
   if (config?.agentIdentity) return identity === config.agentIdentity
   if (config?.agentIdentityPrefix) return identity.startsWith(config.agentIdentityPrefix)
@@ -431,6 +488,9 @@ class LiveKitPipeline implements AgentPipeline {
       // Listen for data that the client wants to send back to the agent
       this.setupClientToAgentDataRelay()
 
+      // Let the agent call client tools as RPCs (falls back to the data channel on its own)
+      await this.enableClientToolRpc()
+
       this.voiceSession.setState('listening')
       logger.info('LiveKit pipeline connected')
     } catch (error) {
@@ -464,6 +524,7 @@ class LiveKitPipeline implements AgentPipeline {
     this.agentAudioStream = null
 
     this.removeAgentAudioElements()
+    this.removeExtraAgentAudioElements()
 
     if (this.room) {
       const room = this.room
@@ -489,10 +550,31 @@ class LiveKitPipeline implements AgentPipeline {
    */
   private removeAgentAudioElements(): void {
     if (typeof document === 'undefined') return
-    for (const el of Array.from(document.querySelectorAll('#kwami-agent-audio'))) {
+    for (const el of Array.from(document.querySelectorAll(`#${AGENT_VOICE_ELEMENT_ID}`))) {
       ;(el as HTMLAudioElement).pause?.()
       el.remove()
     }
+  }
+
+  /** Remove the elements of the agent's extra audio tracks (see {@link attachExtraAgentAudio}). */
+  private removeExtraAgentAudioElements(): void {
+    if (typeof document === 'undefined') return
+    for (const el of Array.from(document.querySelectorAll(`#${AGENT_EXTRA_AUDIO_ELEMENT_ID}`))) {
+      ;(el as HTMLAudioElement).pause?.()
+      el.remove()
+    }
+  }
+
+  /**
+   * Play an agent audio track that is not its voice. It gets an element of its own and never
+   * reaches the avatar's analyser or `getAgentAudioStream()`, which stay on the voice.
+   */
+  private attachExtraAgentAudio(track: RemoteTrack): void {
+    if (typeof document === 'undefined') return
+    const element = track.attach()
+    element.id = AGENT_EXTRA_AUDIO_ELEMENT_ID
+    document.body.appendChild(element)
+    logger.debug('Playing an extra agent audio track alongside the voice')
   }
 
   /**
@@ -531,7 +613,7 @@ class LiveKitPipeline implements AgentPipeline {
     // Track subscribed - agent audio comes through here
     this.room.on(RoomEvent.TrackSubscribed, (
       track: RemoteTrack,
-      _publication: TrackPublication,
+      publication: TrackPublication,
       participant: RemoteParticipant
     ) => {
       logger.debug(`Track subscribed: ${track.kind} from ${participant.identity}`)
@@ -543,13 +625,22 @@ class LiveKitPipeline implements AgentPipeline {
           return
         }
 
+        // An agent can publish more than its voice: livekit-agents' BackgroundAudioPlayer adds
+        // a `background_audio` track (ambience, a thinking sound). Treating every agent track as
+        // the voice made that track replace it — the voice element was removed and the avatar
+        // started reacting to keyboard clicks. Extra tracks play on their own element.
+        if (!isAgentVoiceTrack(publication.trackName)) {
+          this.attachExtraAgentAudio(track)
+          return
+        }
+
         // This is the agent's audio response
         // Attach to an audio element to play it. Clear any previous one first: the id is
         // fixed, so a republished agent track (a backend restart mid-session) would otherwise
         // stack a second element on top of the first and play both.
         this.removeAgentAudioElements()
         const audioElement = track.attach()
-        audioElement.id = 'kwami-agent-audio'
+        audioElement.id = AGENT_VOICE_ELEMENT_ID
 
         document.body.appendChild(audioElement)
 
@@ -566,7 +657,11 @@ class LiveKitPipeline implements AgentPipeline {
       participant: RemoteParticipant
     ) => {
       logger.debug(`Track unsubscribed: ${track.kind} from ${participant.identity}`)
-      track.detach()
+      // `detach()` stops the elements but leaves them in the page; an extra agent track's
+      // element has no other owner, so it is removed here.
+      for (const element of track.detach()) {
+        if (element.id === AGENT_EXTRA_AUDIO_ELEMENT_ID) element.remove()
+      }
     })
 
     // Data received - transcripts and agent messages come through here.
@@ -901,6 +996,104 @@ class LiveKitPipeline implements AgentPipeline {
   }
 
   /**
+   * Open the agent's extra channels and advertise them with participant attributes.
+   *
+   * - `kwami.client_tool` RPC: an RPC is a request with its own answer, error and deadline,
+   *   addressed to this participant alone — what `tool_call` / `tool_result` rebuilt by hand over a
+   *   broadcast data channel.
+   * - `kwami.message` text stream: agent messages too large for one data packet (search results
+   *   with images) arrive whole instead of trimmed to fit.
+   *
+   * Each is advertised only once it is registered, and the data channel stays for everything: an
+   * agent that predates either keeps using it, and a failure here only means the agent never sees
+   * that attribute.
+   */
+  private async enableClientToolRpc(): Promise<void> {
+    const room = this.room
+    if (!room) return
+    const attributes: Record<string, string> = {}
+    if (typeof room.registerRpcMethod === 'function') {
+      try {
+        room.registerRpcMethod(CLIENT_TOOL_RPC_METHOD, (data) => this.handleClientToolRpc(data))
+        attributes[CLIENT_TOOL_RPC_ATTRIBUTE] = 'rpc'
+      } catch (error) {
+        logger.warn('Client tools over RPC unavailable; the data channel carries them', error)
+      }
+    }
+    if (typeof room.registerTextStreamHandler === 'function') {
+      try {
+        room.registerTextStreamHandler(AGENT_MESSAGE_TOPIC, (reader, participantInfo) => {
+          void this.handleAgentMessageStream(reader, participantInfo.identity)
+        })
+        attributes[AGENT_MESSAGES_ATTRIBUTE] = 'stream'
+      } catch (error) {
+        logger.warn('Large agent messages unavailable; the agent trims them to fit', error)
+      }
+    }
+    if (Object.keys(attributes).length === 0) return
+    try {
+      await room.localParticipant.setAttributes(attributes)
+      logger.info('Agent channels enabled:', Object.keys(attributes).join(', '))
+    } catch (error) {
+      logger.warn('Could not advertise the agent channels; the data channel carries everything', error)
+    }
+  }
+
+  /** One agent message that came as a text stream: same gate and handling as a data packet. */
+  private async handleAgentMessageStream(
+    reader: { readAll(): Promise<string> },
+    identity: string
+  ): Promise<void> {
+    if (!isAgentIdentity(identity, this.config)) {
+      logger.warn(`Ignoring a message stream from non-agent participant: ${identity}`)
+      return
+    }
+    try {
+      const data: AgentDataMessage = JSON.parse(await reader.readAll())
+      this.handleAgentData(data)
+    } catch (error) {
+      logger.error('Failed to read an agent message stream:', error)
+    }
+  }
+
+  /**
+   * Run one client tool for the agent. Gated exactly like the data-channel `tool_call`: only the
+   * agent may invoke the host application's tools.
+   */
+  private async handleClientToolRpc(data: RpcInvocationData): Promise<string> {
+    if (!isAgentIdentity(data.callerIdentity, this.config)) {
+      logger.warn('Ignoring a client tool RPC from a non-agent participant', data.callerIdentity)
+      throw new RpcError(RpcError.ErrorCode.APPLICATION_ERROR, 'Only the agent may run client tools')
+    }
+    if (!this.toolExecutor) {
+      // The agent retries this over the data channel, which logs the missing executor there.
+      throw RpcError.builtIn('UNSUPPORTED_METHOD')
+    }
+
+    let name: string
+    let args: Record<string, unknown> = {}
+    try {
+      const call = JSON.parse(data.payload) as { name?: unknown; arguments?: unknown }
+      name = typeof call.name === 'string' ? call.name : ''
+      const raw = typeof call.arguments === 'string' ? JSON.parse(call.arguments) : call.arguments
+      if (raw && typeof raw === 'object' && !Array.isArray(raw)) args = raw as Record<string, unknown>
+    } catch {
+      throw new RpcError(RpcError.ErrorCode.APPLICATION_ERROR, 'Malformed client tool call')
+    }
+    if (!name) {
+      throw new RpcError(RpcError.ErrorCode.APPLICATION_ERROR, 'Client tool call without a name')
+    }
+
+    try {
+      const result = await this.toolExecutor(name, args)
+      return fitUtf8(typeof result === 'string' ? result : JSON.stringify(result ?? ''))
+    } catch (error) {
+      const message = error instanceof Error ? error.message : String(error)
+      throw new RpcError(RpcError.ErrorCode.APPLICATION_ERROR, fitUtf8(message, 2_000))
+    }
+  }
+
+  /**
    * Publish microphone audio track
    */
   private async publishMicrophone(): Promise<void> {
@@ -919,6 +1112,13 @@ class LiveKitPipeline implements AgentPipeline {
       const audioTrack = tracks.find(t => t.kind === Track.Kind.Audio) as LocalAudioTrack
       if (audioTrack) {
         this.localAudioTrack = audioTrack
+        // The agent is dispatched after this client joins and arrives a second or two later.
+        // Recording from now and handing the recording to the agent when it subscribes means
+        // whatever the user says in that gap is heard instead of lost. livekit-client sends it
+        // on `lk.agent.pre-connect-audio-buffer`, which livekit-agents reads by default.
+        if (this.config.preConnectBuffer !== false && typeof audioTrack.startPreConnectBuffer === 'function') {
+          audioTrack.startPreConnectBuffer()
+        }
         await this.room.localParticipant.publishTrack(audioTrack)
         logger.info('Microphone published')
       }
