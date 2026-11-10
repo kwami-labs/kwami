@@ -116,7 +116,8 @@ and drives `src/utils/api-client.ts` against it over a real socket. No mocked `f
 
 ### `build` — dist
 
-`pnpm build` produces `dist/`, then the job asserts `dist/index.js` and `dist/index.d.ts` exist
+`pnpm build` produces `dist/`, `pnpm check:dts` asserts the declarations resolve under `node16`
+module resolution, then the job asserts `dist/index.js` and `dist/index.d.ts` exist
 and are non-empty — a build that emits no entry point or no types is a broken publish, and
 neither Vite nor `tsc` necessarily says so loudly. `dist/` is uploaded as an artifact.
 
@@ -164,15 +165,16 @@ What they enforce:
 **Rulesets / branch protection on `main` and `stg`:**
 
 - Require a pull request before merging, 1 approval, dismiss stale approvals.
-- Require review from Code Owners ([`CODEOWNERS`](../.github/CODEOWNERS)).
+- Require review from Code Owners ([`CODEOWNERS`](../.github/CODEOWNERS)) — `main` only.
 - Required status checks: **`ci gate`** and **`enforce promotion path`**.
 - Require branches to be up to date before merging.
 - Block force pushes and deletions.
-- Allow the `github-actions[bot]` actor to bypass the pull-request requirement — `release.yml`
-  and `cd.yml` push the release commit and the back-merges directly.
+- Repository admins and the GitHub Actions app may bypass the rules — `release.yml` and `cd.yml`
+  push the release commit and the back-merges directly.
 
-**On `dev`:** the same, minus the Code Owner review, and with `enforce promotion path` optional
-(the gate lets any feature branch in; it is only strict about `stg` and `main`).
+**On `dev`:** pull request required but 0 approvals, squash merge only, **`ci gate`** the only
+required check (the promotion gate lets any feature branch in; it is only strict about `stg` and
+`main`).
 
 **On the `v*` tags:** they cannot be deleted, moved or force-updated — by anyone, the release bot
 included. Creation is deliberately left alone, because that is exactly what semantic-release does
