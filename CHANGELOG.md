@@ -8,6 +8,25 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 New releases are prepended by semantic-release from Conventional Commits. Historical
 entries below the automation baseline were reconstructed from git history.
 
+## [2.3.0](https://github.com/kwami-labs/kwami/compare/v2.2.0...v2.3.0) (2026-11-12)
+
+### Features
+
+* **agent:** read agent messages too large for a data packet from a text stream ([#153](https://github.com/kwami-labs/kwami/issues/153)) ([d3dbc71](https://github.com/kwami-labs/kwami/commit/d3dbc71e93b7bdc5bc82c4d79011cf17394e6f14))
+* **agent:** take client tools over LiveKit RPC and buffer the mic before the agent joins ([#150](https://github.com/kwami-labs/kwami/issues/150)) ([2855fd3](https://github.com/kwami-labs/kwami/commit/2855fd3269c75d70b76ff9b59e807420b9d4fb68))
+* **avatar:** give the jarvis HUD depth, data panels and reactions to everything ([#151](https://github.com/kwami-labs/kwami/issues/151)) ([6bc50ff](https://github.com/kwami-labs/kwami/commit/6bc50ffa66ee5c2530d1c612489528c8662e704e))
+* **avatar:** re-shape the blob surface in a web worker ([#141](https://github.com/kwami-labs/kwami/issues/141)) ([807ef73](https://github.com/kwami-labs/kwami/commit/807ef734d0bb3d60c996dcdc5adb06e4c5e2c89b))
+
+### Bug Fixes
+
+* **agent:** keep the agent's voice when it publishes a second audio track ([#152](https://github.com/kwami-labs/kwami/issues/152)) ([8f40da6](https://github.com/kwami-labs/kwami/commit/8f40da64a86396e2fafe5f6f7b3a1a401d13a993))
+* **avatar:** keep the analyser off the speakers ([#138](https://github.com/kwami-labs/kwami/issues/138)) ([9ce2ab5](https://github.com/kwami-labs/kwami/commit/9ce2ab5c8c1ac2556e9a5acb961139fddc3e9c16))
+* **deps:** the dev tooling's open advisories (esbuild, minimatch) ([#155](https://github.com/kwami-labs/kwami/issues/155)) ([9289473](https://github.com/kwami-labs/kwami/commit/9289473c977572a24066fec425c032101751af0b))
+
+### Build & Dependencies
+
+* **deps:** bump the minor-and-patch group with 6 updates ([#132](https://github.com/kwami-labs/kwami/issues/132)) ([02db61b](https://github.com/kwami-labs/kwami/commit/02db61bc7ba4b818590470f589eca67806e5a64d))
+
 ## [2.2.0](https://github.com/kwami-labs/kwami/compare/v2.1.1...v2.2.0) (2026-10-14)
 
 ### Features
