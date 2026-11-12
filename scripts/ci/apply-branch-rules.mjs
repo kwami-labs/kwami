@@ -20,10 +20,13 @@
  *          where work lands, and blocking it on a reviewer stalls a solo repo.
  *   tags   `v*` cannot be deleted, moved or force-updated by anyone, bot included.
  *
- * `github-actions[bot]` bypasses the pull-request rule on the branches: release.yml / cd.yml push the
- * release commit, the tag and the post-release back-merges directly. It does NOT bypass the
- * status checks, and it does NOT bypass the tag rules — nothing in the release flow ever needs
- * to delete or move a tag, and semantic-release's entire notion of "what shipped" is those tags.
+ * Deploy keys bypass the branch rulesets: release.yml / cd.yml push the release commit and the
+ * post-release back-merges over SSH with the `RELEASE_DEPLOY_KEY` secret (docs/ci-cd.md). It is
+ * a deploy key rather than `github-actions[bot]` because a repository ruleset cannot name the
+ * GitHub Actions app unless the owning organization has installed it — GitHub answers 422
+ * "must be part of the ruleset source or owner organization". Nothing bypasses the tag rules —
+ * nothing in the release flow ever needs to delete or move a tag, and semantic-release's entire
+ * notion of "what shipped" is those tags.
  *
  * Usage:
  *   gh auth login                       # needs `repo` / admin on the repository
@@ -37,9 +40,6 @@ import { fileURLToPath } from 'node:url';
 
 const RULESETS_DIR = join(dirname(fileURLToPath(import.meta.url)), '../../.github/rulesets');
 
-/** The GitHub Actions app id, as committed in the JSON. Resolved from the API when possible. */
-const ACTIONS_APP_ID_FALLBACK = 15368;
-
 /**
  * Read the ruleset declarations off disk, in a stable order.
  *
@@ -52,31 +52,6 @@ export function loadRulesets(dir = RULESETS_DIR) {
     .filter((name) => name.endsWith('.json'))
     .sort()
     .map((name) => ({ file: name, ruleset: JSON.parse(readFileSync(join(dir, name), 'utf8')) }));
-}
-
-/**
- * Point every `Integration` bypass actor at the real app id.
- *
- * The id in the JSON is a fallback, not a fact: app ids are per-instance on GitHub Enterprise,
- * and a literal nobody can verify is a literal that will be wrong somewhere. Pure so the test
- * can check it rewrites the id without touching anything else.
- */
-export function withResolvedAppId(ruleset, appId) {
-  if (!appId || !ruleset.bypass_actors?.length) return ruleset;
-  return {
-    ...ruleset,
-    bypass_actors: ruleset.bypass_actors.map((actor) =>
-      actor.actor_type === 'Integration' ? { ...actor, actor_id: appId } : actor,
-    ),
-  };
-}
-
-/** Strip the Actions bypass, for the 422 fallback below. */
-export function withoutAppBypass(ruleset) {
-  return {
-    ...ruleset,
-    bypass_actors: (ruleset.bypass_actors ?? []).filter((a) => a.actor_type !== 'Integration'),
-  };
 }
 
 const args = process.argv.slice(2);
@@ -117,26 +92,11 @@ function requireAuth() {
   }
 }
 
-function actionsAppId() {
-  try {
-    return gh(['api', 'apps/github-actions', '--jq', '{id: .id}']).id;
-  } catch {
-    console.log(
-      `  ! Could not resolve the github-actions app id; using ${ACTIONS_APP_ID_FALLBACK}.`,
-    );
-    return ACTIONS_APP_ID_FALLBACK;
-  }
-}
-
 function main() {
   const REPO = args.includes('--repo') ? repoArg : detectRepo();
 
   requireAuth();
-  const appId = actionsAppId();
-  console.log(`Repository: ${REPO}`);
-  console.log(
-    `github-actions app id: ${appId}${dryRun ? '  (dry run — nothing will change)' : ''}`,
-  );
+  console.log(`Repository: ${REPO}${dryRun ? '  (dry run — nothing will change)' : ''}`);
   console.log('');
 
   const declared = loadRulesets();
@@ -146,60 +106,23 @@ function main() {
   }
 
   const existing = gh(['api', `repos/${REPO}/rulesets`, '--jq', '[.[] | {id, name}]']) ?? [];
-  let botBypassBlocked = false;
 
   for (const { file, ruleset } of declared) {
-    const payload = withResolvedAppId(ruleset, appId);
-    const match = existing.find((entry) => entry.name === payload.name);
-    console.log(`${match ? 'updating' : 'creating'} "${payload.name}"  (${file})`);
+    const match = existing.find((entry) => entry.name === ruleset.name);
+    console.log(`${match ? 'updating' : 'creating'} "${ruleset.name}"  (${file})`);
 
     if (dryRun) {
-      console.log(JSON.stringify(payload, null, 2));
+      console.log(JSON.stringify(ruleset, null, 2));
       continue;
     }
 
-    const write = (body) =>
-      match
-        ? gh(['api', '-X', 'PUT', `repos/${REPO}/rulesets/${match.id}`], body)
-        : gh(['api', '-X', 'POST', `repos/${REPO}/rulesets`], body);
-
-    let result;
-    try {
-      result = write(payload);
-    } catch (error) {
-      // A repository-level ruleset can only name the GitHub Actions app as a bypass actor
-      // when the owning organization has installed it as one. Without that, GitHub answers
-      // 422 "Actor GitHub Actions integration must be part of the ruleset source or owner
-      // organization". Apply the protection anyway — it is the valuable part — and say
-      // plainly what the operator has to do so releases can still push.
-      const message = String(error.stdout ?? error.stderr ?? error.message ?? '');
-      if (!message.includes('must be part of the ruleset source')) throw error;
-
-      console.log('  ! GitHub Actions cannot be added as a bypass actor from the API here.');
-      botBypassBlocked = true;
-      result = write(withoutAppBypass(payload));
-    }
+    const result = match
+      ? gh(['api', '-X', 'PUT', `repos/${REPO}/rulesets/${match.id}`], ruleset)
+      : gh(['api', '-X', 'POST', `repos/${REPO}/rulesets`], ruleset);
     console.log(`  → ruleset ${result.id} (${result.enforcement})`);
   }
 
   console.log(`\nDone. Verify at: https://github.com/${REPO}/settings/rules`);
-
-  if (botBypassBlocked) {
-    console.log('');
-    console.log('ACTION REQUIRED — releases will be blocked until you do this:');
-    console.log('  The rulesets were created WITHOUT a bypass for github-actions[bot], so');
-    console.log(
-      '  release.yml / cd.yml cannot push the release commit, the tag or the back-merges.',
-    );
-    console.log('');
-    console.log('  Fix it in one of two ways:');
-    console.log(`    1. https://github.com/${REPO}/settings/rules — open each ruleset, add`);
-    console.log('       "GitHub Actions" to the bypass list, and set it to "Always".');
-    console.log(
-      '    2. Or give release.yml / cd.yml a PAT belonging to a repository admin and use it',
-    );
-    console.log('       in place of GITHUB_TOKEN for the git remote.');
-  }
 }
 
 // Importable by the test without shelling out to `gh`.
