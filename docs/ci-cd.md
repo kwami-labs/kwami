@@ -169,8 +169,10 @@ What they enforce:
 - Required status checks: **`ci gate`** and **`enforce promotion path`**.
 - Require branches to be up to date before merging.
 - Block force pushes and deletions.
-- Repository admins and the GitHub Actions app may bypass the rules — `release.yml` and `cd.yml`
-  push the release commit and the back-merges directly.
+- Repository admins and **deploy keys** may bypass the rules — `release.yml` and `cd.yml` push the
+  release commit and the back-merges directly, over SSH with the release deploy key (below). The
+  GitHub Actions app cannot be used: GitHub only accepts it as a bypass actor when the owning
+  organization has installed it, and answers 422 otherwise.
 
 **On `dev`:** pull request required but 0 approvals, squash merge only, **`ci gate`** the only
 required check (the promotion gate lets any feature branch in; it is only strict about `stg` and
@@ -190,17 +192,33 @@ individual subjects survive into the higher channel's changelog.
 
 **Secrets:**
 
-| Secret         | Where             | Purpose                                                |
-| -------------- | ----------------- | ------------------------------------------------------ |
-| `GITHUB_TOKEN` | automatic         | tags, release commits, GitHub Releases, PR comments    |
-| `NPM_TOKEN`    | repository secret | publishing to npm. Absent → everything else still runs |
+| Secret               | Where                        | Purpose                                                      |
+| -------------------- | ---------------------------- | ------------------------------------------------------------ |
+| `RELEASE_DEPLOY_KEY` | `release` environment secret | pushes the release commit, the tag and the back-merges (SSH) |
+| `GITHUB_TOKEN`       | automatic                    | GitHub Releases, PR and issue comments                       |
+| `NPM_TOKEN`          | repository secret            | publishing to npm. Absent → everything else still runs       |
+
+### The release deploy key
+
+`RELEASE_DEPLOY_KEY` is the private half of a **write** deploy key on the repository. The
+`release` environment that holds it only admits `main`, `stg` and `dev`, so a workflow on any
+other branch cannot read a key that bypasses the channel rulesets. To create or rotate it:
+
+```bash
+ssh-keygen -t ed25519 -N '' -C 'kwami release' -f release_key
+gh repo deploy-key add release_key.pub --allow-write --title 'release (semantic-release)'
+gh secret set RELEASE_DEPLOY_KEY --env release < release_key
+rm release_key release_key.pub   # then delete the old key under Settings → Deploy keys
+```
+
+Every deploy key on the repository gets the ruleset bypass, so keep this the only write key.
 
 ## Loop safety
 
-The release commit is pushed with `GITHUB_TOKEN`, and GitHub deliberately does not trigger
-workflows for pushes made with it — the version bump cannot re-run CI or release itself. The
-`[skip actions]` marker in the message is the belt to that braces, for anything watching the
-repo from outside Actions.
+The release commit is pushed with the deploy key, and unlike `GITHUB_TOKEN` a deploy-key push
+**does** trigger workflows. The `[skip actions]` marker in the release commit and in the
+back-merge commits is what stops the version bump from re-running CI or releasing itself — do not
+drop it from `.releaserc.cjs` or `scripts/release/sync-branches.mjs`.
 
 `release.yml` and `cd.yml` also refuse to release a tip that has drifted ahead of the commit
 `ci` actually tested: a push that landed mid-run has its own run behind it, and that one

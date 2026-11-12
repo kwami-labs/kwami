@@ -131,9 +131,14 @@ tag on this channel is a non-releasing type (`docs`, `chore`, `ci`, `test`, `sty
 **The version jumped to 1.0.0.** No `v*` tag was reachable — the baseline tag never made it to
 `origin`. Run `pnpm release:baseline` and check `git ls-remote --tags origin`.
 
-**The release commit re-triggered CI.** It should not: `GITHUB_TOKEN` pushes do not start
-workflows. If something outside Actions is watching, it should honour the `[skip actions]`
-marker in the message.
+**The release commit re-triggered CI.** It should not: the deploy-key push does start workflows,
+but the `[skip actions]` marker in the release and back-merge messages skips them. Check that
+the marker is still in `.releaserc.cjs` and `scripts/release/sync-branches.mjs`.
+
+**`GH013: Repository rule violations found for refs/heads/main`.** The release pushed with
+something other than the deploy key. Check that `RELEASE_DEPLOY_KEY` is set in the `release`
+environment, that the deploy key still exists with write access, and that the channel rulesets
+list deploy keys as a bypass actor (`pnpm rules:apply`). See [`ci-cd.md`](./ci-cd.md).
 
 **A promote PR conflicts on `CHANGELOG.md` / `package.json`.** The back-merge did not run or
 failed. Re-run `cd.yml` on `main`, or merge `main` into the channel by hand taking `main`'s
