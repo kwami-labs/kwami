@@ -9,6 +9,7 @@ import type {
 } from './types.js'
 import { defaultParticlesFaceConfig, defaultAudioEffects } from './config.js'
 import { generateFaceGeometry, getRegionByName } from './face-geometry.js'
+import { createFrameGate } from '../../frameCap.js'
 
 const vertexShader = /* glsl */ `
   attribute float size;
@@ -189,10 +190,12 @@ export class ParticlesFace {
   // ===========================================================================
 
   private startAnimation(): void {
-    const animate = () => {
+    const due = createFrameGate()
+    const animate = (now?: number) => {
       if (this.disposed) return
-      this.update()
       this.animationFrameId = requestAnimationFrame(animate)
+      if (!due(now)) return
+      this.update()
     }
     animate()
   }
