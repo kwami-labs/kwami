@@ -85,6 +85,7 @@ import {
   type SpectrumContent,
   type TrackingContent,
 } from './panels.js'
+import { createFrameGate } from '../../frameCap.js'
 
 const CAMERA_FOV = 35
 const CAMERA_DISTANCE = 8
@@ -1381,9 +1382,11 @@ export class Jarvis {
   // =====================================================
 
   private startAnimation(): void {
+    const due = createFrameGate()
     const frame = (now: number): void => {
       if (this.disposed) return
       this.animationFrameId = requestAnimationFrame(frame)
+      if (!due(now)) return
       const dt = this.lastFrameTime === 0 ? 1 / 60 : Math.min((now - this.lastFrameTime) / 1000, 0.05)
       this.lastFrameTime = now
       this.update(dt)

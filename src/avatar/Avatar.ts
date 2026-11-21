@@ -9,6 +9,7 @@ import { Jarvis } from './renderers/jarvis/index.js'
 import { KwamiAudio } from './audio/index.js'
 import { logger } from '../utils/logger.js'
 import * as THREE from 'three'
+import { createFrameGate } from './frameCap.js'
 
 /**
  * Avatar - Manages the visual representation of Kwami
@@ -76,13 +77,15 @@ export class Avatar {
     if (this.tickHandle !== null || typeof requestAnimationFrame === 'undefined') return
 
     this.lastTickTime = 0
+    const due = createFrameGate()
     const tick = (now: number): void => {
+      this.tickHandle = requestAnimationFrame(tick)
+      if (!due(now)) return
       // Clamped: returning to a backgrounded tab hands back one enormous delta, which would
       // jump the star field's rotation by seconds in a single frame.
       const deltaSeconds = this.lastTickTime === 0 ? 0 : Math.min((now - this.lastTickTime) / 1000, 0.05)
       this.lastTickTime = now
       this.scene.update(deltaSeconds)
-      this.tickHandle = requestAnimationFrame(tick)
     }
     this.tickHandle = requestAnimationFrame(tick)
   }

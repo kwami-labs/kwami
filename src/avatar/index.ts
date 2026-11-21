@@ -1,4 +1,5 @@
 export { Avatar } from './Avatar.js'
+export { setMaxFps, getMaxFps } from './frameCap.js'
 export { Scene, StarField, type StarFieldConfig } from './scene/index.js'
 export { KwamiAudio } from './audio/index.js'
 export { BlobXyz, BlobXyzPosition, defaultBlobXyzConfig, createSkin } from './renderers/blob-xyz/index.js'
