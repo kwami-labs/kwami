@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import { describe, it } from 'node:test';
-import { loadRulesets, withoutAppBypass, withResolvedAppId } from './apply-branch-rules.mjs';
+import { loadRulesets } from './apply-branch-rules.mjs';
 
 const byName = Object.fromEntries(loadRulesets().map(({ ruleset }) => [ruleset.name, ruleset]));
 
@@ -62,6 +62,23 @@ describe('the committed rulesets', () => {
       assert.ok(rule(byName[name], 'non_fast_forward'), `${name} allows a force push`);
     }
   });
+
+  // release-channel.yml pushes the release commit and the back-merges over SSH with the release
+  // deploy key. GitHub rejects the GitHub Actions app as a bypass actor on this repository (422
+  // "must be part of the ruleset source or owner organization"), so it must not creep back in:
+  // one Integration entry makes every `pnpm rules:apply` fail.
+  it('lets only repository admins and the release deploy key bypass a channel', () => {
+    for (const name of ['dev protection', 'stg protection', 'main protection']) {
+      assert.deepEqual(
+        byName[name].bypass_actors,
+        [
+          { actor_id: 5, actor_type: 'RepositoryRole', bypass_mode: 'always' },
+          { actor_id: null, actor_type: 'DeployKey', bypass_mode: 'always' },
+        ],
+        `${name} has an unexpected bypass list`,
+      );
+    }
+  });
 });
 
 describe('the tag ruleset', () => {
@@ -86,58 +103,5 @@ describe('the tag ruleset', () => {
   // nothing in the release flow ever needs to move one.
   it('gives nobody a bypass, the release bot included', () => {
     assert.deepEqual(tags.bypass_actors, []);
-  });
-});
-
-describe('withResolvedAppId', () => {
-  const ruleset = {
-    name: 'x',
-    bypass_actors: [
-      { actor_id: 5, actor_type: 'RepositoryRole', bypass_mode: 'always' },
-      { actor_id: 15368, actor_type: 'Integration', bypass_mode: 'always' },
-    ],
-  };
-
-  it('repoints the Integration actor at the resolved id', () => {
-    const actors = withResolvedAppId(ruleset, 99).bypass_actors;
-    assert.equal(actors.find((a) => a.actor_type === 'Integration').actor_id, 99);
-  });
-
-  it('leaves every other actor alone', () => {
-    const actors = withResolvedAppId(ruleset, 99).bypass_actors;
-    assert.deepEqual(
-      actors.find((a) => a.actor_type === 'RepositoryRole'),
-      {
-        actor_id: 5,
-        actor_type: 'RepositoryRole',
-        bypass_mode: 'always',
-      },
-    );
-  });
-
-  it('does not mutate the declaration it was handed', () => {
-    withResolvedAppId(ruleset, 99);
-    assert.equal(ruleset.bypass_actors[1].actor_id, 15368);
-  });
-
-  it('passes a ruleset with no bypass actors straight through', () => {
-    const tags = { name: 'release tags', bypass_actors: [] };
-    assert.equal(withResolvedAppId(tags, 99), tags);
-  });
-});
-
-describe('withoutAppBypass', () => {
-  it('drops the app but keeps the admin, for the 422 fallback', () => {
-    const stripped = withoutAppBypass({
-      bypass_actors: [
-        { actor_id: 5, actor_type: 'RepositoryRole' },
-        { actor_id: 15368, actor_type: 'Integration' },
-      ],
-    });
-    assert.deepEqual(stripped.bypass_actors, [{ actor_id: 5, actor_type: 'RepositoryRole' }]);
-  });
-
-  it('tolerates a ruleset that declares none', () => {
-    assert.deepEqual(withoutAppBypass({ name: 'x' }).bypass_actors, []);
   });
 });

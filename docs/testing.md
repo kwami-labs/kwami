@@ -20,7 +20,7 @@ pnpm test:coverage        # unit + the coverage ratchet (what CI runs)
 pnpm test:integration     # integration
 pnpm test:e2e             # e2e — builds dist/ and the fixture first
 pnpm test:e2e:ui          # e2e in Playwright's UI mode
-pnpm test:ci-scripts      # scripts/ci/*.test.mjs under node --test
+pnpm test:ci-scripts      # scripts/**/*.test.mjs under node --test
 pnpm test:all             # unit → integration → e2e
 ```
 
@@ -100,12 +100,14 @@ all of which typecheck cleanly and pass in `happy-dom`.
 In CI the job downloads the `dist` artifact the `build` job produced rather than rebuilding, so
 the bytes under test are the bytes that would be published.
 
-## CI scripts — `scripts/ci/*.test.mjs`
+## CI scripts — `scripts/**/*.test.mjs`
 
 [`assert-promotion-path.test.mjs`](../scripts/ci/assert-promotion-path.test.mjs) covers the
 branch-promotion rules as pure functions: feature branches into `dev`, forks, stale heads,
 namesake fork branches, skipped channels, back-merge attempts and malformed input. The gate that
-judges every PR is itself gated.
+judges every PR is itself gated. The same suite also covers the ruleset declarations
+(`apply-branch-rules.test.mjs`), the `.d.ts` resolution check (`check-dts-resolution.test.mjs`),
+the CD workflow wiring (`assert-cd-pipeline.test.mjs`) and `scripts/release/publish-latest.test.mjs`.
 
 ## Adding a test
 

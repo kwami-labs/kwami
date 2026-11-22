@@ -13,9 +13,9 @@ name: release
 # GitHub Release.
 #
 # It runs on the back of `ci` rather than on the push itself, so no version is ever cut from a
-# red commit. The release commit is pushed with GITHUB_TOKEN, which by design does not trigger
-# workflows — the version bump cannot re-run CI or release itself in a loop. `[skip actions]` in
-# the message is the belt to that braces for anything watching from outside Actions.
+# red commit. The release commit is pushed with the release deploy key, and a deploy-key push
+# does trigger workflows — `[skip actions]` in the message is what keeps the version bump from
+# re-running CI or releasing itself in a loop.
 #
 # npm publishing is conditional on the NPM_TOKEN secret. Without it the run still versions,
 # tags, writes the changelog and cuts the GitHub Release — see .releaserc.cjs.
@@ -53,6 +53,8 @@ jobs:
       tested_sha: ${{ github.event.workflow_run.head_sha || '' }}
     secrets:
       NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
+      # Lives in the `release` environment; passing it by name is how a reusable workflow gets it.
+      RELEASE_DEPLOY_KEY: ${{ secrets.RELEASE_DEPLOY_KEY }}
     permissions:
       contents: write
       issues: write

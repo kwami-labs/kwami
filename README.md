@@ -10,7 +10,7 @@
 [![Node](https://img.shields.io/node/v/kwami.svg)](./.nvmrc)
 [![pnpm](https://img.shields.io/badge/pnpm-%3E%3D10-F69220.svg?logo=pnpm&logoColor=white)](https://pnpm.io/)
 
-[![TypeScript](https://img.shields.io/badge/TypeScript-5-3178C6.svg?logo=typescript&logoColor=white)](https://www.typescriptlang.org/)
+[![TypeScript](https://img.shields.io/badge/TypeScript-6-3178C6.svg?logo=typescript&logoColor=white)](https://www.typescriptlang.org/)
 [![ESM](https://img.shields.io/badge/module-ESM-ed2c6e.svg)](https://nodejs.org/api/esm.html)
 [![types](https://img.shields.io/npm/types/kwami.svg)](https://www.npmjs.com/package/kwami)
 [![bundle size](https://img.shields.io/bundlephobia/minzip/kwami.svg)](https://bundlephobia.com/package/kwami)
@@ -109,7 +109,7 @@ await luna.connect('user-123', {
 
 ## Features
 
-- **3D avatars** — `blob-xyz`, `black-hole`, `particles-face`, and `eye-iris`, with skins, presets, and audio-reactive motion
+- **3D avatars** — `blob-xyz`, `black-hole`, `particles-face`, `eye-iris`, and `jarvis`, with skins, presets, and audio-reactive motion
 - **Voice pipeline** — mix-and-match STT / LLM / TTS, or a realtime provider, dispatched through LiveKit
 - **Provider catalog** — Deepgram, OpenAI, Anthropic, Gemini, ElevenLabs, Groq, Cartesia, AssemblyAI, and more
 - **Soul presets** — ready-made personalities (Kaya, Nexus, Phoenix, Haven, …) plus live trait updates
@@ -205,7 +205,7 @@ kwami.updateSoul({ emotionalTone: 'enthusiastic' });
 
 ```ts
 const kwami = new Kwami(canvas, {
-  avatar: { renderer: 'blob-xyz' }, // or 'black-hole' | 'particles-face' | 'eye-iris'
+  avatar: { renderer: 'blob-xyz' }, // or 'black-hole' | 'particles-face' | 'eye-iris' | 'jarvis'
 });
 ```
 
@@ -307,7 +307,7 @@ pnpm install    # also installs husky hooks
 
 ```bash
 pnpm build
-pnpm lint && pnpm typecheck && pnpm test:run
+pnpm lint && pnpm typecheck && pnpm test:unit
 ```
 
 ---
@@ -327,6 +327,7 @@ pnpm format
 pnpm format:check
 pnpm typecheck
 pnpm audit:ci
+pnpm check:dts         # declarations resolve under node16 (after build)
 
 # Tests — see docs/testing.md
 pnpm test               # unit
@@ -334,10 +335,12 @@ pnpm test:watch
 pnpm test:coverage      # unit + coverage ratchet (CI)
 pnpm test:integration
 pnpm test:e2e           # built bundle in a real browser (WebGL)
+pnpm test:ci-scripts    # node --test over scripts/
 pnpm test:all
 
 # Releases — see docs/releases.md
 pnpm release:dry-run    # print next version; change nothing
+pnpm rules:apply        # apply .github/rulesets (needs repo admin)
 ```
 
 ---
@@ -354,11 +357,14 @@ kwami/
 │   ├── skills/           # Native behaviors
 │   ├── tools/            # Tool registry (MCP)
 │   ├── types/            # TypeScript definitions
-│   └── Kwami.ts          # Public entry surface
+│   ├── utils/            # Logger, API client, randoms
+│   ├── Kwami.ts          # Main class
+│   └── index.ts          # Public entry surface
 ├── tests/
 │   ├── unit/
 │   ├── integration/
-│   └── e2e/
+│   ├── e2e/
+│   └── helpers/          # Shared test fakes
 ├── scripts/
 │   ├── ci/               # Pipeline gates
 │   └── release/          # Baseline tag, back-merge

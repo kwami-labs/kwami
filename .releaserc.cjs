@@ -12,8 +12,9 @@
  * tags, writes the changelog and cuts the GitHub Release, so a fork or a repo that has not been
  * given a token yet gets the full pipeline minus the publish rather than a red build.
  *
- * The release commit carries `[skip actions]` and is pushed with GITHUB_TOKEN, which by design
- * does not trigger workflows — the bump cannot re-run CI or release itself in a loop.
+ * In CI the release commit is pushed over SSH with the release deploy key (release-channel.yml
+ * passes `--repository-url`). Deploy-key pushes do trigger workflows, so the `[skip actions]` in
+ * the message is what keeps the bump from re-running CI or releasing itself in a loop — keep it.
  *
  * See docs/releases.md.
  */

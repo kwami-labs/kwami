@@ -29,6 +29,7 @@ import {
 } from '../../../utils/randoms.js'
 import type { BlobXyzOptions, BlobXyzSkin, BlobXyzAudioEffects, TricolorSkinConfig } from './types.js'
 import { logger } from '../../../utils/logger.js'
+import { createFrameGate } from '../../frameCap.js'
 
 
 /**
@@ -325,8 +326,11 @@ export class BlobXyz {
    * Start the animation loop
    */
   private startAnimation(): void {
-    const animate = () => {
+    const due = createFrameGate()
+    const animate = (frameTime?: number) => {
       if (this.disposed) return
+      this.animationFrameId = requestAnimationFrame(animate)
+      if (!due(frameTime)) return
 
       /**
        * How many 60 Hz frames' worth of time this frame represents.
@@ -470,8 +474,6 @@ export class BlobXyz {
 
       this.options.renderer.render(this.options.scene, this.options.camera)
       this.options.onAfterRender?.()
-
-      this.animationFrameId = requestAnimationFrame(animate)
     }
 
     animate()

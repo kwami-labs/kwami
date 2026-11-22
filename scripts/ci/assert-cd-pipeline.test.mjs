@@ -23,6 +23,39 @@ describe('the production CD pipeline', () => {
   });
 });
 
+// The channel rulesets only let repository admins and deploy keys push directly, so a release
+// that pushes with GITHUB_TOKEN dies on GH013 after it has already cut the version locally.
+describe('the release push', () => {
+  it('checks out with the release deploy key from the guarded environment', () => {
+    assert.match(channel, /environment:\s*release/);
+    assert.match(channel, /ssh-key:\s*\$\{\{\s*secrets\.RELEASE_DEPLOY_KEY\s*\}\}/);
+    assert.match(channel, /persist-credentials:\s*true/);
+    assert.doesNotMatch(channel, /x-access-token/);
+  });
+
+  it('points semantic-release at the SSH remote rather than the HTTPS package URL', () => {
+    assert.match(
+      channel,
+      /pnpm release --repository-url "git@github\.com:\$\{GITHUB_REPOSITORY\}\.git"/,
+    );
+  });
+
+  it('is handed the key by both callers', () => {
+    for (const caller of [cd, release]) {
+      assert.match(caller, /RELEASE_DEPLOY_KEY:\s*\$\{\{\s*secrets\.RELEASE_DEPLOY_KEY\s*\}\}/);
+    }
+  });
+
+  // A deploy-key push triggers workflows; only the marker stops the release re-running itself.
+  it('keeps [skip actions] on the release and back-merge commits', () => {
+    assert.match(
+      read('.releaserc.cjs'),
+      /chore\(release\): \$\{nextRelease\.version\} \[skip actions\]/,
+    );
+    assert.match(read('scripts/release/sync-branches.mjs'), /after release \[skip actions\]/);
+  });
+});
+
 describe('the prerelease workflow', () => {
   it('keeps main out so CD is the only stable publisher', () => {
     assert.match(release, /workflows:\s*\[ci\]/);
