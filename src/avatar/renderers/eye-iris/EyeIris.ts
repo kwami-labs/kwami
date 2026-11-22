@@ -11,6 +11,7 @@ import type {
   EyeIrisPalettePreset,
   EyeIrisUniforms,
 } from './types.js'
+import { createFrameGate } from '../../frameCap.js'
 
 export class EyeIris {
   private scene: THREE.Scene
@@ -417,11 +418,13 @@ export class EyeIris {
   }
 
   private startAnimation(): void {
-    const animate = () => {
+    const due = createFrameGate()
+    const animate = (now?: number) => {
       if (this.disposed) return
+      this.animationFrameId = requestAnimationFrame(animate)
+      if (!due(now)) return
       this.update()
       this.renderer.render(this.scene, this.camera)
-      this.animationFrameId = requestAnimationFrame(animate)
     }
     animate()
   }

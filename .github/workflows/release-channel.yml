@@ -12,6 +12,10 @@ name: release-channel
 # `publish_latest` is the safety net for a token-less semantic-release: take the newest
 # unpublished `v*` tag and `pnpm publish` it. Without NPM_TOKEN the step notices and
 # continues — changelog and GitHub Release still happened.
+#
+# Every push (release commit, tag, back-merges) goes over SSH with RELEASE_DEPLOY_KEY, a write
+# deploy key kept in the `release` environment. The channel rulesets let deploy keys bypass them;
+# they cannot name github-actions[bot] on this repository. See docs/ci-cd.md.
 on:
   workflow_call:
     inputs:
@@ -33,6 +37,9 @@ on:
       NPM_TOKEN:
         description: npm auth. Absent → version, changelog and GitHub Release still run.
         required: false
+      RELEASE_DEPLOY_KEY:
+        description: Private half of the write deploy key the release pushes with (`release` environment).
+        required: true
 
 permissions:
   contents: write
@@ -45,10 +52,25 @@ jobs:
     name: semantic-release
     runs-on: ubuntu-latest
     timeout-minutes: 20
+    # Holds RELEASE_DEPLOY_KEY. Its deployment branch policy only admits main, stg and dev, so a
+    # workflow on any other branch cannot read a key that bypasses the channel rulesets.
+    environment: release
     env:
       TESTED_SHA: ${{ inputs.tested_sha }}
       RELEASE_BRANCH: ${{ inputs.branch }}
     steps:
+      # `required: true` on the secret only checks that the caller passed it, not that it has a
+      # value. Without it checkout falls back to GITHUB_TOKEN and the push dies on the ruleset
+      # three minutes later; say so up front instead.
+      - name: Require the release deploy key
+        env:
+          RELEASE_DEPLOY_KEY: ${{ secrets.RELEASE_DEPLOY_KEY }}
+        run: |
+          if [ -z "${RELEASE_DEPLOY_KEY:-}" ]; then
+            echo "::error::RELEASE_DEPLOY_KEY is empty — set it in the 'release' environment (docs/ci-cd.md)."
+            exit 1
+          fi
+
       - uses: actions/checkout@v7
         with:
           # The branch, not the tested SHA: semantic-release commits and pushes onto it. The
@@ -57,17 +79,16 @@ jobs:
           # Full history and tags — semantic-release derives everything from them.
           fetch-depth: 0
           fetch-tags: true
-          # We point origin at a token URL below so the back-merge pushes work too.
-          persist-credentials: false
+          # origin becomes the SSH remote and the key stays configured (core.sshCommand) for the
+          # release, baseline-tag and back-merge pushes. The post-job step removes it.
+          ssh-key: ${{ secrets.RELEASE_DEPLOY_KEY }}
+          persist-credentials: true
 
-      - name: Authenticate git for the release and back-merge pushes
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - name: Commit as github-actions[bot]
         run: |
           set -euo pipefail
           git config user.name 'github-actions[bot]'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
-          git remote set-url origin "https://x-access-token:${GITHUB_TOKEN}@github.com/${GITHUB_REPOSITORY}.git"
 
       # semantic-release runs `git tag --merged <branch>` for every channel in .releaserc.cjs.
       # checkout only creates a local ref for the branch being released, so `main` is missing
@@ -117,9 +138,11 @@ jobs:
         if: env.skip != 'true'
         run: pnpm build
 
+      # package.json's repository URL is HTTPS, and semantic-release would push over it with
+      # GITHUB_TOKEN — which the channel rulesets reject. Point it at the deploy-key remote.
       - name: Release
         if: env.skip != 'true'
-        run: pnpm release
+        run: pnpm release --repository-url "git@github.com:${GITHUB_REPOSITORY}.git"
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           # Absent on a repo that has not been given a token: .releaserc.cjs then skips the

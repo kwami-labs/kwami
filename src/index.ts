@@ -8,6 +8,8 @@ export { Kwami } from './Kwami.js'
 // Modules
 export { Avatar, Scene, StarField, type StarFieldConfig, BlobXyz, BlobXyzPosition, KwamiAudio, createSkin, defaultBlobXyzConfig } from './avatar/index.js'
 export { Jarvis, getDefaultJarvisConfig, getJarvisPalette, jarvisPalettePresets, JarvisAudioAnalyzer } from './avatar/index.js'
+/** The most frames per second the avatar is drawn at (60 unless set; 0 is every frame). */
+export { setMaxFps, getMaxFps } from './avatar/index.js'
 export type {
   JarvisColorConfig,
   JarvisConfig,

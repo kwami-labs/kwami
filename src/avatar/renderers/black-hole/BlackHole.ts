@@ -40,6 +40,7 @@ import {
   updateDiskColors,
 } from './materials.js'
 import type { KwamiState } from '../../../types/index.js'
+import { createFrameGate } from '../../frameCap.js'
 
 // Star color palette
 const STAR_PALETTE = [
@@ -282,16 +283,17 @@ export class BlackHole {
    * Start the animation loop
    */
   private startAnimation(): void {
-    const animate = () => {
+    const due = createFrameGate()
+    const animate = (now?: number) => {
       if (this.disposed) return
-      
+      this.animationFrameId = requestAnimationFrame(animate)
+      if (!due(now)) return
+
       // Update all animation
       this.update()
-      
+
       // Render through post-processing composer
       this.composer.render()
-      
-      this.animationFrameId = requestAnimationFrame(animate)
     }
     
     animate()

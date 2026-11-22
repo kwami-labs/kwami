@@ -11,8 +11,9 @@ name: cd
 # the only one that cuts a stable version.
 #
 # It runs on the back of `ci` rather than on the push itself, so no version is ever cut from a
-# red commit. The release commit is pushed with GITHUB_TOKEN, which by design does not trigger
-# workflows — the version bump cannot re-run CI or release itself in a loop.
+# red commit. The release commit is pushed with the release deploy key, and a deploy-key push
+# does trigger workflows — `[skip actions]` in the release and back-merge commit messages is
+# what keeps the version bump from re-running CI or releasing itself in a loop.
 on:
   workflow_run:
     workflows: [ci]
@@ -48,6 +49,8 @@ jobs:
       publish_latest: true
     secrets:
       NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
+      # Lives in the `release` environment; passing it by name is how a reusable workflow gets it.
+      RELEASE_DEPLOY_KEY: ${{ secrets.RELEASE_DEPLOY_KEY }}
     permissions:
       contents: write
       issues: write
