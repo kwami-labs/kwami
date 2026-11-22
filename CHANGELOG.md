@@ -8,6 +8,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 New releases are prepended by semantic-release from Conventional Commits. Historical
 entries below the automation baseline were reconstructed from git history.
 
+## [2.3.1](https://github.com/kwami-labs/kwami/compare/v2.3.0...v2.3.1) (2026-11-22)
+
+### Performance
+
+* **avatar:** draw at 60 frames a second at most, not at the monitor's rate ([#166](https://github.com/kwami-labs/kwami/issues/166)) ([01aa940](https://github.com/kwami-labs/kwami/commit/01aa9404ab6783e470d6ce9a3120240a8117dadd))
+
+### Build & Dependencies
+
+* **deps:** bump livekit-client, prettier, vite and typescript-eslint ([#167](https://github.com/kwami-labs/kwami/issues/167)) ([e53f9f9](https://github.com/kwami-labs/kwami/commit/e53f9f9e02439fa1d80266dc8398b4f775133e79)), references [#165](https://github.com/kwami-labs/kwami/issues/165) [#164](https://github.com/kwami-labs/kwami/issues/164)
+* **deps:** bump the minor-and-patch group across 1 directory with 2 updates ([#168](https://github.com/kwami-labs/kwami/issues/168)) ([352fb61](https://github.com/kwami-labs/kwami/commit/352fb61cd798f882b1f3c7d0b04549c361913cf3))
+
 ## [2.3.0](https://github.com/kwami-labs/kwami/compare/v2.2.0...v2.3.0) (2026-11-12)
 
 ### Features
